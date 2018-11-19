@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="xs3p/xs3p.xsl"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="domain">
+  <xs:annotation>
+    <xs:documentation>The domain element is the root element of the document.</xs:documentation>
+  </xs:annotation>
+
+  <xs:complexType>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="goal" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="parameters" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="default_question" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="is_super_domain" type="xs:boolean"/>
+  </xs:complexType>
+
+</xs:element>
+
+<xs:element name="goal">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_goal">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="plan" type="plan" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="postcond" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="postplan" type="plan" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="gui_context" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+        <xs:attribute name="dynamic_title" type="xs:boolean"/>
+        <xs:attribute name="preferred" type="xs:boolean"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:complexType name="has_goal">
+  <xs:attribute name="action" type="xs:string"/>
+  <xs:attribute name="type">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="perform"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+</xs:complexType>
+
+<xs:complexType name="plan">
+  <xs:choice minOccurs="0" maxOccurs="unbounded">
+    <xs:element ref="forget" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="forget_all" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="invoke_service_query" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="findout" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="invoke_service_action" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="dev_perform" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="dev_query" minOccurs="0" maxOccurs="unbounded"/>
+  </xs:choice>
+</xs:complexType>
+
+<xs:element name="forget">
+  <xs:complexType>
+    <xs:attribute name="predicate" type="xs:string"/>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="forget_all">
+  <xs:complexType/>
+</xs:element>
+
+<xs:element name="invoke_service_query">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_question"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="dev_query">
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+      This element is deprecated, use the invoke_service_query element instead.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="dev_query_type"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:complexType name="dev_query_type">
+  <xs:complexContent>
+    <xs:extension base="has_question">
+      <xs:attribute name="device" type="xs:string" use="required"/>
+    </xs:extension>
+  </xs:complexContent>
+</xs:complexType>
+
+<xs:element name="invoke_service_action">
+  <xs:complexType>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="preconfirm" type="preconfirm"/>
+    <xs:attribute name="postconfirm" type="xs:boolean"/>
+    <xs:attribute name="downdate_plan" type="xs:boolean" default="true"/>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="dev_perform">
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
+      This element is deprecated, use the invoke_service_action element instead.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType>
+    <xs:attribute name="action" type="xs:string" use="required"/>
+    <xs:attribute name="device" type="xs:string" use="required"/>
+    <xs:attribute name="preconfirm" type="preconfirm"/>
+    <xs:attribute name="postconfirm" type="xs:boolean"/>
+  </xs:complexType>
+</xs:element>
+
+<xs:simpleType name="preconfirm">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="assertive"/>
+    <xs:enumeration value="interrogative"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="has_question">
+  <xs:attribute name="type" type="question_type" use="required"/>
+  <xs:attribute name="predicate" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="has_inner_question">
+  <xs:attribute name="question_type" type="question_type" use="required"/>
+  <xs:attribute name="predicate" type="xs:string"/>
+</xs:complexType>
+
+<xs:simpleType name="question_type">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="goal"/>
+    <xs:enumeration value="wh_question"/>
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:element name="findout">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_question"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:complexType name="proposition">
+  <xs:choice minOccurs="1" maxOccurs="1">
+    <xs:element ref="perform"/>
+  </xs:choice>
+</xs:complexType>
+
+<xs:element name="perform">
+  <xs:complexType>
+    <xs:attribute name="action" type="xs:string"/>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="postcond">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="proposition"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="gui_context">
+  <xs:complexType>
+    <xs:attribute name="predicate" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="parameters">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_inner_question">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="service_query" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="alt" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="background" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+
+        <xs:attribute name="verbalize" type="xs:boolean"/>
+
+        <xs:attribute name="graphical_type">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="list"/>
+              <xs:enumeration value="text"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="source">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="domain"/>
+              <xs:enumeration value="service"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attribute name="sort_order">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="alphabetic"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="service_query">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_question"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="alt">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="proposition"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="default_question">
+  <xs:complexType>
+    <xs:complexContent>
+      <xs:extension base="has_question"/>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:element>
+
+<xs:element name="background">
+  <xs:complexType>
+    <xs:attribute name="predicate" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:element>
+
+</xs:schema>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="ontology" type="ontologyType"/>
+  <xs:complexType name="actionType">
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="individualType">
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="sort" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="sortType">
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="boolean_format" name="dynamic" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="predicateType">
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="sort" use="optional"/>
+    <xs:attribute type="xs:string" name="feature_of" use="optional"/>
+    <xs:attribute type="boolean_format" name="multiple_instances" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ontologyType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element type="sortType" name="sort" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="predicateType" name="predicate" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="actionType" name="action" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="individualType" name="individual" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name"/>
+  </xs:complexType>
+  <xs:simpleType name="boolean_format">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="true"/>
+      <xs:enumeration value="false"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

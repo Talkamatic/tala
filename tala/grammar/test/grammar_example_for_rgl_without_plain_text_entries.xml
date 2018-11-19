@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <action name="call">
+    <verb-phrase>
+      <verb ref="call"/>
+    </verb-phrase>
+  </action>
+  <request action="call"/>
+  <question speaker="user" predicate="phone_number_of_contact">
+    <noun-phrase>
+      <noun ref="number" />
+    </noun-phrase>
+  </question>
+</grammar>

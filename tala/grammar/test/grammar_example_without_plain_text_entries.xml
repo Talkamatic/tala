@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <action name="call">
+    <vp>
+      <infinitive>call</infinitive>
+      <imperative>call</imperative>
+      <ing-form>calling</ing-form>
+      <object>someone</object>
+    </vp>
+  </action>
+  <question speaker="user" predicate="phone_number_of_contact">
+    <np>
+      <indefinite>phone number</indefinite>
+    </np>
+  </question>
+</grammar>

@@ -1,5 +1,13 @@
 pipeline {
-    agent { label 'tdm && docker' }
+    agent { label 'tala' }
+
+    parameters {
+        string(
+            defaultValue: 'refs/heads/master',
+            description: 'The Git reference used in checkout',
+            name: 'GERRIT_REFSPEC'
+        )
+    }
 
     options {
         buildDiscarder(
@@ -11,11 +19,40 @@ pipeline {
             )
         )
         timestamps()
-        timeout(time: 1, unit: 'HOURS')
+        timeout(time: 5, unit: 'MINUTES')
     }
 
     triggers {
-        cron('H H(1-5) * * 1-5')
+        gerrit(
+            customUrl: '',
+            gerritProjects:[
+                [
+                    branches: [
+                        [
+                            compareType: 'ANT',
+                            pattern: 'master'
+                        ]
+                    ],
+                    compareType: 'PLAIN',
+                    disableStrictForbiddenFileVerification: false,
+                    pattern: 'tala'
+                ]
+            ],
+            serverName: 'Talkamatic',
+            triggerOnEvents: [
+                patchsetCreated(
+                    excludeDrafts: true,
+                    excludeNoCodeChange: false,
+                    excludeTrivialRebase: false
+                )
+            ],
+            skipVote: [
+              onSuccessful: false,
+              onFailed    : false,
+              onUnstable  : false,
+              onNotBuilt  : false
+            ]
+        )
     }
 
     stages {
@@ -33,17 +70,23 @@ pipeline {
                     scm: [
                         $class: 'GitSCM',
                         branches: [
-                            [
-                                name: '*/master'
-                            ]
+                            [name: '$GERRIT_BRANCH']
                         ],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions: [],
+                        extensions: [
+                            [
+                                $class: 'BuildChooserSetting',
+                                buildChooser: [
+                                    $class: 'GerritTriggerBuildChooser'
+                                ]
+                            ]
+                        ],
                         submoduleCfg: [],
                         userRemoteConfigs: [
                             [
                                 credentialsId: 'jenkinsatgerrit',
-                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
+                                refspec: '$GERRIT_REFSPEC',
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                             ]
                         ]
                     ]
@@ -51,14 +94,21 @@ pipeline {
             }
         }
 
-        stage('build & install tdm') {
+        stage('install') {
             steps {
                 sh '''#!/bin/bash -ex
                     virtualenv venv
                     source venv/bin/activate
 
-                    python setup.py bdist_wheel
-                    pip install dist/*.whl
+                    pip install --editable .
+                '''
+            }
+
+            {
+                sh '''#!/bin/bash -ex
+                    source venv/bin/activate
+
+                    pip install -r dev-requirements.txt
                 '''
             }
         }
@@ -66,65 +116,12 @@ pipeline {
         stage('tests') {
             failFast true
             parallel {
-                stage('install spacy models & test') {
-                    stages {
-                        stage('install spacy models') {
-                            steps {
-                                sh '''#!/bin/bash -ex
-                                    source venv/bin/activate
-
-                                    tdm download-spacy eng
-                                '''
-                                sh '''#!/bin/bash -ex
-                                    source venv/bin/activate
-
-                                    tdm download-spacy sv
-                                '''
-                            }
-                        }
-
-                        stage('interaction test') {
-                            steps {
-                                script {
-                                    docker.image('rasa/duckling').withRun('-p 10090:8000') { c ->
-                                        sh '''#!/bin/bash -ex
-                                            source venv/bin/activate
-
-                                            py.test interaction_tests
-                                        '''
-                                    }
-                                }
-                            }
-                        }
-
-                        stage('integration test') {
-                            steps {
-                                sh '''#!/bin/bash -ex
-                                    source venv/bin/activate
-
-                                    py.test integration_tests/test_rasa_dependent_console_scripts.py
-                                '''
-                            }
-                        }
-                    }
-                }
-
                 stage('unit test') {
                     steps {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
-                            py.test tdm
-                        '''
-                    }
-                }
-
-                stage('grammar coverage test') {
-                    steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            python test/ddds_grammar_coverage_test_suite.py
+                            py.test tala
                         '''
                     }
                 }
@@ -134,7 +131,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
-                            py.test integration_tests --ignore integration_tests/test_rasa_dependent_console_scripts.py
+                            py.test integration_tests
                         '''
                     }
                 }

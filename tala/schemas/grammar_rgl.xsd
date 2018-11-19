@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="grammar" type="grammarType"/>
+  <xs:complexType name="itemType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="1">
+      <xs:element type="individualType" name="individual" minOccurs="0"/>
+      <xs:element type="verb-phraseType" name="verb-phrase" maxOccurs="1" minOccurs="0"/>
+      <xs:element type="noun-phraseType" name="noun-phrase" maxOccurs="1" minOccurs="0"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="individualType">
+    <xs:attribute type="xs:string" name="sort" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="declaredIndividualType">
+    <xs:choice maxOccurs="1" minOccurs="1">
+      <xs:element type="proper-nounType" name="proper-noun"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="proper-nounType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string"/>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stringType" mixed="true">
+    <xs:choice maxOccurs="1" minOccurs="1">
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="predicate"/>
+  </xs:complexType>
+  <xs:complexType name="grammarType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="actionType" name="action"/>
+      <xs:element type="requestType" name="request"/>
+      <xs:element type="reportType" name="report"/>
+      <xs:element type="questionType" name="question" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="predicateType" name="predicate"/>
+      <xs:element type="validityType" name="validity" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="answerType" name="answer"/>
+      <xs:element type="declaredIndividualType" name="individual"/>
+      <xs:element type="stringType" name="string"/>
+      <xs:element type="lexiconType" name="lexicon" maxOccurs="1"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="requestType">
+    <xs:choice maxOccurs="1" minOccurs="1">
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="action"/>
+  </xs:complexType>
+  <xs:complexType name="noun-phraseType">
+    <xs:sequence>
+      <xs:element type="nounType" name="noun"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="one-ofType">
+    <xs:choice maxOccurs="unbounded" minOccurs="1">
+      <xs:element type="itemType" name="item"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="nounType" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="singular" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="ref" use="optional"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="answerType">
+    <xs:sequence>
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="speaker"/>
+    <xs:attribute type="xs:string" name="predicate"/>
+  </xs:complexType>
+  <xs:complexType name="verbType" mixed="true">
+    <xs:sequence>
+      <xs:element type="xs:string" name="infinitive" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="ref" use="optional"/>
+    <xs:attribute type="xs:string" name="id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="utteranceType" mixed="true">
+    <xs:choice>
+      <xs:element type="one-ofType" name="one-of" maxOccurs="1" minOccurs="0"/>
+      <xs:element type="individualType" name="individual" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="reportType">
+    <xs:sequence>
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="action"/>
+    <xs:attribute type="xs:string" name="status"/>
+  </xs:complexType>
+  <xs:complexType name="actionType">
+    <xs:choice minOccurs="1" maxOccurs="1">
+      <xs:element type="verb-phraseType" name="verb-phrase"/>
+      <xs:element type="noun-phraseType" name="noun-phrase"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name"/>
+  </xs:complexType>
+  <xs:complexType name="validityType">
+    <xs:sequence>
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="predicateType">
+    <xs:sequence>
+      <xs:element type="noun-phraseType" name="noun-phrase"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+  </xs:complexType>
+  <xs:complexType name="verb-phraseType">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element type="verbType" name="verb" maxOccurs="1" minOccurs="1"/>
+      <xs:element type="nounType" name="noun" maxOccurs="1" minOccurs="0"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="questionType">
+    <xs:sequence>
+      <xs:element type="utteranceType" name="utterance"/>
+    </xs:sequence>
+    <xs:attribute type="speakerFormat" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="questionTypeFormat" name="type" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="lexiconType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="verbType" name="verb"/>
+      <xs:element type="nounType" name="noun"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:simpleType name="speakerFormat">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="user"/>
+      <xs:enumeration value="system"/>
+      <xs:enumeration value="all"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="questionTypeFormat">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="wh_question"/>
+      <xs:enumeration value="yn_question"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

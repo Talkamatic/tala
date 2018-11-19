@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'tdm' }
+    agent { label 'tala' }
 
     parameters {
         string(
@@ -35,7 +35,7 @@ pipeline {
                     ],
                     compareType: 'PLAIN',
                     disableStrictForbiddenFileVerification: false,
-                    pattern: 'tdm'
+                    pattern: 'tala'
                 ]
             ],
             serverName: 'Talkamatic',
@@ -86,7 +86,7 @@ pipeline {
                             [
                                 credentialsId: 'jenkinsatgerrit',
                                 refspec: '$GERRIT_REFSPEC',
-                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                             ]
                         ]
                     ]
@@ -102,6 +102,11 @@ pipeline {
 
                     pip install --editable .
                 '''
+                sh '''#!/bin/bash -ex
+                    source venv/bin/activate
+
+                    pip install -r dev-requirements.txt
+                '''
             }
         }
 
@@ -113,27 +118,17 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
-                            py.test tdm
+                            py.test tala
                         '''
                     }
                 }
 
-                stage('grammar coverage test') {
+                stage('integration test') {
                     steps {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
-                            python test/ddds_grammar_coverage_test_suite.py
-                        '''
-                    }
-                }
-
-                stage('interaction test') {
-                    steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            py.test interaction_tests/test_quick.py
+                            py.test integration_tests
                         '''
                     }
                 }

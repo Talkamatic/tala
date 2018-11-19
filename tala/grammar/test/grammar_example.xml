@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <action name="top">never mind</action>
+  <action name="up">go back</action>
+
+  <action name="call">
+    <one-of>
+      <item>
+        <vp>
+          <infinitive>call</infinitive>
+          <imperative>call</imperative>
+          <ing-form>calling</ing-form>
+          <object>a contact</object>
+        </vp>
+      </item>
+      <item>make a call</item>
+      <item>call <slot sort="contact"/></item>
+      <item>make a call to <slot predicate="selected_contact_to_call"/></item>
+    </one-of>
+  </action>
+
+  <question speaker="system" predicate="selected_contact_to_call" type="wh_question">
+    who do you want to call
+  </question>
+
+  <report action="Call" status="ended">
+    calling <slot predicate="selected_contact_to_call"/>
+  </report>
+
+  <question speaker="system" predicate="selected_contact_of_phone_number" type="wh_question">
+    whose number
+  </question>
+
+  <question speaker="all" predicate="phone_number_of_contact" type="wh_question">the number</question>
+
+  <validity name="PhoneNumberAvailable">
+    <slot predicate="selected_contact_to_call"/> has no phone number
+  </validity>
+
+  <question speaker="user" predicate="phone_number_of_contact">
+    <one-of>
+      <item>tell me a phone number</item>
+      <item>what is <slot sort="contact"/>'s number</item>
+      <item>tell me <slot predicate="selected_contact_of_phone_number"/>'s number</item>
+    </one-of>
+  </question>
+
+  <answer speaker="system" predicate="phone_number_of_contact">
+    <slot predicate="selected_contact_of_phone_number" type="individual"/> has number
+    <slot predicate="phone_number_of_contact" type="individual"/>
+  </answer>
+
+  <individual name="contact_john">
+    <one-of>
+      <item>John</item>
+      <item>Johnny</item>
+    </one-of>
+  </individual>
+  <individual name="contact_john_chi">约翰</individual>
+  <individual name="contact_lisa">Lisa</individual>
+  <individual name="contact_mary">Mary</individual>
+  <individual name="contact_andy">Andy</individual>
+  <individual name="contact_andy_chi">安迪</individual>
+</grammar>

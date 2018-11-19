@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="xs3p/xs3p.xsl"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="service_interface">
+        <xs:annotation>
+            <xs:documentation>The service interface root element.</xs:documentation>
+        </xs:annotation>
+
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="play_audio_action" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="action" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="query" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="validator" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="entity_recognizer" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="play_audio_action" type="audio_action_interface">
+        <xs:annotation>
+            <xs:documentation>An action to play audio in the frontend, is performed given the parameters.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:complexType name="audio_action_interface">
+        <xs:sequence>
+            <xs:element ref="audio_url_parameter"/>
+            <xs:element name="parameters" type="parameters"/>
+            <xs:element name="target" type="audio_action_target"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:element name="audio_url_parameter">
+        <xs:annotation>
+            <xs:documentation>An audio URL parameter is a predicate of sort 'string'. When the action is performed, the format of this parameter will be 'grammar_entry'.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="predicate" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="audio_action_target">
+        <xs:annotation>
+            <xs:documentation>The target where audio actions will be performed has to be the frontend.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element ref="frontend" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="action" type="action_interface">
+        <xs:annotation>
+            <xs:documentation>An action, is performed given the parameters.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:complexType name="action_interface">
+        <xs:sequence>
+            <xs:element name="parameters" type="parameters"/>
+            <xs:element name="failure_reasons" type="failure_reasons"/>
+            <xs:element name="target" type="action_target"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="non_frontend_interface_with_parameters">
+        <xs:sequence>
+            <xs:element name="parameters" type="parameters"/>
+            <xs:element name="target" type="non_frontend_target"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:element name="query" type="non_frontend_interface_with_parameters">
+        <xs:annotation>
+            <xs:documentation>A query, is answered given the parameters.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="validator" type="non_frontend_interface_with_parameters">
+        <xs:annotation>
+            <xs:documentation>A validator, validates the given combination of parameters.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="entity_recognizer">
+        <xs:annotation>
+            <xs:documentation>An entity recognizer, to recognize entities in incoming utterances at run-time.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="target" type="non_frontend_target"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="parameters">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:element name="parameter">
+        <xs:annotation>
+            <xs:documentation>A parameter is a predicate, supplied to its target service on the specified format.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="predicate" type="xs:string" use="required"/>
+            <xs:attribute name="format" type="parameter_format" use="optional"/>
+            <xs:attribute name="optional" type="xs:boolean" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="failure_reasons">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="failure_reason" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:element name="failure_reason">
+        <xs:annotation>
+            <xs:documentation>A failure reason.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="non_frontend_target">
+        <xs:annotation>
+            <xs:documentation>A target on the backend side that is fast enough to be called several times per session.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="1" maxOccurs="1">
+            <xs:element ref="device_module" minOccurs="1" maxOccurs="1"/>
+            <xs:element ref="http" minOccurs="1" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="action_target">
+        <xs:annotation>
+            <xs:documentation>The target where actions will be performed.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="1" maxOccurs="1">
+            <xs:element ref="frontend" minOccurs="1" maxOccurs="1"/>
+            <xs:element ref="device_module" minOccurs="1" maxOccurs="1"/>
+            <xs:element ref="http" minOccurs="1" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:element name="frontend">
+        <xs:annotation>
+            <xs:documentation>Delegate to the frontend.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType/>
+    </xs:element>
+
+    <xs:element name="device_module">
+        <xs:annotation>
+            <xs:documentation>Delegate to the 'device_module' specified in the DDD config.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attribute name="device" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="http">
+      <xs:annotation>
+        <xs:documentation>Delegate to an HTTP service.</xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+        <xs:attribute name="endpoint" type="xs:string" use="required"/>
+      </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="parameter_format">
+        <xs:annotation>
+            <xs:documentation>'value' is the semantic value while 'grammar_entry' is the corresponding grammar entry on the given language. Note: the parameter format is only used when the target is '<frontend/>' or '<device_module/>'. When the target is '<http/>', both the value and the grammar entry are passed to the service.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="value"/>
+            <xs:enumeration value="grammar_entry"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

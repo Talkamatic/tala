@@ -1,0 +1,1 @@
+UNDEFINED_SERVICE_ACTION_FAILURE = "undefined_failure"

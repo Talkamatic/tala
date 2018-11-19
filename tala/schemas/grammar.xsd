@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="grammar" type="grammarType"/>
+  <xs:complexType name="titleType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="speakerFormat" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="itemType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="1">
+      <xs:element type="slotType" name="slot" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="vpType" name="vp" minOccurs="0"/>
+      <xs:element type="npType" name="np" minOccurs="0"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="individualType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="stringType" mixed="true">
+    <xs:choice maxOccurs="1" minOccurs="0">
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="predicate"/>
+  </xs:complexType>
+  <xs:complexType name="grammarType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="titleType" name="title"/>
+      <xs:element type="actionType" name="action" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="answerType" name="answer"/>
+      <xs:element type="questionType" name="question" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="reportType" name="report"/>
+      <xs:element type="individualType" name="individual" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="stringType" name="string" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="validityType" name="validity"/>
+      <xs:element name="greeting">
+        <xs:complexType mixed="true">
+          <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element type="slotType" name="slot"/>
+            <xs:element type="vpType" name="vp"/>
+            <xs:element type="npType" name="np"/>
+            <xs:element type="one-ofType" name="one-of"/>
+          </xs:choice>
+          <xs:attribute type="xs:string" name="name" use="optional"/>
+          <xs:attribute type="xs:string" name="action" use="optional"/>
+          <xs:attribute type="xs:string" name="type" use="optional"/>
+          <xs:attribute type="xs:string" name="predicate" use="optional"/>
+          <xs:attribute type="xs:string" name="speaker" use="optional"/>
+          <xs:attribute type="xs:string" name="status" use="optional"/>
+          <xs:attribute type="xs:string" name="reason" use="optional"/>
+          <xs:attribute type="xs:string" name="polarity" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element type="preconfirmType" name="preconfirm"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="slotType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="predicate" use="optional"/>
+        <xs:attribute type="slotTypeFormat" name="type" use="optional"/>
+        <xs:attribute type="xs:string" name="sort" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="one-ofType">
+    <xs:sequence>
+      <xs:element name="item" maxOccurs="unbounded" minOccurs="0">
+        <xs:complexType mixed="true">
+          <xs:sequence>
+            <xs:element type="slotType" name="slot" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element type="vpType" name="vp" minOccurs="0"/>
+            <xs:element type="npType" name="np" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="answerType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="preconfirmType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="reportType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="source" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="actionType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="validityType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="vpType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="infinitive"/>
+      <xs:element type="xs:string" name="imperative"/>
+      <xs:element type="xs:string" name="ing-form"/>
+      <xs:element type="xs:string" name="object"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="npType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="indefinite"/>
+      <xs:element type="xs:string" name="definite" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="questionType" mixed="true">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element type="vpType" name="vp"/>
+      <xs:element type="npType" name="np"/>
+      <xs:element type="slotType" name="slot"/>
+      <xs:element type="one-ofType" name="one-of"/>
+    </xs:choice>
+    <xs:attribute type="xs:string" name="speaker" use="optional"/>
+    <xs:attribute type="xs:string" name="predicate" use="optional"/>
+    <xs:attribute type="xs:string" name="type" use="optional"/>
+    <xs:attribute type="xs:string" name="action" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="polarity" use="optional"/>
+    <xs:attribute type="xs:string" name="status" use="optional"/>
+    <xs:attribute type="xs:string" name="reason" use="optional"/>
+  </xs:complexType>
+  <xs:simpleType name="speakerFormat">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="user"/>
+      <xs:enumeration value="system"/>
+      <xs:enumeration value="all"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="slotTypeFormat">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="individual"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

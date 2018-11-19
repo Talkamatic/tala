@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <answer speaker="user">
+    <one-of>
+      <item>in <slot predicate="hours" type="individual"/> hours <slot predicate="minutes" type="individual"/> minutes</item>
+      <item><slot predicate="hours" type="individual"/> hours</item>
+      <item>
+        in <slot predicate="minutes" type="individual"/> minutes
+      </item>
+      <item>
+        <slot predicate="minutes" type="individual"/> minutes
+      </item>
+      <item>
+        in <slot predicate="minutes" type="individual"/>
+      </item>
+    </one-of>
+  </answer>
+</grammar>

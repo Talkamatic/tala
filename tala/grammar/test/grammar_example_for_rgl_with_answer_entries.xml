@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <answer speaker="user">
+    <utterance>
+      <one-of>
+        <item>in <individual predicate="hours"/> hours <individual predicate="minutes"/> minutes</item>
+        <item><individual predicate="hours"/> hours</item>
+      <item>
+        in <individual predicate="minutes"/> minutes
+      </item>
+      <item>
+        <individual predicate="minutes"/> minutes
+      </item>
+      <item>
+        in <individual predicate="minutes"/>
+      </item>
+      </one-of>
+    </utterance>
+  </answer>
+</grammar>

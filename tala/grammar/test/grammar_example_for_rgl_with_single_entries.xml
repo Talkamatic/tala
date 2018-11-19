@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <action name="top">
+    <verb-phrase>
+      <verb ref="top"/>
+    </verb-phrase>
+  </action>
+  <request action="top">
+    <utterance>never mind</utterance>
+  </request>
+  <question speaker="user" predicate="phone_number_of_contact">
+    <utterance>tell me a phone number</utterance>
+  </question>
+</grammar>

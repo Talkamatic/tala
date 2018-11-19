@@ -1,0 +1,5 @@
+*.egg-info
+*.pyc
+tala/installed_version.py
+.cache
+dist

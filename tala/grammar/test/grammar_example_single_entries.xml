@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <action name="top">never mind</action>
+  <question speaker="user" predicate="phone_number_of_contact">tell me a phone number</question>
+</grammar>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar>
+  <string predicate="comment">
+    <one-of>
+      <item>i like movies</item>
+      <item>i hate movies</item>
+    </one-of>
+  </string>
+</grammar>
