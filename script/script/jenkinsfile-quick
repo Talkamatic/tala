@@ -1,0 +1,143 @@
+pipeline {
+    agent { label 'tdm' }
+
+    parameters {
+        string(
+            defaultValue: 'refs/heads/master',
+            description: 'The Git reference used in checkout',
+            name: 'GERRIT_REFSPEC'
+        )
+    }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timestamps()
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    triggers {
+        gerrit(
+            customUrl: '',
+            gerritProjects:[
+                [
+                    branches: [
+                        [
+                            compareType: 'ANT',
+                            pattern: '**'
+                        ]
+                    ],
+                    compareType: 'PLAIN',
+                    disableStrictForbiddenFileVerification: false,
+                    pattern: 'tdm'
+                ]
+            ],
+            serverName: 'Talkamatic',
+            triggerOnEvents: [
+                patchsetCreated(
+                    excludeDrafts: true,
+                    excludeNoCodeChange: false,
+                    excludeTrivialRebase: false
+                )
+            ],
+            skipVote: [
+              onSuccessful: false,
+              onFailed    : false,
+              onUnstable  : false,
+              onNotBuilt  : false
+            ]
+        )
+    }
+
+    stages {
+        stage('clean') {
+            steps {
+                step([$class: 'WsCleanup'])
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [
+                        $class: 'GitSCM',
+                        branches: [
+                            [name: '$GERRIT_BRANCH']
+                        ],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [
+                                $class: 'BuildChooserSetting',
+                                buildChooser: [
+                                    $class: 'GerritTriggerBuildChooser'
+                                ]
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [
+                            [
+                                credentialsId: 'jenkinsatgerrit',
+                                refspec: '$GERRIT_REFSPEC',
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
+                            ]
+                        ]
+                    ]
+                )
+            }
+        }
+
+        stage('install') {
+            steps {
+                sh '''#!/bin/bash -ex
+                    virtualenv venv
+                    source venv/bin/activate
+
+                    pip install --editable .
+                '''
+            }
+        }
+
+        stage('tests') {
+            failFast true
+            parallel {
+                stage('unit test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            py.test tdm
+                        '''
+                    }
+                }
+
+                stage('grammar coverage test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            python test/ddds_grammar_coverage_test_suite.py
+                        '''
+                    }
+                }
+
+                stage('interaction test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            py.test interaction_tests/test_quick.py
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

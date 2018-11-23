@@ -1,0 +1,150 @@
+pipeline {
+    agent { label 'tdm && docker' }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timestamps()
+        timeout(time: 1, unit: 'HOURS')
+    }
+
+    triggers {
+        cron('H H(1-5) * * 1-5')
+    }
+
+    stages {
+        stage('clean') {
+            steps {
+                step([$class: 'WsCleanup'])
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [
+                        $class: 'GitSCM',
+                        branches: [
+                            [
+                                name: '*/master'
+                            ]
+                        ],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [
+                            [
+                                credentialsId: 'jenkinsatgerrit',
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
+                            ]
+                        ]
+                    ]
+                )
+            }
+        }
+
+        stage('build & install tdm') {
+            steps {
+                sh '''#!/bin/bash -ex
+                    virtualenv venv
+                    source venv/bin/activate
+
+                    python setup.py bdist_wheel
+                    pip install dist/*.whl
+                '''
+            }
+        }
+
+        stage('tests') {
+            failFast true
+            parallel {
+                stage('install spacy models & test') {
+                    stages {
+                        stage('install spacy models') {
+                            steps {
+                                sh '''#!/bin/bash -ex
+                                    source venv/bin/activate
+
+                                    tdm download-spacy eng
+                                '''
+                                sh '''#!/bin/bash -ex
+                                    source venv/bin/activate
+
+                                    tdm download-spacy sv
+                                '''
+                            }
+                        }
+
+                        stage('interaction test') {
+                            steps {
+                                script {
+                                    docker.image('rasa/duckling').withRun('-p 10090:8000') { c ->
+                                        sh '''#!/bin/bash -ex
+                                            source venv/bin/activate
+
+                                            py.test interaction_tests
+                                        '''
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('integration test') {
+                            steps {
+                                sh '''#!/bin/bash -ex
+                                    source venv/bin/activate
+
+                                    py.test integration_tests/test_rasa_dependent_console_scripts.py
+                                '''
+                            }
+                        }
+                    }
+                }
+
+                stage('unit test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            py.test tdm
+                        '''
+                    }
+                }
+
+                stage('grammar coverage test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            python test/ddds_grammar_coverage_test_suite.py
+                        '''
+                    }
+                }
+
+                stage('integration test') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            py.test integration_tests --ignore integration_tests/test_rasa_dependent_console_scripts.py
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('archive artifacts') {
+            steps {
+                archiveArtifacts 'dist/*'
+            }
+        }
+    }
+}
