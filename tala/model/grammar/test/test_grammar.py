@@ -279,12 +279,8 @@ class TestGrammar(object):
                                              "<answer speaker=\"user\"> but found some without")
 
     def when_fetching_user_answers_then_exception_is_raised_matching(self, expected_exception, expected_pattern):
-        try:
+        with pytest.raises(expected_exception, match=expected_pattern):
             self.when_fetching_user_answers()
-            assert True == False, "Expected an exception to be raised but got none"
-        except expected_exception as e:
-            assert re.match(expected_pattern, e.message), "Expected '%s' to match '%s' but it didn't"\
-                                                          % (e.message, expected_pattern)
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
         (GrammarForRGL, "tala/model/grammar/test/grammar_example_for_rgl_with_string_entries.xml"),

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import codecs
 import copy
-import json
+import os
 import re
+import shutil
 import tempfile
 import unittest
 
 from mock import MagicMock, Mock, patch
+from pathlib import Path
 
 import tala.utils
 from tala.model.ddd import DDD
@@ -29,13 +30,19 @@ from tala.rasa.generating.examples import Examples, EnglishExamples, SortNotSupp
 
 class GeneratorTestsBase(object):
     def setup(self):
+        self._temp_dir = tempfile.mkdtemp(prefix="GeneratorTests")
+        self._cwd = os.getcwd()
+        os.chdir(self._temp_dir)
         self._mocked_ddd = self._create_mocked_ddd()
         self._generator = None
         self._mocked_grammar = None
         self._expected_data = None
         self._grammar_reader_patcher = self._create_grammar_reader_patcher()
+        self._result = None
 
     def tearDown(self):
+        os.chdir(self._cwd)
+        shutil.rmtree(self._temp_dir)
         self._grammar_reader_patcher.stop()
 
     def _create_mocked_ddd(self):
@@ -107,10 +114,10 @@ class GeneratorTestsBase(object):
         self._generator = RasaGenerator(self._mocked_ddd, ENGLISH)
 
     def when_generate(self):
-        self._generate()
+        self._result = self._generate()
 
     def _generate(self):
-        self._generator.generate()
+        return self._generator.generate()
 
     def when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(self, expected_exception,
                                                                                    expected_pattern):
@@ -119,11 +126,6 @@ class GeneratorTestsBase(object):
             assert False, "%s not raised" % expected_exception
         except expected_exception as e:
             assert re.match(expected_pattern, str(e))
-
-    def _get_generated_data(self):
-        with codecs.open("build_rasa/eng/rasa_data.json", "r", encoding="utf-8") as generated_file:
-            json_data = generated_file.read()
-        return json.loads(json_data)
 
     def given_expected_plan_questions_in_domain(self, predicates):
         def resolve_goals_of_questions(questions):
@@ -222,8 +224,7 @@ class GeneratorTestsBase(object):
         return self._question_examples_with_entities(question_predicate, texts, entity_identifier, entity_names)
 
     def _assert_common_examples_in_generated_data_is(self, expected_common_examples):
-        generated_data = self._get_generated_data()
-        actual_common_examples = generated_data["rasa_nlu_data"]["common_examples"]
+        actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
         for expected_common_example in expected_common_examples:
             assert expected_common_example in actual_common_examples, \
                 "Expected to find %s in %s but didn't" % (
@@ -233,13 +234,63 @@ class GeneratorTestsBase(object):
         self._assert_common_examples_in_generated_data_is(expected_common_examples)
 
     def then_no_common_examples_have_been_generated_for_answer_negation(self):
-        generated_data = self._get_generated_data()
-        actual_common_examples = generated_data["rasa_nlu_data"]["common_examples"]
+        actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
         actual_negation_examples = [
             example for example in actual_common_examples
             if example["intent"] == "rasa_test:answer_negation"]
         assert len(actual_negation_examples) == 0, \
             "Expected no answer negations but got %s" % actual_negation_examples
+
+
+class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
+    def setUp(self):
+        GeneratorTestsBase.setup(self)
+        self._MockUTF8FileWriter = None
+        self._mocked_file_writer = None
+
+    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
+    def test_written_data_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
+        self.given_mocked_file_writer(MockUTF8FileWriter)
+        self.given_generator()
+        self.given_generate_returns({"data": "mock"})
+        self.when_calling_generate_and_write_to_file()
+        self.then_written_data_was('{\n    "data": "mock"\n}')
+
+    def given_mocked_file_writer(self, MockUTF8FileWriter):
+        self._MockUTF8FileWriter = MockUTF8FileWriter
+        self._mocked_file_writer = MockUTF8FileWriter.return_value
+
+    def given_generate_returns(self, data):
+        self._generator.generate = Mock()
+        self._generator.generate.return_value = data
+
+    def when_calling_generate_and_write_to_file(self):
+        self._generator.generate_and_write_to_file()
+
+    def then_written_data_was(self, expected_data):
+        self._mocked_file_writer.write.assert_called_once_with(expected_data)
+
+    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
+    def test_path_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
+        self.given_mocked_file_writer(MockUTF8FileWriter)
+        self.given_generator()
+        self.given_generate_returns({"data": "mock"})
+        self.when_calling_generate_and_write_to_file()
+        self.then_path_was(Path("build_rasa")/"eng"/"rasa_data.json")
+
+    def then_path_was(self, expected_path):
+        self._MockUTF8FileWriter.assert_called_once_with(expected_path)
+
+    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
+    def test_directories_created_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
+        self.given_mocked_file_writer(MockUTF8FileWriter)
+        self.given_generator()
+        self.given_generate_returns({"data": "mock"})
+        self.when_calling_generate_and_write_to_file()
+        self.then_directories_was_created()
+
+    def then_directories_was_created(self):
+        self._mocked_file_writer.create_directories.assert_called_once_with()
 
 
 class UnsupportedBuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):

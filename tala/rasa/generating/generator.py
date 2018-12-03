@@ -1,26 +1,27 @@
-import codecs
-import json
 import os
 from copy import copy
+import json
 
 from jinja2 import Template
+from pathlib import Path
 
 from tala.ddd.grammar.reader import GrammarReader
 from tala.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT
 from tala.rasa.generating.common_example import CommonExample
 from tala.rasa.generating.entity_factory import PropositionalEntityFactory, SortalEntityFactory
 from tala.rasa.generating.examples import Examples
+from tala.utils.file_writer import UTF8FileWriter
 
 
 class RASANotSupportedByGrammarFormatException(Exception): pass
 class UnexpectedRequiredEntityException(Exception): pass
+class RASADataNotGeneratedException(Exception): pass
 
 
 class RasaGenerator(object):
     def __init__(self, ddd, language_code):
         super(RasaGenerator, self).__init__()
         self._ddd = ddd
-        self._examples = set()
         self._sortal_entity_factory = SortalEntityFactory()
         self._propositional_entity_factory = PropositionalEntityFactory()
         self._language_code = language_code
@@ -33,35 +34,40 @@ class RasaGenerator(object):
                 % os.path.abspath(GrammarReader.path(self._language_code)))
         grammar = self._ddd.grammars[self._language_code]
 
-        self._examples.update(self._examples_of_requests(grammar))
-        self._examples.update(self._examples_of_questions(grammar))
-        self._examples.update(self._examples_of_sortal_answers_from_individuals(grammar))
-        self._examples.update(self._examples_of_sortal_answer_negations_from_individuals(grammar))
-        self._examples.update(self._examples_of_answers(grammar))
-        self._examples.update(self._examples_of_negative_intent())
+        examples = set()
+        examples.update(self._examples_of_requests(grammar))
+        examples.update(self._examples_of_questions(grammar))
+        examples.update(self._examples_of_sortal_answers_from_individuals(grammar))
+        examples.update(self._examples_of_sortal_answer_negations_from_individuals(grammar))
+        examples.update(self._examples_of_answers(grammar))
+        examples.update(self._examples_of_negative_intent())
 
         rasa_data = {
             "rasa_nlu_data": {
                 "regex_features": [],
                 "entity_synonyms": [],
-                "common_examples": [example.generate() for example in self._examples]
+                "common_examples": [example.generate() for example in examples]
             }
         }
-        self._print_to_file(rasa_data)
+
+        return rasa_data
 
     @staticmethod
     def data_file_name():
         return "rasa_data.json"
 
-    def _print_to_file(self, data):
-        container = "build_rasa/%s" % self._language_code
-        if not os.path.exists(container):
-            os.makedirs(container)
-        file_path = os.path.join(container, self.data_file_name())
-        with codecs.open(file_path, "w+", encoding="utf-8") as json_file:
-            json_data = json.dumps(data, ensure_ascii=False,
-                                   indent=4, separators=(',', ': '))
-            json_file.write(unicode(json_data))
+    def generate_and_write_to_file(self):
+        def write(path, text):
+            writer = UTF8FileWriter(path)
+            writer.create_directories()
+            writer.write(text)
+
+        def as_json(data):
+            return json.dumps(data, ensure_ascii=False, indent=4, separators=(',', ': '))
+
+        path = Path("build_rasa") / self._language_code / self.data_file_name()
+        data = self.generate()
+        write(path, as_json(data))
 
     def _examples_of_negative_intent(self):
         return self._language_examples.negative

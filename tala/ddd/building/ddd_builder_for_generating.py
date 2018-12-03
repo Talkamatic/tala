@@ -1,6 +1,6 @@
 import os
 
-from tala.ddd.building.steps.generation_step_factory import GenerationStepFactory
+from tala.ddd.building.steps.step_factory import CleanStepFactory, GenerateStepFactory, VerifyStepFactory
 from tala.ddd.building.supported_asrs import SUPPORTED_ASRS
 from tala.utils import chdir
 
@@ -34,21 +34,31 @@ class DDDBuilderForGenerating(object):
             raise DDDsNotSpecifiedException("Expected DDDs to be specified in the backend config, but found none.")
 
         self.cwd = os.getcwd()
+        self._cleaners = {}
         self._generators = {}
-        self._trainers = {}
+        self._verifiers = {}
 
         for ddd in self._backend_dependencies.ddds:
             if not os.path.exists(ddd.name):
                 absolute_ddd_path = os.path.join(os.getcwd(), ddd.name)
                 raise DDDNotFoundException("Expected a DDD at %r but found none." % absolute_ddd_path)
         for ddd in self._backend_dependencies.ddds:
-            generator = GenerationStepFactory.create(ddd, self._language_codes, self._verbose, self._ignore_warnings)
-            self._generators[ddd.name] = generator
-
-    def generate(self):
-        for ddd_name, generator in self._generators.iteritems():
-            with chdir.chdir(ddd_name):
-                generator.build()
+            cleaner_factory = CleanStepFactory(ddd, self._language_codes, self._verbose, self._ignore_warnings)
+            self._cleaners[ddd.name] = cleaner_factory.create()
+            generator_factory = GenerateStepFactory(ddd, self._language_codes, self._verbose, self._ignore_warnings)
+            self._generators[ddd.name] = generator_factory.create()
+            verifier_factory = VerifyStepFactory(ddd, self._language_codes, self._verbose, self._ignore_warnings)
+            self._verifiers[ddd.name] = verifier_factory.create()
 
     def build(self):
-        self.generate()
+        for ddd in self._backend_dependencies.ddds:
+            with chdir.chdir(ddd.name):
+                print("Generating models for DDD '{}'.".format(ddd.name))
+                self._cleaners[ddd.name].build()
+                self._generators[ddd.name].build()
+                print("Finished generating models for DDD '{}'.".format(ddd.name))
+
+    def verify(self):
+        for ddd_name, verifier in self._verifiers.items():
+            with chdir.chdir(ddd_name):
+                verifier.build()

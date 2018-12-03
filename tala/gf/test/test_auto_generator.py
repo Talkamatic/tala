@@ -160,7 +160,6 @@ class AutoGeneratorTestCase(unittest.TestCase):
         self.generator._load_and_compile_grammar_entries = get_grammar
         self.generator.warning = ""
         self.generator._grammar_compiler = self._grammar_compiler
-        self.generator._create_io_buffers()
 
     def _create_mock_ddd(self):
         def create_mocked_service_interface():
@@ -1802,7 +1801,6 @@ class DevicelessDddTest(AutoGeneratorTestCase):
         self.generator._load_and_compile_grammar_entries = get_grammar
         self.generator.warning = ""
         self.generator._grammar_compiler = self._grammar_compiler
-        self.generator._create_io_buffers()
 
     def _when_generating(self):
         self.generator.generate("eng")

@@ -64,6 +64,10 @@ class AutoGenerator(object):
         self._domain = self._ddd.domain
         self._categories = self._get_categories()
 
+        self._abstract_gf_content = StringIO()
+        self._semantic_gf_content = StringIO()
+        self._natural_language_gf_content = StringIO()
+
     @property
     def _schema_absolute_path(self):
         absolute_path = os.path.abspath(os.path.dirname(tala.ddd.schemas.__file__))
@@ -72,7 +76,6 @@ class AutoGenerator(object):
 
     def generate(self, language_code):
         self._grammar = self._load_and_compile_grammar_entries(language_code)
-        self._create_io_buffers()
         self._add_header_in_auto_generated_gf_files(language_code)
         self._add_content_in_auto_generated_gf_files()
         self._add_footer_in_auto_generated_gf_files()
@@ -80,8 +83,8 @@ class AutoGenerator(object):
     def write_to_file(self, language_code):
         self._write_to_gf_files(language_code)
 
-    def close(self):
-        self._close_io_buffers()
+    def clear(self):
+        self._clear_io_buffers()
 
     def _get_categories(self):
         categories = {}
@@ -109,15 +112,10 @@ class AutoGenerator(object):
 
         return categories
 
-    def _create_io_buffers(self):
+    def _clear_io_buffers(self):
         self._abstract_gf_content = StringIO()
         self._semantic_gf_content = StringIO()
         self._natural_language_gf_content = StringIO()
-
-    def _close_io_buffers(self):
-        self._abstract_gf_content.close()
-        self._semantic_gf_content.close()
-        self._natural_language_gf_content.close()
 
     def _name_of_natural_language_gf_file(self, language_code):
         return "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code))

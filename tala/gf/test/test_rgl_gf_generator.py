@@ -104,7 +104,6 @@ class RglGfGeneratorTestCase(unittest.TestCase):
 
         self.generator = MockRglGfFilesGenerator(self._ddd)
         self.generator._load_and_compile_grammar_entries = get_grammar
-        self.generator._create_io_buffers()
         self.generator.warning = ""
         self.generator._grammar_compiler = DddXmlCompiler()
 

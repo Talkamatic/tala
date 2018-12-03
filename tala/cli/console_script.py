@@ -6,9 +6,8 @@ import os
 import re
 import warnings
 
-
-from tala.cli.argument_parser import add_common_backend_arguments
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
+from tala.cli.argument_parser import add_common_backend_arguments
 from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, \
     DddConfigNotFoundException, RasaConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
@@ -56,7 +55,7 @@ def create_rasa_config(args):
     RasaConfig().write_default_config(args.filename)
 
 
-def build(args):
+def verify(args):
     backend_dependencies = BackendDependenciesForGenerating(args)
 
     ddds_builder = DDDBuilderForGenerating(
@@ -64,7 +63,7 @@ def build(args):
         verbose=args.verbose,
         ignore_warnings=args.ignore_warnings,
         language_codes=args.language_codes)
-    ddds_builder.build()
+    ddds_builder.verify()
 
 
 def _check_ddds_for_word_lists(ddds):
@@ -94,12 +93,13 @@ def version(args):
     print installed_version.version
 
 
-def add_build_subparser(subparsers):
-    parser = subparsers.add_parser("build", help="build the DDDs for all languages supported by the backend")
-    parser.set_defaults(func=build)
+def add_verify_subparser(subparsers):
+    parser = subparsers.add_parser(
+        "verify", help="verify the format of all DDDs supported by the backend, across all supported languages")
+    parser.set_defaults(func=verify)
     add_common_backend_arguments(parser)
     parser.add_argument("--languages", dest="language_codes", choices=languages.SUPPORTED_LANGUAGES, nargs="*",
-                        help="override the backend config and build the DDDs for these languages")
+                        help="override the backend config and verify the DDDs for these languages")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_argument("--ignore-grammar-warnings", dest="ignore_warnings", action="store_true",
                         help="ignore warnings when compiling the grammar")
@@ -159,7 +159,7 @@ def main(args=None):
     show_deprecation_warnings()
     root_parser = argparse.ArgumentParser(description="Use the Tala SDK for the Talkamatic Dialogue Manager (TDM).")
     subparsers = root_parser.add_subparsers()
-    add_build_subparser(subparsers)
+    add_verify_subparser(subparsers)
     add_create_ddd_subparser(subparsers)
     add_create_backend_config_subparser(subparsers)
     add_create_ddd_config_subparser(subparsers)
@@ -169,6 +169,7 @@ def main(args=None):
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():
         parsed_args.func(parsed_args)
+
 
 if __name__ == "__main__":
     main()

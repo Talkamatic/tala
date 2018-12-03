@@ -281,6 +281,10 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._predicate_categories = self._get_predicate_categories()
         self._rule_count = 1
 
+        self._abstract_gf_content = StringIO()
+        self._semantic_gf_content = StringIO()
+        self._natural_language_gf_content = StringIO()
+
     def _get_sort_categories(self):
         return dict([
                 (sort, self.get_sort_category(sort))
@@ -298,7 +302,6 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._grammar = self._load_and_compile_grammar_entries()
         self._default_grammar = self._create_default_grammar()
         self._lexicon_nodes = self._get_lexicon()
-        self._create_io_buffers()
         self._add_header_in_generated_gf_files()
         self._add_content_in_generated_gf_files()
         self._add_footer_in_generated_gf_files()
@@ -306,8 +309,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
     def write_to_file(self, _):
         self._write_to_gf_files()
 
-    def close(self):
-        self._close_io_buffers()
+    def clear(self):
+        self._clear_io_buffers()
 
     def _tdm_to_gf_language_code(self, tdm_language_code):
         return tdm_language_code.capitalize()
@@ -346,15 +349,10 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         return self.get_lexicon_field_from_entry(
             verb_lexicon_entry_as_nodes, "infinitive")
 
-    def _create_io_buffers(self):
+    def _clear_io_buffers(self):
         self._abstract_gf_content = StringIO()
         self._semantic_gf_content = StringIO()
         self._natural_language_gf_content = StringIO()
-
-    def _close_io_buffers(self):
-        self._abstract_gf_content.close()
-        self._semantic_gf_content.close()
-        self._natural_language_gf_content.close()
 
     def _name_of_natural_language_gf_file(self):
         return "build/%s/%s" % (self._tdm_language_code,

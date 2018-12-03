@@ -4,45 +4,32 @@ import shutil
 import tempfile
 import unittest
 
-from mock import Mock
+from mock import Mock, patch
 
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
-from tala.model.ddd import DDD
+from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
+import tala.ddd.building.ddd_builder_for_generating
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
+from tala.model.ddd import DDD
 
 
 class TestDDDBuilderForGenerating(unittest.TestCase):
     def setUp(self):
-        self._temp_dir = tempfile.mkdtemp(prefix="DddBuilderTestCase")
+        self._temp_dir = tempfile.mkdtemp(prefix="TestDDDBuilderForGenerating")
         self._cwd = os.getcwd()
         os.chdir(self._temp_dir)
         self._asr = None
         self._use_word_list_correction = False
+        self._mocked_build_step = None
+        self._mock_ddd = None
+        self._ddd_name = None
+        self._mocked_backend_dependencies = None
+        self._language_codes = []
+        self._ddds_builder = None
 
     def tearDown(self):
         os.chdir(self._cwd)
         shutil.rmtree(self._temp_dir)
-
-    def test_auto_generator_invoked(self):
-        self._given_ddd_name("app")
-        self._given_asr("none")
-        self._given_mocked_ddd(is_rasa_enabled=False)
-        self._given_mocked_backend_dependencies()
-        self._given_file_exists("app/grammar/grammar_eng.py")
-        self._given_language_codes(["eng"])
-        self._given_ddds_builder_created()
-        self._given_mocked_build_grammars_method()
-        self._given_mocked_generate_grammars_method()
-        self._when_build_is_called()
-        self._then_generate_grammars_is_invoked_with_arguments("eng")
-
-    def _given_mocked_build_grammars_method(self):
-        for trainer in self._ddds_builder._trainers.values():
-            trainer._build_grammar = Mock()
-
-    def _given_mocked_generate_grammars_method(self):
-        for generator in self._ddds_builder._generators.values():
-            generator._generate_grammars = Mock()
 
     def _given_mocked_ddd(self, is_rasa_enabled):
         mock_ddd = Mock(spec=DDD)
@@ -68,11 +55,6 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
     def _when_build_is_called(self):
         self._ddds_builder.build()
 
-    def _then_generate_grammars_is_invoked_with_arguments(self, *expected_args):
-        auto_generators = [generator._generate_grammars for generator in self._ddds_builder._generators.values()]
-        first_auto_generator = auto_generators[0]
-        first_auto_generator.assert_called_once_with(*expected_args)
-
     def _given_mocked_backend_dependencies(self):
         backend_dependencies = Mock(spec=BackendDependenciesForGenerating)
         backend_dependencies.ddds = [self._mock_ddd]
@@ -88,3 +70,57 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
 
     def _given_asr(self, asr):
         self._asr = asr
+
+    @patch("{}.VerifyStepFactory".format(tala.ddd.building.ddd_builder_for_generating.__name__), autospec=True)
+    def test_verify_invokes_build_on_verification_step(self, MockVerifyStepFactory):
+        self._given_step_factory_creates_mocked_step(MockVerifyStepFactory)
+        self._given_ddd_name("app")
+        self._given_asr("none")
+        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_backend_dependencies()
+        self._given_file_exists("app/grammar/grammar_eng.py")
+        self._given_language_codes(["eng"])
+        self._given_ddds_builder_created()
+        self._when_calling_verify()
+        self._then_build_is_invoked_on_step()
+
+    def _given_step_factory_creates_mocked_step(self, MockStepFactory):
+        self._mocked_build_step = Mock(spec=AbstractBuildStep)
+        mocked_factory = MockStepFactory.return_value
+        mocked_factory.create.return_value = self._mocked_build_step
+
+    def _when_calling_verify(self):
+        self._ddds_builder.verify()
+
+    def _then_build_is_invoked_on_step(self):
+        self._mocked_build_step.build.assert_called_once()
+
+    @patch("{}.GenerateStepFactory".format(tala.ddd.building.ddd_builder_for_generating.__name__), autospec=True)
+    def test_build_invokes_build_on_generate_step(self, MockGenerateStepFactory):
+        self._given_step_factory_creates_mocked_step(MockGenerateStepFactory)
+        self._given_ddd_name("app")
+        self._given_asr("none")
+        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_backend_dependencies()
+        self._given_file_exists("app/grammar/grammar_eng.py")
+        self._given_language_codes(["eng"])
+        self._given_ddds_builder_created()
+        self._when_build_is_called()
+        self._then_build_is_invoked_on_step()
+
+    @patch("{}.GenerateStepFactory".format(tala.ddd.building.ddd_builder_for_generating.__name__), autospec=True)
+    @patch("{}.CleanStepFactory".format(tala.ddd.building.ddd_builder_for_generating.__name__), autospec=True)
+    def test_build_invokes_build_on_clean_step(self, MockCleanStepFactory, MockGenerateStepFactory):
+        self._given_mocked_clean_step(MockCleanStepFactory)
+        self._given_ddd_name("app")
+        self._given_asr("none")
+        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_backend_dependencies()
+        self._given_file_exists("app/grammar/grammar_eng.py")
+        self._given_language_codes(["eng"])
+        self._given_ddds_builder_created()
+        self._when_build_is_called()
+        self._then_build_is_invoked_on_step()
+
+    def _given_mocked_clean_step(self, MockCleanStepFactory):
+        self._mocked_build_step = MockCleanStepFactory.return_value.create.return_value
