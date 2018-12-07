@@ -120,5 +120,4 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
         self.when_create_backend_dependencies_then_no_warnings_are_issued()
 
     def _create_backend_dependencies(self):
-        mock_logger = Mock()
-        self._backend_dependencies = BackendDependenciesForGenerating(self._mock_args, mock_logger)
+        self._backend_dependencies = BackendDependenciesForGenerating(self._mock_args)

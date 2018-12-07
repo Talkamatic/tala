@@ -7,8 +7,8 @@ from tala.lib.sort import DATETIME, INTEGER
 
 
 class BackendDependenciesForGenerating(AbstractBackendDependencies):
-    def __init__(self, backend_args, *args, **kwargs):
-        super(BackendDependenciesForGenerating, self).__init__(backend_args, *args, **kwargs)
+    def __init__(self, backend_args):
+        super(BackendDependenciesForGenerating, self).__init__(backend_args)
         self._raw_rasa_config = None
         self._is_duckling_enabled = False
         self._duckling_url = None
@@ -41,8 +41,7 @@ class BackendDependenciesForGenerating(AbstractBackendDependencies):
         ddd_set_loader = self._create_ddd_set_loader()
         ddds = ddd_set_loader.ddds_as_list(
             ddd_names,
-            languages=self.supported_languages,
-            logger=self._logger)
+            languages=self.supported_languages)
         return ddds
 
     def _create_ddd_set_loader(self):

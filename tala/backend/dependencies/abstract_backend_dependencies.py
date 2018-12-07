@@ -8,12 +8,10 @@ class InvalidConfigValue(Exception): pass
 
 
 class AbstractBackendDependencies(object):
-    def __init__(self, args, logger):
+    def __init__(self, args):
         super(AbstractBackendDependencies, self).__init__()
-        self._logger = logger
 
         self._overridden_ddd_config_paths = args.overridden_ddd_config_paths
-        self._log_level = args.log_level
         if hasattr(args, "interpret_partially"):
             self._interpret_partially = args.interpret_partially
         else:
@@ -47,14 +45,6 @@ class AbstractBackendDependencies(object):
     @property
     def raw_config(self):
         return self._raw_config
-
-    @property
-    def logger(self):
-        return self._logger
-
-    @property
-    def log_level(self):
-        return self._log_level
 
     @property
     def overridden_ddd_config_paths(self):

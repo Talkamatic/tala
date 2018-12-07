@@ -2,13 +2,12 @@
 
 import argparse
 import contextlib
-import logging
 import os
 import re
 import warnings
 
 
-from tala.argument_parser import add_common_backend_arguments, add_shared_frontend_and_backend_arguments
+from tala.argument_parser import add_common_backend_arguments
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, \
     DddConfigNotFoundException, RasaConfigNotFoundException
@@ -57,8 +56,7 @@ def create_rasa_config(args):
 
 
 def build(args):
-    logger = logging.getLogger("build")
-    backend_dependencies = BackendDependenciesForGenerating(args, logger)
+    backend_dependencies = BackendDependenciesForGenerating(args)
 
     ddds_builder = DDDBuilderForGenerating(
         backend_dependencies,
@@ -99,7 +97,6 @@ def add_build_subparser(subparsers):
     parser = subparsers.add_parser("build", help="build the DDDs for all languages supported by the backend")
     parser.set_defaults(func=build)
     add_common_backend_arguments(parser)
-    add_shared_frontend_and_backend_arguments(parser)
     parser.add_argument("--languages", dest="language_codes", choices=languages.SUPPORTED_LANGUAGES, nargs="*",
                         help="override the backend config and build the DDDs for these languages")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose")

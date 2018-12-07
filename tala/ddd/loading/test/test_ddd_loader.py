@@ -3,13 +3,11 @@ from mock import patch
 from tala.config import BackendConfig
 from tala.ddd.loading import ddd_loader
 from tala.ddd.loading.ddd_loader import DDDLoader
-from tala.log import logger
 from tala.testing.ddd_mocker import DddMockingTestCase
 
 
 class TestDDDLoader(DddMockingTestCase):
     def setUp(self):
-        self.test_logger = logger.get_test_logger()
         self._backend_config = BackendConfig.default_config()
         DddMockingTestCase.setUp(self)
 
@@ -21,7 +19,7 @@ class TestDDDLoader(DddMockingTestCase):
             self._mock_warnings = mock_warnings
             languages = languages or ["eng"]
             mock_ddd_loader = DDDLoader(
-                ddd_name, self._mock_ddd_config, languages, self.test_logger)
+                ddd_name, self._mock_ddd_config, languages)
             self._result = mock_ddd_loader.load()
 
     def test_loading_with_rasa_posts_warning_message(self):

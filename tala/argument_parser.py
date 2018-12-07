@@ -2,12 +2,6 @@ import argparse
 import re
 
 from tala.config import OverriddenDddConfig, BackendConfig
-from tala.log.logger import WARNING, VALID_LOG_LEVELS
-
-
-def add_shared_frontend_and_backend_arguments(parser):
-    parser.add_argument("--log-level", default=WARNING, choices=VALID_LOG_LEVELS,
-                        help="include log entries with this severity and above")
 
 
 def add_common_backend_arguments(parser):

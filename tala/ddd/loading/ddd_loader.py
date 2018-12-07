@@ -15,12 +15,11 @@ from tala import utils
 
 
 class DDDLoader(object):
-    def __init__(self, name, ddd_config, languages, logger):
+    def __init__(self, name, ddd_config, languages):
         super(DDDLoader, self).__init__()
         self._name = name
         self._ddd_config = ddd_config
         self._languages = languages
-        self._logger = logger
         self._py_compiler = DddPyCompiler()
         self._xml_compiler = DddXmlCompiler()
 

@@ -2,7 +2,6 @@
 
 import StringIO
 import codecs
-import logging
 import os
 import sys
 from collections import OrderedDict
@@ -713,9 +712,8 @@ if __name__ == "__main__":
 
     sys.path.insert(0, os.getcwd())
     config = BackendConfig().read()
-    logger = logging.getLogger("py-to-xml")
     ddd_set_loader = DDDSetLoader()
-    ddds = ddd_set_loader.ddds_as_list(args.ddds, languages=args.languages, logger=logger)
+    ddds = ddd_set_loader.ddds_as_list(args.ddds, languages=args.languages)
     for ddd in ddds:
         print "Converting %s to XML" % ddd.name
         PyToXmlConverter(ddd, args.languages).convert()
