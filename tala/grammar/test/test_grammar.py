@@ -13,8 +13,8 @@ from tala.grammar import grammar
 from tala.grammar.grammar import Grammar, GrammarForRGL, UnexpectedAnswerFormatException
 from tala.grammar.intent import Question, Request, Answer
 from tala.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
-from tala.lib.ontology import Ontology
-from tala.lib.sort import Sort
+from tala.model.ontology import Ontology
+from tala.model.sort import Sort
 
 
 class TestGrammar(object):

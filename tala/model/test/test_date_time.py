@@ -1,6 +1,6 @@
 import unittest
 
-from tala.lib.date_time import DateTime
+from tala.model.date_time import DateTime
 
 
 class DateTimeTestCase(unittest.TestCase):

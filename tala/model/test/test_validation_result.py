@@ -2,8 +2,8 @@ import unittest
 
 from mock import Mock
 
-from tala.lib.proposition import Proposition
-from tala.lib.validation_result import ValidationResult, ValidationSuccess, ValidationFailure
+from tala.model.proposition import Proposition
+from tala.model.validation_result import ValidationResult, ValidationSuccess, ValidationFailure
 
 
 class TestBase(unittest.TestCase):

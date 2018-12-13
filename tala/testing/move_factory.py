@@ -1,5 +1,5 @@
-from tala.lib.speaker import Speaker
-from tala.lib.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
+from tala.model.speaker import Speaker
+from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
     ICMMoveWithSemanticContent, ReportMove, PrereportMove
 
 

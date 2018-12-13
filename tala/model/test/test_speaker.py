@@ -1,4 +1,4 @@
-from tala.lib.speaker import Speaker
+from tala.model.speaker import Speaker
 from tala.testing import unittest as unittest
 
 

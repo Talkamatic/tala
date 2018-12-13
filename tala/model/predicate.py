@@ -1,4 +1,4 @@
-from tala.lib.semantic_object import OntologySpecificSemanticObject
+from tala.model.semantic_object import OntologySpecificSemanticObject
 
 
 class Predicate(OntologySpecificSemanticObject):

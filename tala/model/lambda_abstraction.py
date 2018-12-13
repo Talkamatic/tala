@@ -1,4 +1,4 @@
-from tala.lib.semantic_object import OntologySpecificSemanticObject, SemanticObject
+from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
 
 
 class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject):

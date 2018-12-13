@@ -2,13 +2,13 @@ import copy
 import inspect
 import re
 
-from tala.lib.plan import Plan
-from tala.lib.predicate import Predicate
-from tala.lib.action import Action
+from tala.model.plan import Plan
+from tala.model.predicate import Predicate
+from tala.model.action import Action
 from tala.gf.grammar_entry_types import Constants, Node
 from tala.gf.resource import NP as NpClass
 from tala.gf.resource import VP as VpClass
-from tala.lib.sort import CustomSort, BuiltinSort
+from tala.model.sort import CustomSort, BuiltinSort
 
 
 class DddPyCompilerException(Exception): pass

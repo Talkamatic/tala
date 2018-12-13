@@ -1,7 +1,7 @@
 import copy
 
-from tala.lib.error import DomainError
-from tala.lib.plan_item import PlanItemWithSemanticContent, PlanItem
+from tala.model.error import DomainError
+from tala.model.plan_item import PlanItemWithSemanticContent, PlanItem
 
 
 class QuestionRaisingPlanItem(PlanItemWithSemanticContent):

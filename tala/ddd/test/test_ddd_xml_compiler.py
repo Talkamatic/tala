@@ -11,13 +11,13 @@ from tala.ddd.services.service_interface import ServiceParameter, ServiceActionI
     HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, \
     AudioURLServiceParameter
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
-from tala.lib.device import ParameterField
-from tala.lib.domain import Domain
-from tala.lib.ontology import Ontology
-from tala.lib.plan import Plan
-from tala.lib.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
-from tala.lib.predicate import Predicate
-from tala.lib.sort import CustomSort, RealSort, UndefinedSort
+from tala.model.device import ParameterField
+from tala.model.domain import Domain
+from tala.model.ontology import Ontology
+from tala.model.plan import Plan
+from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
+from tala.model.predicate import Predicate
+from tala.model.sort import CustomSort, RealSort, UndefinedSort
 from tala.gf import rgl_grammar_entry_types as rgl_types
 from tala.gf.grammar_entry_types import Node, Constants
 

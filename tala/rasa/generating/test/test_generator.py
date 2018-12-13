@@ -15,13 +15,13 @@ from tala.grammar.grammar import GrammarBase
 from tala.grammar.intent import Request, Question, Answer
 from tala.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.languages import ENGLISH
-from tala.lib.domain import Domain
-from tala.lib.goal import ResolveGoal
-from tala.lib.lambda_abstraction import LambdaAbstractedPredicateProposition
-from tala.lib.ontology import Ontology
-from tala.lib.predicate import Predicate
-from tala.lib.question import WhQuestion
-from tala.lib.sort import Sort, CustomSort
+from tala.model.domain import Domain
+from tala.model.goal import ResolveGoal
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.ontology import Ontology
+from tala.model.predicate import Predicate
+from tala.model.question import WhQuestion
+from tala.model.sort import Sort, CustomSort
 from tala.rasa.generating import generator
 from tala.rasa.generating.generator import RasaGenerator
 from tala.rasa.generating.examples import Examples, EnglishExamples, SortNotSupportedException

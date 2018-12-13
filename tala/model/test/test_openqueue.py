@@ -1,4 +1,4 @@
-from tala.lib.openqueue import OpenQueue, OpenQueueError
+from tala.model.openqueue import OpenQueue, OpenQueueError
 from tala.testing import unittest as unittest
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from tala.lib.individual import Yes, No
+from tala.model.individual import Yes, No
 
 
 class YesTestCase(unittest.TestCase):

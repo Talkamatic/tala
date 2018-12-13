@@ -1,6 +1,6 @@
-from tala.lib.stack import Stack
-from tala.lib.plan_item import PlanItem
-from tala.lib.semantic_object import SemanticObject
+from tala.model.stack import Stack
+from tala.model.plan_item import PlanItem
+from tala.model.semantic_object import SemanticObject
 
 
 class UnableToDetermineOntologyException(Exception): pass

@@ -1,27 +1,27 @@
 import tala.testing.unittest as unittest
 from tala.ddd.parser import Parser, ParseError
-from tala.lib.action import Action
-from tala.lib.domain import Domain
-from tala.lib.goal import PerformGoal, ResolveGoal, HandleGoal
-from tala.lib.individual import Individual, Yes, No
-from tala.lib.lambda_abstraction import LambdaAbstractedGoalProposition
-from tala.lib.lambda_abstraction import LambdaAbstractedPredicateProposition
-from tala.lib.speaker import Speaker
-from tala.lib.set import Set
-from tala.lib.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove,\
+from tala.model.action import Action
+from tala.model.domain import Domain
+from tala.model.goal import PerformGoal, ResolveGoal, HandleGoal
+from tala.model.individual import Individual, Yes, No
+from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.speaker import Speaker
+from tala.model.set import Set
+from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove,\
     GreetMove, MuteMove, PrereportMove
-from tala.lib.ontology import Ontology
-from tala.lib.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, \
+from tala.model.ontology import Ontology
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, \
     EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse
-from tala.lib.polarity import Polarity
-from tala.lib.predicate import Predicate
-from tala.lib.proposition import ResolvednessProposition, RejectedPropositions, \
+from tala.model.polarity import Polarity
+from tala.model.predicate import Predicate
+from tala.model.proposition import ResolvednessProposition, RejectedPropositions, \
     ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, \
     ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
-from tala.lib.question import WhQuestion
-from tala.lib.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
-from tala.lib.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort
-from tala.lib.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
+from tala.model.question import WhQuestion
+from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
+from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort
+from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.testing.move_factory import MoveFactoryWithPredefinedBoilerplate
 
 

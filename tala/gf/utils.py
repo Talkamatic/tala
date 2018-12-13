@@ -1,7 +1,7 @@
 import os
 import re
 
-from tala.lib.date_time import DateTime
+from tala.model.date_time import DateTime
 
 
 class GrammarSanityException(Exception): pass

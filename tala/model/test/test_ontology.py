@@ -1,13 +1,13 @@
 import pytest
 
-from tala.lib.ontology import Ontology, OntologyError, InvalidIndividualName, AmbiguousNamesException, \
+from tala.model.ontology import Ontology, OntologyError, InvalidIndividualName, AmbiguousNamesException, \
     IndividualExistsException, SortDoesNotExistException
-from tala.lib.predicate import Predicate
-from tala.lib.sort import RealSort, IntegerSort, ImageSort, DomainSort, CustomSort, BooleanSort, \
+from tala.model.predicate import Predicate
+from tala.model.sort import RealSort, IntegerSort, ImageSort, DomainSort, CustomSort, BooleanSort, \
     DateTimeSort, WebviewSort, StringSort, REAL, INTEGER, IMAGE, DOMAIN, BOOLEAN, DATETIME, WEBVIEW, STRING
-from tala.lib.image import Image
-from tala.lib.webview import Webview
-from tala.lib.date_time import DateTime
+from tala.model.image import Image
+from tala.model.webview import Webview
+from tala.model.date_time import DateTime
 
 
 class TestOntology(object):

@@ -17,10 +17,10 @@ from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, ServiceParameter, \
     ActionFailureReason, ServiceValidatorInterface
-from tala.lib.device import DeviceAction
-from tala.lib.domain import Domain
-from tala.lib.ontology import Ontology
-from tala.lib.plan import Plan
+from tala.model.device import DeviceAction
+from tala.model.domain import Domain
+from tala.model.ontology import Ontology
+from tala.model.plan import Plan
 from tala.gf.auto_generator import AutoGenerator, UnexpectedParameter, InvalidSortOfBackgroundPredicateException
 from tala.gf.grammar_entry_types import Node, Constants
 

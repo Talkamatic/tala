@@ -1,4 +1,4 @@
-from tala.lib.proposition import PredicateProposition
+from tala.model.proposition import PredicateProposition
 
 
 class Database:

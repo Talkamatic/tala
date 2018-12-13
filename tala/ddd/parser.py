@@ -2,25 +2,25 @@ import copy
 import re
 
 from tala.cache import CacheMethod
-from tala.lib.goal import HandleGoal, PerformGoal, ResolveGoal
-from tala.lib.individual import Yes, No
-from tala.lib.lambda_abstraction import LambdaAbstractedGoalProposition
-from tala.lib.speaker import Speaker
-from tala.lib.set import Set
-from tala.lib.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, \
+from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
+from tala.model.individual import Yes, No
+from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
+from tala.model.speaker import Speaker
+from tala.model.set import Set
+from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, \
     QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
-from tala.lib.ontology import OntologyError
-from tala.lib.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, \
+from tala.model.ontology import OntologyError
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, \
     BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, \
     ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
-from tala.lib.polarity import Polarity
-from tala.lib.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, \
+from tala.model.polarity import Polarity
+from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, \
     ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, \
     PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, \
     PrereportProposition, PredicateProposition
-from tala.lib.question import AltQuestion, YesNoQuestion, WhQuestion
-from tala.lib.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
-from tala.lib.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
+from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion
+from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
+from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 
 
 class ParseError(Exception): pass

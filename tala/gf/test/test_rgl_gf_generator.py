@@ -10,9 +10,9 @@ from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget,\
     ServiceValidatorInterface
-from tala.lib.domain import Domain
-from tala.lib.ontology import Ontology
-from tala.lib.plan import Plan
+from tala.model.domain import Domain
+from tala.model.ontology import Ontology
+from tala.model.plan import Plan
 from tala.gf import utils, rgl_grammar_entry_types as rgl_types
 from tala.gf.grammar_entry_types import Constants, Node
 from tala.gf.rgl_gf_generator import GrammarProcessingException

@@ -1,4 +1,4 @@
-from tala.lib.device import ParameterField
+from tala.model.device import ParameterField
 
 
 class UnexpectedParameterFieldException(Exception): pass

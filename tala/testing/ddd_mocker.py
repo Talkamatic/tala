@@ -36,7 +36,7 @@ class DddMockingTestCase(unittest.TestCase):
 
     def _given_ontology_py_file(self, path):
         content = """
-from tala.lib.ontology import DddOntology
+from tala.model.ontology import DddOntology
 class MockupOntology(DddOntology):
   sorts = {}
   predicates = {}
@@ -47,7 +47,7 @@ class MockupOntology(DddOntology):
 
     def _given_domain_py_file(self, path):
         content = """
-from tala.lib.domain import DddDomain
+from tala.model.domain import DddDomain
 class MockupDomain(DddDomain):
   plans = []
 """
@@ -77,7 +77,7 @@ class MockupDomain(DddDomain):
     def create_mockup_device_file(self, path="mockup_app/device.py", content=None):
         if content is None:
             content = """
-from tala.lib.device import DddDevice
+from tala.model.device import DddDevice
 class MockupDevice(DddDevice):
   pass
 """
@@ -125,7 +125,7 @@ class MockupDevice(DddDevice):
 
     def _given_third_party_parser_file(self, path):
         content = """
-from tala.lib.third_party_parser import ThirdPartyParser
+from tala.model.third_party_parser import ThirdPartyParser
 class MockThirdPartyParser(ThirdPartyParser):
     name = "MockThirdPartyParser"
     def parse(self, string):

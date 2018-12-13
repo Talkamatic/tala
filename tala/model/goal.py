@@ -1,5 +1,5 @@
-from tala.lib.speaker import Speaker
-from tala.lib.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
+from tala.model.speaker import Speaker
+from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
 from tala.unicodify import unicodify
 
 

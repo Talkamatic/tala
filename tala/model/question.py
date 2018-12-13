@@ -1,4 +1,4 @@
-from tala.lib.semantic_object import SemanticObjectWithContent
+from tala.model.semantic_object import SemanticObjectWithContent
 from tala.unicodify import unicodify
 
 

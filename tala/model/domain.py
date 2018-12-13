@@ -1,10 +1,10 @@
-from tala.lib.action import Action
-from tala.lib.error import DomainError
-from tala.lib.goal import PerformGoal, ResolveGoal
-from tala.lib.speaker import Speaker
-from tala.lib.plan import Plan, InvalidPlansException
-from tala.lib.proposition import PredicateProposition, ServiceActionTerminatedProposition
-from tala.lib.question_raising_plan_item import QuestionRaisingPlanItem
+from tala.model.action import Action
+from tala.model.error import DomainError
+from tala.model.goal import PerformGoal, ResolveGoal
+from tala.model.speaker import Speaker
+from tala.model.plan import Plan, InvalidPlansException
+from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
+from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 
 
 class DddDomain: pass

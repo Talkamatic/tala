@@ -1,6 +1,6 @@
 import unittest
 
-from tala.lib.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
+from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 
 
 class ServiceActionOutcomeTests(unittest.TestCase):

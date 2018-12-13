@@ -1,7 +1,7 @@
 from mock import Mock
 
 from tala.config import BackendConfig, RasaConfig
-from tala.lib.ontology import Ontology
+from tala.model.ontology import Ontology
 
 
 class BackendDependenciesBase(object):

@@ -7,13 +7,13 @@ from tala.ddd.ddd_py_compiler import DddPyCompiler, \
     DddPyCompilerException, GrammarCompiler
 from tala.ddd.parser import Parser
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
-from tala.lib.ontology import Ontology
-from tala.lib.plan import Plan
-from tala.lib.plan_item import ForgetAllPlanItem
-from tala.lib.predicate import Predicate
-from tala.lib.proposition import PredicateProposition
-from tala.lib.sort import CustomSort, RealSort
-from tala.lib.individual import Individual
+from tala.model.ontology import Ontology
+from tala.model.plan import Plan
+from tala.model.plan_item import ForgetAllPlanItem
+from tala.model.predicate import Predicate
+from tala.model.proposition import PredicateProposition
+from tala.model.sort import CustomSort, RealSort
+from tala.model.individual import Individual
 from tala.gf.grammar_entry_types import Constants, Node
 
 

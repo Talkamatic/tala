@@ -3,7 +3,7 @@ import warnings
 from tala.backend.dependencies.abstract_backend_dependencies import AbstractBackendDependencies
 from tala.config import RasaConfig
 from tala.ddd.loading.ddd_set_loader import DDDSetLoader
-from tala.lib.sort import DATETIME, INTEGER
+from tala.model.sort import DATETIME, INTEGER
 
 
 class BackendDependenciesForGenerating(AbstractBackendDependencies):

@@ -6,7 +6,7 @@ from mock import Mock, patch, call
 from tala.backend import dependencies
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.backend.dependencies.test.base import BackendDependenciesBase
-from tala.lib.sort import DATETIME, INTEGER
+from tala.model.sort import DATETIME, INTEGER
 
 
 class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest.TestCase):

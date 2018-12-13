@@ -1,17 +1,17 @@
 import copy
 import re
 
-from tala.lib.error import OntologyError
-from tala.lib.individual import Individual, NegativeIndividual
-from tala.lib.lambda_abstraction import LambdaAbstractedPredicateProposition
-from tala.lib.proposition import PredicateProposition
-from tala.lib.question import YesNoQuestion, WhQuestion
-from tala.lib.action import Action
-from tala.lib.sort import DomainSort, RealSort, IntegerSort, StringSort, BooleanSort, ImageSort, WebviewSort, DateTimeSort, \
+from tala.model.error import OntologyError
+from tala.model.individual import Individual, NegativeIndividual
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.proposition import PredicateProposition
+from tala.model.question import YesNoQuestion, WhQuestion
+from tala.model.action import Action
+from tala.model.sort import DomainSort, RealSort, IntegerSort, StringSort, BooleanSort, ImageSort, WebviewSort, DateTimeSort, \
     REAL, INTEGER, STRING, BOOLEAN, IMAGE, WEBVIEW, DATETIME, InvalidValueException
-from tala.lib.image import Image
-from tala.lib.webview import Webview
-from tala.lib.date_time import DateTime
+from tala.model.image import Image
+from tala.model.webview import Webview
+from tala.model.date_time import DateTime
 
 
 class IndividualExistsException(Exception): pass

@@ -4,10 +4,10 @@ import mimetypes
 import magic
 import urllib
 
-from tala.lib.semantic_object import OntologySpecificSemanticObject, SemanticObject
-from tala.lib.image import Image
-from tala.lib.webview import Webview
-from tala.lib.date_time import DateTime
+from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
+from tala.model.image import Image
+from tala.model.webview import Webview
+from tala.model.date_time import DateTime
 
 
 BOOLEAN = "boolean"

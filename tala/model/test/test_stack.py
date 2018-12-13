@@ -1,5 +1,5 @@
 import tala.testing.unittest as unittest
-from tala.lib.stack import StackSet, StackError, Stack
+from tala.model.stack import StackSet, StackError, Stack
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
 

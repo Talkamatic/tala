@@ -1,6 +1,6 @@
-from tala.lib.speaker import Speaker
-from tala.lib.move import AnswerMove, AskMove, RequestMove
-from tala.lib.question import WhQuestion
+from tala.model.speaker import Speaker
+from tala.model.move import AnswerMove, AskMove, RequestMove
+from tala.model.question import WhQuestion
 
 
 class DddSpecificMoveFactory(object):

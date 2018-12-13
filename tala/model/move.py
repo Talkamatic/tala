@@ -1,6 +1,6 @@
-from tala.lib.common import Modality
-from tala.lib.speaker import Speaker
-from tala.lib.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
+from tala.model.common import Modality
+from tala.model.speaker import Speaker
+from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.unicodify import unicodify
 from tala import utils
 

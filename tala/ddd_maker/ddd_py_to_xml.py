@@ -11,7 +11,7 @@ from lxml import etree
 from tala import languages
 from tala.config import BackendConfig
 from tala.ddd.ddd_py_compiler import DddPyCompiler
-from tala.lib.plan_item import PlanItem
+from tala.model.plan_item import PlanItem
 from tala.gf import rgl_grammar_entry_types as rgl_types
 from tala.gf.grammar_entry_types import Constants, Node
 

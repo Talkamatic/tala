@@ -1,4 +1,4 @@
-from tala.lib.sort import STRING
+from tala.model.sort import STRING
 
 
 class Entity(object):

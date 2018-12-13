@@ -1,6 +1,6 @@
-from tala.lib.move import ICMMove
-from tala.lib.proposition import Proposition
-from tala.lib.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
+from tala.model.move import ICMMove
+from tala.model.proposition import Proposition
+from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 
 
 class PlanItem(SemanticObject):

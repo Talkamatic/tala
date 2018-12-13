@@ -8,18 +8,18 @@ from lxml import etree
 from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface,\
     ServiceValidatorInterface, ServiceEntityRecognizerInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget,\
     HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
-from tala.lib.domain import Domain
-from tala.lib.goal import HandleGoal, PerformGoal, ResolveGoal
-from tala.lib.speaker import Speaker
-from tala.lib.plan import Plan
-from tala.lib.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem,\
+from tala.model.domain import Domain
+from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
+from tala.model.speaker import Speaker
+from tala.model.plan import Plan
+from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem,\
     InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem
-from tala.lib.predicate import Predicate
-from tala.lib.proposition import GoalProposition, PropositionSet
-from tala.lib.proposition import PredicateProposition
-from tala.lib.question import AltQuestion, YesNoQuestion
-from tala.lib.question_raising_plan_item import QuestionRaisingPlanItem
-from tala.lib.sort import CustomSort, BuiltinSortRepository, UndefinedSort
+from tala.model.predicate import Predicate
+from tala.model.proposition import GoalProposition, PropositionSet
+from tala.model.proposition import PredicateProposition
+from tala.model.question import AltQuestion, YesNoQuestion
+from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
+from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort
 from tala.gf import rgl_grammar_entry_types as rgl_types
 from tala.gf.grammar_entry_types import Node, Constants
 import tala.schemas

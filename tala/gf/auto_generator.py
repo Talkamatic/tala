@@ -11,7 +11,7 @@ from tala import languages
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
 from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
-from tala.lib.goal import ResolveGoal
+from tala.model.goal import ResolveGoal
 from tala.gf import utils
 from tala.gf.grammar_entry_types import Constants, Node
 from tala.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename

@@ -9,8 +9,8 @@ from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.ddd.services.service_interface_from_device import ServiceInterfaceFromDevice
 from tala.grammar.grammar import Grammar, GrammarForRGL
-from tala.lib.domain import Domain, DddDomain
-from tala.lib.ontology import Ontology, DddOntology
+from tala.model.domain import Domain, DddDomain
+from tala.model.ontology import Ontology, DddOntology
 from tala import utils
 
 

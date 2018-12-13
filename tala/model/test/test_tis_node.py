@@ -1,13 +1,13 @@
-import tala.lib.set
+import tala.model.set
 import tala.testing.unittest as unittest
-from tala.lib.tis_node import TISNode
+from tala.model.tis_node import TISNode
 
 
 class TISNodeTests(unittest.TestCase):
     def setUp(self):
         class TestNode(TISNode):
             def __init__(self):
-                self.child1 = tala.lib.set.Set()
+                self.child1 = tala.model.set.Set()
                 self.child2 = "string"
 
         class RecursiveTISNode(TISNode):

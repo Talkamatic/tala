@@ -1,6 +1,6 @@
 import re
 
-from tala.lib.semantic_object import SemanticObject, OntologySpecificSemanticObject
+from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
 
 
 class Individual(OntologySpecificSemanticObject):
