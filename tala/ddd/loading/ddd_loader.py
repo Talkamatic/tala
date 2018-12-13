@@ -1,17 +1,17 @@
 import os
 import warnings
 
-from tala.ddd.ddd import DDD
+from tala.model.ddd import DDD
 from tala.ddd.loading.python_module_loader import PythonModuleLoader, DddLoaderException
 from tala.ddd.ddd_py_compiler import DddPyCompiler, DomainCompiler as DomainPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DomainCompiler as DomainXmlCompiler
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.ddd.services.service_interface_from_device import ServiceInterfaceFromDevice
-from tala.grammar.grammar import Grammar, GrammarForRGL
+from tala.ddd.grammar.grammar import Grammar, GrammarForRGL
 from tala.model.domain import Domain, DddDomain
 from tala.model.ontology import Ontology, DddOntology
-from tala import utils
+from tala.utils import chdir
 
 
 class DDDLoader(object):
@@ -95,7 +95,7 @@ class DDDLoader(object):
     def load(self):
         path = os.path.join(os.getcwd(), self._name)
 
-        with utils.chdir(self._name):
+        with chdir.chdir(self._name):
             ontology = self._compile_ontology()
             grammars = {}
             for language_code in self._languages:

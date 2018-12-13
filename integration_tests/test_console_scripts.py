@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from tala.config import BackendConfig, DddConfig, RasaConfig
-from tala import console_script
-import tala.utils
+from tala.cli import console_script
+from tala.utils.chdir import chdir
 
 
 class ConsoleScriptTestCase(object):
@@ -17,10 +17,10 @@ class ConsoleScriptTestCase(object):
         self._run_tala_with(["create-ddd", "--target-dir", "test_root", "test_ddd"])
 
     def _given_changed_directory_to_target_dir(self):
-        return tala.utils.chdir("test_root")
+        return chdir("test_root")
 
     def _given_changed_directory_to_ddd_folder(self):
-        return tala.utils.chdir("test_root/test_ddd")
+        return chdir("test_root/test_ddd")
 
     def _build_ddd(self):
         self._run_tala_with(["build"])

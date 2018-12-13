@@ -2,7 +2,7 @@ import os
 
 from tala.ddd.building.steps.generation import GenerationStepForGeneratedGfFiles, GenerationStepForGfRglGeneratedFiles, \
     GenerationStepForHandcraftedGfFiles
-from tala.ddd_utils import has_handcrafted_gf_grammar
+from tala.ddd.utils import has_handcrafted_gf_grammar
 
 
 class GenerationStepFactory(object):

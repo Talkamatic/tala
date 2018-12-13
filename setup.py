@@ -16,8 +16,8 @@ if __name__ == "__main__":
         packages=find_packages(exclude=["test", "*.test", "test.*", "*.test.*"]),
         package_dir={"tala": "tala"},
         package_data={"tala": [
-            "ddd_maker/templates/*.txt",
-            "ddd_maker/templates/*.xml",
+            "maker/templates/*.txt",
+            "maker/templates/*.xml",
             "schemas/grammar.xsd",
             "schemas/grammar_rgl.xsd",
             "schemas/ontology.xsd",
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         scripts=[],
         entry_points={
             "console_scripts": [
-                "tala = tala.console_script:main",
+                "tala = tala.cli.console_script:main",
             ],
         },
         url="http://www.talkamatic.se",

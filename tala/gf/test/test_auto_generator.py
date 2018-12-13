@@ -9,11 +9,11 @@ import unittest
 from mock import Mock
 
 import tala.gf.resource
-import tala.schemas
-from tala.ddd.ddd import DDD
+import tala.ddd.schemas
+from tala.model.ddd import DDD
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler, ViolatesSchemaException
-from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
+from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, ServiceParameter, \
     ActionFailureReason, ServiceValidatorInterface
@@ -1885,7 +1885,7 @@ class LoadingAndCompilationTestCase(AutoGeneratorTestCase):
     def setUp(self):
         self._temp_dir = tempfile.mkdtemp(prefix="AutoGeneratorTestCase")
         self._cwd = os.getcwd()
-        self._schema_absolute_path = os.path.abspath(tala.schemas.__path__[0])
+        self._schema_absolute_path = os.path.abspath(tala.ddd.schemas.__path__[0])
         os.chdir(self._temp_dir)
         AutoGeneratorTestCase.setUp(self)
 

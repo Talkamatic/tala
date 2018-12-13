@@ -8,11 +8,11 @@ import warnings
 from mock import Mock, patch
 import pytest
 
-from tala.ddd.ddd import DDD
-from tala.grammar import grammar
-from tala.grammar.grammar import Grammar, GrammarForRGL, UnexpectedAnswerFormatException
-from tala.grammar.intent import Question, Request, Answer
-from tala.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
+from tala.model.ddd import DDD
+from tala.ddd.grammar import grammar
+from tala.ddd.grammar.grammar import Grammar, GrammarForRGL, UnexpectedAnswerFormatException
+from tala.model.grammar.intent import Question, Request, Answer
+from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.model.ontology import Ontology
 from tala.model.sort import Sort
 
@@ -31,8 +31,9 @@ class TestGrammar(object):
         ddd.ontology = ontology
         return ddd
 
-    @pytest.mark.parametrize("GrammarClass,grammar", [(GrammarForRGL, "tala/grammar/test/grammar_for_rgl_example.xml"),
-                                                      (Grammar,       "tala/grammar/test/grammar_example.xml")])
+    @pytest.mark.parametrize("GrammarClass,grammar",
+                             [(GrammarForRGL, "tala/ddd/grammar/test/grammar_for_rgl_example.xml"),
+                              (Grammar,       "tala/ddd/grammar/test/grammar_example.xml")])
     def test_requests_of_action(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
         self.given_individuals_in_ontology(sort="contact", individuals=[
@@ -98,8 +99,9 @@ class TestGrammar(object):
             self.when_fetching_requests_of_action(action)
             mocked_warnings.warn.assert_called_once_with(expected_warning)
 
-    @pytest.mark.parametrize("GrammarClass,grammar", [(GrammarForRGL, "tala/grammar/test/grammar_for_rgl_example.xml"),
-                                                      (Grammar,       "tala/grammar/test/grammar_example.xml")])
+    @pytest.mark.parametrize("GrammarClass,grammar", [
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_for_rgl_example.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example.xml")])
     def test_questions_of_predicate(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
         self.given_individuals_in_ontology(sort="contact", individuals=[
@@ -129,7 +131,7 @@ class TestGrammar(object):
     @pytest.mark.parametrize("GrammarClass,grammar,results",
                              [
                                  (GrammarForRGL,
-                                  "tala/grammar/test/grammar_for_rgl_example.xml",
+                                  "tala/ddd/grammar/test/grammar_for_rgl_example.xml",
                                   [["John"],
                                    [u"约翰"],
                                    ["Lisa"],
@@ -139,7 +141,7 @@ class TestGrammar(object):
                                   ]
                                  ),
                                  (Grammar,
-                                  "tala/grammar/test/grammar_example.xml",
+                                  "tala/ddd/grammar/test/grammar_example.xml",
                                 [["John", "Johnny"],
                                  [u"约翰"],
                                  ["Lisa"],
@@ -173,8 +175,8 @@ class TestGrammar(object):
         self._result = [self._grammar.entries_of_individual(individual) for individual in individuals]
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_with_single_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_single_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_with_single_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_single_entries.xml"),
     ])
     def test_single_question_entry(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -186,8 +188,8 @@ class TestGrammar(object):
         ])
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_with_single_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_single_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_with_single_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_single_entries.xml"),
     ])
     def test_single_action_entry(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -201,7 +203,7 @@ class TestGrammar(object):
 
     def test_action_without_plain_text_entries_warns(self):
         self.given_ddd_name("rasa_test")
-        self.given_grammar_file("tala/grammar/test/grammar_example_without_plain_text_entries.xml")
+        self.given_grammar_file("tala/ddd/grammar/test/grammar_example_without_plain_text_entries.xml")
         self.given_grammar_from_class(Grammar)
         self.when_fetching_requests_of_action_then_warns(
             "call",
@@ -209,7 +211,7 @@ class TestGrammar(object):
 
     def test_request_in_rgl_without_plain_text_entries_warns(self):
         self.given_ddd_name("rasa_test")
-        self.given_grammar_file("tala/grammar/test/grammar_example_for_rgl_without_plain_text_entries.xml")
+        self.given_grammar_file("tala/ddd/grammar/test/grammar_example_for_rgl_without_plain_text_entries.xml")
         self.given_grammar_from_class(GrammarForRGL)
         self.when_fetching_requests_of_action_then_warns(
             "call",
@@ -217,7 +219,7 @@ class TestGrammar(object):
 
     def test_question_without_plain_text_entries_warns(self):
         self.given_ddd_name("rasa_test")
-        self.given_grammar_file("tala/grammar/test/grammar_example_without_plain_text_entries.xml")
+        self.given_grammar_file("tala/ddd/grammar/test/grammar_example_without_plain_text_entries.xml")
         self.given_grammar_from_class(Grammar)
         self.when_fetching_questions_of_predicate_then_warns(
             "phone_number_of_contact",
@@ -226,7 +228,7 @@ class TestGrammar(object):
 
     def test_question_in_rgl_without_plain_text_entries_warns(self):
         self.given_ddd_name("rasa_test")
-        self.given_grammar_file("tala/grammar/test/grammar_example_for_rgl_without_plain_text_entries.xml")
+        self.given_grammar_file("tala/ddd/grammar/test/grammar_example_for_rgl_without_plain_text_entries.xml")
         self.given_grammar_from_class(GrammarForRGL)
         self.when_fetching_questions_of_predicate_then_warns(
             "phone_number_of_contact",
@@ -234,8 +236,8 @@ class TestGrammar(object):
             "{'predicate': 'phone_number_of_contact', 'speaker': 'user'} since it has no <utterance>")
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_with_answer_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_with_answer_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_with_answer_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_with_answer_entries.xml"),
     ])
     def test_answers(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -265,8 +267,8 @@ class TestGrammar(object):
         self._result = list(self._grammar.answers())
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_with_answer_entry_without_predicate.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_with_answer_entry_without_predicate.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_with_answer_entry_without_predicate.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_with_answer_entry_without_predicate.xml"),
     ])
     def test_answer_entry_without_propositional_fails_fast(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -285,8 +287,8 @@ class TestGrammar(object):
                                                           % (e.message, expected_pattern)
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_with_string_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_with_string_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_with_string_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_with_string_entries.xml"),
     ])
     def test_string_entries(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -306,8 +308,8 @@ class TestGrammar(object):
         return self._grammar.strings_of_predicate(predicate)
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_without_string_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_without_string_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_without_string_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_without_string_entries.xml"),
     ])
     def test_no_string_entries(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")
@@ -317,8 +319,8 @@ class TestGrammar(object):
         self.then_result_is([])
 
     @pytest.mark.parametrize("GrammarClass,grammar", [
-        (GrammarForRGL, "tala/grammar/test/grammar_example_for_rgl_without_string_entries.xml"),
-        (Grammar,       "tala/grammar/test/grammar_example_without_string_entries.xml"),
+        (GrammarForRGL, "tala/ddd/grammar/test/grammar_example_for_rgl_without_string_entries.xml"),
+        (Grammar,       "tala/ddd/grammar/test/grammar_example_without_string_entries.xml"),
     ])
     def test_warnings_with_no_string_entries(self, GrammarClass, grammar):
         self.given_ddd_name("rasa_test")

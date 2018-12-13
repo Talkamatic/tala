@@ -7,7 +7,7 @@ import unittest
 from mock import Mock
 
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
-from tala.ddd.ddd import DDD
+from tala.model.ddd import DDD
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 
 

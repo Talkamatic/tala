@@ -5,8 +5,8 @@ from copy import copy
 
 from jinja2 import Template
 
-from tala.grammar.reader import GrammarReader
-from tala.constants.rasa import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT
+from tala.ddd.grammar.reader import GrammarReader
+from tala.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT
 from tala.rasa.generating.common_example import CommonExample
 from tala.rasa.generating.entity_factory import PropositionalEntityFactory, SortalEntityFactory
 from tala.rasa.generating.examples import Examples

@@ -3,7 +3,7 @@ import shutil
 import unittest
 import tempfile
 
-from tala.ddd_maker import ddd_maker
+from tala.ddd.maker import ddd_maker
 
 
 class TestDddMaker(unittest.TestCase):

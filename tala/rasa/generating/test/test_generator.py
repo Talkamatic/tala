@@ -10,10 +10,10 @@ import unittest
 from mock import MagicMock, Mock, patch
 
 import tala.utils
-from tala.ddd.ddd import DDD
-from tala.grammar.grammar import GrammarBase
-from tala.grammar.intent import Request, Question, Answer
-from tala.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
+from tala.model.ddd import DDD
+from tala.ddd.grammar.grammar import GrammarBase
+from tala.model.grammar.intent import Request, Question, Answer
+from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.languages import ENGLISH
 from tala.model.domain import Domain
 from tala.model.goal import ResolveGoal
@@ -101,7 +101,7 @@ class GeneratorTestsBase(object):
 
     def given_changed_to_temp_folder(self):
         temp_dir = tempfile.mkdtemp(prefix="RasaGeneratorTestCase")
-        return tala.utils.chdir(temp_dir)
+        return tala.float_comparison.chdir(temp_dir)
 
     def given_generator(self):
         self._generator = RasaGenerator(self._mocked_ddd, ENGLISH)

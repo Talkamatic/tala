@@ -2,7 +2,7 @@ import json
 import os
 import datetime
 
-from tala import utils
+from tala.utils.text_formatting import readable_list
 
 
 DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
@@ -95,13 +95,13 @@ class Config(object):
         ending = "The config was updated and the previous config was backed up in %r." % self.back_up_name()
         if unexpected and missing:
             return "Parameter %s is unexpected while %s is missing from %r. %s" % \
-                   (utils.readable_list(unexpected), utils.readable_list(missing), self._absolute_path, ending)
+                   (readable_list(unexpected), readable_list(missing), self._absolute_path, ending)
         if unexpected:
             return "Parameter %s is unexpected in %r. %s" % \
-                   (utils.readable_list(unexpected), self._absolute_path, ending)
+                   (readable_list(unexpected), self._absolute_path, ending)
         if missing:
             return "Parameter %s is missing from %r. %s" % \
-                   (utils.readable_list(missing), self._absolute_path, ending)
+                   (readable_list(missing), self._absolute_path, ending)
 
     @classmethod
     def _update_config_keys(cls, defaults, config):

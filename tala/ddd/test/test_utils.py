@@ -1,5 +1,7 @@
-from tala.cache import CacheMethod
 import unittest
+
+from tala.ddd.utils import CacheMethod
+
 
 class MockClass:
     def __init__(self):
@@ -14,6 +16,7 @@ class MockClass:
     def set_increment(self, increment):
         self.increment = increment
         self.cache.clear()
+
 
 class CacheTest(unittest.TestCase):
     def test_preserves_result(self):

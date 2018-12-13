@@ -1,8 +1,8 @@
 import os
 
 from tala.ddd.building.steps.generation_step_factory import GenerationStepFactory
-from tala.constants.supported_asrs import SUPPORTED_ASRS
-from tala import utils
+from tala.ddd.building.supported_asrs import SUPPORTED_ASRS
+from tala.utils import chdir
 
 
 class DDDsNotSpecifiedException(Exception): pass
@@ -47,7 +47,7 @@ class DDDBuilderForGenerating(object):
 
     def generate(self):
         for ddd_name, generator in self._generators.iteritems():
-            with utils.chdir(ddd_name):
+            with chdir.chdir(ddd_name):
                 generator.build()
 
     def build(self):

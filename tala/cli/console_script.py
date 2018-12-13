@@ -7,15 +7,16 @@ import re
 import warnings
 
 
-from tala.argument_parser import add_common_backend_arguments
+from tala.cli.argument_parser import add_common_backend_arguments
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, \
     DddConfigNotFoundException, RasaConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
-from tala import installed_version, console_formatting
+from tala import installed_version
+from tala.cli import console_formatting
 from tala import languages
-from tala.ddd_maker import utils as ddd_maker_utils
-from tala.ddd_maker.ddd_maker import DddMaker
+from tala.ddd.maker import utils as ddd_maker_utils
+from tala.ddd.maker.ddd_maker import DddMaker
 
 
 class ConfigAlreadyExistsException(Exception): pass

@@ -3,10 +3,10 @@ import unittest
 
 from mock import Mock
 
-from tala.ddd.ddd import DDD
+from tala.model.ddd import DDD
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
-from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
+from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget,\
     ServiceValidatorInterface

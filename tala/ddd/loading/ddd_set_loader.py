@@ -2,7 +2,7 @@ import os
 
 from tala.config import DddConfig, DddConfigNotFoundException
 from tala.ddd.loading.ddd_loader import DDDLoader
-from tala import utils
+from tala.utils.chdir import chdir
 
 
 class DddNotFoundException(Exception): pass
@@ -24,7 +24,7 @@ class DDDSetLoader(object):
 
     def _validate_that_configs_in_overridden_ddd_configs_exist(self):
         for overridden_config in self._overridden_ddd_configs:
-            with utils.chdir(overridden_config.ddd_name):
+            with chdir(overridden_config.ddd_name):
                 try:
                     DddConfig(overridden_config.path).read()
                 except DddConfigNotFoundException:
@@ -33,7 +33,7 @@ class DDDSetLoader(object):
                             overridden_config.path, overridden_config.ddd_name))
 
     def ddds_as_list(self, ddds, path=".", *args, **kwargs):
-        with utils.chdir(path):
+        with chdir(path):
             return list(self._load_ddds(ddds, *args, **kwargs))
 
     def _load_ddds(self, ddd_names, *args, **kwargs):
@@ -52,7 +52,7 @@ class DDDSetLoader(object):
     def _ddd_config(self, ddd_name):
         for overridden_config in self._overridden_ddd_configs:
             if overridden_config.ddd_name == ddd_name:
-                with utils.chdir(ddd_name):
+                with chdir(ddd_name):
                     return DddConfig(overridden_config.path).read()
-        with utils.chdir(ddd_name):
+        with chdir(ddd_name):
             return DddConfig().read()

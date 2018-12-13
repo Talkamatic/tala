@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from tala.languages import ENGLISH, SWEDISH
-from tala.constants.rasa import NEGATIVE_INTENT
+from tala.rasa.constants import NEGATIVE_INTENT
 from tala.rasa.generating.common_example import CommonExample
 
 

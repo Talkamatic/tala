@@ -1,9 +1,9 @@
 import warnings
 from xml.etree import ElementTree
 
-from tala.grammar.intent import Question, Request, Answer
-from tala.grammar.reader import GrammarReader
-from tala.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
+from tala.model.grammar.intent import Question, Request, Answer
+from tala.ddd.grammar.reader import GrammarReader
+from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.gf import rgl_grammar_entry_types
 from tala.gf.grammar_entry_types import Constants
 from tala.model.sort import STRING

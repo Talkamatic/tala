@@ -22,8 +22,8 @@ from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort
 from tala.gf import rgl_grammar_entry_types as rgl_types
 from tala.gf.grammar_entry_types import Node, Constants
-import tala.schemas
-from tala.ddd_maker.ddd_py_to_xml import GrammarConverter
+import tala.ddd.schemas
+from tala.ddd.maker.ddd_py_to_xml import GrammarConverter
 
 
 class DddXmlCompilerException(Exception): pass
@@ -100,7 +100,7 @@ class XmlCompiler(object):
 
     @property
     def _schema_absolute_path(self):
-        absolute_path = os.path.abspath(os.path.dirname(tala.schemas.__file__))
+        absolute_path = os.path.abspath(os.path.dirname(tala.ddd.schemas.__file__))
         return os.path.join(absolute_path, self._schema_name)
 
     @property

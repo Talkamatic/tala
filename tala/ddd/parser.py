@@ -1,7 +1,7 @@
 import copy
 import re
 
-from tala.cache import CacheMethod
+from tala.ddd.utils import CacheMethod
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition

@@ -8,7 +8,7 @@ from tala.languages import SUPPORTED_RASA_LANGUAGES
 from tala.gf.auto_generator import AutoGenerator
 from tala.gf.rgl_gf_generator import RglGfFilesGenerator
 from tala.rasa.generating.generator import RasaGenerator
-from tala import utils
+from tala.utils import chdir
 
 
 class AbstractGenerationStep(AbstractBuildStep):
@@ -27,9 +27,9 @@ class AbstractGenerationStep(AbstractBuildStep):
         self._ignore_warnings = ignore_warnings
 
     def build(self):
-        with utils.chdir(self._ddd_root_directory):
+        with chdir.chdir(self._ddd_root_directory):
             print("Generating models for DDD '%s'." % self._name)
-            with utils.chdir(self._grammar_directory):
+            with chdir.chdir(self._grammar_directory):
                 self._create_empty_build_directories()
                 self._potentially_create_empty_rasa_build_directories()
                 for language_code in self._language_codes:

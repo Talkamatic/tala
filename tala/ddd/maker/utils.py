@@ -4,7 +4,7 @@ from StringIO import StringIO
 import warnings
 
 from tala.config import DddConfig
-from tala import utils
+from tala.utils import chdir
 
 DDD_MAKER_PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(DDD_MAKER_PATH, "templates")
@@ -24,7 +24,7 @@ def word_list_template():
 
 
 def word_list_filename(path_to_ddd):
-    with utils.chdir(path_to_ddd):
+    with chdir.chdir(path_to_ddd):
         ddd_config = DddConfig().read()
     filename = ddd_config["word_list"]
     return filename

@@ -1,29 +1,3 @@
-import contextlib
-import os
-
-class DirectoryException(Exception): pass
-
-@contextlib.contextmanager
-def chdir(new_dir):
-    working_dir = os.getcwd()
-    try:
-        os.chdir(new_dir)
-    except OSError:
-        raise DirectoryException("Could not change directory from %r to %r" % (working_dir, new_dir))
-    try:
-        yield
-    finally:
-        os.chdir(working_dir)
-
-
-def readable_list(elements):
-    if len(elements) == 0:
-        return ""
-    if len(elements) == 1:
-        return elements[0]
-    return "%s and %s" % (", ".join(elements[:-1]), elements[-1])
-
-
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     """
     For float comparison. See https://www.python.org/dev/peps/pep-0485/#proposed-implementation.

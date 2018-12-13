@@ -1,9 +1,9 @@
 import unittest
 
-from tala import utils
+from tala.utils import text_formatting
 
 
-class UtilsTests(unittest.TestCase):
+class TextFormattingTests(unittest.TestCase):
     def setUp(self):
         self._elements = None
         self._result = None
@@ -17,7 +17,7 @@ class UtilsTests(unittest.TestCase):
         self._elements = elements
 
     def when_creating_readable_list(self):
-        self._result = utils.readable_list(self._elements)
+        self._result = text_formatting.readable_list(self._elements)
 
     def then_result_was(self, expected):
         self.assertEqual(expected, self._result)

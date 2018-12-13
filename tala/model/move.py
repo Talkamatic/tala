@@ -2,7 +2,7 @@ from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.unicodify import unicodify
-from tala import utils
+from tala.utils import float_comparison
 
 
 class MoveException(Exception): pass
@@ -188,7 +188,7 @@ class Move(SemanticObject):
     def _is_confidence_equal(this, other):
         if this is None:
             return other is None
-        return utils.isclose(this, other)
+        return float_comparison.isclose(this, other)
 
     def _are_understanding_confidences_equal(self, other):
         return self._is_confidence_equal(self.understanding_confidence,

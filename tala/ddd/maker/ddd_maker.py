@@ -2,8 +2,8 @@ import os
 from StringIO import StringIO
 
 from tala.config import BackendConfig, DddConfig
-from tala.ddd_maker import utils
-from tala import utils as tala_utils
+from tala.ddd.maker import utils
+from tala.utils import chdir
 
 
 class DddMaker:
@@ -35,9 +35,9 @@ class DddMaker:
         self._create_empty_file("__init__.py")
 
     def _create_configs(self):
-        with tala_utils.chdir(self._target_dir):
+        with chdir.chdir(self._target_dir):
             BackendConfig.write_default_config(ddd_name=self._ddd_name)
-            with tala_utils.chdir(self._ddd_name):
+            with chdir.chdir(self._ddd_name):
                 DddConfig.write_default_config()
 
     def _create_ontology_skeleton_file(self):

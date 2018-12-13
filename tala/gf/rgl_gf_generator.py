@@ -7,8 +7,8 @@ import sys
 
 from tala import languages
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
-from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
-from tala.grammar.reader import GrammarReader
+from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
+from tala.ddd.grammar.reader import GrammarReader
 from tala.gf import utils, rgl_grammar_entry_types as rgl_types
 from tala.gf.auto_generator import LowerCaseGfFileWriter
 from tala.gf.grammar_entry_types import Constants, Node

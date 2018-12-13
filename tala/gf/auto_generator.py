@@ -6,11 +6,11 @@ from StringIO import StringIO
 import sys
 
 import tala.gf.resource
-import tala.schemas
+import tala.ddd.schemas
 from tala import languages
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
-from tala.constants.services import UNDEFINED_SERVICE_ACTION_FAILURE
+from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.model.goal import ResolveGoal
 from tala.gf import utils
 from tala.gf.grammar_entry_types import Constants, Node
@@ -66,7 +66,7 @@ class AutoGenerator(object):
 
     @property
     def _schema_absolute_path(self):
-        absolute_path = os.path.abspath(os.path.dirname(tala.schemas.__file__))
+        absolute_path = os.path.abspath(os.path.dirname(tala.ddd.schemas.__file__))
         schema_absolute_path = "%s/grammar.xsd" % absolute_path
         return schema_absolute_path
 
