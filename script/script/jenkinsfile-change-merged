@@ -40,11 +40,7 @@ pipeline {
             ],
             serverName: 'Talkamatic',
             triggerOnEvents: [
-                patchsetCreated(
-                    excludeDrafts: true,
-                    excludeNoCodeChange: false,
-                    excludeTrivialRebase: false
-                )
+                changeMerged()
             ],
             skipVote: [
               onSuccessful: false,
