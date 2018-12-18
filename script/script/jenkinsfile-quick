@@ -79,6 +79,11 @@ pipeline {
                                 buildChooser: [
                                     $class: 'GerritTriggerBuildChooser'
                                 ]
+                            ],
+                            [
+                                $class: 'SubmoduleOption',
+                                disableSubmodules: false,
+                                parentCredentials: true
                             ]
                         ],
                         submoduleCfg: [],

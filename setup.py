@@ -13,7 +13,7 @@ if __name__ == "__main__":
         use_scm_version={"write_to": "tala/installed_version.py"},
         setup_requires=["setuptools_scm"],
         name="tala",
-        packages=find_packages(exclude=["test", "*.test", "test.*", "*.test.*"]),
+        packages=find_packages(exclude=["tala/ddds", "test", "*.test", "test.*", "*.test.*"]),
         package_dir={"tala": "tala"},
         package_data={"tala": [
             "ddd/maker/templates/*.txt",
