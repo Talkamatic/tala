@@ -1,14 +1,6 @@
 pipeline {
     agent { label 'tala' }
 
-    parameters {
-        string(
-            defaultValue: 'refs/heads/master',
-            description: 'The Git reference used in checkout',
-            name: 'GERRIT_REFSPEC'
-        )
-    }
-
     options {
         buildDiscarder(
             logRotator(
@@ -60,48 +52,53 @@ pipeline {
 
         stage('checkout') {
             steps {
-                checkout(
-                    changelog: false,
-                    poll: false,
-                    scm: [
-                        $class: 'GitSCM',
-                        branches: [
-                            [name: '$GERRIT_BRANCH']
-                        ],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [
-                            [
-                                $class: 'BuildChooserSetting',
-                                buildChooser: [
-                                    $class: 'GerritTriggerBuildChooser'
-                                ]
-                            ]
-                        ],
-                        submoduleCfg: [],
-                        userRemoteConfigs: [
-                            [
-                                credentialsId: 'jenkinsatgerrit',
-                                refspec: '$GERRIT_REFSPEC',
-                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
-                            ]
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [
+                            $class: 'RelativeTargetDirectory',
+                            relativeTargetDir: 'tala'
+                        ],[
+                            $class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            parentCredentials: true
                         ]
-                    ]
-                )
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'jenkinsatgerrit',
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                    ]]
+                ])
             }
         }
 
-        stage('install') {
+        stage('build') {
             steps {
                 sh '''#!/bin/bash -ex
                     virtualenv venv
                     source venv/bin/activate
 
-                    pip install --editable .
+                    pip wheel --wheel-dir dist --no-deps ./tala
                 '''
+            }
+        }
+
+
+        stage('install') {
+            steps {
                 sh '''#!/bin/bash -ex
                     source venv/bin/activate
 
-                    pip install -r dev-requirements.txt
+                    pip install --editable ./tala
+                '''
+
+                sh '''#!/bin/bash -ex
+                    source venv/bin/activate
+
+                    pip install -r tala/dev-requirements.txt
                 '''
             }
         }
@@ -114,6 +111,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
+                            cd tala
                             py.test tala
                         '''
                     }
@@ -124,6 +122,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
+                            cd tala
                             py.test integration_tests
                         '''
                     }
@@ -133,7 +132,7 @@ pipeline {
 
         stage('archive artifacts') {
             steps {
-                archiveArtifacts 'dist/*'
+                archiveArtifacts 'dist/tala*.whl'
             }
         }
     }
