@@ -1,8 +1,6 @@
 import warnings
-from xml.etree import ElementTree
 
 from tala.model.grammar.intent import Question, Request, Answer
-from tala.ddd.grammar.reader import GrammarReader
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.gf import rgl_grammar_entry_types
 from tala.gf.grammar_entry_types import Constants
@@ -21,16 +19,10 @@ class UnexpectedStringsFoundException(Exception): pass
 
 
 class GrammarBase(object):
-    def __init__(self, language_code):
+    def __init__(self, grammar_root):
         super(GrammarBase, self).__init__()
-        self._grammar_string = GrammarReader.read(language_code, path="grammar")
-        self._grammar_path = GrammarReader.path(language_code, path="grammar")
-        self._grammar_root = ElementTree.fromstring(self._grammar_string)
+        self._grammar_root = grammar_root
         self._local_individual_identifier = None
-
-    @staticmethod
-    def has_xml_grammar(language_code):
-        return GrammarReader.xml_grammar_exists_for_language(language_code, path="grammar")
 
     def requests_of_action(self, action):
         raise NotImplementedError(
@@ -208,8 +200,8 @@ class Grammar(GrammarBase):
 
 
 class GrammarForRGL(GrammarBase):
-    def __init__(self, language_code):
-        super(GrammarForRGL, self).__init__(language_code)
+    def __init__(self, grammar_root):
+        super(GrammarForRGL, self).__init__(grammar_root)
         self._local_individual_identifier = Constants.INDIVIDUAL
 
     def requests_of_action(self, action):

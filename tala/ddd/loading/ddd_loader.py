@@ -8,7 +8,9 @@ from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DomainCompiler as DomainXm
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.ddd.services.service_interface_from_device import ServiceInterfaceFromDevice
-from tala.ddd.grammar.grammar import Grammar, GrammarForRGL
+from tala.model.grammar.grammar import Grammar, GrammarForRGL
+from tala.ddd.grammar.reader import GrammarReader
+from tala.ddd.grammar.parser import GrammarParser
 from tala.model.domain import Domain, DddDomain
 from tala.model.ontology import Ontology, DddOntology
 from tala.utils import chdir
@@ -28,10 +30,13 @@ class DDDLoader(object):
                           % name)
 
     def _load_grammar(self, language_code):
-        if self._ddd_config["use_rgl"]:
-            return GrammarForRGL(language_code)
-        if Grammar.has_xml_grammar(language_code):
-            return Grammar(language_code)
+        if GrammarReader.xml_grammar_exists_for_language(language_code, path="grammar"):
+            grammar_string = GrammarReader.read(language_code, path="grammar")
+            grammar_root = GrammarParser.parse(grammar_string)
+            if self._ddd_config["use_rgl"]:
+                return GrammarForRGL(grammar_root)
+            else:
+                return Grammar(grammar_root)
         return None
 
     def _compile_ontology(self):

@@ -11,7 +11,7 @@ from mock import MagicMock, Mock, patch
 
 import tala.utils
 from tala.model.ddd import DDD
-from tala.ddd.grammar.grammar import GrammarBase
+from tala.model.grammar.grammar import GrammarBase
 from tala.model.grammar.intent import Request, Question, Answer
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.languages import ENGLISH
