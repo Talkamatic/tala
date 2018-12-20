@@ -16,12 +16,12 @@ if __name__ == "__main__":
         packages=find_packages(exclude=["test", "*.test", "test.*", "*.test.*"]),
         package_dir={"tala": "tala"},
         package_data={"tala": [
-            "maker/templates/*.txt",
-            "maker/templates/*.xml",
-            "schemas/grammar.xsd",
-            "schemas/grammar_rgl.xsd",
-            "schemas/ontology.xsd",
-            "schemas/service_interface.xsd",
+            "ddd/maker/templates/*.txt",
+            "ddd/maker/templates/*.xml",
+            "ddd/schemas/grammar.xsd",
+            "ddd/schemas/grammar_rgl.xsd",
+            "ddd/schemas/ontology.xsd",
+            "ddd/schemas/service_interface.xsd",
         ]},
         scripts=[],
         entry_points={
