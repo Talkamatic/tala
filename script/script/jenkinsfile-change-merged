@@ -98,9 +98,6 @@ pipeline {
 
                     pip install --editable .
                 '''
-            }
-
-            {
                 sh '''#!/bin/bash -ex
                     source venv/bin/activate
 
