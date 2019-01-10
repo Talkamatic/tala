@@ -15,7 +15,7 @@ from tala.model.ddd import DDD
 from tala.model.grammar.grammar import GrammarBase
 from tala.model.grammar.intent import Request, Question, Answer
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
-from tala.languages import ENGLISH
+from tala.nl.languages import ENGLISH
 from tala.model.domain import Domain
 from tala.model.goal import ResolveGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
@@ -23,9 +23,9 @@ from tala.model.ontology import Ontology
 from tala.model.predicate import Predicate
 from tala.model.question import WhQuestion
 from tala.model.sort import Sort, CustomSort
-from tala.rasa.generating import generator
-from tala.rasa.generating.generator import RasaGenerator
-from tala.rasa.generating.examples import Examples, EnglishExamples, SortNotSupportedException
+from tala.nl.rasa.generating import generator
+from tala.nl.rasa.generating.generator import RasaGenerator
+from tala.nl.rasa.generating.examples import Examples, EnglishExamples, SortNotSupportedException
 
 
 class GeneratorTestsBase(object):

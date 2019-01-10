@@ -1,4 +1,4 @@
-from tala.rasa.generating.entity import PropositionalEntity, SortalEntity
+from tala.nl.rasa.generating.entity import PropositionalEntity, SortalEntity
 
 
 class EntityFactory(object):

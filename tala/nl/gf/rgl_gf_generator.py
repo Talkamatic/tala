@@ -5,14 +5,14 @@ import itertools
 from StringIO import StringIO
 import sys
 
-from tala import languages
+from tala.nl import languages
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.grammar.reader import GrammarReader
-from tala.gf import utils, rgl_grammar_entry_types as rgl_types
-from tala.gf.auto_generator import LowerCaseGfFileWriter
-from tala.gf.grammar_entry_types import Constants, Node
-from tala.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
+from tala.nl.gf import rgl_grammar_entry_types as rgl_types, utils
+from tala.nl.gf.auto_generator import LowerCaseGfFileWriter
+from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
 
 
 class MissingEntry(Exception):

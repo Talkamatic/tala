@@ -18,8 +18,8 @@ from tala.model.plan import Plan
 from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
 from tala.model.predicate import Predicate
 from tala.model.sort import CustomSort, RealSort, UndefinedSort
-from tala.gf import rgl_grammar_entry_types as rgl_types
-from tala.gf.grammar_entry_types import Node, Constants
+from tala.nl.gf import rgl_grammar_entry_types as rgl_types
+from tala.nl.gf.grammar_entry_types import Node, Constants
 
 
 class DddXmlCompilerTestCase(DddCompilerTestCase):

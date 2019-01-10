@@ -2,7 +2,7 @@ import imp
 import inspect
 import os
 
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 
 
 class DddLoaderException(Exception): pass

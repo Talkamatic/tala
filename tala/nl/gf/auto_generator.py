@@ -5,16 +5,16 @@ import os
 from StringIO import StringIO
 import sys
 
-import tala.gf.resource
+import tala.nl.gf.resource
 import tala.ddd.schemas
-from tala import languages
+from tala.nl import languages
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.model.goal import ResolveGoal
-from tala.gf import utils
-from tala.gf.grammar_entry_types import Constants, Node
-from tala.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
+from tala.nl.gf import utils
+from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
 
 UNKNOWN_CATEGORY = "Unknown"
 
@@ -1207,8 +1207,8 @@ class AutoGenerator(object):
             self._generate_action_as_verb_phrase(action, forms)
 
     def _get_action_forms_and_grammatical_features(self, action):
-        genders = [None, tala.gf.resource.FEMININE, tala.gf.resource.MASCULINE]
-        numbers = [None, tala.gf.resource.SINGULAR, tala.gf.resource.PLURAL]
+        genders = [None, tala.nl.gf.resource.FEMININE, tala.nl.gf.resource.MASCULINE]
+        numbers = [None, tala.nl.gf.resource.SINGULAR, tala.nl.gf.resource.PLURAL]
         permutations = [{"gender": gender, "number": number}
                         for gender in genders
                         for number in numbers]
@@ -1279,17 +1279,17 @@ class AutoGenerator(object):
     def _get_category_gender_substring(self, gender):
         if gender is None:
             return ""
-        elif gender == tala.gf.resource.FEMININE:
+        elif gender == tala.nl.gf.resource.FEMININE:
             return "F"
-        elif gender == tala.gf.resource.MASCULINE:
+        elif gender == tala.nl.gf.resource.MASCULINE:
             return "M"
 
     def _get_category_number_substring(self, number):
         if number is None:
             return ""
-        elif number == tala.gf.resource.SINGULAR:
+        elif number == tala.nl.gf.resource.SINGULAR:
             return "S"
-        elif number == tala.gf.resource.PLURAL:
+        elif number == tala.nl.gf.resource.PLURAL:
             return "P"
 
     def _generate_request_without_answers(self, action, requests_without_answers):

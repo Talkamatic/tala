@@ -3,7 +3,7 @@ import copy
 from tala.model.error import OntologyError
 from tala.model.polarity import Polarity
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 
 
 class PropositionsFromDifferentOntologiesException(Exception): pass

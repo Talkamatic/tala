@@ -8,15 +8,15 @@ from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget,\
-    ServiceValidatorInterface
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, \
+    DeviceModuleTarget, ServiceValidatorInterface
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.gf import utils, rgl_grammar_entry_types as rgl_types
-from tala.gf.grammar_entry_types import Constants, Node
-from tala.gf.rgl_gf_generator import GrammarProcessingException
-from tala.gf.rgl_gf_generator import RglGfFilesGenerator, Directives, MAX_NUM_ENTITIES_PER_PARSE
+from tala.nl.gf import rgl_grammar_entry_types as rgl_types, utils
+from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.rgl_gf_generator import GrammarProcessingException
+from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator, Directives, MAX_NUM_ENTITIES_PER_PARSE
 
 
 class RglGfGeneratorTestCase(unittest.TestCase):

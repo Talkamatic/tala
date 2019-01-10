@@ -1,8 +1,8 @@
 # coding: utf-8
 
-from tala.languages import ENGLISH, SWEDISH
-from tala.rasa.constants import NEGATIVE_INTENT
-from tala.rasa.generating.common_example import CommonExample
+from tala.nl.languages import ENGLISH, SWEDISH
+from tala.nl.rasa.constants import NEGATIVE_INTENT
+from tala.nl.rasa.generating.common_example import CommonExample
 
 
 class SortNotSupportedException(Exception): pass

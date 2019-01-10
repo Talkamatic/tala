@@ -20,8 +20,8 @@ from tala.model.proposition import PredicateProposition
 from tala.model.question import AltQuestion, YesNoQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort
-from tala.gf import rgl_grammar_entry_types as rgl_types
-from tala.gf.grammar_entry_types import Node, Constants
+from tala.nl.gf import rgl_grammar_entry_types as rgl_types
+from tala.nl.gf.grammar_entry_types import Node, Constants
 import tala.ddd.schemas
 from tala.ddd.maker.ddd_py_to_xml import GrammarConverter
 

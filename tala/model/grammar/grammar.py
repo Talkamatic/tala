@@ -2,8 +2,8 @@ import warnings
 
 from tala.model.grammar.intent import Question, Request, Answer
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
-from tala.gf import rgl_grammar_entry_types
-from tala.gf.grammar_entry_types import Constants
+from tala.nl.gf import rgl_grammar_entry_types
+from tala.nl.gf.grammar_entry_types import Constants
 from tala.model.sort import STRING
 
 

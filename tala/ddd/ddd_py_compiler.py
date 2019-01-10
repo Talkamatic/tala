@@ -5,9 +5,9 @@ import re
 from tala.model.plan import Plan
 from tala.model.predicate import Predicate
 from tala.model.action import Action
-from tala.gf.grammar_entry_types import Constants, Node
-from tala.gf.resource import NP as NpClass
-from tala.gf.resource import VP as VpClass
+from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.resource import NP as NpClass
+from tala.nl.gf.resource import VP as VpClass
 from tala.model.sort import CustomSort, BuiltinSort
 
 

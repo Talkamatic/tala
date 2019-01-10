@@ -8,21 +8,21 @@ import unittest
 
 from mock import Mock
 
-import tala.gf.resource
+import tala.nl.gf.resource
 import tala.ddd.schemas
 from tala.model.ddd import DDD
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler, ViolatesSchemaException
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, ServiceParameter, \
-    ActionFailureReason, ServiceValidatorInterface
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, \
+    ServiceParameter, ActionFailureReason, ServiceValidatorInterface
 from tala.model.device import DeviceAction
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.gf.auto_generator import AutoGenerator, UnexpectedParameter, InvalidSortOfBackgroundPredicateException
-from tala.gf.grammar_entry_types import Node, Constants
+from tala.nl.gf.auto_generator import AutoGenerator, UnexpectedParameter, InvalidSortOfBackgroundPredicateException
+from tala.nl.gf.grammar_entry_types import Node, Constants
 
 UNKNOWN_CATEGORY = "Unknown;\n"
 UNKNOWN_FUNCTION = "unknown_string : Unknown -> Sort_string;\n"
@@ -435,8 +435,8 @@ class ActionTestCase(AutoGeneratorTestCase):
     def test_singular_feminine_np_action(self):
         self.given_grammar([
             Node(Constants.ACTION, {"name": "settings",
-                          "number": tala.gf.resource.SINGULAR,
-                          "gender": tala.gf.resource.FEMININE}, [
+                          "number": tala.nl.gf.resource.SINGULAR,
+                          "gender": tala.nl.gf.resource.FEMININE}, [
                         Node(Constants.NP, {}, [
                                 Node(Constants.INDEFINITE, {}, [u"impostazione"])])])])
         self.when_generating()
@@ -450,8 +450,8 @@ class ActionTestCase(AutoGeneratorTestCase):
     def test_singular_masculine_np_action(self):
         self.given_grammar([
             Node(Constants.ACTION, {"name": "top",
-                          "number": tala.gf.resource.SINGULAR,
-                          "gender": tala.gf.resource.MASCULINE}, [
+                          "number": tala.nl.gf.resource.SINGULAR,
+                          "gender": tala.nl.gf.resource.MASCULINE}, [
                         Node(Constants.NP, {}, [
                                 Node(Constants.INDEFINITE, {}, [u"menu principale"])])])])
         self.when_generating()
@@ -465,8 +465,8 @@ class ActionTestCase(AutoGeneratorTestCase):
     def test_plural_feminine_np_action(self):
         self.given_grammar([
             Node(Constants.ACTION, {"name": "settings",
-                          "number": tala.gf.resource.PLURAL,
-                          "gender": tala.gf.resource.FEMININE}, [
+                          "number": tala.nl.gf.resource.PLURAL,
+                          "gender": tala.nl.gf.resource.FEMININE}, [
                         Node(Constants.NP, {}, [
                                 Node(Constants.INDEFINITE, {}, [u"impostazioni"])])])])
         self.when_generating()
@@ -480,8 +480,8 @@ class ActionTestCase(AutoGeneratorTestCase):
     def test_plural_masculine_np_action(self):
         self.given_grammar([
             Node(Constants.ACTION, {"name": "top",
-                          "number": tala.gf.resource.PLURAL,
-                          "gender": tala.gf.resource.MASCULINE}, [
+                          "number": tala.nl.gf.resource.PLURAL,
+                          "gender": tala.nl.gf.resource.MASCULINE}, [
                         Node(Constants.NP, {}, [
                                 Node(Constants.INDEFINITE, {}, [u"menu principali"])])])])
         self.when_generating()

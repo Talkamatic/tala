@@ -1,9 +1,9 @@
 from __future__ import print_function
 
 from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
-from tala.gf.auto_generator import AutoGenerator
-from tala.gf.rgl_gf_generator import RglGfFilesGenerator
-from tala.rasa.generating.generator import RasaGenerator
+from tala.nl.gf.auto_generator import AutoGenerator
+from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator
+from tala.nl.rasa.generating.generator import RasaGenerator
 from tala.utils import chdir
 
 

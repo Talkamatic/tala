@@ -1,7 +1,7 @@
 import os
 
 from tala.utils import chdir
-from tala.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
+from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
 
 
 def has_handcrafted_gf_grammar(ddd_name, language_code, path_to_grammar_folder):

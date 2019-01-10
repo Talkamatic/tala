@@ -4,7 +4,7 @@ import os
 import shutil
 
 from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
-from tala.languages import SUPPORTED_RASA_LANGUAGES
+from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
 from tala.utils import chdir
 
 

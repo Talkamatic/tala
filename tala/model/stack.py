@@ -1,4 +1,4 @@
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 
 class StackError(Exception): pass
 

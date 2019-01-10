@@ -1,7 +1,7 @@
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 from tala.utils import float_comparison
 
 

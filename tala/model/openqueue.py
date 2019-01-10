@@ -1,6 +1,6 @@
 import copy
 
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 
 
 class OpenQueueError(Exception): pass

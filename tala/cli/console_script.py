@@ -13,7 +13,7 @@ from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFo
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
 from tala.cli import console_formatting
-from tala import languages
+from tala.nl import languages
 from tala.ddd.maker import utils as ddd_maker_utils
 from tala.ddd.maker.ddd_maker import DddMaker
 

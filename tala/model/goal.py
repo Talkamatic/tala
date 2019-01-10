@@ -1,6 +1,6 @@
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
-from tala.unicodify import unicodify
+from tala.utils.unicodify import unicodify
 
 
 class Goal(SemanticObject):

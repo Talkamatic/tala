@@ -1,7 +1,7 @@
 import unittest
 from tala.ddd.maker.ddd_py_to_xml import GrammarConverter
-from tala.gf.grammar_entry_types import Constants, Node
-from tala.gf import rgl_grammar_entry_types as rgl_types
+from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf import rgl_grammar_entry_types as rgl_types
 import difflib
 
 class MockGrammarConverter(GrammarConverter):

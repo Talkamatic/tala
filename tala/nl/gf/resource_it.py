@@ -1,8 +1,8 @@
-import tala.gf.resource
-from tala.gf.resource import VP, SINGULAR, PLURAL, MASCULINE, FEMININE
+import tala.nl.gf.resource
+from tala.nl.gf.resource import VP, SINGULAR, PLURAL, MASCULINE, FEMININE
 
 
-class NP(tala.gf.resource.NP):
+class NP(tala.nl.gf.resource.NP):
     def __init__(self, indefinite, gender, number=SINGULAR):
         self.indefinite = indefinite
         self.number = number

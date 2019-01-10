@@ -6,10 +6,10 @@ from jinja2 import Template
 from pathlib import Path
 
 from tala.ddd.grammar.reader import GrammarReader
-from tala.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT
-from tala.rasa.generating.common_example import CommonExample
-from tala.rasa.generating.entity_factory import PropositionalEntityFactory, SortalEntityFactory
-from tala.rasa.generating.examples import Examples
+from tala.nl.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT
+from tala.nl.rasa.generating.common_example import CommonExample
+from tala.nl.rasa.generating.entity_factory import PropositionalEntityFactory, SortalEntityFactory
+from tala.nl.rasa.generating.examples import Examples
 from tala.utils.file_writer import UTF8FileWriter
 
 

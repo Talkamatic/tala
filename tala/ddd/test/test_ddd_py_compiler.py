@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 
-import tala.gf.resource
+import tala.nl.gf.resource
 from tala.ddd.ddd_py_compiler import DddPyCompiler, \
     DddPyCompilerException, GrammarCompiler
 from tala.ddd.parser import Parser
@@ -14,7 +14,7 @@ from tala.model.predicate import Predicate
 from tala.model.proposition import PredicateProposition
 from tala.model.sort import CustomSort, RealSort
 from tala.model.individual import Individual
-from tala.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.grammar_entry_types import Constants, Node
 
 
 class MockGrammarCompiler(GrammarCompiler):
@@ -499,7 +499,7 @@ class GrammarCompilerTests(DddPyCompilerTestCase):
 
     def _when_compile_grammar_with_noun_phrase_as_single_variant(self):
         self._compile_grammar("""
-from tala.gf.resource_eng import NP
+from tala.nl.gf.resource_eng import NP
 top = NP("start view")
 """)
 
@@ -516,7 +516,7 @@ top = NP("start view")
 
     def _when_compile_english_grammar_with_verb_phrase_as_single_variant(self):
         self._compile_grammar("""
-from tala.gf.resource_eng import VP
+from tala.nl.gf.resource_eng import VP
 buy = VP("buy", "buy", "buying", "a ticket")
 """)
 
@@ -538,7 +538,7 @@ buy = VP("buy", "buy", "buying", "a ticket")
     def _when_compile_swedish_grammar_with_verb_phrase_as_single_variant(self):
         self._compile_grammar("""
 #-*- coding: utf-8 -*-
-from tala.gf.resource_sv import VP
+from tala.nl.gf.resource_sv import VP
 buy = VP(u"köpa", u"köp", u"köper", u"en biljett")
 """)
 
@@ -559,7 +559,7 @@ buy = VP(u"köpa", u"köp", u"köper", u"en biljett")
 
     def _when_compile_english_grammar_with_verb_phrase_among_multiple_variants(self):
         self._compile_grammar("""
-from tala.gf.resource_eng import VP
+from tala.nl.gf.resource_eng import VP
 buy = [VP("buy", "buy", "buying", "a ticket"), "purchase"]
 """)
 
@@ -583,15 +583,15 @@ buy = [VP("buy", "buy", "buying", "a ticket"), "purchase"]
 
     def _when_compile_italian_noun_phrase_as_single_variant(self):
         self._compile_grammar("""#-*- coding: utf-8 -*-
-from tala.gf.resource_it import NP, PLURAL, FEMININE
+from tala.nl.gf.resource_it import NP, PLURAL, FEMININE
 settings = NP(u"impostazioni", number=PLURAL, gender=FEMININE)
 """)
 
     def _then_result_has_expected_italian_noun_phrase_as_single_variant(self):
         self._then_grammar_is([
                 Node(Constants.ACTION, {"name": "settings",
-                              "number": tala.gf.resource.PLURAL,
-                              "gender": tala.gf.resource.FEMININE}, [
+                              "number": tala.nl.gf.resource.PLURAL,
+                              "gender": tala.nl.gf.resource.FEMININE}, [
                         Node(Constants.NP, {}, [
                                 Node(Constants.INDEFINITE, {}, [u"impostazioni"])])])])
 
@@ -602,15 +602,15 @@ settings = NP(u"impostazioni", number=PLURAL, gender=FEMININE)
 
     def _when_compile_italian_noun_phrase_among_multiple_variants(self):
         self._compile_grammar("""#-*- coding: utf-8 -*-
-from tala.gf.resource_it import NP, PLURAL, FEMININE
+from tala.nl.gf.resource_it import NP, PLURAL, FEMININE
 settings = [NP(u"impostazioni", number=PLURAL, gender=FEMININE), u"vedere l'impostazioni"]
 """)
 
     def _then_result_has_expected_italian_noun_phrase_among_multiple_variants(self):
         self._then_grammar_is([
                 Node(Constants.ACTION, {"name": "settings",
-                              "number": tala.gf.resource.PLURAL,
-                              "gender": tala.gf.resource.FEMININE}, [
+                              "number": tala.nl.gf.resource.PLURAL,
+                              "gender": tala.nl.gf.resource.FEMININE}, [
                         Node(Constants.ONE_OF, {}, [
                                 Node(Constants.ITEM, {}, [
                                         Node(Constants.NP, {}, [
@@ -625,7 +625,7 @@ settings = [NP(u"impostazioni", number=PLURAL, gender=FEMININE), u"vedere l'impo
 
     def _when_compile_grammar_with_noun_phrase_among_multiple_variants(self):
         self._compile_grammar("""
-from tala.gf.resource_eng import NP
+from tala.nl.gf.resource_eng import NP
 top = [NP("start view", "the start view"), "main menu"]
 """)
 
