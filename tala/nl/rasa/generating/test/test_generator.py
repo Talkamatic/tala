@@ -69,8 +69,17 @@ class GeneratorTestsBase(object):
     def given_ddd_name(self, name):
         self._mocked_ddd.name = name
 
-    def given_ontology(self, sort, individuals, predicate, is_builtin=False, is_integer_sort=False, is_string_sort=False,
-                       is_real_sort=False, is_datetime_sort=False):
+    def given_ontology(
+        self,
+        sort,
+        individuals,
+        predicate,
+        is_builtin=False,
+        is_integer_sort=False,
+        is_string_sort=False,
+        is_real_sort=False,
+        is_datetime_sort=False
+    ):
         mocked_sort = Mock(spec=Sort)
         mocked_sort.get_name.return_value = sort
         mocked_sort.is_builtin.return_value = is_builtin
@@ -103,6 +112,7 @@ class GeneratorTestsBase(object):
 
         def get_individual(name):
             return individuals[name]
+
         self._mocked_grammar.entries_of_individual.side_effect = get_individual
         self._mocked_ddd.grammars["eng"] = self._mocked_grammar
 
@@ -119,8 +129,9 @@ class GeneratorTestsBase(object):
     def _generate(self):
         return self._generator.generate()
 
-    def when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(self, expected_exception,
-                                                                                   expected_pattern):
+    def when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(
+        self, expected_exception, expected_pattern
+    ):
         try:
             self._generate()
             assert False, "%s not raised" % expected_exception
@@ -208,12 +219,7 @@ class GeneratorTestsBase(object):
 
     def _entity_examples(self, entity_identifier, entity_names, start):
         for name in entity_names:
-            yield {
-                    "start": start,
-                    "end": start + len(name),
-                    "value": name,
-                    "entity": entity_identifier
-                }
+            yield {"start": start, "end": start + len(name), "value": name, "entity": entity_identifier}
 
     def _action_examples_with_propositional_entities(self, action, texts, predicate, entity_names):
         identifier = "predicate:%s" % predicate
@@ -236,8 +242,8 @@ class GeneratorTestsBase(object):
     def then_no_common_examples_have_been_generated_for_answer_negation(self):
         actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
         actual_negation_examples = [
-            example for example in actual_common_examples
-            if example["intent"] == "rasa_test:answer_negation"]
+            example for example in actual_common_examples if example["intent"] == "rasa_test:answer_negation"
+        ]
         assert len(actual_negation_examples) == 0, \
             "Expected no answer negations but got %s" % actual_negation_examples
 
@@ -276,7 +282,7 @@ class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
         self.given_generator()
         self.given_generate_returns({"data": "mock"})
         self.when_calling_generate_and_write_to_file()
-        self.then_path_was(Path("build_rasa")/"eng"/"rasa_data.json")
+        self.then_path_was(Path("build_rasa") / "eng" / "rasa_data.json")
 
     def then_path_was(self, expected_path):
         self._MockUTF8FileWriter.assert_called_once_with(expected_path)
@@ -304,7 +310,8 @@ class UnsupportedBuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestC
         self.given_mocked_grammar(requests=self._requests_of_action("purchase", "selected_price"))
         self.given_generator()
         self.when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(
-            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA")
+            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA"
+        )
 
     def _requests_of_action(self, action, required_predicate):
         return [
@@ -320,13 +327,16 @@ class UnsupportedBuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestC
         self.given_mocked_grammar(questions=self._questions_of_predicate("selected_price", "real"))
         self.given_generator()
         self.when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(
-            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA")
+            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA"
+        )
 
     def _questions_of_predicate(self, question_predicate, sort):
         return [
-            Question(question_predicate, ["how long time remains of the ", " reminder"], [
-                RequiredSortalEntity(sort),
-            ]),
+            Question(
+                question_predicate, ["how long time remains of the ", " reminder"], [
+                    RequiredSortalEntity(sort),
+                ]
+            ),
         ]
 
     def test_generate_answers(self):
@@ -335,15 +345,17 @@ class UnsupportedBuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestC
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(
-            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA")
+            SortNotSupportedException, "Builtin sort 'real' is not yet supported together with RASA"
+        )
 
 
 class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def setUp(self):
         GeneratorTestsBase.setup(self)
 
-    def given_ontology_with_individuals(self, sort, predicate, is_integer_sort=False, is_string_sort=False,
-                                        is_real_sort=False):
+    def given_ontology_with_individuals(
+        self, sort, predicate, is_integer_sort=False, is_string_sort=False, is_real_sort=False
+    ):
         individuals = [
             "contact_john",
             "contact_john_chi",
@@ -352,8 +364,8 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             "contact_andy",
             "contact_andy_chi",
         ]
-        super(CustomSortGeneratorTestCase, self).given_ontology(sort, individuals, predicate, is_integer_sort,
-                                                                is_string_sort, is_real_sort)
+        super(CustomSortGeneratorTestCase,
+              self).given_ontology(sort, individuals, predicate, is_integer_sort, is_string_sort, is_real_sort)
 
     def given_mocked_grammar_with_individuals(self, requests=None, questions=None, answers=None):
         individuals = {
@@ -373,8 +385,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar_with_individuals(requests=self._requests_of_action)
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_action(
-            "call", "contact", "selected_contact_to_call")
+        self.then_common_examples_have_been_generated_for_action("call", "contact", "selected_contact_to_call")
 
     @property
     def _requests_of_action(self):
@@ -388,95 +399,170 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             ]),
         ]
 
-    def then_common_examples_have_been_generated_for_action(
-            self, action, sort, predicate_of_propositional_answer):
+    def then_common_examples_have_been_generated_for_action(self, action, sort, predicate_of_propositional_answer):
         def examples():
             yield self._action_example(action, "make a call")
-            for example in self._action_examples_with_sortal_entities(
-                    action, ["call "], sort, self._contact_data):
+            for example in self._action_examples_with_sortal_entities(action, ["call "], sort, self._contact_data):
                 yield example
             for example in self._action_examples_with_propositional_entities(
-                    action, ["make a call to "], predicate_of_propositional_answer,
-                    self._contact_data):
+                action, ["make a call to "], predicate_of_propositional_answer, self._contact_data
+            ):
                 yield example
+
         self._assert_common_examples_in_generated_data_is(examples())
 
     def test_generate_requests_with_two_answers(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="caller")
         self.given_actions_in_ontology({"call"})
-        self.given_mocked_grammar_with_individuals(requests=[
-            Request("call", ["call ", " and say hi from ", ""], [
-                RequiredSortalEntity("contact"),
-                RequiredPropositionalEntity("caller"),
-            ]),
-        ])
+        self.given_mocked_grammar_with_individuals(
+            requests=[
+                Request(
+                    "call", ["call ", " and say hi from ", ""], [
+                        RequiredSortalEntity("contact"),
+                        RequiredPropositionalEntity("caller"),
+                    ]
+                ),
+            ]
+        )
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated([
             {
-                "text": "call John and say hi from Lisa",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 9,  "value": "John", "entity": "sort:contact"},
-                    {"start": 26, "end": 30, "value": "Lisa", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call John and say hi from Lisa",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 9,
+                    "value": "John",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 26,
+                    "end": 30,
+                    "value": "Lisa",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Johnny and say hi from Lisa",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 11, "value": "Johnny", "entity": "sort:contact"},
-                    {"start": 28, "end": 32, "value": "Lisa",   "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Johnny and say hi from Lisa",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 11,
+                    "value": "Johnny",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 28,
+                    "end": 32,
+                    "value": "Lisa",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call John and say hi from Elizabeth",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 9,  "value": "John", "entity": "sort:contact"},
-                    {"start": 26, "end": 35, "value": "Elizabeth", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call John and say hi from Elizabeth",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 9,
+                    "value": "John",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 26,
+                    "end": 35,
+                    "value": "Elizabeth",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Johnny and say hi from Elizabeth",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 11, "value": "Johnny", "entity": "sort:contact"},
-                    {"start": 28, "end": 37, "value": "Elizabeth", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Johnny and say hi from Elizabeth",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 11,
+                    "value": "Johnny",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 28,
+                    "end": 37,
+                    "value": "Elizabeth",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Lisa and say hi from John",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 9,  "value": "Lisa", "entity": "sort:contact"},
-                    {"start": 26, "end": 30, "value": "John", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Lisa and say hi from John",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 9,
+                    "value": "Lisa",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 26,
+                    "end": 30,
+                    "value": "John",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Lisa and say hi from Johnny",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 9,  "value": "Lisa", "entity": "sort:contact"},
-                    {"start": 26, "end": 32, "value": "Johnny", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Lisa and say hi from Johnny",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 9,
+                    "value": "Lisa",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 26,
+                    "end": 32,
+                    "value": "Johnny",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Elizabeth and say hi from John",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 14, "value": "Elizabeth", "entity": "sort:contact"},
-                    {"start": 31, "end": 35, "value": "John", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Elizabeth and say hi from John",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 14,
+                    "value": "Elizabeth",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 31,
+                    "end": 35,
+                    "value": "John",
+                    "entity": "predicate:caller"
+                }]
             },
             {
-                "text": "call Elizabeth and say hi from Johnny",
-                "intent": "rasa_test:action::call",
-                "entities": [
-                    {"start": 5,  "end": 14, "value": "Elizabeth", "entity": "sort:contact"},
-                    {"start": 31, "end": 37, "value": "Johnny", "entity": "predicate:caller"}
-                ]
+                "text":
+                "call Elizabeth and say hi from Johnny",
+                "intent":
+                "rasa_test:action::call",
+                "entities": [{
+                    "start": 5,
+                    "end": 14,
+                    "value": "Elizabeth",
+                    "entity": "sort:contact"
+                }, {
+                    "start": 31,
+                    "end": 37,
+                    "value": "Johnny",
+                    "entity": "predicate:caller"
+                }]
             },
         ])
 
@@ -488,7 +574,8 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated_for_question(
-            "phone_number_of_contact", "contact", "selected_contact_of_phone_number")
+            "phone_number_of_contact", "contact", "selected_contact_of_phone_number"
+        )
 
     @property
     def _questions_of_predicate(self):
@@ -497,23 +584,27 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             Question("phone_number_of_contact", ["what is ", "'s number"], [
                 RequiredSortalEntity("contact"),
             ]),
-            Question("phone_number_of_contact", ["tell me ", "'s number"], [
-                RequiredPropositionalEntity("selected_contact_of_phone_number"),
-            ]),
+            Question(
+                "phone_number_of_contact", ["tell me ", "'s number"], [
+                    RequiredPropositionalEntity("selected_contact_of_phone_number"),
+                ]
+            ),
         ]
 
     def then_common_examples_have_been_generated_for_question(
-            self, predicate_in_question, sort, predicate_of_propositional_answer):
+        self, predicate_in_question, sort, predicate_of_propositional_answer
+    ):
         def examples():
             yield self._question_example(predicate_in_question, "tell me a phone number")
             for example in self._question_examples_with_sortal_entities(
-                    predicate_in_question, ["what is ", "'s number"], sort,
-                    self._contact_data):
+                predicate_in_question, ["what is ", "'s number"], sort, self._contact_data
+            ):
                 yield example
             for example in self._question_examples_with_propositional_entities(
-                    predicate_in_question, ["tell me ", "'s number"], predicate_of_propositional_answer,
-                    self._contact_data):
+                predicate_in_question, ["tell me ", "'s number"], predicate_of_propositional_answer, self._contact_data
+            ):
                 yield example
+
         self._assert_common_examples_in_generated_data_is(examples())
 
     def then_common_examples_have_been_generated_for_questions_and_exected_data(self):
@@ -531,6 +622,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         def examples():
             for example in self._answer_examples_with_sortal_entities(sort, self._contact_data):
                 yield example
+
         self._assert_common_examples_in_generated_data_is(examples())
 
     def test_generate_answer_negation_intents(self):
@@ -545,6 +637,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         def examples():
             for example in self._answer_negation_examples_with_sortal_entities(sort, self._contact_data):
                 yield example
+
         self._assert_common_examples_in_generated_data_is(examples())
 
     @property
@@ -569,8 +662,10 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def then_common_examples_have_been_generated_for_propositional_answer(self, predicate):
         def examples():
             for example in self._answer_examples_with_propositional_entities(
-                    predicate, ["my friend ", ""], self._contact_data):
+                predicate, ["my friend ", ""], self._contact_data
+            ):
                 yield example
+
         self._assert_common_examples_in_generated_data_is(examples())
 
 
@@ -589,6 +684,7 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             mock_examples = MagicMock(spec=Examples)
             mock_examples.get_builtin_sort_examples.return_value = self._mock_builtin_sort_examples
             return mock_examples
+
         patcher = patch("%s.Examples" % generator.__name__)
         mock_examples_patcher = patcher.start()
         mock_examples_patcher.from_language.return_value = create_mock_examples()
@@ -598,45 +694,61 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_ddd_name("rasa_test")
         self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
         self.given_actions_in_ontology({"mock_action"})
-        self.given_mocked_grammar(requests=[
-            Request("mock_action", ["mock phrase without entities"], []),
-            Request("mock_action", ["mock phrase with sortal entity ", ""], [
-                RequiredSortalEntity("mock_sort")]),
-            Request("mock_action", ["mock phrase with propositional entity ", ""], [
-                RequiredPropositionalEntity("mock_predicate")])
-            ])
+        self.given_mocked_grammar(
+            requests=[
+                Request("mock_action", ["mock phrase without entities"], []),
+                Request("mock_action", ["mock phrase with sortal entity ", ""], [RequiredSortalEntity("mock_sort")]),
+                Request(
+                    "mock_action", ["mock phrase with propositional entity ", ""],
+                    [RequiredPropositionalEntity("mock_predicate")]
+                )
+            ]
+        )
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
-            [self._action_example("mock_action", "mock phrase without entities")] +
-            list(self._action_examples_with_sortal_entities(
-                "mock_action", ["mock phrase with sortal entity "], "mock_sort",
-                self._mock_builtin_sort_examples)) +
-            list(self._action_examples_with_propositional_entities(
-                "mock_action", ["mock phrase with propositional entity "], "mock_predicate",
-                self._mock_builtin_sort_examples)))
+            [self._action_example("mock_action", "mock phrase without entities")] + list(
+                self._action_examples_with_sortal_entities(
+                    "mock_action", ["mock phrase with sortal entity "], "mock_sort", self._mock_builtin_sort_examples
+                )
+            ) + list(
+                self._action_examples_with_propositional_entities(
+                    "mock_action", ["mock phrase with propositional entity "], "mock_predicate", self.
+                    _mock_builtin_sort_examples
+                )
+            )
+        )
 
     def test_generate_questions(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
         self.given_expected_plan_questions_in_domain(predicates={"mock_predicate": "mock_sort"})
-        self.given_mocked_grammar(questions=[
-            Question("mock_predicate", ["mock phrase without entities"], []),
-            Question("mock_predicate", ["mock phrase with sortal entity ", ""], [
-                RequiredSortalEntity("mock_sort")]),
-            Question("mock_predicate", ["mock phrase with propositional entity ", ""], [
-                RequiredPropositionalEntity("mock_predicate")])
-            ])
+        self.given_mocked_grammar(
+            questions=[
+                Question("mock_predicate", ["mock phrase without entities"], []),
+                Question(
+                    "mock_predicate", ["mock phrase with sortal entity ", ""], [RequiredSortalEntity("mock_sort")]
+                ),
+                Question(
+                    "mock_predicate", ["mock phrase with propositional entity ", ""],
+                    [RequiredPropositionalEntity("mock_predicate")]
+                )
+            ]
+        )
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
-            [self._question_example("mock_predicate", "mock phrase without entities")] +
-            list(self._question_examples_with_sortal_entities(
-                "mock_predicate", ["mock phrase with sortal entity "], "mock_sort",
-                self._mock_builtin_sort_examples)) +
-            list(self._question_examples_with_propositional_entities(
-                "mock_predicate", ["mock phrase with propositional entity "], "mock_predicate",
-                self._mock_builtin_sort_examples)))
+            [self._question_example("mock_predicate", "mock phrase without entities")] + list(
+                self._question_examples_with_sortal_entities(
+                    "mock_predicate", ["mock phrase with sortal entity "], "mock_sort", self._mock_builtin_sort_examples
+                )
+            ) + list(
+                self._question_examples_with_propositional_entities(
+                    "mock_predicate", ["mock phrase with propositional entity "], "mock_predicate", self.
+                    _mock_builtin_sort_examples
+                )
+            )
+        )
 
     def test_generate_answer_intents(self):
         self.given_ddd_name("rasa_test")
@@ -645,8 +757,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
-            self._answer_examples_with_sortal_entities(
-                "mock_sort", self._mock_builtin_sort_examples))
+            self._answer_examples_with_sortal_entities("mock_sort", self._mock_builtin_sort_examples)
+        )
 
     def test_generate_answer_negation_intents(self):
         self.given_ddd_name("rasa_test")
@@ -655,22 +767,24 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
-            self._answer_negation_examples_with_sortal_entities(
-                "mock_sort", self._mock_builtin_sort_examples))
+            self._answer_negation_examples_with_sortal_entities("mock_sort", self._mock_builtin_sort_examples)
+        )
 
     def test_answers(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
-        self.given_mocked_grammar(answers=[
-            Answer(["mock phrase with propositional entity ", ""], [
-                RequiredPropositionalEntity("mock_predicate")])
-            ])
+        self.given_mocked_grammar(
+            answers=[
+                Answer(["mock phrase with propositional entity ", ""], [RequiredPropositionalEntity("mock_predicate")])
+            ]
+        )
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
             self._answer_examples_with_propositional_entities(
-                "mock_predicate", ["mock phrase with propositional entity ", ""],
-                self._mock_builtin_sort_examples))
+                "mock_predicate", ["mock phrase with propositional entity ", ""], self._mock_builtin_sort_examples
+            )
+        )
 
 
 class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
@@ -679,34 +793,45 @@ class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
 
     def test_examples_extended_with_strings_of_predicate(self):
         self.given_ddd_name("rasa_test")
-        self.given_ontology(sort="string", predicate="mock_predicate", individuals=[], is_builtin=True, is_string_sort=True)
+        self.given_ontology(
+            sort="string", predicate="mock_predicate", individuals=[], is_builtin=True, is_string_sort=True
+        )
         self.given_actions_in_ontology({"mock_action"})
         self.given_mocked_grammar(
             requests=[
                 Request("mock_action", ["mock phrase without entities"], []),
-                Request("mock_action", ["mock phrase with sortal entity ", ""], [
-                    RequiredSortalEntity("string")]),
-                Request("mock_action", ["mock phrase with propositional entity ", ""], [
-                    RequiredPropositionalEntity("mock_predicate")])
+                Request("mock_action", ["mock phrase with sortal entity ", ""], [RequiredSortalEntity("string")]),
+                Request(
+                    "mock_action", ["mock phrase with propositional entity ", ""],
+                    [RequiredPropositionalEntity("mock_predicate")]
+                )
             ],
-            strings=["mock string of predicate"])
+            strings=["mock string of predicate"]
+        )
         self.given_generator()
         self.when_generate()
         self.then_common_examples_have_been_generated(
-            [self._action_example("mock_action", "mock phrase without entities")] +
-            list(self._action_examples_with_string_entities(
-                "mock_action", ["mock phrase with sortal entity "],
-                EnglishExamples().string)) +
-            list(self._action_examples_with_propositional_entities(
-                "mock_action", ["mock phrase with propositional entity "], "mock_predicate",
-                EnglishExamples().string + ["mock string of predicate"])))
+            [self._action_example("mock_action", "mock phrase without entities")] + list(
+                self._action_examples_with_string_entities(
+                    "mock_action", ["mock phrase with sortal entity "],
+                    EnglishExamples().string
+                )
+            ) + list(
+                self._action_examples_with_propositional_entities(
+                    "mock_action", ["mock phrase with propositional entity "], "mock_predicate",
+                    EnglishExamples().string + ["mock string of predicate"]
+                )
+            )
+        )
 
     def _action_examples_with_string_entities(self, action, texts, entity_names):
         return self._action_examples_with_entities(action, texts, "string", entity_names)
 
     def test_do_not_generate_answer_negation_intents(self):
         self.given_ddd_name("rasa_test")
-        self.given_ontology(sort="string", predicate="selected_message", individuals=[], is_builtin=True, is_string_sort=True)
+        self.given_ontology(
+            sort="string", predicate="selected_message", individuals=[], is_builtin=True, is_string_sort=True
+        )
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()

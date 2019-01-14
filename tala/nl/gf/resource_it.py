@@ -9,14 +9,7 @@ class NP(tala.nl.gf.resource.NP):
         self.gender = gender
         self.definite = None
 
-top = [
-    NP("avvia visualizzazione", "xxxxxxxxxxx"),
-    "cancella",
-    "ricomincia",
-    "stop"
-    ]
 
-up = [
-    "indietro",
-    "torna indietro"
-    ]
+top = [NP("avvia visualizzazione", "xxxxxxxxxxx"), "cancella", "ricomincia", "stop"]
+
+up = ["indietro", "torna indietro"]

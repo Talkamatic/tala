@@ -1,6 +1,9 @@
 from tala.utils.unicodify import unicodify
 
-class StackError(Exception): pass
+
+class StackError(Exception):
+    pass
+
 
 class Stack:
     def __init__(self, content=set(), contentclass=None):
@@ -38,15 +41,16 @@ class Stack:
     def _typecheck(self, element):
         if self.contentclass:
             if not isinstance(element, self.contentclass):
-                raise TypeError("object " + unicode(element) + " of type " +
-                                element.__class__.__name__ +
-                                " is not of type " + unicode(self.contentclass))
+                raise TypeError(
+                    "object " + unicode(element) + " of type " + element.__class__.__name__ + " is not of type " +
+                    unicode(self.contentclass)
+                )
 
     def top(self):
         if len(self) < 1:
-            raise StackError("Cannot call 'top()' when stacksize <= 0") 
+            raise StackError("Cannot call 'top()' when stacksize <= 0")
         return self.content[0]
-    
+
     def isTop(self, element):
         try:
             return element == self.top()
@@ -55,7 +59,7 @@ class Stack:
 
     def pop(self):
         if len(self) < 1:
-            raise StackError("Cannot call 'pop()' when stacksize <= 0") 
+            raise StackError("Cannot call 'pop()' when stacksize <= 0")
         return self.content.pop(0)
 
     def __len__(self):
@@ -67,14 +71,16 @@ class Stack:
     def clear(self):
         self.content = list()
 
-
     def remove(self, element):
         self.content.remove(element)
 
     def __iter__(self):
         return self.content.__iter__()
 
-class StackError(Exception): pass
+
+class StackError(Exception):
+    pass
+
 
 class StackSet(Stack):
     def __unicode__(self):
@@ -87,7 +93,7 @@ class StackSet(Stack):
         if element in self.content:
             self.content.remove(element)
         self.content.insert(0, element)
-       
+
     def remove_if_exists(self, element):
         if element in self.content:
             self.remove(element)
@@ -95,12 +101,12 @@ class StackSet(Stack):
     def create_view(self, philter):
         return StackSetView(self, philter)
 
-    
+
 class StackSetView:
     def __init__(self, source_object, philter):
         self.source_object = source_object
         self.philter = philter
-        
+
     def __unicode__(self):
         string = "stacksetview(" + unicode(list(self)) + ")"
         return string
@@ -110,7 +116,7 @@ class StackSetView:
 
     def top(self):
         return self._filtered_top(self.philter)
-    
+
     def _filtered_top(self, philter):
         for element in self.source_object:
             if philter(element):

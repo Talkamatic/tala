@@ -12,7 +12,7 @@ class TextFormattingTests(unittest.TestCase):
         self.given_list([])
         self.when_creating_readable_list()
         self.then_result_was("")
-        
+
     def given_list(self, elements):
         self._elements = elements
 

@@ -12,15 +12,8 @@ class AbstractVerifyStep(AbstractBuildStep):
     _build_directory = None
     _AutoGeneratorClass = None
 
-    def __init__(self,
-                 ddd,
-                 ignore_warnings,
-                 language_codes,
-                 verbose,
-                 ddd_root_directory,
-                 grammar_directory):
-        super(AbstractVerifyStep, self).__init__(
-            ddd, language_codes, ddd_root_directory, grammar_directory, verbose)
+    def __init__(self, ddd, ignore_warnings, language_codes, verbose, ddd_root_directory, grammar_directory):
+        super(AbstractVerifyStep, self).__init__(ddd, language_codes, ddd_root_directory, grammar_directory, verbose)
         self._ignore_warnings = ignore_warnings
 
     def build(self):

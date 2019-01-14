@@ -34,8 +34,9 @@ class ServiceInterfaceTests(unittest.TestCase):
         self._then_result_is(True)
 
     def _create_play_audio_action(self, name):
-        return PlayAudioActionInterface(name, FrontendTarget(), parameters=[],
-                                        audio_url_parameter=self._mocked_audio_url_parameter)
+        return PlayAudioActionInterface(
+            name, FrontendTarget(), parameters=[], audio_url_parameter=self._mocked_audio_url_parameter
+        )
 
     def _given_play_audio_actions(self, names):
         self._play_audio_actions = [self._create_play_audio_action(name) for name in names]
@@ -116,17 +117,17 @@ class ServiceInterfaceTests(unittest.TestCase):
         self._given_play_audio_actions(["mocked_action"])
         self._given_service_interface()
         self._when_calling_get_action_then_exception_is_raised_matching(
-            "another_action",
-            UnexpectedActionException,
-            "Expected one of the known actions \['mocked_action'\] but got 'another_action'")
+            "another_action", UnexpectedActionException,
+            "Expected one of the known actions \['mocked_action'\] but got 'another_action'"
+        )
 
     def test_get_action_when_action_missing(self):
         self._given_actions(["mocked_action"])
         self._given_service_interface()
         self._when_calling_get_action_then_exception_is_raised_matching(
-            "another_action",
-            UnexpectedActionException,
-            "Expected one of the known actions \['mocked_action'\] but got 'another_action'")
+            "another_action", UnexpectedActionException,
+            "Expected one of the known actions \['mocked_action'\] but got 'another_action'"
+        )
 
     def _when_calling_get_action_then_exception_is_raised_matching(self, name, expected_exception, expected_message):
         with self.assertRaisesRegexp(expected_exception, expected_message):
@@ -135,11 +136,11 @@ class ServiceInterfaceTests(unittest.TestCase):
     def test_duplicate_actions(self):
         self._given_actions(["mocked_action", "mocked_action"])
         self._when_creating_service_interface_then_exception_is_raised_matching(
-            DuplicateNameException,
-            "Expected all names to be unique among "
+            DuplicateNameException, "Expected all names to be unique among "
             "\[ServiceActionInterface\('mocked_action', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\], failure_reasons=\[\]\),"
             " ServiceActionInterface\('mocked_action', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\], failure_reasons=\[\]\)\] "
-            "but they weren't")
+            "but they weren't"
+        )
 
     def _when_creating_service_interface_then_exception_is_raised_matching(self, expected_exception, expected_message):
         with self.assertRaisesRegexp(expected_exception, expected_message):
@@ -148,12 +149,12 @@ class ServiceInterfaceTests(unittest.TestCase):
     def test_duplicate_queries(self):
         self._given_queries(["mocked_query", "another_query", "mocked_query"])
         self._when_creating_service_interface_then_exception_is_raised_matching(
-            DuplicateNameException,
-            "Expected all names to be unique among "
+            DuplicateNameException, "Expected all names to be unique among "
             "\[ServiceQueryInterface\('mocked_query', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\), "
             "ServiceQueryInterface\('another_query', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\), "
             "ServiceQueryInterface\('mocked_query', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\)\] "
-            "but they weren't")
+            "but they weren't"
+        )
 
     def _given_queries(self, names):
         self._queries = [self._create_query(name) for name in names]
@@ -164,12 +165,12 @@ class ServiceInterfaceTests(unittest.TestCase):
     def test_duplicate_validators(self):
         self._given_validators(["validator", "validator", "other"])
         self._when_creating_service_interface_then_exception_is_raised_matching(
-            DuplicateNameException,
-            "Expected all names to be unique among "
+            DuplicateNameException, "Expected all names to be unique among "
             "\[ServiceValidatorInterface\('validator', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\), "
             "ServiceValidatorInterface\('validator', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\), "
             "ServiceValidatorInterface\('other', <Mock spec='DeviceModuleTarget' id='[\d]+'>, parameters=\[\]\)\] "
-            "but they weren't")
+            "but they weren't"
+        )
 
     def _given_validators(self, names):
         self._validators = [self._create_validator(name) for name in names]
@@ -180,12 +181,12 @@ class ServiceInterfaceTests(unittest.TestCase):
     def test_duplicate_entity_recognizers(self):
         self._given_entity_recognizers(["a_recognizer", "recognizer", "recognizer"])
         self._when_creating_service_interface_then_exception_is_raised_matching(
-            DuplicateNameException,
-            "Expected all names to be unique among "
+            DuplicateNameException, "Expected all names to be unique among "
             "\[ServiceEntityRecognizerInterface\('a_recognizer', <Mock spec='DeviceModuleTarget' id='[\d]+'>\), "
             "ServiceEntityRecognizerInterface\('recognizer', <Mock spec='DeviceModuleTarget' id='[\d]+'>\), "
             "ServiceEntityRecognizerInterface\('recognizer', <Mock spec='DeviceModuleTarget' id='[\d]+'>\)\] "
-            "but they weren't")
+            "but they weren't"
+        )
 
     def _given_entity_recognizers(self, names):
         self._entity_recognizers = [self._create_entity_recognizer(name) for name in names]
@@ -218,6 +219,7 @@ class ActionInterfaceTests(unittest.TestCase):
         self._when_asking_is_play_audio_action()
         self._then_result_is(True)
 
+
 class ActionInterfaceCreationTests(unittest.TestCase):
     def setUp(self):
         self._name = None
@@ -232,7 +234,8 @@ class ActionInterfaceCreationTests(unittest.TestCase):
         self._given_failure_reasons([ActionFailureReason("mocked_failure_reason")])
         self._when_creating_action_then_exception_is_raised_matching(
             FailureReasonsNotAllowedException, "Expected no failure reasons for action 'MockedAction' with target "
-                                               "'frontend', but got \['mocked_failure_reason'\]")
+            "'frontend', but got \['mocked_failure_reason'\]"
+        )
 
     def _given_name(self, name):
         self._name = name
@@ -254,7 +257,9 @@ class ActionInterfaceCreationTests(unittest.TestCase):
         self._when_creating_action()
         self._then_result_matches(
             ServiceActionInterface(
-                "MockedAction", DeviceModuleTarget("MockedDevice"), [], [ActionFailureReason("mocked_failure_reason")]))
+                "MockedAction", DeviceModuleTarget("MockedDevice"), [], [ActionFailureReason("mocked_failure_reason")]
+            )
+        )
 
     def _when_creating_action(self):
         self._result = self._create_action()
@@ -283,17 +288,19 @@ class TestExceptionRaisedForUnsupportedTarget(object):
     http_target = HttpTarget("mock_endpoint")
     frontend_target = FrontendTarget()
 
-    @pytest.mark.parametrize("interface_constructor,target", [
-        (create_action_interface, device_module_target),
-        (create_action_interface, http_target),
-        (create_action_interface, frontend_target),
-        (create_query_interface, device_module_target),
-        (create_query_interface, http_target),
-        (create_validator_interface, device_module_target),
-        (create_validator_interface, http_target),
-        (create_entity_recognizer_interface, device_module_target),
-        (create_entity_recognizer_interface, http_target),
-    ])
+    @pytest.mark.parametrize(
+        "interface_constructor,target", [
+            (create_action_interface, device_module_target),
+            (create_action_interface, http_target),
+            (create_action_interface, frontend_target),
+            (create_query_interface, device_module_target),
+            (create_query_interface, http_target),
+            (create_validator_interface, device_module_target),
+            (create_validator_interface, http_target),
+            (create_entity_recognizer_interface, device_module_target),
+            (create_entity_recognizer_interface, http_target),
+        ]
+    )
     def test_supported_targets(self, interface_constructor, target):
         self.when_create_interface(interface_constructor, target)
         self.then_no_exception_is_raised()
@@ -304,16 +311,19 @@ class TestExceptionRaisedForUnsupportedTarget(object):
     def then_no_exception_is_raised(self):
         pass
 
-    @pytest.mark.parametrize("interface_constructor", [
-        create_query_interface, create_validator_interface, create_entity_recognizer_interface])
+    @pytest.mark.parametrize(
+        "interface_constructor",
+        [create_query_interface, create_validator_interface, create_entity_recognizer_interface]
+    )
     def test_unsupported_frontend_target(self, interface_constructor):
         self.when_create_interface_then_exception_is_raised_matching(
-            interface_constructor, FrontendTarget(),
-            UnsupportedServiceInterfaceTarget,
-            "Expected a non-frontend target for service interface 'mock_name' but got a frontend target.")
+            interface_constructor, FrontendTarget(), UnsupportedServiceInterfaceTarget,
+            "Expected a non-frontend target for service interface 'mock_name' but got a frontend target."
+        )
 
-    def when_create_interface_then_exception_is_raised_matching(self, interface_constructor, target,
-                                                                expected_exception, expected_message):
+    def when_create_interface_then_exception_is_raised_matching(
+        self, interface_constructor, target, expected_exception, expected_message
+    ):
         with pytest.raises(expected_exception) as excinfo:
             interface_constructor(self, target)
         assert expected_message == str(excinfo.value)
@@ -322,32 +332,36 @@ class TestExceptionRaisedForUnsupportedTarget(object):
 class ServiceTargetsTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
     def test_device_module_target_equality(self):
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
-            DeviceModuleTarget("mock_device"), DeviceModuleTarget("mock_device"))
+            DeviceModuleTarget("mock_device"), DeviceModuleTarget("mock_device")
+        )
 
     def test_device_module_target_inequality_due_to_device(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            DeviceModuleTarget("mock_device_1"), DeviceModuleTarget("mock_device_2"))
+            DeviceModuleTarget("mock_device_1"), DeviceModuleTarget("mock_device_2")
+        )
 
     def test_device_module_target_not_equals_instance_of_other_class(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            DeviceModuleTarget("mock_device"), "instance_of_other_class")
+            DeviceModuleTarget("mock_device"), "instance_of_other_class"
+        )
 
     def test_frontend_target_equality(self):
-        self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
-            FrontendTarget(), FrontendTarget())
+        self.assert_eq_returns_true_and_ne_returns_false_symmetrically(FrontendTarget(), FrontendTarget())
 
     def test_frontend_target_target_not_equals_instance_of_other_class(self):
-        self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            FrontendTarget(), "instance_of_other_class")
+        self.assert_eq_returns_false_and_ne_returns_true_symmetrically(FrontendTarget(), "instance_of_other_class")
 
     def test_http_target_equality(self):
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
-            HttpTarget("mock_endpoint"), HttpTarget("mock_endpoint"))
+            HttpTarget("mock_endpoint"), HttpTarget("mock_endpoint")
+        )
 
     def test_http_target_inequality_due_to_endpoint(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            HttpTarget("mock_endpoint_1"), HttpTarget("mock_endpoint_2"))
+            HttpTarget("mock_endpoint_1"), HttpTarget("mock_endpoint_2")
+        )
 
     def test_http_target_target_not_equals_instance_of_other_class(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            HttpTarget("mock_endpoint"), "instance_of_other_class")
+            HttpTarget("mock_endpoint"), "instance_of_other_class"
+        )

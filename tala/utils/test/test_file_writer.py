@@ -70,4 +70,4 @@ class TestFileWriter(object):
         self.given_file_writer_created_with(path)
         self.given_directories_created()
         self.when_writing("mocked data")
-        self.then_file_contains(expected_file=Path("mocked")/"data.txt", expected_contents="mocked data")
+        self.then_file_contains(expected_file=Path("mocked") / "data.txt", expected_contents="mocked data")

@@ -4,8 +4,15 @@ from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove
 
 
 class MoveFactoryWithPredefinedBoilerplate(object):
-    def __init__(self, ontology_name, understanding_confidence=None, speaker=None, utterance=None, ddd_name=None,
-                 perception_confidence=None):
+    def __init__(
+        self,
+        ontology_name,
+        understanding_confidence=None,
+        speaker=None,
+        utterance=None,
+        ddd_name=None,
+        perception_confidence=None
+    ):
         self._ontology_name = ontology_name
         self._understanding_confidence = understanding_confidence
         self._perception_confidence = perception_confidence
@@ -13,8 +20,17 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         self._utterance = utterance
         self._ddd_name = ddd_name
 
-    def createMove(self, type_, content=None, understanding_confidence=None, speaker=None,
-                   utterance=None, modality=None, ddd_name=None, perception_confidence=None):
+    def createMove(
+        self,
+        type_,
+        content=None,
+        understanding_confidence=None,
+        speaker=None,
+        utterance=None,
+        modality=None,
+        ddd_name=None,
+        perception_confidence=None
+    ):
         if understanding_confidence is None:
             understanding_confidence = self._understanding_confidence
         if perception_confidence is None:
@@ -27,12 +43,26 @@ class MoveFactoryWithPredefinedBoilerplate(object):
             ddd_name = self._ddd_name
 
         if content is not None:
-            return MoveWithSemanticContent(type_, content, understanding_confidence=understanding_confidence,
-                                           speaker=speaker, utterance=utterance, modality=modality, ddd_name=ddd_name,
-                                           perception_confidence=perception_confidence)
+            return MoveWithSemanticContent(
+                type_,
+                content,
+                understanding_confidence=understanding_confidence,
+                speaker=speaker,
+                utterance=utterance,
+                modality=modality,
+                ddd_name=ddd_name,
+                perception_confidence=perception_confidence
+            )
 
-        return Move(type_, understanding_confidence=understanding_confidence, speaker=speaker, utterance=utterance,
-                    modality=modality, ddd_name=ddd_name, perception_confidence=perception_confidence)
+        return Move(
+            type_,
+            understanding_confidence=understanding_confidence,
+            speaker=speaker,
+            utterance=utterance,
+            modality=modality,
+            ddd_name=ddd_name,
+            perception_confidence=perception_confidence
+        )
 
     def create_ask_move(self, question, speaker=None):
         return self.createMove(Move.ASK, question, speaker=speaker)
@@ -43,8 +73,17 @@ class MoveFactoryWithPredefinedBoilerplate(object):
     def createRequestMove(self, action):
         return self.createMove(Move.REQUEST, action, speaker=Speaker.USR, understanding_confidence=1.0)
 
-    def createIcmMove(self, icm_type, content=None, content_speaker=None, polarity=None, understanding_confidence=None,
-                      speaker=None, ddd_name=None, perception_confidence=None):
+    def createIcmMove(
+        self,
+        icm_type,
+        content=None,
+        content_speaker=None,
+        polarity=None,
+        understanding_confidence=None,
+        speaker=None,
+        ddd_name=None,
+        perception_confidence=None
+    ):
         if understanding_confidence is None:
             understanding_confidence = self._understanding_confidence
         if speaker is None:
@@ -52,17 +91,43 @@ class MoveFactoryWithPredefinedBoilerplate(object):
 
         if content is not None:
             if content == "issue":
-                return IssueICMMove(icm_type, understanding_confidence=understanding_confidence, speaker=speaker,
-                                    polarity=polarity, ddd_name=ddd_name, perception_confidence=perception_confidence)
+                return IssueICMMove(
+                    icm_type,
+                    understanding_confidence=understanding_confidence,
+                    speaker=speaker,
+                    polarity=polarity,
+                    ddd_name=ddd_name,
+                    perception_confidence=perception_confidence
+                )
             if isinstance(content, basestring):
-                return ICMMoveWithStringContent(icm_type, content, understanding_confidence=understanding_confidence,
-                                                speaker=speaker, content_speaker=content_speaker, polarity=polarity,
-                                                ddd_name=ddd_name, perception_confidence=perception_confidence)
-            return ICMMoveWithSemanticContent(icm_type, content, understanding_confidence=understanding_confidence,
-                                              speaker=speaker, content_speaker=content_speaker, polarity=polarity,
-                                              ddd_name=ddd_name, perception_confidence=perception_confidence)
-        return ICMMove(icm_type, understanding_confidence=understanding_confidence, speaker=speaker, polarity=polarity,
-                       ddd_name=ddd_name, perception_confidence=perception_confidence)
+                return ICMMoveWithStringContent(
+                    icm_type,
+                    content,
+                    understanding_confidence=understanding_confidence,
+                    speaker=speaker,
+                    content_speaker=content_speaker,
+                    polarity=polarity,
+                    ddd_name=ddd_name,
+                    perception_confidence=perception_confidence
+                )
+            return ICMMoveWithSemanticContent(
+                icm_type,
+                content,
+                understanding_confidence=understanding_confidence,
+                speaker=speaker,
+                content_speaker=content_speaker,
+                polarity=polarity,
+                ddd_name=ddd_name,
+                perception_confidence=perception_confidence
+            )
+        return ICMMove(
+            icm_type,
+            understanding_confidence=understanding_confidence,
+            speaker=speaker,
+            polarity=polarity,
+            ddd_name=ddd_name,
+            perception_confidence=perception_confidence
+        )
 
     def create_report_move(self, report_proposition):
         return ReportMove(report_proposition)

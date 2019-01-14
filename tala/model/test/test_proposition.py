@@ -53,13 +53,15 @@ class PropositionTests(LibTestCase, unittest.TestCase):
         und = UnderstandingProposition(Speaker.USR, proposition)
         self.assertEquals("und(USR, dest_city(paris))", unicode(und))
 
+
 class ServiceResultPropositionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
         self.action = "mockup_action"
         self.arguments = ["mockup_arguments"]
         self.proposition = ServiceResultProposition(
-            self.ontology_name, self.action, self.arguments, "mock_perform_result")
+            self.ontology_name, self.action, self.arguments, "mock_perform_result"
+        )
 
     def test_is_service_result_proposition(self):
         self.assertTrue(self.proposition.is_service_result_proposition())
@@ -76,7 +78,8 @@ class ServiceResultPropositionTests(LibTestCase):
 
     def test_inequality_due_to_result(self):
         non_identical_proposition = ServiceResultProposition(
-            self.ontology_name, self.action, self.arguments, "other_perform_result")
+            self.ontology_name, self.action, self.arguments, "other_perform_result"
+        )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.proposition, non_identical_proposition)
 
     def test_inequality_due_to_action(self):
@@ -88,7 +91,8 @@ class ServiceResultPropositionTests(LibTestCase):
     def test_unicode(self):
         self.assertEquals(
             "ServiceResultProposition(mockup_action, ['mockup_arguments'], mock_perform_result)",
-            unicode(self.proposition))
+            unicode(self.proposition)
+        )
 
     def test_hashable(self):
         set([self.proposition])
@@ -97,36 +101,23 @@ class ServiceResultPropositionTests(LibTestCase):
 class PropositionSetTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.positive_prop_set = PropositionSet([
-            self.proposition_dest_city_london,
-            self.proposition_dest_city_paris
-        ])
-        self.negative_prop_set = PropositionSet([
-            self.proposition_dest_city_london,
-            self.proposition_dest_city_paris
-        ], polarity=Polarity.NEG)
+        self.positive_prop_set = PropositionSet([self.proposition_dest_city_london, self.proposition_dest_city_paris])
+        self.negative_prop_set = PropositionSet([self.proposition_dest_city_london, self.proposition_dest_city_paris],
+                                                polarity=Polarity.NEG)
 
     def test_equality(self):
-        identical_prop_set = PropositionSet([
-            self.proposition_dest_city_london,
-            self.proposition_dest_city_paris
-        ])
+        identical_prop_set = PropositionSet([self.proposition_dest_city_london, self.proposition_dest_city_paris])
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(self.positive_prop_set, identical_prop_set)
 
     def test_inequality_due_to_propositions(self):
-        non_identical_prop_set = PropositionSet([
-            self.proposition_dest_city_london
-        ])
+        non_identical_prop_set = PropositionSet([self.proposition_dest_city_london])
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.positive_prop_set, non_identical_prop_set)
 
     def test_inequality_due_to_polarity(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.negative_prop_set, self.positive_prop_set)
 
     def test_inequality_due_to_element_order(self):
-        non_identical_prop_set = PropositionSet([
-            self.proposition_dest_city_paris,
-            self.proposition_dest_city_london
-        ])
+        non_identical_prop_set = PropositionSet([self.proposition_dest_city_paris, self.proposition_dest_city_london])
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.positive_prop_set, non_identical_prop_set)
 
     def test_is_positive(self):
@@ -162,7 +153,8 @@ class PropositionSetTests(LibTestCase):
             "PredicateProposition("
             "Predicate('dest_city', CustomSort('city', True), None, False), "
             "Individual('paris', CustomSort('city', True)"
-            "), u'POS', False)], u'POS')", repr(self.positive_prop_set))
+            "), u'POS', False)], u'POS')", repr(self.positive_prop_set)
+        )
 
     def test_is_ontology_specific_with_some_ontology_specific_propositions(self):
         self.given_proposition_set_with([
@@ -224,7 +216,7 @@ class ServiceActionTerminatedTests(LibTestCase):
         self.setUpLibTestCase()
         self.service_action = "MakeReservation"
         self.done = ServiceActionTerminatedProposition(self.ontology_name, self.service_action)
-        
+
     def test_done_proposition_is_done_prop(self):
         self.assertTrue(self.done.is_service_action_terminated_proposition())
 
@@ -248,12 +240,11 @@ class ServiceActionTerminatedTests(LibTestCase):
 
     def test_repr(self):
         self.assertEquals(
-            "ServiceActionTerminatedProposition('mockup_ontology', 'MakeReservation', u'POS')",
-            repr(self.done))
+            "ServiceActionTerminatedProposition('mockup_ontology', 'MakeReservation', u'POS')", repr(self.done)
+        )
 
 
 class RejectionTests(LibTestCase):
-    
     def setUp(self):
         self.setUpLibTestCase()
         self.rejected_combination = PropositionSet([self.proposition_dest_city_paris])
@@ -264,30 +255,25 @@ class RejectionTests(LibTestCase):
 
     def test_creation_with_reason(self):
         reason = "ssdlfkjslkf"
-        rejected = RejectedPropositions(self.rejected_combination,
-                                       reason=reason)
-        self.assertEquals(self.rejected_combination,
-                          rejected.get_rejected_combination())
+        rejected = RejectedPropositions(self.rejected_combination, reason=reason)
+        self.assertEquals(self.rejected_combination, rejected.get_rejected_combination())
         self.assertEquals(reason, rejected.get_reason())
 
     def test_rejected_with_reason_unicode(self):
         reason = "ssdlfkjslkf"
-        rejected = RejectedPropositions(self.rejected_combination,
-                                       reason=reason)
+        rejected = RejectedPropositions(self.rejected_combination, reason=reason)
         string = "rejected(%s, %s)" % (self.rejected_combination, reason)
         self.assertEquals(string, unicode(rejected))
 
     def test_get_rejected_combination(self):
-        self.assertEquals(self.rejected_combination,
-                          self.rejected.get_rejected_combination())
+        self.assertEquals(self.rejected_combination, self.rejected.get_rejected_combination())
 
     def test_rejected_proposition_unicode(self):
         rejected_as_string = "rejected(%s)" % self.rejected_combination
         self.assertEquals(rejected_as_string, unicode(self.rejected))
 
     def test_equality(self):
-        identical_rejected_prop = RejectedPropositions(
-            PropositionSet([self.proposition_dest_city_paris]))
+        identical_rejected_prop = RejectedPropositions(PropositionSet([self.proposition_dest_city_paris]))
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(identical_rejected_prop, self.rejected)
 
     def test_inequality_due_to_rejected_combination(self):
@@ -296,10 +282,8 @@ class RejectionTests(LibTestCase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(inequal_rejected_prop, self.rejected)
 
     def test_inequality_due_to_reason(self):
-        inequal_rejected_prop = RejectedPropositions(self.rejected_combination,
-                                                    reason="some_reason")
+        inequal_rejected_prop = RejectedPropositions(self.rejected_combination, reason="some_reason")
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(inequal_rejected_prop, self.rejected)
-
 
 
 class PrereportPropositionTests(LibTestCase):
@@ -320,16 +304,13 @@ class PrereportPropositionTests(LibTestCase):
         self.assertTrue(self.prereport.is_prereport_proposition())
 
     def test_get_service_action(self):
-        self.assertEquals(self.service_action,
-                          self.prereport.get_service_action())
+        self.assertEquals(self.service_action, self.prereport.get_service_action())
 
     def test_get_arguments(self):
-        self.assertEquals(self.empty_arguments,
-                          self.prereport.get_arguments())
+        self.assertEquals(self.empty_arguments, self.prereport.get_arguments())
 
     def test_proposition_unicode(self):
-        self.assertEquals("prereported(MakeReservation, [])",
-                          unicode(self.prereport))
+        self.assertEquals("prereported(MakeReservation, [])", unicode(self.prereport))
 
     def test_equality(self):
         identical_prereport =\
@@ -346,12 +327,12 @@ class PrereportPropositionTests(LibTestCase):
                                  self.empty_arguments)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.prereport, non_identical_proposition)
 
+
 class PreconfirmationTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
         self.service_action = "MakeReservation"
-        self.arguments = [self.proposition_dest_city_paris,
-                          self.proposition_dept_city_london]
+        self.arguments = [self.proposition_dest_city_paris, self.proposition_dept_city_london]
         self.preconfirmation = \
             PreconfirmationProposition(self.ontology_name,
                                        self.service_action,
@@ -361,22 +342,21 @@ class PreconfirmationTests(LibTestCase):
         self.assertTrue(self.preconfirmation.is_preconfirmation_proposition())
 
     def test_get_service_action(self):
-        self.assertEquals(self.service_action,
-                          self.preconfirmation.get_service_action())
+        self.assertEquals(self.service_action, self.preconfirmation.get_service_action())
 
     def test_get_arguments(self):
-        self.assertEquals(self.arguments,
-                          self.preconfirmation.get_arguments())
-
+        self.assertEquals(self.arguments, self.preconfirmation.get_arguments())
 
     def test_positive_proposition_unicode(self):
-        self.assertEquals("preconfirmed(MakeReservation, [dest_city(paris), dept_city(london)])",
-                          unicode(self.preconfirmation))
+        self.assertEquals(
+            "preconfirmed(MakeReservation, [dest_city(paris), dept_city(london)])", unicode(self.preconfirmation)
+        )
 
     def test_negative_proposition_unicode(self):
         negative_preconfirmation = self.preconfirmation.negate()
-        self.assertEquals("~preconfirmed(MakeReservation, [dest_city(paris), dept_city(london)])",
-                          unicode(negative_preconfirmation))
+        self.assertEquals(
+            "~preconfirmed(MakeReservation, [dest_city(paris), dept_city(london)])", unicode(negative_preconfirmation)
+        )
 
     def test_equality(self):
         identical_preconfirmation =\
@@ -399,11 +379,11 @@ class PreconfirmationTests(LibTestCase):
 
     def test_inequality_due_to_polarity(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            self.preconfirmation, self.preconfirmation.negate())
+            self.preconfirmation, self.preconfirmation.negate()
+        )
 
     def test_inequality_due_to_arguments_in_other_order(self):
-        other_arguments = [self.proposition_dept_city_london,
-                           self.proposition_dest_city_paris]
+        other_arguments = [self.proposition_dept_city_london, self.proposition_dest_city_paris]
         other_preconfirmation = \
             PreconfirmationProposition(self.ontology_name,
                                        self.service_action,
@@ -418,6 +398,7 @@ class PreconfirmationTests(LibTestCase):
 
     def test_hashable(self):
         set([self.preconfirmation])
+
 
 class ResolvednessPropositionTests(LibTestCase):
     def setUp(self):
@@ -443,15 +424,15 @@ class ResolvednessPropositionTests(LibTestCase):
     def test_hashable(self):
         set([self.proposition])
 
+
 class QuestionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
 
     def test_is_preconfirmation_question_true_for_yes_no_questions_about_confirmation(self):
-        preconfirmation_question = YesNoQuestion(PreconfirmationProposition(
-            self.ontology_name,
-            "mockup_service_action",
-            []))
+        preconfirmation_question = YesNoQuestion(
+            PreconfirmationProposition(self.ontology_name, "mockup_service_action", [])
+        )
         self.assertTrue(preconfirmation_question.is_preconfirmation_question())
 
     def test_is_preconfirmation_question_false_for_yes_no_questions_about_non_preconfirmations(self):
@@ -467,10 +448,8 @@ class PredicatePropositionTests(LibTestCase):
         self.setUpLibTestCase()
 
     def test_getters(self):
-        self.assertEquals(self.predicate_dest_city,
-                          self.proposition_dest_city_paris.getPredicate())
-        self.assertEquals(self.individual_paris,
-                          self.proposition_dest_city_paris.getArgument())
+        self.assertEquals(self.predicate_dest_city, self.proposition_dest_city_paris.getPredicate())
+        self.assertEquals(self.individual_paris, self.proposition_dest_city_paris.getArgument())
 
     def test_positive_unicode(self):
         self.assertEquals("dest_city(paris)", unicode(self.proposition_dest_city_paris))
@@ -485,11 +464,13 @@ class PredicatePropositionTests(LibTestCase):
 
     def test_inequality_due_to_individual(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            self.proposition_dest_city_paris, self.proposition_dest_city_london)
+            self.proposition_dest_city_paris, self.proposition_dest_city_london
+        )
 
     def test_inequality_due_to_polarity(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            self.proposition_dest_city_paris, self.proposition_not_dest_city_paris)
+            self.proposition_dest_city_paris, self.proposition_not_dest_city_paris
+        )
 
     def test_default_polarity_is_positive(self):
         proposition = PredicateProposition(self.predicate_dest_city, self.individual_paris)
@@ -539,23 +520,23 @@ class GoalPropositionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
         self.proposition = GoalProposition(PerformGoal(self.buy_action))
-        self.negative_proposition = GoalProposition(PerformGoal(self.buy_action),
-                                                    polarity=Polarity.NEG)
+        self.negative_proposition = GoalProposition(PerformGoal(self.buy_action), polarity=Polarity.NEG)
 
     def test_equality(self):
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
-            GoalProposition(PerformGoal(self.buy_action)),
-            GoalProposition(PerformGoal(self.buy_action)))
+            GoalProposition(PerformGoal(self.buy_action)), GoalProposition(PerformGoal(self.buy_action))
+        )
 
     def test_inequality_due_to_goal(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            GoalProposition(PerformGoal(self.buy_action)),
-            GoalProposition(PerformGoal(self.top_action)))
+            GoalProposition(PerformGoal(self.buy_action)), GoalProposition(PerformGoal(self.top_action))
+        )
 
     def test_inequality_due_to_polarity(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
             GoalProposition(PerformGoal(self.buy_action), polarity=Polarity.POS),
-            GoalProposition(PerformGoal(self.buy_action), polarity=Polarity.NEG))
+            GoalProposition(PerformGoal(self.buy_action), polarity=Polarity.NEG)
+        )
 
     def test_hashable(self):
         set([self.proposition])
@@ -577,8 +558,7 @@ class StringPropositionTests(LibTestCase):
         sorts = set([])
         individuals = {}
         actions = set([])
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_str_with_string_argument(self):
         predicate_number_to_call = self.ontology.get_predicate("number_to_call")
@@ -597,12 +577,10 @@ class ImagePropositionTests(LibTestCase):
         sorts = set([])
         individuals = {}
         actions = set([])
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_str_with_string_argument(self):
         map_to_show = self.ontology.get_predicate("map_to_show")
         individual = self.ontology.create_individual(Image("http://mymap.com/map.png"))
         image_proposition = PredicateProposition(map_to_show, individual)
-        self.assertEquals(
-            u'map_to_show(image("http://mymap.com/map.png"))', unicode(image_proposition))
+        self.assertEquals(u'map_to_show(image("http://mymap.com/map.png"))', unicode(image_proposition))

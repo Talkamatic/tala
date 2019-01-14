@@ -1,5 +1,9 @@
-class TooFewTextChunksException(Exception): pass
-class InvalidTextChunkEntityCombinationException(Exception): pass
+class TooFewTextChunksException(Exception):
+    pass
+
+
+class InvalidTextChunkEntityCombinationException(Exception):
+    pass
 
 
 class Intent(object):
@@ -14,7 +18,8 @@ class Intent(object):
         if len(text_chunks) != len(required_entities) + 1:
             raise InvalidTextChunkEntityCombinationException(
                 "Expected %d text chunks for the %d entities, to achieve [chunk, entity, chunk, [...], entity, chunk] "
-                "but got %d chunks" % (len(required_entities)+1, len(required_entities), len(text_chunks)))
+                "but got %d chunks" % (len(required_entities) + 1, len(required_entities), len(text_chunks))
+            )
 
     @property
     def intent(self):
@@ -29,10 +34,10 @@ class Intent(object):
         return self._required_entities
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self._intent == other.intent and
-                    self._text_chunks == other.text_chunks and
-                    self._required_entities == other.required_entities)
+        return bool(
+            isinstance(other, self.__class__) and self._intent == other.intent
+            and self._text_chunks == other.text_chunks and self._required_entities == other.required_entities
+        )
 
     def __repr__(self):
         return "%s(%r, text_chunks=%s, required_entities=%s)" \

@@ -21,17 +21,16 @@ class TestOntology(object):
 
     def _create_ontology(self, name=None, sorts=None, predicates=None, individuals=None, actions=None):
         if name is None:
-            name="mockup_ontology"
+            name = "mockup_ontology"
         if sorts is None:
-            sorts=set([])
+            sorts = set([])
         if predicates is None:
-            predicates=set([])
+            predicates = set([])
         if individuals is None:
-            individuals={}
+            individuals = {}
         if actions is None:
-            actions=[]
-        self._ontology = Ontology(
-            name, sorts, predicates, individuals, actions)
+            actions = []
+        self._ontology = Ontology(name, sorts, predicates, individuals, actions)
 
     def _create_predicate(self, name, sort, *args, **kwargs):
         ontology_name = sort.ontology_name if sort.is_ontology_specific() else self.DEFAULT_NAME
@@ -58,10 +57,12 @@ class TestOntologyBasic(TestOntology):
         self._given_ontology(
             name=self.DEFAULT_NAME,
             predicates=set([self._create_predicate("dest_city", CustomSort(self.DEFAULT_NAME, "city"))]),
-            sorts=set([CustomSort(self.DEFAULT_NAME, "city")]))
+            sorts=set([CustomSort(self.DEFAULT_NAME, "city")])
+        )
         self._when_get_predicates_is_called()
-        self._then_result_is(
-            {"dest_city": self._create_predicate("dest_city", CustomSort(self._ontology.name, "city"))})
+        self._then_result_is({
+            "dest_city": self._create_predicate("dest_city", CustomSort(self._ontology.name, "city"))
+        })
 
     def _when_get_predicates_is_called(self):
         self._result = self._ontology.get_predicates()
@@ -70,10 +71,10 @@ class TestOntologyBasic(TestOntology):
         self._given_ontology(
             name=self.DEFAULT_NAME,
             individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")},
-            sorts=set([CustomSort(self.DEFAULT_NAME, "city")]))
+            sorts=set([CustomSort(self.DEFAULT_NAME, "city")])
+        )
         self._when_get_individuals_is_called()
-        self._then_result_is(
-            {"paris": CustomSort(self.DEFAULT_NAME, "city")})
+        self._then_result_is({"paris": CustomSort(self.DEFAULT_NAME, "city")})
 
     def _when_get_individuals_is_called(self):
         self._result = self._ontology.get_individuals()
@@ -100,10 +101,7 @@ class TestOntologyBasic(TestOntology):
         self._then_result_contains_key("domain", DomainSort())
 
     def test_builtin_sorts_added_for_predicates(self):
-        self._given_ontology(
-            name=self.DEFAULT_NAME,
-            predicates=set([
-                self._create_predicate("price", RealSort())]))
+        self._given_ontology(name=self.DEFAULT_NAME, predicates=set([self._create_predicate("price", RealSort())]))
         self._when_get_sorts_is_called()
         self._then_result_contains_key("real", RealSort())
 
@@ -125,7 +123,8 @@ class TestOntologyBasic(TestOntology):
             name=self.DEFAULT_NAME,
             sorts={CustomSort(self.DEFAULT_NAME, "city")},
             predicates={self._create_predicate("selected_city", CustomSort(self.DEFAULT_NAME, "city"))},
-            individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")})
+            individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")}
+        )
         self._when_individual_sort_is_called("paris")
         self._then_result_is(CustomSort(self.DEFAULT_NAME, "city"))
 
@@ -136,14 +135,12 @@ class TestOntologyBasic(TestOntology):
         assert expected_result == self._result
 
     def test_individual_sort_for_real_value(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("price", RealSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("price", RealSort())]))
         self._when_individual_sort_is_called(123.50)
         self._then_result_is(RealSort())
 
     def test_individual_sort_for_integer_value(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("price", IntegerSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("price", IntegerSort())]))
         self._when_individual_sort_is_called(123)
         self._then_result_is(IntegerSort())
 
@@ -153,27 +150,22 @@ class TestOntologyBasic(TestOntology):
             self._when_individual_sort_is_called("kalle")
 
     def test_individual_sort_for_image_value(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("display_image", ImageSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("display_image", ImageSort())]))
         self._when_individual_sort_is_called(Image("http://www.internet.org/image.png"))
         self._then_result_is(ImageSort())
 
     def test_individual_sort_for_image_value_with_query(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("display_image", ImageSort())]))
-        self._when_individual_sort_is_called(
-            Image("http://www.internet.org/image.png?variable=value"))
+        self._given_ontology(predicates=set([self._create_predicate("display_image", ImageSort())]))
+        self._when_individual_sort_is_called(Image("http://www.internet.org/image.png?variable=value"))
         self._then_result_is(ImageSort())
 
     def test_individual_sort_for_webview_value(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("interactive_map", WebviewSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("interactive_map", WebviewSort())]))
         self._when_individual_sort_is_called(Webview("http://maps.com/map.html"))
         self._then_result_is(WebviewSort())
 
     def test_individual_sort_for_boolean_supported_by_ontology(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("needs_visa", BooleanSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("needs_visa", BooleanSort())]))
         self._when_individual_sort_is_called(True)
         self._then_result_is(BooleanSort())
 
@@ -181,17 +173,18 @@ class TestOntologyBasic(TestOntology):
         self._given_ontology()
         self._when_individual_sort_is_called_then_exception_is_raised_matching(
             True, OntologyError, "Expected one of the predicate sorts set([]) in ontology '{}', "
-                                 "but got value 'True' of sort 'boolean'".format(self.DEFAULT_NAME))
+            "but got value 'True' of sort 'boolean'".format(self.DEFAULT_NAME)
+        )
 
-    def _when_individual_sort_is_called_then_exception_is_raised_matching(self, value, expected_exception,
-                                                                          expected_message):
+    def _when_individual_sort_is_called_then_exception_is_raised_matching(
+        self, value, expected_exception, expected_message
+    ):
         with pytest.raises(expected_exception) as exception_information:
             self._ontology.individual_sort(value)
         assert expected_message == str(exception_information.value)
 
     def test_individual_sort_for_datetime_supported_by_ontology(self):
-        self._given_ontology(
-            predicates=set([self._create_predicate("departure_time", DateTimeSort())]))
+        self._given_ontology(predicates=set([self._create_predicate("departure_time", DateTimeSort())]))
         self._when_individual_sort_is_called(DateTime("2018-03-20T22:00:00.000Z"))
         self._then_result_is(DateTimeSort())
 
@@ -200,7 +193,8 @@ class TestOntologyBasic(TestOntology):
         self._when_individual_sort_is_called_then_exception_is_raised_matching(
             DateTime("2018-03-20T22:00:00.000Z"), OntologyError,
             "Expected one of the predicate sorts set([]) in ontology '{}', "
-            "but got value 'DateTime(\"2018-03-20T22:00:00.000Z\")' of sort 'datetime'".format(self.DEFAULT_NAME))
+            "but got value 'DateTime(\"2018-03-20T22:00:00.000Z\")' of sort 'datetime'".format(self.DEFAULT_NAME)
+        )
 
     def test_is_action_true(self):
         self._given_ontology(actions=set(["buy"]))
@@ -220,10 +214,12 @@ class TestOntologyBasic(TestOntology):
             self._when_creating_ontology(
                 sorts=set([]),
                 predicates=set([
-                    self._create_predicate("some_predicate", CustomSort(self.DEFAULT_NAME, "unknown_sort"))]),
+                    self._create_predicate("some_predicate", CustomSort(self.DEFAULT_NAME, "unknown_sort"))
+                ]),
                 individuals={},
                 actions=set([]),
-                name="InvalidOntology")
+                name="InvalidOntology"
+            )
 
     def test_individual_declaration_with_unknown_sort_yields_exception(self):
         with pytest.raises(OntologyError):
@@ -232,13 +228,14 @@ class TestOntologyBasic(TestOntology):
                 predicates=set([]),
                 individuals={"some_individual": CustomSort(self.DEFAULT_NAME, "unknown_sort")},
                 actions=set([]),
-                name="InvalidOntology")
+                name="InvalidOntology"
+            )
 
     def test_has_predicate_true(self):
         self._given_ontology(
-            predicates=set([
-                self._create_predicate("dest_city", CustomSort(self.DEFAULT_NAME, "city"))]),
-            sorts=set([CustomSort(self.DEFAULT_NAME, "city")]))
+            predicates=set([self._create_predicate("dest_city", CustomSort(self.DEFAULT_NAME, "city"))]),
+            sorts=set([CustomSort(self.DEFAULT_NAME, "city")])
+        )
         self._when_has_predicate_is_called("dest_city")
         self._then_result_is(True)
 
@@ -265,8 +262,7 @@ class TestOntologyBasic(TestOntology):
 
     def test_invalid_individual_name_in_constructor_yields_exception(self):
         with pytest.raises(InvalidIndividualName):
-            self._when_creating_ontology(
-                individuals={"name with whitespace": IntegerSort()})
+            self._when_creating_ontology(individuals={"name with whitespace": IntegerSort()})
 
     def test_action_shares_name_with_predicate_raises_error(self):
         with pytest.raises(AmbiguousNamesException):
@@ -274,7 +270,8 @@ class TestOntologyBasic(TestOntology):
                 sorts=set([]),
                 predicates=set([self._create_predicate("price", RealSort())]),
                 individuals={},
-                actions=set(["price"]))
+                actions=set(["price"])
+            )
 
     def test_is_individual_static(self):
         city_sort = CustomSort(self.DEFAULT_NAME, "city")
@@ -284,34 +281,28 @@ class TestOntologyBasic(TestOntology):
     def _then_individual_is_static(self, name):
         assert self._ontology.is_individual_static(name) is True
 
-    @pytest.mark.parametrize("sort,name", [(RealSort(), REAL),
-                                           (BooleanSort(), BOOLEAN),
-                                           (IntegerSort(), INTEGER),
-                                           (ImageSort(), IMAGE),
-                                           (WebviewSort(), WEBVIEW),
-                                           (StringSort(), STRING),
-                                           (DateTimeSort(), DATETIME)])
+    @pytest.mark.parametrize(
+        "sort,name", [(RealSort(), REAL), (BooleanSort(), BOOLEAN), (IntegerSort(), INTEGER), (ImageSort(), IMAGE),
+                      (WebviewSort(), WEBVIEW), (StringSort(), STRING), (DateTimeSort(), DATETIME)]
+    )
     def test_predicates_contain_builtin_sort_base_case(self, sort, name):
-        self._given_ontology(
-            predicates={self._create_predicate("predicate", sort)},
-        )
+        self._given_ontology(predicates={self._create_predicate("predicate", sort)}, )
         self._when_predicates_contain_sort_is_called_with(name)
         self._then_result_is(True)
 
-    @pytest.mark.parametrize("sort,name", [(RealSort(), REAL),
-                                           (BooleanSort(), BOOLEAN),
-                                           (IntegerSort(), INTEGER),
-                                           (ImageSort(), IMAGE),
-                                           (WebviewSort(), WEBVIEW),
-                                           (StringSort(), STRING),
-                                           (DateTimeSort(), DATETIME)])
+    @pytest.mark.parametrize(
+        "sort,name", [(RealSort(), REAL), (BooleanSort(), BOOLEAN), (IntegerSort(), INTEGER), (ImageSort(), IMAGE),
+                      (WebviewSort(), WEBVIEW), (StringSort(), STRING), (DateTimeSort(), DATETIME)]
+    )
     def test_predicates_contain_builtin_sort_when_ontology_has_predicates_of_custom_sorts(self, sort, name):
         self._given_ontology(
             sorts={CustomSort(self.DEFAULT_NAME, "sort"),
                    CustomSort(self.DEFAULT_NAME, "another sort")},
-            predicates={self._create_predicate("first predicate", CustomSort(self.DEFAULT_NAME, "sort")),
-                        self._create_predicate("second predicate", sort),
-                        self._create_predicate("third predicate", CustomSort(self.DEFAULT_NAME, "another sort"))},
+            predicates={
+                self._create_predicate("first predicate", CustomSort(self.DEFAULT_NAME, "sort")),
+                self._create_predicate("second predicate", sort),
+                self._create_predicate("third predicate", CustomSort(self.DEFAULT_NAME, "another sort"))
+            },
         )
         self._when_predicates_contain_sort_is_called_with(name)
         self._then_result_is(True)
@@ -319,25 +310,13 @@ class TestOntologyBasic(TestOntology):
     def _when_predicates_contain_sort_is_called_with(self, sort):
         self._result = self._ontology.predicates_contain_sort(sort)
 
-    @pytest.mark.parametrize("name", [REAL,
-                                      BOOLEAN,
-                                      INTEGER,
-                                      IMAGE,
-                                      WEBVIEW,
-                                      STRING,
-                                      DATETIME])
+    @pytest.mark.parametrize("name", [REAL, BOOLEAN, INTEGER, IMAGE, WEBVIEW, STRING, DATETIME])
     def test_predicates_do_not_contain_builtin_sort_base_case(self, name):
         self._given_ontology(name=self.DEFAULT_NAME)
         self._when_predicates_contain_sort_is_called_with(name)
         self._then_result_is(False)
 
-    @pytest.mark.parametrize("name", [REAL,
-                                      BOOLEAN,
-                                      INTEGER,
-                                      IMAGE,
-                                      WEBVIEW,
-                                      STRING,
-                                      DATETIME])
+    @pytest.mark.parametrize("name", [REAL, BOOLEAN, INTEGER, IMAGE, WEBVIEW, STRING, DATETIME])
     def test_predicates_do_not_contain_builtin_sort_when_ontology_only_contains_predicate_of_custom_sort(self, name):
         self._given_ontology(
             name=self.DEFAULT_NAME,
@@ -348,42 +327,41 @@ class TestOntologyBasic(TestOntology):
         self._when_predicates_contain_sort_is_called_with(name)
         self._then_result_is(False)
 
-    @pytest.mark.parametrize("value,sort", [(25.5, REAL),
-                                            (True, BOOLEAN),
-                                            (14, INTEGER),
-                                            (Image("image-url"), IMAGE),
-                                            (Webview("webview-url"), WEBVIEW),
-                                            ("a string", STRING),
-                                            (DateTime("2018-03-20T22:00:00.000Z"), DATETIME)])
+    @pytest.mark.parametrize(
+        "value,sort", [(25.5, REAL), (True, BOOLEAN), (14, INTEGER), (Image("image-url"), IMAGE),
+                       (Webview("webview-url"), WEBVIEW), ("a string", STRING),
+                       (DateTime("2018-03-20T22:00:00.000Z"), DATETIME)]
+    )
     def test_individual_sort_for_builtin_sort_unsupported_by_ontology_base_case(self, value, sort):
         self._given_ontology(name=self.DEFAULT_NAME)
         self._when_individual_sort_is_called_then_exception_is_raised_matching(
-            value, OntologyError,
-            "Expected one of the predicate sorts set([]) in ontology '{}', "
-            "but got value '{}' of sort '{}'".format(self.DEFAULT_NAME, value, sort))
+            value, OntologyError, "Expected one of the predicate sorts set([]) in ontology '{}', "
+            "but got value '{}' of sort '{}'".format(self.DEFAULT_NAME, value, sort)
+        )
 
-    @pytest.mark.parametrize("value,sort", [(25.5, REAL),
-                                            (True, BOOLEAN),
-                                            (14, INTEGER),
-                                            (Image("image-url"), IMAGE),
-                                            (Webview("webview-url"), WEBVIEW),
-                                            ("a string", STRING),
-                                            (DateTime("2018-03-20T22:00:00.000Z"), DATETIME)])
+    @pytest.mark.parametrize(
+        "value,sort", [(25.5, REAL), (True, BOOLEAN), (14, INTEGER), (Image("image-url"), IMAGE),
+                       (Webview("webview-url"), WEBVIEW), ("a string", STRING),
+                       (DateTime("2018-03-20T22:00:00.000Z"), DATETIME)]
+    )
     def test_individual_sort_for_builtin_sort_unsupported_by_ontology_when_ontology_has_custom_sorts(self, value, sort):
         self._given_ontology(
             name=self.DEFAULT_NAME,
             sorts={CustomSort(self.DEFAULT_NAME, "a sort"),
                    CustomSort(self.DEFAULT_NAME, "another sort")},
-            predicates={self._create_predicate("a predicate 1", CustomSort(self.DEFAULT_NAME, "a sort")),
-                        self._create_predicate("a predicate 2", CustomSort(self.DEFAULT_NAME, "a sort")),
-                        self._create_predicate("another predicate 1", CustomSort(self.DEFAULT_NAME, "another sort")),
-                        self._create_predicate("another predicate 2", CustomSort(self.DEFAULT_NAME, "another sort"))},
+            predicates={
+                self._create_predicate("a predicate 1", CustomSort(self.DEFAULT_NAME, "a sort")),
+                self._create_predicate("a predicate 2", CustomSort(self.DEFAULT_NAME, "a sort")),
+                self._create_predicate("another predicate 1", CustomSort(self.DEFAULT_NAME, "another sort")),
+                self._create_predicate("another predicate 2", CustomSort(self.DEFAULT_NAME, "another sort"))
+            },
             individuals={"individual": CustomSort(self.DEFAULT_NAME, "a sort")}
         )
         self._when_individual_sort_is_called_then_exception_is_raised_matching(
             value, OntologyError,
             "Expected one of the predicate sorts set(['a sort', 'another sort']) in ontology '{}', "
-            "but got value '{}' of sort '{}'".format(self.DEFAULT_NAME, value, sort))
+            "but got value '{}' of sort '{}'".format(self.DEFAULT_NAME, value, sort)
+        )
 
 
 class TestDynamicOntology(TestOntology):
@@ -401,8 +379,8 @@ class TestDynamicOntology(TestOntology):
 
     def test_adding_existing_individual_yields_exception(self):
         self._given_ontology(
-            sorts={CustomSort(self.DEFAULT_NAME, "city")},
-            individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")})
+            sorts={CustomSort(self.DEFAULT_NAME, "city")}, individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")}
+        )
         with pytest.raises(IndividualExistsException):
             self._when_individual_is_added("paris", "city")
 
@@ -422,7 +400,8 @@ class TestDynamicOntology(TestOntology):
     def test_ensure_individual_exists_existing_individual(self):
         self._given_ontology(
             sorts=set([CustomSort(self.DEFAULT_NAME, "city")]),
-            individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")})
+            individuals={"paris": CustomSort(self.DEFAULT_NAME, "city")}
+        )
         self._when_ensure_individual_exists_is_called("paris", "city")
         self._then_no_exception_is_read()
 
@@ -432,14 +411,12 @@ class TestDynamicOntology(TestOntology):
     def test_add_individual_checks_name(self):
         self._given_ontology()
         with pytest.raises(InvalidIndividualName):
-            self._when_individual_is_added(
-                "name with whitespace", "integer")
+            self._when_individual_is_added("name with whitespace", "integer")
 
     def test_ensure_individual_exists_checks_name(self):
         self._given_ontology()
         with pytest.raises(InvalidIndividualName):
-            self._when_ensure_individual_exists_is_called(
-                "name with whitespace", "integer")
+            self._when_ensure_individual_exists_is_called("name with whitespace", "integer")
 
     def test_adding_dynamic_individual_is_not_considered_static(self):
         self._given_ontology(sorts=set([CustomSort(self.DEFAULT_NAME, "city")]))

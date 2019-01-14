@@ -4,7 +4,6 @@ from tala.utils import unicodify
 
 
 class TestSelectionTests(unittest.TestCase):
-
     def setUp(self):
         self.unicodify = unicodify
 
@@ -27,10 +26,16 @@ class TestSelectionTests(unittest.TestCase):
         self.then_unicode_str_is(u"{'value two': 'key two', 'value one': 'key one'}")
 
     def test_dict_string_nested(self):
-        self.when_dict_string({"value one": {"sub value one": "sub key two",
-                                             "sub value two": "sub key two"},
-                                            "value two": "key two"})
-        self.then_unicode_str_is(u"{'value two': 'key two', 'value one': {'sub value one': 'sub key two', 'sub value two': 'sub key two'}}")
+        self.when_dict_string({
+            "value one": {
+                "sub value one": "sub key two",
+                "sub value two": "sub key two"
+            },
+            "value two": "key two"
+        })
+        self.then_unicode_str_is(
+            u"{'value two': 'key two', 'value one': {'sub value one': 'sub key two', 'sub value two': 'sub key two'}}"
+        )
 
     def when_dict_string(self, _dict):
         self.unicode_str = self.unicodify._dict_string(_dict)
@@ -43,5 +48,5 @@ class TestSelectionTests(unittest.TestCase):
         self.unicode_str = self.unicodify._tuple_string(_tuple)
 
     def test_tuple_string_nested(self):
-        self.when_tuple_string(("item one", ( "sub item one", "item two")))
+        self.when_tuple_string(("item one", ("sub item one", "item two")))
         self.then_unicode_str_is(u"('item one', ('sub item one', 'item two'))")

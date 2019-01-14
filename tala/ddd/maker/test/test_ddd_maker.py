@@ -10,7 +10,7 @@ class TestDddMaker(unittest.TestCase):
     def setUp(self):
         self._temp_dir = tempfile.mkdtemp(prefix="TestDddMaker")
         self._cwd = os.getcwd()
-      
+
     def tearDown(self):
         os.chdir(self._cwd)
         shutil.rmtree(self._temp_dir)
@@ -45,13 +45,13 @@ class TestDddMaker(unittest.TestCase):
     def _when_make_is_called(self):
         ddd_maker.DddMaker("Ddd", "ddd", self._target_dir).make()
         os.chdir(self._target_dir)
-        
+
     def _base_dir_is_created(self):
         self.assertTrue(os.path.exists("ddd"))
 
     def _domain_is_created(self):
         self.assertTrue(os.path.exists("ddd/domain.xml"))
-    
+
     def _ontology_is_created(self):
         self.assertTrue(os.path.exists("ddd/ontology.xml"))
 

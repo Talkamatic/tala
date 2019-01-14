@@ -7,7 +7,7 @@ class TISNode:
             output += self.value_string_new(path, value)
             path.pop()
         return output
-    
+
     def value_string_new(self, path, value):
         try:
             return value.pretty_string_new(path)
@@ -16,14 +16,13 @@ class TISNode:
             if len(string_value) > 0 and string_value[0] != "_":
                 return "\n" + ".".join(path) + ": " + string_value
             return ""
-    
+
     def pretty_string(self, indentation_level):
         output = ""
         for attr in sorted(self.__dict__.keys()):
             value = self.__dict__[attr]
             output += "\n" + self.indent(indentation_level + 1)
-            output += attr + ": " + self.value_string(
-                value, indentation_level + 1)
+            output += attr + ": " + self.value_string(value, indentation_level + 1)
         return output
 
     def value_string(self, value, indentation_level):

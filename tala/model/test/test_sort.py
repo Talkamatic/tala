@@ -26,8 +26,7 @@ class SortTestCase(unittest.TestCase):
     def when_normalize_value(self, value):
         self._actual_result = self._sort.normalize_value(value)
 
-    def when_normalize_value_then_exception_is_raised(
-            self, value, expected_exception, expected_message):
+    def when_normalize_value_then_exception_is_raised(self, value, expected_exception, expected_message):
         with pytest.raises(expected_exception, match=expected_message):
             self._sort.normalize_value(value)
 
@@ -48,8 +47,7 @@ class SortTests(SortTestCase, EqualityAssertionTestCaseMixin):
         }
         individuals = {}
         actions = set()
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_createSort(self):
         sort = self.ontology.get_sort("city")
@@ -87,8 +85,7 @@ class StringSortTests(SortTestCase):
         sorts = set()
         individuals = {}
         actions = set()
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_string_individual(self):
         individual = self.ontology.create_individual('"a string"')
@@ -110,9 +107,8 @@ class StringSortTests(SortTestCase):
 
     def test_exception_when_normalize_non_string_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            123,
-            InvalidValueException,
-            "Expected a string value but got 123 of type int.")
+            123, InvalidValueException, "Expected a string value but got 123 of type int."
+        )
 
 
 class ImageSortTests(SortTestCase):
@@ -126,8 +122,7 @@ class ImageSortTests(SortTestCase):
         sorts = set()
         individuals = {}
         actions = set()
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Image("http://image.com/image.png"))
@@ -155,30 +150,28 @@ class ImageSortTests(SortTestCase):
 
     def test_exception_when_normalize_non_url(self):
         self.when_normalize_value_then_exception_is_raised(
-            Image("non_url"),
-            InvalidValueException,
-            "Expected an image URL but got 'non_url'.")
+            Image("non_url"), InvalidValueException, "Expected an image URL but got 'non_url'."
+        )
 
     def test_exception_when_normalize_non_image(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_image",
-            InvalidValueException,
-            "Expected an image object but got 'non_image'.")
+            "non_image", InvalidValueException, "Expected an image object but got 'non_image'."
+        )
 
     def test_exception_when_normalize_static_url_of_non_image_mime_type(self):
         self.when_normalize_value_then_exception_is_raised(
-            Image("http://nonimage.com/nonimage.html"),
-            InvalidValueException,
-            "Expected an image URL but got 'http://nonimage.com/nonimage.html'.")
+            Image("http://nonimage.com/nonimage.html"), InvalidValueException,
+            "Expected an image URL but got 'http://nonimage.com/nonimage.html'."
+        )
 
     @patch("%s.magic" % tala.model.sort.__name__)
     @patch("%s.urllib" % tala.model.sort.__name__)
     def test_exception_when_normalize_dynamic_url_of_non_image_mime_type(self, mock_urllib, mock_magic):
         self.given_get_mime_type_of_url_returns(mock_magic, mock_urllib, "text/html")
         self.when_normalize_value_then_exception_is_raised(
-            Image("http://mock.domain/generate_html"),
-            InvalidValueException,
-            "Expected an image URL but got 'http://mock.domain/generate_html'.")
+            Image("http://mock.domain/generate_html"), InvalidValueException,
+            "Expected an image URL but got 'http://mock.domain/generate_html'."
+        )
 
 
 class WebviewSortTests(SortTestCase):
@@ -192,8 +185,7 @@ class WebviewSortTests(SortTestCase):
         sorts = set()
         individuals = {}
         actions = set()
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Webview("http://maps.com/map.html"))
@@ -210,15 +202,13 @@ class WebviewSortTests(SortTestCase):
 
     def test_exception_when_normalize_non_webview_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_webview_value",
-            InvalidValueException,
-            "Expected a webview object but got 'non_webview_value'.")
+            "non_webview_value", InvalidValueException, "Expected a webview object but got 'non_webview_value'."
+        )
 
     def test_exception_when_normalize_non_url(self):
         self.when_normalize_value_then_exception_is_raised(
-            Webview("non_url"),
-            InvalidValueException,
-            "Expected a webview URL but got 'non_url'.")
+            Webview("non_url"), InvalidValueException, "Expected a webview URL but got 'non_url'."
+        )
 
 
 class BooleanSortTestCase(SortTestCase):
@@ -232,8 +222,7 @@ class BooleanSortTestCase(SortTestCase):
         sorts = set()
         individuals = {}
         actions = set()
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(True)
@@ -250,9 +239,8 @@ class BooleanSortTestCase(SortTestCase):
 
     def test_exception_when_normalize_non_boolean_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_boolean_value",
-            InvalidValueException,
-            "Expected a boolean value but got 'non_boolean_value'.")
+            "non_boolean_value", InvalidValueException, "Expected a boolean value but got 'non_boolean_value'."
+        )
 
 
 class IntegerSortTestCase(SortTestCase):
@@ -265,10 +253,8 @@ class IntegerSortTestCase(SortTestCase):
 
     def test_exception_when_normalize_non_integer_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_integer_value",
-            InvalidValueException,
-            "Expected an integer value but got 'non_integer_value'.")
-
+            "non_integer_value", InvalidValueException, "Expected an integer value but got 'non_integer_value'."
+        )
 
 
 class RealSortTestCase(SortTestCase):
@@ -281,9 +267,8 @@ class RealSortTestCase(SortTestCase):
 
     def test_exception_when_normalize_non_real_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_real_value",
-            InvalidValueException,
-            "Expected a real-number value but got 'non_real_value'.")
+            "non_real_value", InvalidValueException, "Expected a real-number value but got 'non_real_value'."
+        )
 
 
 class DateTimeSortTestCase(SortTestCase):
@@ -296,26 +281,18 @@ class DateTimeSortTestCase(SortTestCase):
 
     def test_exception_when_normalize_datetime_object_with_non_iso8601_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            DateTime("non_iso8601_value"),
-            InvalidValueException,
-            "Expected a datetime value in ISO 8601 format but got 'non_iso8601_value'.")
+            DateTime("non_iso8601_value"), InvalidValueException,
+            "Expected a datetime value in ISO 8601 format but got 'non_iso8601_value'."
+        )
 
     def test_exception_when_normalize_non_datetime_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_datetime_value",
-            InvalidValueException,
-            "Expected a datetime object but got 'non_datetime_value'.")
+            "non_datetime_value", InvalidValueException, "Expected a datetime object but got 'non_datetime_value'."
+        )
 
 
 class TestBuiltinSortRepository(object):
-    @pytest.mark.parametrize("name", [BOOLEAN,
-                                      INTEGER,
-                                      DATETIME,
-                                      REAL,
-                                      STRING,
-                                      IMAGE,
-                                      DOMAIN,
-                                      WEBVIEW])
+    @pytest.mark.parametrize("name", [BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW])
     def test_has_sort_true(self, name):
         self.when_invoking_has_sort(name)
         self.then_result_is(True)
@@ -330,15 +307,11 @@ class TestBuiltinSortRepository(object):
         self.when_invoking_has_sort("undefined_sort")
         self.then_result_is(False)
 
-    @pytest.mark.parametrize("name,expected_class", [
-        (BOOLEAN, BooleanSort),
-        (INTEGER, IntegerSort),
-        (DATETIME, DateTimeSort),
-        (REAL, RealSort),
-        (STRING, StringSort),
-        (IMAGE, ImageSort),
-        (DOMAIN, DomainSort),
-        (WEBVIEW, WebviewSort)])
+    @pytest.mark.parametrize(
+        "name,expected_class", [(BOOLEAN, BooleanSort), (INTEGER, IntegerSort), (DATETIME, DateTimeSort),
+                                (REAL, RealSort), (STRING, StringSort), (IMAGE, ImageSort), (DOMAIN, DomainSort),
+                                (WEBVIEW, WebviewSort)]
+    )
     def test_get_sort_successful(self, name, expected_class):
         self.when_invoking_get_sort(name)
         self.then_result_is_instance_of(expected_class)
@@ -351,9 +324,8 @@ class TestBuiltinSortRepository(object):
 
     def test_get_sort_unsuccessful(self):
         self.when_invoking_get_sort_then_exception_is_raised(
-            "undefined_sort",
-            UndefinedSort,
-            "Expected a built-in sort but got 'undefined_sort'.")
+            "undefined_sort", UndefinedSort, "Expected a built-in sort but got 'undefined_sort'."
+        )
 
     def when_invoking_get_sort_then_exception_is_raised(self, name, expected_class, expected_message):
         with pytest.raises(expected_class) as excinfo:

@@ -35,15 +35,15 @@ class DateTime(object):
 
     def human_standard(self, locale="en_US.UTF-8"):
         if locale != "en_US.UTF-8":
-            raise UnsupportedLocale(
-                "Expected a supported locale for datetime but got '%s'" % locale)
+            raise UnsupportedLocale("Expected a supported locale for datetime but got '%s'" % locale)
         datetime = iso8601.parse_date(self._iso8601_string)
         with setlocale(locale):
-            human_standard_string = datetime.strftime("%m/%d/%Y %I:%M %p",)
+            human_standard_string = datetime.strftime("%m/%d/%Y %I:%M %p", )
         return human_standard_string
 
     def __repr__(self):
         return 'DateTime("%s")' % self._iso8601_string
 
 
-class UnsupportedLocale(Exception): pass
+class UnsupportedLocale(Exception):
+    pass

@@ -73,7 +73,6 @@ class PredicateTests(LibTestCase):
         predicate2 = Predicate("other_ontology", "dest_city", sort_of_other_ontology)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(predicate1, predicate2)
 
-
     def test_unicode(self):
         self.assertEquals("dest_city", unicode(self.predicate_dest_city))
 

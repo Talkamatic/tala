@@ -1,2 +1,6 @@
-class DomainError(Exception): pass
-class OntologyError(Exception): pass
+class DomainError(Exception):
+    pass
+
+
+class OntologyError(Exception):
+    pass

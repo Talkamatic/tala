@@ -64,12 +64,10 @@ class DddMaker:
         open(path, 'w').close()
 
     def _create_test_directory(self):
-         os.mkdir("%s/%s/test" % (self._target_dir, self._ddd_name))
+        os.mkdir("%s/%s/test" % (self._target_dir, self._ddd_name))
 
     def _create_interaction_tests(self):
-        self._create_skeleton_file(
-            "interaction_tests_eng_template.txt",
-            "test/interaction_tests_eng.txt")
+        self._create_skeleton_file("interaction_tests_eng_template.txt", "test/interaction_tests_eng.txt")
 
     def _create_skeleton_file(self, template_filename, ddd_relative_path, language="eng"):
         target = os.path.join(self._ddd_path(), ddd_relative_path)
@@ -89,5 +87,3 @@ class DddMaker:
                 line = line.replace('__App__', self._class_name_prefix)
                 content.write(line)
         return content
-
-

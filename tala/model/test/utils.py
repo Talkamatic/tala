@@ -23,7 +23,6 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self._city_sort = CustomSort(self.ontology_name, "city", dynamic=True)
         self.ontology = self._create_ontology()
 
-
         self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
 
         self.domain_name = "mockup_domain"
@@ -41,28 +40,26 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         ])
         predicates = set([
             self._create_predicate("dest_city", self._city_sort),
-            self._create_predicate("dest_city_type",
-                sort=CustomSort(self.ontology_name, "city_type"),
-                feature_of_name="dest_city"),
+            self._create_predicate(
+                "dest_city_type", sort=CustomSort(self.ontology_name, "city_type"), feature_of_name="dest_city"
+            ),
             self._create_predicate("dept_city", self._city_sort),
             self._create_predicate("price", RealSort()),
             self._create_predicate("number_of_passengers", IntegerSort()),
             self._create_predicate(
-                "passenger_type_to_add",
-                sort=CustomSort(self.ontology_name, "passenger_type"),
-                multiple_instances=True),
-            self._create_predicate(
-                "available_ticket_type", CustomSort(self.ontology_name, "ticket_type")),
+                "passenger_type_to_add", sort=CustomSort(self.ontology_name, "passenger_type"), multiple_instances=True
+            ),
+            self._create_predicate("available_ticket_type", CustomSort(self.ontology_name, "ticket_type")),
             self._create_predicate("available_city", self._city_sort),
             self._create_predicate("need_visa", BooleanSort()),
             self._create_predicate("comment_message", StringSort()),
         ])
-        individuals = {"paris": self._city_sort,
-                       "london": self._city_sort,
-                   }
+        individuals = {
+            "paris": self._city_sort,
+            "london": self._city_sort,
+        }
         actions = set(["top", "buy"])
-        return Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        return Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def _create_predicate(self, *args, **kwargs):
         return Predicate(self.ontology_name, *args, **kwargs)
@@ -79,11 +76,11 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.predicate_available_city = self.ontology.get_predicate("available_city")
         self.predicate_number_of_passengers = self.ontology.get_predicate("number_of_passengers")
         self.predicate_need_visa = self.ontology.get_predicate("need_visa")
-        
+
         self.individual_paris = self.ontology.create_individual("paris")
         self.individual_london = self.ontology.create_individual("london")
         self.individual_not_paris = self.ontology.create_negative_individual("paris")
-        
+
         self.real_individual = self.ontology.create_individual(1234.0)
 
         self.proposition_dest_city_paris = \
@@ -116,13 +113,13 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
             LambdaAbstractedPredicateProposition(self.predicate_dept_city,
                                                  self.ontology_name)
         self.lambda_abstracted_ticket_type_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_available_ticket_type, 
+            LambdaAbstractedPredicateProposition(self.predicate_available_ticket_type,
                                                 self.ontology_name)
         self.lambda_abstracted_available_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_available_city, 
+            LambdaAbstractedPredicateProposition(self.predicate_available_city,
                                                 self.ontology_name)
         self.lambda_abstracted_number_of_passengers_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_number_of_passengers, 
+            LambdaAbstractedPredicateProposition(self.predicate_number_of_passengers,
                                                  self.ontology_name)
 
         self.price_question = WhQuestion(self.lambda_abstracted_price_prop)

@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-
 PROTOCOL_VERSION = "1.0"
 
 

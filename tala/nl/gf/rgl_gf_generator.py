@@ -18,15 +18,19 @@ from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename
 class MissingEntry(Exception):
     pass
 
+
 class GrammarProcessingException(Exception):
     pass
+
 
 class RglGfFilesGeneratorException(Exception):
     pass
 
+
 class FunctionNames:
     NP_ACTION = 'NpAction'
     VP_ACTION = 'VpAction'
+
 
 class Directives:
     FUNCTION = "fun"
@@ -34,43 +38,35 @@ class Directives:
     LINEARIZATION_CATEGORY = "lincat"
     LINEARIZATION = "lin"
 
+
 DEFAULT_ABSTRACT_GRAMMAR = [
-    Node(Constants.ACTION, {"name": "top"},
-         [Node(rgl_types.NOUN_PHRASE, {},
-               [Node(rgl_types.NOUN, {"ref": "menu"})])]),
-    Node(Constants.ACTION, {"name": "up"},
-         [Node(rgl_types.VERB_PHRASE, {},
-               [Node(rgl_types.VERB, {"ref": "return"})])]),
-    ]
+    Node(Constants.ACTION, {"name": "top"}, [Node(rgl_types.NOUN_PHRASE, {}, [Node(rgl_types.NOUN, {"ref": "menu"})])]),
+    Node(
+        Constants.ACTION, {"name": "up"}, [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "return"})])]
+    ),
+]
 
 DEFAULT_LEXICONS = {
     languages.ENGLISH: [
-        Node(rgl_types.NOUN, {"id": "menu"},
-             [Node("singular", {}, ["menu"])]),
-        Node(rgl_types.VERB, {"id": "return"},
-             [Node("infinitive", {}, ["return"])]),
-        ],
+        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["menu"])]),
+        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, ["return"])]),
+    ],
     languages.FRENCH: [
-        Node(rgl_types.NOUN, {"id": "menu"},
-             [Node("singular", {}, ["menu"])]),
-        Node(rgl_types.VERB, {"id": "return"},
-             [Node("infinitive", {}, ["retourner"])]),
-        ],
+        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["menu"])]),
+        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, ["retourner"])]),
+    ],
     languages.DUTCH: [
-        Node(rgl_types.NOUN, {"id": "menu"},
-             [Node("singular", {}, ["menu"])]),
-        Node(rgl_types.VERB, {"id": "return"},
-             [Node("infinitive", {}, ["terugkeren"])]),
-        ],
+        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["menu"])]),
+        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, ["terugkeren"])]),
+    ],
     languages.CHINESE: [
-        Node(rgl_types.NOUN, {"id": "menu"},
-             [Node("singular", {}, [u"菜单"])]),
-        Node(rgl_types.VERB, {"id": "return"},
-             [Node("infinitive", {}, [u"返回"])]),
-        ],
+        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, [u"菜单"])]),
+        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, [u"返回"])]),
+    ],
 }
 
 MAX_NUM_ENTITIES_PER_PARSE = 10
+
 
 class GfGenerator(object):
     def generate_list(self, strings):
@@ -92,9 +88,7 @@ class GfGenerator(object):
         if len(gf_strings) == 1:
             return gf_strings[0]
         else:
-            return '(concatUtt %s %s)' % (
-                gf_strings[0],
-                self._generate_concatentation_tree(gf_strings[1:]))
+            return '(concatUtt %s %s)' % (gf_strings[0], self._generate_concatentation_tree(gf_strings[1:]))
 
     def get_sort_category(self, sort):
         return 'Sort_%s' % sort
@@ -108,6 +102,7 @@ class GfGenerator(object):
         else:
             return gf_strings[0]
 
+
 class GrammarProcessor(object):
     def get_options_from_node(self, node):
         if node is None:
@@ -118,37 +113,31 @@ class GrammarProcessor(object):
             return [node]
 
     def get_contents_of_items(self, nodes):
-        return [self.get_content_of_item(node)
-                for node in nodes]
+        return [self.get_content_of_item(node) for node in nodes]
 
     def get_content_of_item(self, node):
         if node.type == Constants.ITEM and len(node.children) == 1:
             return node.children[0]
         else:
-            raise GrammarProcessingException(
-                "expected ITEM node with a single child but found %s" % node)
+            raise GrammarProcessingException("expected ITEM node with a single child but found %s" % node)
 
     def has_single_child_node(self, node, child_type):
         return self.get_single_child_node(node, child_type, optional=True) is not None
 
     def get_single_child_node(self, node, child_type, optional=False):
-        child_nodes_of_desired_type = [
-            child
-            for child in node.children
-            if child.type == child_type]
+        child_nodes_of_desired_type = [child for child in node.children if child.type == child_type]
         if len(child_nodes_of_desired_type) == 1:
             return child_nodes_of_desired_type[0]
         elif len(child_nodes_of_desired_type) == 0:
             if optional:
-                return None 
+                return None
             else:
-                raise GrammarProcessingException(
-                    "expected a child node of type %s in %s" % (
-                        child_type, node))
+                raise GrammarProcessingException("expected a child node of type %s in %s" % (child_type, node))
         else:
             raise GrammarProcessingException(
-                "expected exactly 1 child node of type %s in %s, was %s" % (
-                    child_type, node, child_nodes_of_desired_type))
+                "expected exactly 1 child node of type %s in %s, was %s" %
+                (child_type, node, child_nodes_of_desired_type)
+            )
 
     def is_individual(self, obj):
         return isinstance(obj, Node) and obj.type == Constants.INDIVIDUAL
@@ -166,9 +155,7 @@ class GrammarProcessor(object):
             return False
         else:
             form_parts = self.get_utterance_content(form)
-            return any([
-                self.is_background_individual(form_part, predicate.get_name())
-                for form_part in form_parts])
+            return any([self.is_background_individual(form_part, predicate.get_name()) for form_part in form_parts])
 
     def get_individual_sort(self, node):
         return node.parameters["sort"]
@@ -182,15 +169,14 @@ class GrammarProcessor(object):
             return Argument(name=sort, category=self.get_sort_category(sort))
         else:
             raise GrammarProcessingException(
-                "expected individual parameters to contain sort but got %s" %
-                node.parameters)
+                "expected individual parameters to contain sort but got %s" % node.parameters
+            )
 
     def is_string(self, obj):
         return isinstance(obj, basestring)
 
     def is_text(self, form_parts):
-        return all([self.is_string(form_part)
-                    for form_part in form_parts])
+        return all([self.is_string(form_part) for form_part in form_parts])
 
     def get_text(self, form_parts):
         return ' '.join(form_parts)
@@ -200,8 +186,7 @@ class GrammarProcessor(object):
         if len(options) == 1 and self.is_text(options[0]):
             return self.get_text(options[0])
         else:
-            raise GrammarProcessingException(
-                "expected utterance to contain pure text but got\n%s" % node)
+            raise GrammarProcessingException("expected utterance to contain pure text but got\n%s" % node)
 
     def get_utterance_content(self, node):
         if node.type == rgl_types.UTTERANCE:
@@ -219,7 +204,8 @@ class GrammarProcessor(object):
                 return self.get_utterance_options_for_items(child.children)
             else:
                 raise GrammarProcessingException(
-                    "expected single child of utterance to be string or one-of but got %s" % child)
+                    "expected single child of utterance to be string or one-of but got %s" % child
+                )
         else:
             self._assert_form_parts_are_string_or_individual(children)
             return [children]
@@ -227,8 +213,7 @@ class GrammarProcessor(object):
     def _assert_form_parts_are_string_or_individual(self, form_parts):
         for form_part in form_parts:
             if not (self.is_string(form_part) or self.is_individual(form_part)):
-                raise GrammarProcessingException(
-                    "expected a string or an individual but got %s" % form_part)
+                raise GrammarProcessingException("expected a string or an individual but got %s" % form_part)
 
     def get_utterance_options_for_items(self, items):
         result = []
@@ -251,22 +236,19 @@ class GrammarProcessor(object):
                     return node.children[0]
                 else:
                     raise GrammarProcessingException(
-                        "expected lexicon field to contain a single node but found %s" %
-                        node.children)
-        raise GrammarProcessingException(
-            "failed to get lexicon field %r in %s" % (field_name, lexicon_entry_nodes))
+                        "expected lexicon field to contain a single node but found %s" % node.children
+                    )
+        raise GrammarProcessingException("failed to get lexicon field %r in %s" % (field_name, lexicon_entry_nodes))
 
     def get_lexicon_entry_from_lexicon(self, lexicon_nodes, type_, id_):
         for node in lexicon_nodes:
             if node.type == type_ and node.parameters["id"] == id_:
                 if len(node.children) == 1:
                     return node.children
-        raise GrammarProcessingException(
-            "failed to get lexicon entry for type=%s id=%s" % (type_, id_))
+        raise GrammarProcessingException("failed to get lexicon entry for type=%s id=%s" % (type_, id_))
 
     def nodes_contain(self, nodes, node_type):
-        return any([node for node in nodes
-                    if node.type == node_type])
+        return any([node for node in nodes if node.type == node_type])
 
 
 class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
@@ -286,19 +268,15 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._natural_language_gf_content = StringIO()
 
     def _get_sort_categories(self):
-        return dict([
-                (sort, self.get_sort_category(sort))
-                for sort in self._ontology.get_sorts()])
+        return dict([(sort, self.get_sort_category(sort)) for sort in self._ontology.get_sorts()])
 
     def _get_predicate_categories(self):
-        return dict([
-                (predicate, self.get_predicate_category(predicate))
-                for predicate in self._ontology.get_predicates()])
+        return dict([(predicate, self.get_predicate_category(predicate))
+                     for predicate in self._ontology.get_predicates()])
 
     def generate(self, tdm_language_code):
         self._tdm_language_code = tdm_language_code
-        self._gf_language_code = self._tdm_to_gf_language_code(
-            tdm_language_code)
+        self._gf_language_code = self._tdm_to_gf_language_code(tdm_language_code)
         self._grammar = self._load_and_compile_grammar_entries()
         self._default_grammar = self._create_default_grammar()
         self._lexicon_nodes = self._get_lexicon()
@@ -319,7 +297,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         grammar_source = GrammarReader.read(self._tdm_language_code)
         self._grammar_compiler = DddXmlCompiler()
         return self._grammar_compiler.compile_rgl_grammar(
-            grammar_source, self._ontology, self._ddd.service_interface, self._tdm_language_code)
+            grammar_source, self._ontology, self._ddd.service_interface, self._tdm_language_code
+        )
 
     def _get_lexicon(self):
         return \
@@ -337,17 +316,13 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
     def get_noun_singular_form(self, form):
         noun_form = self.get_single_child_node(form, "noun")
-        noun_lexicon_entry_as_nodes = self._get_lexicon_entry_as_nodes(
-            rgl_types.NOUN, noun_form.parameters["ref"])
-        return self.get_lexicon_field_from_entry(
-            noun_lexicon_entry_as_nodes, "singular")
+        noun_lexicon_entry_as_nodes = self._get_lexicon_entry_as_nodes(rgl_types.NOUN, noun_form.parameters["ref"])
+        return self.get_lexicon_field_from_entry(noun_lexicon_entry_as_nodes, "singular")
 
     def get_verb_infinite_form(self, form):
         verb_form = self.get_single_child_node(form, "verb", optional=False)
-        verb_lexicon_entry_as_nodes = self._get_lexicon_entry_as_nodes(
-            rgl_types.VERB, verb_form.parameters["ref"])
-        return self.get_lexicon_field_from_entry(
-            verb_lexicon_entry_as_nodes, "infinitive")
+        verb_lexicon_entry_as_nodes = self._get_lexicon_entry_as_nodes(rgl_types.VERB, verb_form.parameters["ref"])
+        return self.get_lexicon_field_from_entry(verb_lexicon_entry_as_nodes, "infinitive")
 
     def _clear_io_buffers(self):
         self._abstract_gf_content = StringIO()
@@ -355,8 +330,9 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._natural_language_gf_content = StringIO()
 
     def _name_of_natural_language_gf_file(self):
-        return "build/%s/%s" % (self._tdm_language_code,
-                                natural_language_gf_filename(self._ddd_name, self._tdm_language_code))
+        return "build/%s/%s" % (
+            self._tdm_language_code, natural_language_gf_filename(self._ddd_name, self._tdm_language_code)
+        )
 
     def _add_header_in_generated_gf_files(self):
         self._abstract_gf_content.write(self._generate_abstract_header())
@@ -366,9 +342,9 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
     def _generate_abstract_header(self):
         header = (
             "--# -coding=utf8\n"
-            "abstract %s = TDM, Integers ** {\n" % self._ddd_name +
-            "\n"
-            "%s\n\n" % Directives.CATEGORY)
+            "abstract %s = TDM, Integers ** {\n" % self._ddd_name + "\n"
+            "%s\n\n" % Directives.CATEGORY
+        )
         for category in self._get_categories_for_sorts_and_predicates():
             header += "%s;\n" % category
         header += "\n%s\n\n" % Directives.FUNCTION
@@ -380,10 +356,9 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
     def _generate_semantic_header(self):
         return (
             "--# -coding=utf8\n"
-            "concrete %s_sem of %s = TDM_sem, Integers_sem ** open Utils_sem in {\n\n" % (
-                self._ddd_name,
-                self._ddd_name) +
-            "\nlin\n\n")
+            "concrete %s_sem of %s = TDM_sem, Integers_sem ** open Utils_sem in {\n\n" %
+            (self._ddd_name, self._ddd_name) + "\nlin\n\n"
+        )
 
     def _generate_natural_language_header(self):
         header_format = (
@@ -401,22 +376,20 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             "in {{\n"
             "{linearization_category_directive}\n\n"
             "{linearization_categories}\n"
-            "{linearization_directive}\n\n")
+            "{linearization_directive}\n\n"
+        )
         return header_format.format(
             ddd_name=self._ddd_name,
             tdm_language_code=self._tdm_language_code,
             gf_language_code=self._gf_language_code,
             linearization_category_directive=Directives.LINEARIZATION_CATEGORY,
             linearization_categories=self._generate_linearization_categories(),
-            linearization_directive=Directives.LINEARIZATION)
+            linearization_directive=Directives.LINEARIZATION
+        )
 
     def _generate_linearization_categories(self):
-        sort_lines = [
-            "%s = Sort;\n" % category
-            for category in self._sort_categories.values()]
-        predicate_lines = [
-            "%s = Pred;\n" % category
-            for category in self._predicate_categories.values()]
+        sort_lines = ["%s = Sort;\n" % category for category in self._sort_categories.values()]
+        predicate_lines = ["%s = Pred;\n" % category for category in self._predicate_categories.values()]
         return "".join(sort_lines + predicate_lines)
 
     def _add_footer_in_generated_gf_files(self):
@@ -439,7 +412,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
         def write_natural_language_file():
             with LowerCaseGfFileWriter.open(
-                    self._name_of_natural_language_gf_file(), "w", encoding="utf-8") as natural_language_file:
+                self._name_of_natural_language_gf_file(), "w", encoding="utf-8"
+            ) as natural_language_file:
                 self._natural_language_gf_content.seek(0)
                 for line in self._natural_language_gf_content:
                     natural_language_file.write(line)
@@ -480,11 +454,12 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             ActionFunctionGenerator(self, action, forms).generate()
         except MissingEntry:
             self._warn_about_missing_entry(
-"""How do speakers talk about the action '%s'? Possible contents of the <action> element:
+                """How do speakers talk about the action '%s'? Possible contents of the <action> element:
 
   <verb-phrase>
   <noun-phrase>
-  <one-of>""" % action)
+  <one-of>""" % action
+            )
         self._generate_potential_request(action)
 
     def _generate_potential_request(self, action):
@@ -514,8 +489,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
     def _warn_about_missing_entry(self, warning):
         if not self._ignore_warnings:
-            print >>sys.stderr, "\nMissing grammar entry:",
-            print >>sys.stderr, warning
+            print >> sys.stderr, "\nMissing grammar entry:",
+            print >> sys.stderr, warning
 
     def _add_content_based_on_service_interface(self):
         for action_interface in self._ddd.service_interface.actions:
@@ -540,7 +515,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         example_form = Node(rgl_types.UTTERANCE, {}, [example_phrase])
         example_xml = self._decompile_entry(key, example_form)
         return "How does the system report that the service action '%s' ended? Example:\n\n%s\n" % (
-            action_name, example_xml)
+            action_name, example_xml
+        )
 
     def _generate_report_started_content(self, action_interface):
         key = Node(Constants.REPORT_STARTED, {"action": action_interface.name})
@@ -565,25 +541,21 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._semantic_gf_content.write('%s = pp "%s";\n' % (function_name, predicate_name))
         form = self._get_form(Node(rgl_types.PREDICATE, {"name": predicate_name}), optional=True)
         if form:
-            self._generate_speaker_independent_predicate_content(
-                function_name, form)
+            self._generate_speaker_independent_predicate_content(function_name, form)
             self._generate_resolve_ynq(predicate_name, form)
 
     def _generate_speaker_independent_predicate_content(self, function_name, form):
         noun = self.get_noun_singular_form(form)
-        self._natural_language_gf_content.write(
-            '%s = mkPred (mkNP the_Det (mkN "%s"));\n' % (function_name, noun))
+        self._natural_language_gf_content.write('%s = mkPred (mkNP the_Det (mkN "%s"));\n' % (function_name, noun))
 
     def _generate_resolve_ynq(self, predicate_name, form):
         function_name = '%s_resolve_ynq' % predicate_name
-        self._abstract_gf_content.write(
-            '%s : SysResolveGoal;\n' % function_name)
-        self._semantic_gf_content.write(
-            '%s = resolve_ynq %s;\n' % (function_name, predicate_name))
+        self._abstract_gf_content.write('%s : SysResolveGoal;\n' % function_name)
+        self._semantic_gf_content.write('%s = resolve_ynq %s;\n' % (function_name, predicate_name))
         noun = self.get_noun_singular_form(form)
         self._natural_language_gf_content.write(
-            '%s = mkSysResolveGoal (mkVP know_V2 (mkNP the_Det (mkN "%s")));\n' % (
-                function_name, noun))
+            '%s = mkSysResolveGoal (mkVP know_V2 (mkNP the_Det (mkN "%s")));\n' % (function_name, noun)
+        )
 
     def _generate_potential_system_question(self, predicate):
         if self._can_be_asked_by_system(predicate):
@@ -627,8 +599,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             self._example_phrase_from_semantic_value(predicate)
         example_form = Node(rgl_types.UTTERANCE, {}, [example_phrase])
         example_xml = self._decompile_entry(key, example_form)
-        return "How does the system ask about '%s'?\n\nExample:\n\n%s\n" % (
-            predicate, example_xml)
+        return "How does the system ask about '%s'?\n\nExample:\n\n%s\n" % (predicate, example_xml)
 
     def _example_phrase_from_semantic_value(self, string):
         return string.replace("_", " ")
@@ -653,29 +624,23 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
     def _generate_system_answer_content(self, predicate):
         sort = predicate.getSort()
         if sort.is_boolean_sort():
-            raise RglGfFilesGeneratorException(
-                "system answers of boolean sort not supported")
+            raise RglGfFilesGeneratorException("system answers of boolean sort not supported")
         else:
             self._generate_unary_system_answer_content(predicate)
 
     def _generate_unary_system_answer_content(self, predicate):
-        form = self._get_form(
-            Node(Constants.SYS_ANSWER, {"predicate": predicate.get_name()}),
-            optional=True)
+        form = self._get_form(Node(Constants.SYS_ANSWER, {"predicate": predicate.get_name()}), optional=True)
         sort = predicate.getSort()
         if sort.is_builtin():
-            raise RglGfFilesGeneratorException(
-                "system answers of built-in sorts such as %s are not supported" % sort)
+            raise RglGfFilesGeneratorException("system answers of built-in sorts such as %s are not supported" % sort)
         else:
             self._generate_system_answer_of_custom_sort(predicate, form)
 
     def _generate_system_answer_of_custom_sort(self, predicate, form):
         if self.has_background(form, predicate):
-            FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(
-                self, predicate, form).generate()
+            FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(self, predicate, form).generate()
         else:
-            FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(
-                self, predicate, form).generate()
+            FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(self, predicate, form).generate()
 
     def _generate_user_answer_content(self, predicate):
         sort = predicate.getSort()
@@ -683,11 +648,12 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
     def _generate_sortal_user_answer(self, predicate, sort):
         self.write_function(
-            function_name = '%s_sortal_usr_answer' % predicate,
-            category = 'UsrAnswer',
-            arguments = [Argument(name="answer", category=self.get_sort_category(sort.get_name()))],
-            semantic_content = 'answer',
-            natural_language_content = 'mkUsr answer')
+            function_name='%s_sortal_usr_answer' % predicate,
+            category='UsrAnswer',
+            arguments=[Argument(name="answer", category=self.get_sort_category(sort.get_name()))],
+            semantic_content='answer',
+            natural_language_content='mkUsr answer'
+        )
 
     def _generate_individuals(self):
         for individual, sort in self._ontology.get_individuals().iteritems():
@@ -700,17 +666,17 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         except MissingEntry:
             return
         self.write_function(
-            function_name = individual,
-            category = self.get_sort_category(sort.get_name()),
-            semantic_content = 'pp "%s"' % individual,
-            natural_language_content = self._generate_natural_language_for_individual(form))
+            function_name=individual,
+            category=self.get_sort_category(sort.get_name()),
+            semantic_content='pp "%s"' % individual,
+            natural_language_content=self._generate_natural_language_for_individual(form)
+        )
 
     def _generate_natural_language_for_individual(self, form):
         if form.type == rgl_types.PROPER_NOUN and len(form.children) == 1:
             return 'mkSort (mkPN ("%s"))' % form.children[0]
         else:
-            raise RglGfFilesGeneratorException(
-                "expected proper noun with single child but got %s" % form)
+            raise RglGfFilesGeneratorException("expected proper noun with single child but got %s" % form)
 
     def _generate_validity_content(self, validator_interface):
         key = Node(Constants.VALIDITY, {"name": validator_interface.name})
@@ -745,23 +711,19 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
                     nl_placeholder = utils.nl_user_answer_placeholder_of_sort(sort.get_name(), i)
 
                     self._abstract_gf_content.write(
-                        "%s : %s;\n" % (placeholder_name, self.get_sort_category(sort.get_name())))
-                    self._semantic_gf_content.write(
-                        '%s = pp "%s";\n' % (placeholder_name, sem_placeholder))
+                        "%s : %s;\n" % (placeholder_name, self.get_sort_category(sort.get_name()))
+                    )
+                    self._semantic_gf_content.write('%s = pp "%s";\n' % (placeholder_name, sem_placeholder))
                     self._natural_language_gf_content.write(
-                        '%s = mkSort (mkPN ("%s"));\n' % (placeholder_name, nl_placeholder))
+                        '%s = mkSort (mkPN ("%s"));\n' % (placeholder_name, nl_placeholder)
+                    )
 
     def generate_new_function_name(self, prefix):
         function_name = "%s_%d" % (prefix, self._rule_count)
         self._rule_count += 1
         return function_name
 
-    def write_function(self,
-                        function_name,
-                        category,
-                        semantic_content,
-                        natural_language_content,
-                        arguments=[]):
+    def write_function(self, function_name, category, semantic_content, natural_language_content, arguments=[]):
         self._write_abstract(function_name, category, arguments)
         self._write_semantic(function_name, arguments, semantic_content)
         self._write_natural_language(function_name, arguments, natural_language_content)
@@ -789,6 +751,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             if item.has_postconfirmation():
                 return True
 
+
 class FunctionGenerator(GrammarProcessor, GfGenerator):
     def __init__(self, files_generator):
         self._files_generator = files_generator
@@ -799,13 +762,15 @@ class FunctionGenerator(GrammarProcessor, GfGenerator):
             category=self.get_function_category(),
             arguments=self.get_arguments(),
             semantic_content=self.get_semantic_content(),
-            natural_language_content=self.get_natural_language_content())
+            natural_language_content=self.get_natural_language_content()
+        )
 
     def generate_new_function_name(self, prefix):
         return self._files_generator.generate_new_function_name(prefix)
 
     def get_arguments(self):
         return []
+
 
 class ActionFunctionGenerator(FunctionGenerator):
     def __init__(self, files_generator, action, forms):
@@ -821,7 +786,8 @@ class ActionFunctionGenerator(FunctionGenerator):
         forms_contain_verb_phrase = self.nodes_contain(self._forms, rgl_types.VERB_PHRASE)
         if forms_contain_noun_phrase and forms_contain_verb_phrase:
             raise RglGfFilesGeneratorException(
-                "Exception when generating action %s: Cannot mix noun and verb phrase." % self._action)
+                "Exception when generating action %s: Cannot mix noun and verb phrase." % self._action
+            )
         elif forms_contain_noun_phrase:
             return FunctionNames.NP_ACTION
         elif forms_contain_verb_phrase:
@@ -829,15 +795,14 @@ class ActionFunctionGenerator(FunctionGenerator):
         else:
             raise RglGfFilesGeneratorException(
                 "Exception when generating action %s: Expected entry to contain either "
-                "a noun phrase or a verb phrase." % self._action)
+                "a noun phrase or a verb phrase." % self._action
+            )
 
     def get_semantic_content(self):
         return 'pp "%s"' % self._action
 
     def get_natural_language_content(self):
-        generated_forms = [
-            self._generate_natural_language_content(form)
-            for form in self._forms]
+        generated_forms = [self._generate_natural_language_content(form) for form in self._forms]
         return self.generate_disjunction(generated_forms)
 
     def _generate_natural_language_content(self, form):
@@ -846,25 +811,27 @@ class ActionFunctionGenerator(FunctionGenerator):
         elif form.type == rgl_types.VERB_PHRASE:
             return self._generate_verb_phrase(form)
         else:
-            raise GrammarProcessingException(
-                "don't know how to generate natural language content for %r" % form)
+            raise GrammarProcessingException("don't know how to generate natural language content for %r" % form)
 
     def _generate_noun_phrase(self, form):
         noun_singular_form = self._files_generator.get_noun_singular_form(form)
         return 'mkNpAction (mkNP (mkPN "%s") | mkNP the_Det (mkCN (mkN "%s")))' % (
-            noun_singular_form, noun_singular_form)
+            noun_singular_form, noun_singular_form
+        )
 
     def _generate_verb_phrase(self, form):
         verb_infinitive_form = self._files_generator.get_verb_infinite_form(form)
         if self._has_noun(form):
             noun_singular_form = self._files_generator.get_noun_singular_form(form)
             return 'mkVpAction (mkVP (mkV2 (mkV "%s")) (mkNP (a_Det|the_Det) (mkCN (mkN "%s"))))' % (
-                verb_infinitive_form, noun_singular_form)
+                verb_infinitive_form, noun_singular_form
+            )
         else:
             return 'mkVpAction "%s"' % verb_infinitive_form
 
     def _has_noun(self, form):
         return self.has_single_child_node(form, "noun")
+
 
 class UserQuestionFunctionGenerator(FunctionGenerator):
     def __init__(self, rgl_gf_generator, predicate_name, form_parts):
@@ -880,9 +847,8 @@ class UserQuestionFunctionGenerator(FunctionGenerator):
 
     def get_arguments(self):
         return [
-            self.get_individual_argument(form_part)
-            for form_part in self._form_parts
-            if self.is_individual(form_part)]
+            self.get_individual_argument(form_part) for form_part in self._form_parts if self.is_individual(form_part)
+        ]
 
     def get_semantic_content(self):
         result = 'ask_whq %s' % self._predicate_name
@@ -891,15 +857,10 @@ class UserQuestionFunctionGenerator(FunctionGenerator):
         return result
 
     def _get_individual_sorts(self, form_parts):
-        return [
-            self.get_individual_sort(form_part)
-            for form_part in form_parts
-            if self.is_individual(form_part)]
+        return [self.get_individual_sort(form_part) for form_part in form_parts if self.is_individual(form_part)]
 
     def get_natural_language_content(self):
-        generated_parts = [
-            self._generate_form_part(form_part)
-            for form_part in self._form_parts]
+        generated_parts = [self._generate_form_part(form_part) for form_part in self._form_parts]
         return 'mkUsr %s' % self.generate_gf_concatenation(generated_parts)
 
     def _generate_form_part(self, form_part):
@@ -908,8 +869,8 @@ class UserQuestionFunctionGenerator(FunctionGenerator):
         elif self.is_string(form_part):
             return self.generate_string_as_utterance(form_part)
         else:
-            raise GrammarProcessingException(
-                "expected an individual or a string but got %s" % form_part)
+            raise GrammarProcessingException("expected an individual or a string but got %s" % form_part)
+
 
 class RequestFunctionGenerator(FunctionGenerator):
     def __init__(self, files_generator, action, form_parts):
@@ -925,9 +886,8 @@ class RequestFunctionGenerator(FunctionGenerator):
 
     def get_arguments(self):
         return [
-            self.get_individual_argument(form_part)
-            for form_part in self._form_parts
-            if self.is_individual(form_part)]
+            self.get_individual_argument(form_part) for form_part in self._form_parts if self.is_individual(form_part)
+        ]
 
     def get_semantic_content(self):
         result = 'request (pp "%s")' % self._action
@@ -936,15 +896,10 @@ class RequestFunctionGenerator(FunctionGenerator):
         return result
 
     def _get_individual_sorts(self, form_parts):
-        return [
-            self.get_individual_sort(form_part)
-            for form_part in form_parts
-            if self.is_individual(form_part)]
+        return [self.get_individual_sort(form_part) for form_part in form_parts if self.is_individual(form_part)]
 
     def get_natural_language_content(self):
-        generated_parts = [
-            self._generate_form_part(form_part)
-            for form_part in self._form_parts]
+        generated_parts = [self._generate_form_part(form_part) for form_part in self._form_parts]
         return 'mkUsr %s' % self.generate_gf_concatenation(generated_parts)
 
     def _generate_form_part(self, form_part):
@@ -953,8 +908,8 @@ class RequestFunctionGenerator(FunctionGenerator):
         elif self.is_string(form_part):
             return self.generate_string_as_utterance(form_part)
         else:
-            raise GrammarProcessingException(
-                "expected an individual or a string but got %s" % form_part)
+            raise GrammarProcessingException("expected an individual or a string but got %s" % form_part)
+
 
 class ReportFunctionGenerator(FunctionGenerator):
     def __init__(self, files_generator, action, form):
@@ -964,23 +919,19 @@ class ReportFunctionGenerator(FunctionGenerator):
 
     def get_arguments(self):
         return [
-            Argument(
-                name=self.get_individual_predicate(form_part),
-                category='SysAnswer')
-            for form_part in self._form_parts
-            if self.is_individual_with_predicate(form_part)]
+            Argument(name=self.get_individual_predicate(form_part), category='SysAnswer')
+            for form_part in self._form_parts if self.is_individual_with_predicate(form_part)
+        ]
 
     def get_parameter_list(self):
         predicates = [
-            self.get_individual_predicate(form_part)
-            for form_part in self._form_parts
-            if self.is_individual_with_predicate(form_part)]
+            self.get_individual_predicate(form_part) for form_part in self._form_parts
+            if self.is_individual_with_predicate(form_part)
+        ]
         return self.generate_list(predicates)
 
     def get_natural_language_content(self):
-        generated_parts = [
-            self._generate_form_part(form_part)
-            for form_part in self._form_parts]
+        generated_parts = [self._generate_form_part(form_part) for form_part in self._form_parts]
         return 'mkSys %s' % self.generate_gf_concatenation(generated_parts)
 
     def _generate_form_part(self, form_part):
@@ -990,7 +941,9 @@ class ReportFunctionGenerator(FunctionGenerator):
             return self.generate_string_as_utterance(form_part)
         else:
             raise GrammarProcessingException(
-                "expected an individual with a predicate or a string but got %s" % form_part)
+                "expected an individual with a predicate or a string but got %s" % form_part
+            )
+
 
 class ReportEndedFunctionGenerator(ReportFunctionGenerator):
     def get_function_name(self):
@@ -1002,6 +955,7 @@ class ReportEndedFunctionGenerator(ReportFunctionGenerator):
     def get_semantic_content(self):
         return 'report_ended "%s" %s' % (self._action, self.get_parameter_list())
 
+
 class ReportStartedFunctionGenerator(ReportFunctionGenerator):
     def get_function_name(self):
         return 'report_started_%s' % self._action
@@ -1011,6 +965,7 @@ class ReportStartedFunctionGenerator(ReportFunctionGenerator):
 
     def get_semantic_content(self):
         return 'report_started "%s" %s' % (self._action, self.get_parameter_list())
+
 
 class FunctionGeneratorForReportFailedWithUnknownFailure(FunctionGenerator):
     def __init__(self, files_generator, action, form):
@@ -1026,25 +981,25 @@ class FunctionGeneratorForReportFailedWithUnknownFailure(FunctionGenerator):
 
     def get_arguments(self):
         return [
-            Argument(
-                name=self.get_individual_predicate(form_part),
-                category='SysAnswer')
-            for form_part in self._form_parts
-            if self.is_individual_with_predicate(form_part)]
+            Argument(name=self.get_individual_predicate(form_part), category='SysAnswer')
+            for form_part in self._form_parts if self.is_individual_with_predicate(form_part)
+        ]
 
     def get_semantic_content(self):
         return 'report_failed "%s" %s "%s"' % (
-            self._action, self._get_parameter_list(), UNDEFINED_SERVICE_ACTION_FAILURE)
+            self._action, self._get_parameter_list(), UNDEFINED_SERVICE_ACTION_FAILURE
+        )
 
     def _get_parameter_list(self):
         predicates = [
-            self.get_individual_predicate(form_part)
-            for form_part in self._form_parts
-            if self.is_individual_with_predicate(form_part)]
+            self.get_individual_predicate(form_part) for form_part in self._form_parts
+            if self.is_individual_with_predicate(form_part)
+        ]
         return self.generate_list(predicates)
 
     def get_natural_language_content(self):
         return 'mkSys undefined_service_action_failure'
+
 
 class FunctionGeneratorForSystemAnswerOfCustomSort(FunctionGenerator):
     def __init__(self, files_generator, predicate, form):
@@ -1064,11 +1019,10 @@ class FunctionGeneratorForSystemAnswerOfCustomSort(FunctionGenerator):
         return self.is_individual_with_predicate(form_part) and \
             self.get_individual_predicate(form_part) == self._predicate.get_name()
 
-class FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(
-    FunctionGeneratorForSystemAnswerOfCustomSort):
+
+class FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(FunctionGeneratorForSystemAnswerOfCustomSort):
     def __init__(self, files_generator, predicate, form):
-        FunctionGeneratorForSystemAnswerOfCustomSort.__init__(
-            self, files_generator, predicate, form)
+        FunctionGeneratorForSystemAnswerOfCustomSort.__init__(self, files_generator, predicate, form)
 
     def get_function_category(self):
         return 'SysAnswer'
@@ -1084,9 +1038,7 @@ class FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(
             return self._default_natural_language_content()
         else:
             form_parts = self.get_utterance_content(self._form)
-            generated_parts = [
-                self._generate_form_part(form_part)
-                for form_part in form_parts]
+            generated_parts = [self._generate_form_part(form_part) for form_part in form_parts]
             return 'mkSysAnswer %s' % self.generate_gf_concatenation(generated_parts)
 
     def _default_natural_language_content(self):
@@ -1099,22 +1051,21 @@ class FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(
             return self.generate_string_as_utterance(form_part)
         else:
             raise GrammarProcessingException(
-                "expected individual of predicate %s or a string but got %r" % (
-                    self._predicate, form_part))
+                "expected individual of predicate %s or a string but got %r" % (self._predicate, form_part)
+            )
 
-class FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(
-    FunctionGeneratorForSystemAnswerOfCustomSort):
+
+class FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(FunctionGeneratorForSystemAnswerOfCustomSort):
     def __init__(self, files_generator, predicate, form):
-        FunctionGeneratorForSystemAnswerOfCustomSort.__init__(
-            self, files_generator, predicate, form)
+        FunctionGeneratorForSystemAnswerOfCustomSort.__init__(self, files_generator, predicate, form)
         self._background_predicates = self._get_background_predicates()
 
     def _get_background_predicates(self):
         form_parts = self.get_utterance_content(self._form)
         return [
-            self.get_individual_predicate(form_part)
-            for form_part in form_parts
-            if self._is_background_individual(form_part)]
+            self.get_individual_predicate(form_part) for form_part in form_parts
+            if self._is_background_individual(form_part)
+        ]
 
     def _is_background_individual(self, form_part):
         return self.is_background_individual(form_part, self._predicate.get_name())
@@ -1126,20 +1077,16 @@ class FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(
         return [self._get_answer_argument()] + self._get_background_arguments()
 
     def _get_background_arguments(self):
-        return [Argument(name=predicate,
-                         category='SysAnswer')
-                for predicate in self._background_predicates]
+        return [Argument(name=predicate, category='SysAnswer') for predicate in self._background_predicates]
 
     def get_semantic_content(self):
         return 'pp "Move" (move "answer" (pp "%s" individual) %s)' % (
-            self._predicate.get_name(),
-            self.generate_list(self._background_predicates))
+            self._predicate.get_name(), self.generate_list(self._background_predicates)
+        )
 
     def get_natural_language_content(self):
         form_parts = self.get_utterance_content(self._form)
-        generated_parts = [
-            self._generate_form_part(form_part)
-            for form_part in form_parts]
+        generated_parts = [self._generate_form_part(form_part) for form_part in form_parts]
         return 'mkSys %s' % self.generate_gf_concatenation(generated_parts)
 
     def _generate_form_part(self, form_part):
@@ -1150,8 +1097,8 @@ class FunctionGeneratorForSystemAnswerOfCustomSortWithBackground(
         elif self.is_string(form_part):
             return self.generate_string_as_utterance(form_part)
         else:
-            raise GrammarProcessingException(
-                "expected individual or a string but got %r" % form_part)
+            raise GrammarProcessingException("expected individual or a string but got %r" % form_part)
+
 
 class ValidityGenerator(GrammarProcessor, GfGenerator):
     def __init__(self, files_generator, validator_interface, forms):
@@ -1178,23 +1125,20 @@ class ValidityGenerator(GrammarProcessor, GfGenerator):
         validity_name = self._validator_interface.name
         function_name = self._files_generator.generate_new_function_name(validity_name)
         parameter_names = [parameter.name for parameter in parameter_subset]
-        semantic_content = 'rejectICM (set (list %s)) "%s"' % (
-            ' '.join(parameter_names), validity_name)
+        semantic_content = 'rejectICM (set (list %s)) "%s"' % (' '.join(parameter_names), validity_name)
         natural_language_content = self._generate_natural_language_content(form)
 
         self._files_generator.write_function(
-            function_name = function_name,
-            category = "SysICM",
-            arguments = [Argument(parameter.name, "SysAnswer")
-                         for parameter in parameter_subset],
-            semantic_content = semantic_content,
-            natural_language_content = natural_language_content)
+            function_name=function_name,
+            category="SysICM",
+            arguments=[Argument(parameter.name, "SysAnswer") for parameter in parameter_subset],
+            semantic_content=semantic_content,
+            natural_language_content=natural_language_content
+        )
 
     def _generate_natural_language_content(self, form):
         form_parts = self.get_utterance_content(form)
-        generated_parts = [
-            self._generate_form_part(form_part)
-            for form_part in form_parts]
+        generated_parts = [self._generate_form_part(form_part) for form_part in form_parts]
         return 'mkSys %s' % self.generate_gf_concatenation(generated_parts)
 
     def _generate_form_part(self, form_part):
@@ -1204,7 +1148,8 @@ class ValidityGenerator(GrammarProcessor, GfGenerator):
             return self.generate_string_as_utterance(form_part)
         else:
             raise GrammarProcessingException(
-                "expected an individual with a predicate or a string but got %s" % form_part)
+                "expected an individual with a predicate or a string but got %s" % form_part
+            )
 
     def _get_form_for_parameter_subset(self, parameter_subset):
         for form in self._forms:
@@ -1214,8 +1159,7 @@ class ValidityGenerator(GrammarProcessor, GfGenerator):
     def _form_contains_parameter_not_in_subset(self, form, parameter_subset):
         parameter_names_in_form = set(self._parameters_in_form(form))
         parameter_names_in_subset = set([parameter.name for parameter in parameter_subset])
-        parameters_in_form_but_not_in_subset = parameter_names_in_form.difference(
-            parameter_names_in_subset)
+        parameters_in_form_but_not_in_subset = parameter_names_in_form.difference(parameter_names_in_subset)
         return len(parameters_in_form_but_not_in_subset) > 0
 
     def _parameters_in_form(self, form):
@@ -1229,8 +1173,10 @@ class ValidityGenerator(GrammarProcessor, GfGenerator):
                 else:
                     raise GrammarProcessingException(
                         "unexpected parameter name %s in form %s (device declares %s)" %
-                        (parameter_name, form, parameter_names_in_device))
+                        (parameter_name, form, parameter_names_in_device)
+                    )
         return result
+
 
 class Argument:
     def __init__(self, name, category):

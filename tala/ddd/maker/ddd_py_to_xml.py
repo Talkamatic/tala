@@ -45,10 +45,10 @@ class PyToXmlConverter:
     def _write(self, string):
         self._output.write(string)
 
+
 class OntologyConverter(PyToXmlConverter):
     def convert(self):
-        self._root = self._create_element(
-            "ontology", name=self._ddd.ontology.get_name())
+        self._root = self._create_element("ontology", name=self._ddd.ontology.get_name())
         self._convert_sorts()
         self._convert_predicates()
         self._convert_actions()
@@ -92,7 +92,7 @@ class OntologyConverter(PyToXmlConverter):
 
     def _convert_individuals(self):
         individuals = self._ddd.ontology.get_individuals()
-        for individual ,sort in individuals.iteritems():
+        for individual, sort in individuals.iteritems():
             self._convert_individual(individual, sort.get_name())
 
     def _convert_individual(self, individual, sort_name):
@@ -100,10 +100,10 @@ class OntologyConverter(PyToXmlConverter):
         self._set_attribute(element, "sort", sort_name)
         self._root.append(element)
 
+
 class DomainConverter(PyToXmlConverter):
     def convert(self):
-        self._root = self._create_element(
-            "domain", name=self._ddd.domain.get_name())
+        self._root = self._create_element("domain", name=self._ddd.domain.get_name())
         self._convert_goals()
         self._convert_dependencies()
         self._convert_parameters()
@@ -123,13 +123,11 @@ class DomainConverter(PyToXmlConverter):
         self._set_goal_attributes(element, goal)
         if self._ddd.domain.has_dynamic_title(goal):
             self._set_attributes(element, dynamic_title="true")
-        if self._ddd.domain.goal_allows_accommodation_without_feedback(
-                goal):
+        if self._ddd.domain.goal_allows_accommodation_without_feedback(goal):
             self._set_attributes(element, accommodate_without_feedback="true")
         if self._ddd.domain.restart_on_completion(goal):
             self._set_attributes(element, restart_on_completion="true")
-        io_status = self._ddd.domain.get_goal_attribute(goal,
-                                                                "io_status")
+        io_status = self._ddd.domain.get_goal_attribute(goal, "io_status")
         if io_status:
             self._set_attributes(element, io_status=io_status)
         self._add_preferred_element_if_present(goal, element)
@@ -164,8 +162,8 @@ class DomainConverter(PyToXmlConverter):
             goal_element.append(preferred_element)
             if node is not True and node.is_predicate_proposition():
                 proposition_element = self._create_element(
-                    "proposition", predicate=node.getPredicate(),
-                    value=node.getArgument())
+                    "proposition", predicate=node.getPredicate(), value=node.getArgument()
+                )
                 preferred_element.append(proposition_element)
 
     def _create_goal_element(self, goal):
@@ -202,20 +200,16 @@ class DomainConverter(PyToXmlConverter):
             if question.get_content().is_goal_proposition():
                 if question.get_content().get_goal().is_perform_goal():
                     action = question.get_content().get_goal().get_content()
-                    perform_element = self._create_element("perform",
-                                                           action=action)
+                    perform_element = self._create_element("perform", action=action)
                     element.append(perform_element)
                 elif question.get_content().get_goal().is_resolve_goal():
                     predicate = question.get_content().get_goal().\
                                 get_content().get_predicate()
-                    perform_element = self._create_element("resolve",
-                                                           type="wh_question",
-                                                           predicate=predicate)
+                    perform_element = self._create_element("resolve", type="wh_question", predicate=predicate)
                     element.append(perform_element)
             else:
                 proposition_element = self._create_element("proposition")
-                self._set_proposition_attributes(proposition_element,
-                                                 question.get_content())
+                self._set_proposition_attributes(proposition_element, question.get_content())
                 element.append(proposition_element)
         else:
             raise Exception("unsupported question %s" % question)
@@ -233,9 +227,7 @@ class DomainConverter(PyToXmlConverter):
             self._set_attributes(element, type="predicate")
             self._set_attributes(element, predicate=proposition.getPredicate())
         if proposition.getArgument() is not None:
-            self._set_attributes(
-                element,
-                value=proposition.getArgument().getValue())
+            self._set_attributes(element, value=proposition.getArgument().getValue())
 
     def _convert_plan(self, parent, tag, plan):
         element = self._create_element(tag)
@@ -244,9 +236,7 @@ class DomainConverter(PyToXmlConverter):
         parent.append(element)
 
     def _convert_plan_item(self, parent, item):
-        if item.get_type() in [PlanItem.TYPE_FINDOUT,
-                               PlanItem.TYPE_RAISE,
-                               PlanItem.TYPE_BIND]:
+        if item.get_type() in [PlanItem.TYPE_FINDOUT, PlanItem.TYPE_RAISE, PlanItem.TYPE_BIND]:
             self._convert_question_raising_item(parent, item)
         # elif item.get_type() == PlanItem.TYPE_IF_THEN_ELSE:
         #     self._convert_if_then_else(parent, item)
@@ -311,9 +301,7 @@ class DomainConverter(PyToXmlConverter):
         parent.append(element)
 
     def _convert_invoke_service_action(self, parent, item):
-        element = self._create_element(
-            "invoke_service_action",
-            action=item.get_service_action())
+        element = self._create_element("invoke_service_action", action=item.get_service_action())
         if item.preconfirm:
             self._set_attribute(element, "preconfirm", item.preconfirm.lower())
         if item.postconfirm:
@@ -331,9 +319,7 @@ class DomainConverter(PyToXmlConverter):
         if postcond.is_predicate_proposition():
             predicate = postcond.getPredicate()
             individual = postcond.getArgument()
-            child = self._create_element("proposition",
-                                         predicate=predicate,
-                                         value=individual)
+            child = self._create_element("proposition", predicate=predicate, value=individual)
             element.append(child)
         parent.append(element)
 
@@ -390,12 +376,9 @@ class DomainConverter(PyToXmlConverter):
             self._set_attribute(parent, parameter, self._convert_boolean_value(value))
         elif parameter == "ask_features":
             self._add_ask_features(parent, value)
-        elif parameter in ["graphical_type",
-                           "source",
-                           "format",
-                           "sort_order",
-                           "allow_goal_accommodation",
-                           "max_spoken_alts"]:
+        elif parameter in [
+            "graphical_type", "source", "format", "sort_order", "allow_goal_accommodation", "max_spoken_alts"
+        ]:
             self._set_attribute(parent, parameter, unicode(value))
         else:
             raise Exception("unsupported parameter %r" % parameter)
@@ -431,24 +414,21 @@ class DomainConverter(PyToXmlConverter):
 
     def _convert_superactions(self, goal, goal_element):
         for superaction in self._ddd.domain.get_superactions(goal):
-            superaction_element = self._create_element(
-                "superaction", name=superaction.get_value())
+            superaction_element = self._create_element("superaction", name=superaction.get_value())
             goal_element.append(superaction_element)
 
     def _add_ask_features(self, parent, predicates):
         for predicate in predicates:
-            ask_feature_element = self._create_element("ask_feature",
-                                                       predicate=predicate)
+            ask_feature_element = self._create_element("ask_feature", predicate=predicate)
             parent.append(ask_feature_element)
 
     def _convert_default_questions(self):
         for question in self._ddd.domain.default_questions:
             if question.is_wh_question():
                 predicate = question.get_predicate()
-                question_element = self._create_element("default_question",
-                                                        type="wh_question",
-                                                        predicate=predicate)
+                question_element = self._create_element("default_question", type="wh_question", predicate=predicate)
                 self._root.append(question_element)
+
 
 class GrammarConverter(PyToXmlConverter):
     def __init__(self, ddd, languages):
@@ -485,7 +465,7 @@ class GrammarConverter(PyToXmlConverter):
             Constants.POSITIVE_SYS_ANSWER: self._convert_positive_sys_answer,
             Constants.NEGATIVE_SYS_ANSWER: self._convert_negative_sys_answer,
             rgl_types.UTTERANCE: self._convert_utterance,
-            }
+        }
 
     def convert(self):
         for language_code in self._languages:
@@ -494,17 +474,14 @@ class GrammarConverter(PyToXmlConverter):
 
     def _load_and_compile_grammar_entries(self, language_code):
         grammar_source = self._load_grammar_source(language_code)
-        return DddPyCompiler().compile_grammar(
-            grammar_source, self._ddd.ontology, self._ddd.service_interface)
+        return DddPyCompiler().compile_grammar(grammar_source, self._ddd.ontology, self._ddd.service_interface)
 
     def _load_grammar_source(self, language_code):
         with open("%s/grammar/grammar_%s.py" % (self._ddd.name, language_code)) as f:
             return f.read()
 
     def _convert_grammar(self, language_code, input_root_node):
-        self._output = codecs.open(
-            "%s/grammar/grammar_%s.xml" % (self._ddd.name, language_code),
-            "w", "utf-8")
+        self._output = codecs.open("%s/grammar/grammar_%s.xml" % (self._ddd.name, language_code), "w", "utf-8")
         self._generate_and_write_output(input_root_node)
         self._output.close()
 
@@ -551,8 +528,7 @@ class GrammarConverter(PyToXmlConverter):
         self._write('  ')
 
     def _convert_predicate_node(self, node, parent):
-        attributes = {"type": "wh_question", "speaker": "all",
-                      "predicate": node.parameters["name"]}
+        attributes = {"type": "wh_question", "speaker": "all", "predicate": node.parameters["name"]}
         self._write_element(node, 1, attributes, "question")
 
     def _convert_validity_node(self, node, parent):
@@ -564,8 +540,7 @@ class GrammarConverter(PyToXmlConverter):
         self._write_element(node, 1, attributes)
 
     def _convert_prereport_node(self, node, parent):
-        attributes = {"action": node.parameters["action"], "status": "started",
-                      "source": "dialogue"}
+        attributes = {"action": node.parameters["action"], "status": "started", "source": "dialogue"}
         self._write_element(node, 1, attributes, "report")
 
     def _convert_report_started_node(self, node, parent):
@@ -577,8 +552,7 @@ class GrammarConverter(PyToXmlConverter):
         self._write_element(node, 1, attributes, "report")
 
     def _convert_report_failed_node(self, node, parent):
-        attributes = {"action": node.parameters["action"], "status": "failed",
-                      "reason": node.parameters["reason"]}
+        attributes = {"action": node.parameters["action"], "status": "failed", "reason": node.parameters["reason"]}
         self._write_element(node, 1, attributes, "report")
 
     def _convert_preconfirm_node(self, node, parent):
@@ -587,12 +561,10 @@ class GrammarConverter(PyToXmlConverter):
 
     def _convert_slot_node(self, node, parent):
         if "predicate" in node.parameters:
-            attributes = {"type": "individual",
-                          "predicate": node.parameters["predicate"]}
+            attributes = {"type": "individual", "predicate": node.parameters["predicate"]}
             self._write_element(node, 0, attributes, trailing_newline=False)
         elif "predicate" in parent.parameters:
-            attributes = {"type": "individual",
-                          "predicate": parent.parameters["predicate"]}
+            attributes = {"type": "individual", "predicate": parent.parameters["predicate"]}
             self._write_element(node, 0, attributes, trailing_newline=False)
         elif "sort" in node.parameters:
             attributes = {"sort": node.parameters["sort"]}
@@ -607,20 +579,15 @@ class GrammarConverter(PyToXmlConverter):
         self._write_element(node, 1, attributes, "title")
 
     def _convert_issue_title_node(self, node, parent):
-        attributes = {"type": "question",
-                      "predicate": node.parameters["predicate"]}
+        attributes = {"type": "question", "predicate": node.parameters["predicate"]}
         self._write_element(node, 1, attributes, "title")
 
     def _convert_sys_question_node(self, node, parent):
-        attributes = {"type": "wh_question",
-                      "predicate": node.parameters["predicate"],
-                      "speaker": "system"}
+        attributes = {"type": "wh_question", "predicate": node.parameters["predicate"], "speaker": "system"}
         self._write_element(node, 1, attributes, "question")
 
     def _convert_user_question_node(self, node, parent):
-        attributes = {"type": "wh_question",
-                      "predicate": node.parameters["predicate"],
-                      "speaker": "user"}
+        attributes = {"type": "wh_question", "predicate": node.parameters["predicate"], "speaker": "user"}
         self._write_element(node, 1, attributes, "question")
 
     def _convert_individual(self, node, parent):
@@ -636,20 +603,16 @@ class GrammarConverter(PyToXmlConverter):
         self._write_element(node, 1, attributes, "answer")
 
     def _convert_positive_sys_answer(self, node, parent):
-        attributes = {"speaker": "system",
-                      "predicate": node.parameters["predicate"],
-                         "polarity": "positive"}
+        attributes = {"speaker": "system", "predicate": node.parameters["predicate"], "polarity": "positive"}
         self._write_element(node, 1, attributes, "answer")
 
     def _convert_negative_sys_answer(self, node, parent):
-        attributes = {"speaker": "system",
-                      "predicate": node.parameters["predicate"],
-                         "polarity": "negative"}
+        attributes = {"speaker": "system", "predicate": node.parameters["predicate"], "polarity": "negative"}
         self._write_element(node, 1, attributes, "answer")
 
-    def _write_element(self, node, indent=0, attributes={},
-                       override_name=None, itemize_children=False,
-                       trailing_newline=True):
+    def _write_element(
+        self, node, indent=0, attributes={}, override_name=None, itemize_children=False, trailing_newline=True
+    ):
         if override_name is not None:
             name = override_name
         else:
@@ -662,7 +625,7 @@ class GrammarConverter(PyToXmlConverter):
             self._write("/>")
         else:
             self._write(">")
-            self._convert_children(node.children, node, itemize=itemize_children, indent=indent+1)
+            self._convert_children(node.children, node, itemize=itemize_children, indent=indent + 1)
             if itemize_children:
                 self._write("\n%s</%s>" % ("  " * indent, name))
             else:
@@ -700,6 +663,7 @@ class GrammarConverter(PyToXmlConverter):
         self._write('\n')
         self._write_element(node, 2)
         self._write('  ')
+
 
 if __name__ == "__main__":
     import argparse

@@ -3,4 +3,3 @@ class Modality:
     SPEECH = "speech"
     HAPTIC = "haptic"
     MODALITIES = [None, TEXT, SPEECH, HAPTIC]
-

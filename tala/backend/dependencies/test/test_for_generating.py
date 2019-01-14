@@ -21,8 +21,9 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
     @patch("%s.for_generating.RasaConfig" % dependencies.__name__, autospec=True)
     @patch("%s.abstract_backend_dependencies.BackendConfig" % dependencies.__name__, autospec=True)
     @patch("%s.for_generating.DDDSetLoader" % dependencies.__name__, autospec=True)
-    def test_duckling_disabled_with_datetime_predicates_in_ontology_issues_warning(self, DddSetLoader, BackendConfig,
-                                                                                   RasaConfig):
+    def test_duckling_disabled_with_datetime_predicates_in_ontology_issues_warning(
+        self, DddSetLoader, BackendConfig, RasaConfig
+    ):
         self.given_mock_backend_config(BackendConfig)
         self.given_mock_ddd_set_loader(DddSetLoader)
         self.given_mock_rasa_config(RasaConfig)
@@ -34,7 +35,8 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
         self.given_duckling_disabled_in_rasa_config()
         self.when_create_backend_dependencies_then_warning_is_issued_matching(
             "DDD 'mock_ddd' contains predicates of the 'datetime' sort, but duckling is disabled. "
-            "'datetime' entities won't be recognized in NLU.")
+            "'datetime' entities won't be recognized in NLU."
+        )
 
     def given_duckling_disabled_in_rasa_config(self):
         self._rasa_config["enable_duckling"] = False
@@ -47,8 +49,9 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
     @patch("%s.for_generating.RasaConfig" % dependencies.__name__, autospec=True)
     @patch("%s.abstract_backend_dependencies.BackendConfig" % dependencies.__name__, autospec=True)
     @patch("%s.for_generating.DDDSetLoader" % dependencies.__name__, autospec=True)
-    def test_duckling_disabled_with_integer_predicates_in_ontology_issues_warning(self, DddSetLoader, BackendConfig,
-                                                                                  RasaConfig):
+    def test_duckling_disabled_with_integer_predicates_in_ontology_issues_warning(
+        self, DddSetLoader, BackendConfig, RasaConfig
+    ):
         self.given_mock_backend_config(BackendConfig)
         self.given_mock_ddd_set_loader(DddSetLoader)
         self.given_mock_rasa_config(RasaConfig)
@@ -60,14 +63,15 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
         self.given_duckling_disabled_in_rasa_config()
         self.when_create_backend_dependencies_then_warning_is_issued_matching(
             "DDD 'mock_ddd' contains predicates of the 'integer' sort, but duckling is disabled. "
-            "Accuracy for 'integer' entities will be reduced in NLU.")
+            "Accuracy for 'integer' entities will be reduced in NLU."
+        )
 
     @patch("%s.for_generating.RasaConfig" % dependencies.__name__, autospec=True)
     @patch("%s.abstract_backend_dependencies.BackendConfig" % dependencies.__name__, autospec=True)
     @patch("%s.for_generating.DDDSetLoader" % dependencies.__name__, autospec=True)
-    def test_duckling_disabled_but_no_predicates_of_duckling_sorts_in_ontology_issues_no_warnings(self, DddSetLoader,
-                                                                                                  BackendConfig,
-                                                                                                  RasaConfig):
+    def test_duckling_disabled_but_no_predicates_of_duckling_sorts_in_ontology_issues_no_warnings(
+        self, DddSetLoader, BackendConfig, RasaConfig
+    ):
         self.given_mock_backend_config(BackendConfig)
         self.given_mock_ddd_set_loader(DddSetLoader)
         self.given_mock_rasa_config(RasaConfig)
@@ -90,8 +94,9 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
     @patch("%s.for_generating.RasaConfig" % dependencies.__name__, autospec=True)
     @patch("%s.abstract_backend_dependencies.BackendConfig" % dependencies.__name__, autospec=True)
     @patch("%s.for_generating.DDDSetLoader" % dependencies.__name__, autospec=True)
-    def test_rasa_disabled_with_datetime_predicates_in_ontology_issues_warning(self, DddSetLoader, BackendConfig,
-                                                                                   RasaConfig):
+    def test_rasa_disabled_with_datetime_predicates_in_ontology_issues_warning(
+        self, DddSetLoader, BackendConfig, RasaConfig
+    ):
         self.given_mock_backend_config(BackendConfig)
         self.given_mock_ddd_set_loader(DddSetLoader)
         self.given_mock_rasa_config(RasaConfig)
@@ -102,13 +107,15 @@ class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest
         self.given_mocked_ontology_has_predicates_of_sort("mock_ddd", DATETIME)
         self.when_create_backend_dependencies_then_warning_is_issued_matching(
             "DDD 'mock_ddd' contains predicates of the 'datetime' sort, but RASA NLU is disabled. "
-            "'datetime' entities won't be recognized in NLU.")
+            "'datetime' entities won't be recognized in NLU."
+        )
 
     @patch("%s.for_generating.RasaConfig" % dependencies.__name__, autospec=True)
     @patch("%s.abstract_backend_dependencies.BackendConfig" % dependencies.__name__, autospec=True)
     @patch("%s.for_generating.DDDSetLoader" % dependencies.__name__, autospec=True)
     def test_rasa_disabled_but_no_predicates_of_datetime_sort_in_ontology_issues_no_warnings(
-            self, DddSetLoader, BackendConfig, RasaConfig):
+        self, DddSetLoader, BackendConfig, RasaConfig
+    ):
         self.given_mock_backend_config(BackendConfig)
         self.given_mock_ddd_set_loader(DddSetLoader)
         self.given_mock_rasa_config(RasaConfig)

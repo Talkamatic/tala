@@ -25,23 +25,27 @@ class BackendDependenciesForGenerating(AbstractBackendDependencies):
     def _validate_compatibility_with_rasa_but_not_duckling(self):
         for ddd in self.ddds_with_rasa:
             if ddd.ontology.predicates_contain_sort(DATETIME):
-                warnings.warn("DDD '{0}' contains predicates of the '{1}' sort, but duckling is disabled. "
-                              "'{1}' entities won't be recognized in NLU.".format(ddd.name, DATETIME))
+                warnings.warn(
+                    "DDD '{0}' contains predicates of the '{1}' sort, but duckling is disabled. "
+                    "'{1}' entities won't be recognized in NLU.".format(ddd.name, DATETIME)
+                )
             if ddd.ontology.predicates_contain_sort(INTEGER):
-                warnings.warn("DDD '{0}' contains predicates of the '{1}' sort, but duckling is disabled. "
-                              "Accuracy for '{1}' entities will be reduced in NLU.".format(ddd.name, INTEGER))
+                warnings.warn(
+                    "DDD '{0}' contains predicates of the '{1}' sort, but duckling is disabled. "
+                    "Accuracy for '{1}' entities will be reduced in NLU.".format(ddd.name, INTEGER)
+                )
 
     def _validate_compatibility_without_rasa(self):
         for ddd in self.ddds_without_rasa:
             if ddd.ontology.predicates_contain_sort(DATETIME):
-                warnings.warn("DDD '{0}' contains predicates of the '{1}' sort, but RASA NLU is disabled. "
-                              "'{1}' entities won't be recognized in NLU.".format(ddd.name, DATETIME))
+                warnings.warn(
+                    "DDD '{0}' contains predicates of the '{1}' sort, but RASA NLU is disabled. "
+                    "'{1}' entities won't be recognized in NLU.".format(ddd.name, DATETIME)
+                )
 
     def load_ddds(self, ddd_names):
         ddd_set_loader = self._create_ddd_set_loader()
-        ddds = ddd_set_loader.ddds_as_list(
-            ddd_names,
-            languages=self.supported_languages)
+        ddds = ddd_set_loader.ddds_as_list(ddd_names, languages=self.supported_languages)
         return ddds
 
     def _create_ddd_set_loader(self):

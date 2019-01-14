@@ -13,8 +13,7 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
 
     def __init__(self, domain_name, type, content):
         if not content.is_question():
-            raise DomainError("cannot create QuestionRaisingPlanItem " +
-                              "from non-question %s" % content)
+            raise DomainError("cannot create QuestionRaisingPlanItem " + "from non-question %s" % content)
         self._domain_name = domain_name
         PlanItemWithSemanticContent.__init__(self, type, content)
 
@@ -38,20 +37,17 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
             content_string = ""
         else:
             content_string = unicode(self._content)
-        return "%s(%s)" % (unicode(self._type),
-                           content_string)
+        return "%s(%s)" % (unicode(self._type), content_string)
 
 
 class FindoutPlanItem(QuestionRaisingPlanItem):
     def __init__(self, domain_name, content):
-        QuestionRaisingPlanItem.__init__(
-            self, domain_name, PlanItem.TYPE_FINDOUT, content)
+        QuestionRaisingPlanItem.__init__(self, domain_name, PlanItem.TYPE_FINDOUT, content)
 
 
 class RaisePlanItem(QuestionRaisingPlanItem):
     def __init__(self, domain_name, content):
-        QuestionRaisingPlanItem.__init__(
-            self, domain_name, PlanItem.TYPE_RAISE, content)
+        QuestionRaisingPlanItem.__init__(self, domain_name, PlanItem.TYPE_RAISE, content)
 
 
 class UnexpectedDomainException(Exception):
@@ -61,8 +57,10 @@ class UnexpectedDomainException(Exception):
 class QuestionRaisingPlanItemOfDomain(object):
     def __init__(self, domain, plan_item):
         if domain.name != plan_item.domain_name:
-            raise UnexpectedDomainException("Expected domain '%s' to match domain of plan item %s but it was '%s'" %
-                                            (plan_item.domain_name, plan_item, domain))
+            raise UnexpectedDomainException(
+                "Expected domain '%s' to match domain of plan item %s but it was '%s'" %
+                (plan_item.domain_name, plan_item, domain)
+            )
         self._domain = domain
         self._plan_item = plan_item
 
@@ -91,11 +89,7 @@ class QuestionRaisingPlanItemOfDomain(object):
         return self._domain.get_label_questions(self._plan_item.get_question())
 
     def has_parameters(self):
-        return (self.get_alternatives() or
-                self.get_graphical_type() or
-                self.get_incremental() or
-                self.get_source() or
-                self.get_format() or
-                self.get_default() or
-                self.get_service_query() or
-                self.get_label_questions())
+        return (
+            self.get_alternatives() or self.get_graphical_type() or self.get_incremental() or self.get_source()
+            or self.get_format() or self.get_default() or self.get_service_query() or self.get_label_questions()
+        )

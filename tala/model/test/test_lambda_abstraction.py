@@ -33,8 +33,7 @@ class LambdaAbstractedGoalPropositionTests(LibTestCase):
 class LambdaAbstractedPredicatePropositionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.lambda_prop = LambdaAbstractedPredicateProposition(self.predicate_dest_city,
-                                                       self.ontology.get_name())
+        self.lambda_prop = LambdaAbstractedPredicateProposition(self.predicate_dest_city, self.ontology.get_name())
 
     def test_unicode(self):
         self.assertEquals("X.dest_city(X)", unicode(self.lambda_prop))
@@ -46,12 +45,13 @@ class LambdaAbstractedPredicatePropositionTests(LibTestCase):
 
     def test_inequality(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            self.lambda_abstracted_dest_city_prop,
-            self.lambda_abstracted_price_prop)
+            self.lambda_abstracted_dest_city_prop, self.lambda_abstracted_price_prop
+        )
 
     def test_not_equals_proposition(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
-            self.proposition_dest_city_paris, self.lambda_prop)
+            self.proposition_dest_city_paris, self.lambda_prop
+        )
 
     def test_hashing(self):
         set([self.lambda_prop])

@@ -4,7 +4,6 @@ import datetime
 
 from tala.utils.text_formatting import readable_list
 
-
 DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
 
 
@@ -18,10 +17,20 @@ class ConfigNotFoundException(Exception):
         return self._config_path
 
 
-class BackendConfigNotFoundException(ConfigNotFoundException): pass
-class DddConfigNotFoundException(ConfigNotFoundException): pass
-class RasaConfigNotFoundException(ConfigNotFoundException): pass
-class UnexpectedConfigEntriesException(Exception): pass
+class BackendConfigNotFoundException(ConfigNotFoundException):
+    pass
+
+
+class DddConfigNotFoundException(ConfigNotFoundException):
+    pass
+
+
+class RasaConfigNotFoundException(ConfigNotFoundException):
+    pass
+
+
+class UnexpectedConfigEntriesException(Exception):
+    pass
 
 
 class Config(object):
@@ -167,7 +176,8 @@ class BackendConfig(Config):
 
     def _raise_config_not_found_exception(self):
         raise BackendConfigNotFoundException(
-            "Expected backend config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path)
+            "Expected backend config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
+        )
 
 
 class DddConfig(Config):
@@ -188,7 +198,8 @@ class DddConfig(Config):
 
     def _raise_config_not_found_exception(self):
         raise DddConfigNotFoundException(
-            "Expected DDD config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path)
+            "Expected DDD config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
+        )
 
 
 class RasaConfig(Config):
@@ -205,7 +216,8 @@ class RasaConfig(Config):
 
     def _raise_config_not_found_exception(self):
         raise RasaConfigNotFoundException(
-            "Expected RASA config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path)
+            "Expected RASA config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
+        )
 
 
 class OverriddenDddConfig(object):

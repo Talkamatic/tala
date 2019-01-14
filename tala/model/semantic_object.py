@@ -85,4 +85,3 @@ class SemanticObjectWithContent(SemanticObject):
 
     def has_semantic_content(self):
         return True
-

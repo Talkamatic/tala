@@ -23,7 +23,9 @@ from tala.nl.gf.grammar_entry_types import Node, Constants
 
 
 class DddXmlCompilerTestCase(DddCompilerTestCase):
-    def _given_compiled_ontology(self, xml='<ontology name="MockupOntology"/>', domain_name="Domain", ddd_name="mock_ddd"):
+    def _given_compiled_ontology(
+        self, xml='<ontology name="MockupOntology"/>', domain_name="Domain", ddd_name="mock_ddd"
+    ):
         self._ddd_name = ddd_name
         ontology_args = DddXmlCompiler().compile_ontology(xml)
         self._ontology = Ontology(**ontology_args)
@@ -47,27 +49,34 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
 
     def _when_compile_domain(self, domain_xml='<domain name="Domain" />'):
         self._result = DddXmlCompiler().compile_domain(
-            self._ddd_name, domain_xml, self._ontology, self._parser, self._service_interface)
+            self._ddd_name, domain_xml, self._ontology, self._parser, self._service_interface
+        )
 
     def _when_compile_domain_with_plan(self, plan_xml):
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="perform" action="top">
     <plan>%s</plan>
   </goal>
-</domain>""" % plan_xml)
+</domain>""" % plan_xml
+        )
 
     def _when_compile_plan_with_attribute(self, key, value):
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="perform" action="top" %s="%s" />
-</domain>""" % (key, value))
+</domain>""" % (key, value)
+        )
 
     def _when_compile_plan_with_content(self, xml):
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="perform" action="top">%s</goal>
-</domain>""" % xml)
+</domain>""" % xml
+        )
 
     def _then_result_has_keys(self, expected_keys):
         self.assertItemsEqual(expected_keys, self._result.keys())
@@ -92,12 +101,10 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         self._compile_grammar(*args)
 
     def _compile_grammar(self, string):
-        self._result = DddXmlCompiler().compile_grammar(
-            string, self._ontology, self._device_handler, "eng")
+        self._result = DddXmlCompiler().compile_grammar(string, self._ontology, self._device_handler, "eng")
 
     def _when_compile_rgl_grammar(self, string):
-        self._result = DddXmlCompiler().compile_rgl_grammar(
-            string, self._ontology, self._service_interface, "eng")
+        self._result = DddXmlCompiler().compile_rgl_grammar(string, self._ontology, self._service_interface, "eng")
 
     def _then_result_is(self, expected_result):
         self.assertEquals(expected_result, self._result)
@@ -106,8 +113,8 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         expected_grammar_node = Node(Constants.GRAMMAR, {}, expected_grammar_children)
         self.assertEquals(
             expected_grammar_node, self._result,
-            "\n%s\n!=\n%s\n\n(%r)" % (
-                expected_grammar_node, self._result, self._result))
+            "\n%s\n!=\n%s\n\n(%r)" % (expected_grammar_node, self._result, self._result)
+        )
 
     def _mock_warnings(self):
         return patch("%s.warnings" % tala.ddd.ddd_xml_compiler.__name__)
@@ -126,84 +133,89 @@ class OntologyCompilerTests(DddXmlCompilerTestCase):
 <ontology name="Ontology">
   <sort name="city"/>
 </ontology>""")
-        self._then_result_has_field(
-            "sorts", set([CustomSort(self._ontology.name, "city")]))
+        self._then_result_has_field("sorts", set([CustomSort(self._ontology.name, "city")]))
 
     def test_dynamic_sort(self):
         self._when_compile_ontology("""
 <ontology name="Ontology">
   <sort name="city" dynamic="true"/>
 </ontology>""")
-        self._then_result_has_field(
-            "sorts", set([CustomSort(self._ontology.name, "city", dynamic=True)]))
+        self._then_result_has_field("sorts", set([CustomSort(self._ontology.name, "city", dynamic=True)]))
 
     def test_predicate_of_custom_sort(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <sort name="city"/>
-</ontology>""")
+</ontology>"""
+        )
         self._then_result_has_field(
-            "predicates",
-            set([self._predicate("dest_city", CustomSort(self._ontology.name, "city"))]))
+            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology.name, "city"))])
+        )
 
     def test_predicate_of_builtin_sort(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._then_result_has_field(
-            "predicates",
-            set([self._predicate("price", RealSort())]))
+</ontology>"""
+        )
+        self._then_result_has_field("predicates", set([self._predicate("price", RealSort())]))
 
     def test_predicate_of_dynamic_sort(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <sort name="city" dynamic="true"/>
-</ontology>""")
+</ontology>"""
+        )
         self._then_result_has_field(
-            "predicates",
-            set([self._predicate("dest_city", CustomSort(self._ontology.name, "city", dynamic=True))]))
+            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology.name, "city", dynamic=True))])
+        )
 
     def test_feature_of(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
   <predicate name="dest_city_type" sort="city" feature_of="dest_city"/>
-</ontology>""")
+</ontology>"""
+        )
         self._then_result_has_field(
             "predicates",
-            set([self._predicate(
-                        "dest_city",
-                        sort=CustomSort(self._ontology.name, "city")),
-                 self._predicate(
-                        "dest_city_type",
-                        sort=CustomSort(self._ontology.name, "city"),
-                        feature_of_name="dest_city")]))
+            set([
+                self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city")),
+                self._predicate(
+                    "dest_city_type", sort=CustomSort(self._ontology.name, "city"), feature_of_name="dest_city"
+                )
+            ])
+        )
 
     def test_multiple_instances(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city" multiple_instances="true"/>
-</ontology>""")
+</ontology>"""
+        )
         self._then_result_has_field(
             "predicates",
-            set([self._predicate(
-                        "dest_city",
-                        sort=CustomSort(self._ontology.name, "city"),
-                        multiple_instances=True)]))
+            set([self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city"), multiple_instances=True)])
+        )
 
     def test_individuals(self):
-        self._when_compile_ontology("""
+        self._when_compile_ontology(
+            """
 <ontology name="Ontology">
   <individual name="paris" sort="city"/>
   <sort name="city"/>
-</ontology>""")
-        self._then_result_has_field(
-            "individuals", {"paris": CustomSort(self._ontology.name, "city")})
+</ontology>"""
+        )
+        self._then_result_has_field("individuals", {"paris": CustomSort(self._ontology.name, "city")})
 
     def test_actions(self):
         self._when_compile_ontology("""
@@ -217,9 +229,8 @@ class OntologyCompilerTests(DddXmlCompilerTestCase):
             """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="undefined_sort"/>
-</ontology>""",
-            UndefinedSort,
-            "Expected a defined sort but got 'undefined_sort'.")
+</ontology>""", UndefinedSort, "Expected a defined sort but got 'undefined_sort'."
+        )
 
 
 class PlanCompilationTests(DddXmlCompilerTestCase):
@@ -231,57 +242,55 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
   <goal type="perform" action="top" />
 </domain>""")
 
-        self._then_result_has_field("plans", [
-                {"goal": self._parse("perform(top)"),
-                 "plan": Plan([])
-                 }])
+        self._then_result_has_field("plans", [{"goal": self._parse("perform(top)"), "plan": Plan([])}])
 
     def test_plan_for_resolve_goal_for_wh_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="resolve" question_type="wh_question" predicate="price" />
-</domain>""")
+</domain>"""
+        )
 
-        self._then_result_has_field("plans", [
-                {"goal": self._parse("resolve(?X.price(X))"),
-                 "plan": Plan([])
-                 }])
+        self._then_result_has_field("plans", [{"goal": self._parse("resolve(?X.price(X))"), "plan": Plan([])}])
 
     def test_plan_for_resolve_goal_for_nullary_predicate_proposition(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="need_visa" sort="boolean"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="resolve" question_type="yn_question">
     <proposition predicate="need_visa"/>
   </goal>
-</domain>""")
+</domain>"""
+        )
 
-        self._then_result_has_field("plans", [
-                {"goal": self._parse("resolve(?need_visa())"),
-                 "plan": Plan([])
-                 }])
+        self._then_result_has_field("plans", [{"goal": self._parse("resolve(?need_visa())"), "plan": Plan([])}])
 
     def test_plan_for_handle_goal(self):
         self._given_compiled_ontology()
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="handle" action="MockupAction" />
-</domain>""")
+</domain>"""
+        )
 
-        self._then_result_has_field("plans", [
-                {"goal": self._parse("handle(MockupAction)"),
-                 "plan": Plan([])
-                 }])
+        self._then_result_has_field("plans", [{"goal": self._parse("handle(MockupAction)"), "plan": Plan([])}])
 
     def test_exception_raised_for_goal_without_type(self):
         self._given_compiled_ontology()
@@ -293,43 +302,52 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
 </domain>""")
 
     def test_plan_stack_order(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <sort name="city"/>
   <predicate name="means_of_transport" sort="how"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan("""
+        self._when_compile_domain_with_plan(
+            """
 <findout type="wh_question" predicate="means_of_transport" />
-<findout type="wh_question" predicate="dest_city" />""")
+<findout type="wh_question" predicate="dest_city" />"""
+        )
 
         self._then_result_has_plan(
             Plan([self._parse("findout(?X.dest_city(X))"),
-                  self._parse("findout(?X.means_of_transport(X))")]))
+                  self._parse("findout(?X.means_of_transport(X))")])
+        )
 
     def test_preferred_proposition(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <individual name="paris" sort="city"/>
   <sort name="city"/>
-</ontology>""")
-        self._when_compile_plan_with_content("""
+</ontology>"""
+        )
+        self._when_compile_plan_with_content(
+            """
 <preferred>
   <proposition predicate="dest_city" value="paris"/>
 </preferred>
-""")
-        self._then_result_has_plan_with_attribute(
-            "preferred",
-            self._parse("dest_city(paris)"))
+"""
+        )
+        self._then_result_has_plan_with_attribute("preferred", self._parse("dest_city(paris)"))
 
     def test_preferred_boolean(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <action name="apply_for_membership"/>
-</ontology>""")
+</ontology>"""
+        )
         self._when_compile_plan_with_content("""
 <preferred/>
 """)
@@ -358,49 +376,52 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
     def test_io_status(self):
         self._given_compiled_ontology()
         self._when_compile_plan_with_attribute("io_status", "disabled")
-        self._then_result_has_plan_with_attribute("io_status",
-                                                  Domain.DISABLED_IO_STATUS)
+        self._then_result_has_plan_with_attribute("io_status", Domain.DISABLED_IO_STATUS)
 
     def test_gui_context(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
         self._when_compile_plan_with_content('<gui_context predicate="price" />')
-        self._then_result_has_plan_with_attribute(
-            "gui_context", [self._ontology.get_predicate("price")])
+        self._then_result_has_plan_with_attribute("gui_context", [self._ontology.get_predicate("price")])
 
     def test_postplan(self):
         self._given_compiled_ontology()
         self._when_compile_plan_with_content('<postplan><forget_all/></postplan>')
-        self._then_result_has_plan_with_attribute(
-            "postplan", Plan([ForgetAllPlanItem()]))
+        self._then_result_has_plan_with_attribute("postplan", Plan([ForgetAllPlanItem()]))
 
     def test_postcond_with_whitespace(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <individual name="paris" sort="city"/>
   <sort name="city"/>
-</ontology>""")
-        self._when_compile_plan_with_content("""
+</ontology>"""
+        )
+        self._when_compile_plan_with_content(
+            """
 <postcond>
   <proposition predicate="dest_city" value="paris"/>
-</postcond>""")
-        self._then_result_has_plan_with_attribute(
-            "postconds", [self._parse("dest_city(paris)")])
+</postcond>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
     def test_postcond_for_predicate_proposition(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <individual name="paris" sort="city"/>
   <sort name="city"/>
-</ontology>""")
-        self._when_compile_plan_with_content(
-            '<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
-        self._then_result_has_plan_with_attribute(
-            "postconds", [self._parse("dest_city(paris)")])
+</ontology>"""
+        )
+        self._when_compile_plan_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
+        self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
+
 
 class DomainCompilerTests(DddXmlCompilerTestCase):
     def test_name(self):
@@ -409,78 +430,93 @@ class DomainCompilerTests(DddXmlCompilerTestCase):
         self._then_result_has_field("name", "Domain")
 
     def test_dependency(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <sort name="country"/>
   <predicate name="dest_city" sort="city"/>
   <predicate name="dest_country" sort="country"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <dependency type="wh_question" predicate="dest_country">
     <question type="wh_question" predicate="dest_city" />
   </dependency>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "dependencies",
-            {self._parse("?X.dest_country(X)"):
-                 set([self._parse("?X.dest_city(X)")])})
+            "dependencies", {self._parse("?X.dest_country(X)"): set([self._parse("?X.dest_city(X)")])}
+        )
 
     def test_default_questions(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <default_question type="wh_question" predicate="price" />
-</domain>""")
+</domain>"""
+        )
 
-        self._then_result_has_field(
-            "default_questions", [self._parse("?X.price(X)")])
+        self._then_result_has_field("default_questions", [self._parse("?X.price(X)")])
 
     def test_superactions(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <action name="top"/>
   <action name="buy"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <goal type="perform" action="top" />
   <goal type="perform" action="buy">
     <superaction name="top" />
   </goal>
-</domain>""")
-
-        self._then_result_has_field("plans", [
-                {"goal": self._parse("perform(top)"),
-                 "plan": Plan([])},
-
-                {"goal": self._parse("perform(buy)"),
-                 "plan": Plan([]),
-                 "superactions": [self._parse("top")]}
-                ])
-
-    def test_parameters(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>""")
-
-        self._when_compile_domain("""
-<domain name="Domain">
-  <parameters question_type="wh_question" predicate="price" graphical_type="list" />
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.price(X)"): {"graphical_type": "list"}})
+            "plans", [{
+                "goal": self._parse("perform(top)"),
+                "plan": Plan([])
+            }, {
+                "goal": self._parse("perform(buy)"),
+                "plan": Plan([]),
+                "superactions": [self._parse("top")]
+            }]
+        )
+
+    def test_parameters(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="price" graphical_type="list" />
+</domain>"""
+        )
+
+        self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {"graphical_type": "list"}})
+
 
 class ParameterCompilationTestCase(DddXmlCompilerTestCase):
     def test_choice_parameter(self):
@@ -494,201 +530,229 @@ class ParameterCompilationTestCase(DddXmlCompilerTestCase):
         self._then_result_has_parameter_for_question("incremental", True)
 
     def test_question_valued_parameter(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
   <predicate name="available_means_of_transport" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="means_of_transport">
     <service_query type="wh_question" predicate="available_means_of_transport"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.means_of_transport(X)"):
-                 self._parser.parse_parameters(
-                    "{service_query=?X.available_means_of_transport(X)}"
-                    )})
+            "parameters", {
+                self._parse("?X.means_of_transport(X)"):
+                self._parser.parse_parameters("{service_query=?X.available_means_of_transport(X)}")
+            }
+        )
 
     def test_questions_valued_parameter(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="product"/>
   <predicate name="product_to_add" sort="product"/>
   <predicate name="product_tag" sort="string"/>
   <predicate name="product_title" sort="string"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="product_to_add">
     <label_question type="wh_question" predicate="product_tag"/>
     <label_question type="wh_question" predicate="product_title"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.product_to_add(X)"):
-                 self._parser.parse_parameters(
-                    "{label_questions=[?X.product_tag(X), ?X.product_title(X)]}"
-                    )})
+            "parameters", {
+                self._parse("?X.product_to_add(X)"):
+                self._parser.parse_parameters("{label_questions=[?X.product_tag(X), ?X.product_title(X)]}")
+            }
+        )
 
     def test_background_for_wh_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <sort name="city"/>
   <predicate name="means_of_transport" sort="how"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="means_of_transport">
     <background predicate="dest_city"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
             "parameters",
-            {self._parse("?X.means_of_transport(X)"):
-                 self._parser.parse_parameters(
-                    "{background=[dest_city]}"
-                    )})
+            {self._parse("?X.means_of_transport(X)"): self._parser.parse_parameters("{background=[dest_city]}")}
+        )
 
     def test_background_for_yn_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="price" sort="real"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="yn_question">
     <resolve type="wh_question" predicate="price"/>
     <background predicate="dest_city"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
             "parameters",
-            {self._parse("?goal(resolve(?X.price(X)))"):
-                 self._parser.parse_parameters(
-                    "{background=[dest_city]}"
-                    )})
+            {self._parse("?goal(resolve(?X.price(X)))"): self._parser.parse_parameters("{background=[dest_city]}")}
+        )
 
     def test_ask_feature(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
   <predicate name="dest_city_type" sort="city" feature_of="dest_city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="dest_city">
     <ask_feature predicate="dest_city_type"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
             "parameters",
-            {self._parse("?X.dest_city(X)"):
-                 self._parser.parse_parameters(
-                    "{ask_features=[dest_city_type]}"
-                    )})
+            {self._parse("?X.dest_city(X)"): self._parser.parse_parameters("{ask_features=[dest_city_type]}")}
+        )
 
     def test_predicate_alts_parameter(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
   <individual name="bus" sort="how"/>
   <individual name="train" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="means_of_transport">
     <alt><proposition predicate="means_of_transport" value="bus"/></alt>
     <alt><proposition predicate="means_of_transport" value="train"/></alt>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.means_of_transport(X)"):
-                 self._parser.parse_parameters(
-                    "{alts=set([means_of_transport(bus), means_of_transport(train)])}"
-                    )})
+            "parameters", {
+                self._parse("?X.means_of_transport(X)"):
+                self._parser.parse_parameters("{alts=set([means_of_transport(bus), means_of_transport(train)])}")
+            }
+        )
 
     def test_empty_alt_yields_exception(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
         with self.assertRaises(DddXmlCompilerException):
-            self._when_compile_domain("""
+            self._when_compile_domain(
+                """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="means_of_transport">
     <alt/>
   </parameters>
-</domain>""")
-
+</domain>"""
+            )
 
     def test_goal_alts_parameter(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
   <action name="buy"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="goal">
     <alt><perform action="buy"/></alt>
     <alt><resolve type="wh_question" predicate="price"/></alt>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.goal(X)"):
-                 self._parser.parse_parameters(
-                    "{alts=set([goal(perform(buy)), goal(resolve(?X.price(X)))])}"
-                    )})
+            "parameters", {
+                self._parse("?X.goal(X)"):
+                self._parser.parse_parameters("{alts=set([goal(perform(buy)), goal(resolve(?X.price(X)))])}")
+            }
+        )
 
     def test_parameters_for_predicate(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
   <predicate name="dest_city" sort="city"/>
   <sort name="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="price">
     <related_information type="wh_question" predicate="dest_city"/>
   </parameters>
-</domain>""")
+</domain>"""
+        )
 
         self._then_result_has_field(
             "parameters",
-            {self._parse("?X.price(X)"):
-                 self._parser.parse_parameters(
-                    "{related_information=[?X.dest_city(X)]}")})
+            {self._parse("?X.price(X)"): self._parser.parse_parameters("{related_information=[?X.dest_city(X)]}")}
+        )
 
     def _given_compiled_ontology(self, xml=None):
         if xml is None:
@@ -699,127 +763,145 @@ class ParameterCompilationTestCase(DddXmlCompilerTestCase):
         DddXmlCompilerTestCase._given_compiled_ontology(self, xml)
 
     def _when_compile_parameter_for_question(self, name, value):
-        self._when_compile_domain("""
+        self._when_compile_domain(
+            """
 <domain name="Domain">
   <parameters question_type="wh_question" predicate="price" %s="%s" />
-</domain>""" % (name, value))
+</domain>""" % (name, value)
+        )
 
     def _then_result_has_parameter_for_question(self, expected_name, expected_value):
-        self._then_result_has_field(
-            "parameters",
-            {self._parse("?X.price(X)"): {expected_name: expected_value}})
+        self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {expected_name: expected_value}})
+
 
 class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
     def test_findout_for_wh_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
-</ontology>""")
-
-        self._when_compile_domain_with_plan(
-            '<findout type="wh_question" predicate="means_of_transport" />')
-
-        self._then_result_has_plan(
-            Plan([self._parse("findout(?X.means_of_transport(X))")])
+</ontology>"""
         )
 
+        self._when_compile_domain_with_plan('<findout type="wh_question" predicate="means_of_transport" />')
+
+        self._then_result_has_plan(Plan([self._parse("findout(?X.means_of_transport(X))")]))
+
     def test_findout_for_goal_alt_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <action name="action1"/>
   <action name="action2"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan("""
+        self._when_compile_domain_with_plan(
+            """
 <findout type="alt_question">
   <alt><perform action="action1"/></alt>
   <alt><perform action="action2"/></alt>
-</findout>""")
+</findout>"""
+        )
 
-        self._then_result_has_plan(Plan([self._parse(
-                        "findout(?set([goal(perform(action1)), goal(perform(action2))]))")]))
+        self._then_result_has_plan(
+            Plan([self._parse("findout(?set([goal(perform(action1)), goal(perform(action2))]))")])
+        )
 
     def test_findout_for_yn_question_for_goal_proposition(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan("""
+        self._when_compile_domain_with_plan(
+            """
 <findout type="yn_question">
   <resolve type="wh_question" predicate="price"/>
-</findout>""")
+</findout>"""
+        )
 
-        self._then_result_has_plan(Plan([self._parse(
-                        "findout(?goal(resolve(?X.price(X))))")]))
+        self._then_result_has_plan(Plan([self._parse("findout(?goal(resolve(?X.price(X))))")]))
 
     def test_findout_for_yn_question_for_goal_proposition_perform(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <action name="apply_for_membership"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan("""
+        self._when_compile_domain_with_plan(
+            """
 <findout type="yn_question">
   <perform action="apply_for_membership"/>
-</findout>""")
+</findout>"""
+        )
 
-        self._then_result_has_plan(Plan([self._parse(
-            "findout(?goal(perform(apply_for_membership)))")]))
+        self._then_result_has_plan(Plan([self._parse("findout(?goal(perform(apply_for_membership)))")]))
 
     def test_if_then_else(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <sort name="train_type"/>
   <predicate name="means_of_transport" sort="how"/>
   <predicate name="transport_train_type" sort="train_type"/>
   <individual name="train" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan("""
+        self._when_compile_domain_with_plan(
+            """
 <if>
   <condition><proposition predicate="means_of_transport" value="train"/></condition>
   <then>
     <findout type="wh_question" predicate="transport_train_type" />
   </then>
   <else />
-</if>""")
+</if>"""
+        )
 
         self._then_result_has_plan(
-            Plan([IfThenElse(
-                        self._parse("means_of_transport(train)"),
-                        self._parse("findout(?X.transport_train_type(X))"),
-                        None)
-                  ]))
+            Plan([
+                IfThenElse(
+                    self._parse("means_of_transport(train)"), self._parse("findout(?X.transport_train_type(X))"), None
+                )
+            ])
+        )
 
     def test_forget_proposition(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
   <individual name="train" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
         self._when_compile_domain_with_plan(
-            '<forget><proposition predicate="means_of_transport" value="train"/></forget>')
+            '<forget><proposition predicate="means_of_transport" value="train"/></forget>'
+        )
 
-        self._then_result_has_plan(
-            Plan([self._parse("forget(means_of_transport(train))")]))
+        self._then_result_has_plan(Plan([self._parse("forget(means_of_transport(train))")]))
 
     def test_forget_predicate(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="how"/>
   <predicate name="means_of_transport" sort="how"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_domain_with_plan(
-            '<forget predicate="means_of_transport"/>')
+        self._when_compile_domain_with_plan('<forget predicate="means_of_transport"/>')
 
-        self._then_result_has_plan(
-            Plan([self._parse("forget(means_of_transport)")]))
+        self._then_result_has_plan(Plan([self._parse("forget(means_of_transport)")]))
 
     def test_forget_all(self):
         self._given_compiled_ontology()
@@ -827,104 +909,113 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
         self._then_result_has_plan(Plan([ForgetAllPlanItem()]))
 
     def test_invoke_service_query(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_domain_with_plan(
-            '<invoke_service_query type="wh_question" predicate="price"/>')
-        self._then_result_has_plan(Plan([
-            InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)]))
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<invoke_service_query type="wh_question" predicate="price"/>')
+        self._then_result_has_plan(
+            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+        )
 
     def test_invoke_service_action_with_device_attribute(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<invoke_service_action device="MockupDevice" name="MockupAction" />',
-            UnexpectedAttributeException,
+            '<invoke_service_action device="MockupDevice" name="MockupAction" />', UnexpectedAttributeException,
             "Attribute 'device=\"MockupDevice\"' is not supported in <invoke_service_action name='MockupAction'>. "
             "Use 'service_interface.xml' instead."
         )
 
     def test_invoke_service_query_with_device_attribute(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="city"/>
   <sort name="city"/>
-</ontology>""")
+</ontology>"""
+        )
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
             '<invoke_service_query type="wh_question" predicate="dest_city" device="MockupDevice"/>',
-            UnexpectedAttributeException,
-            "Attribute 'device=\"MockupDevice\"' is not supported in "
+            UnexpectedAttributeException, "Attribute 'device=\"MockupDevice\"' is not supported in "
             "<invoke_service_query ... predicate='dest_city'>. Use 'service_interface.xml' instead."
         )
 
-    def _when_compile_domain_with_plan_then_exception_is_raised_matching(self, plan_xml, expected_exception,
-                                                                         expected_message):
+    def _when_compile_domain_with_plan_then_exception_is_raised_matching(
+        self, plan_xml, expected_exception, expected_message
+    ):
         with self.assertRaisesRegexp(expected_exception, expected_message):
             self._when_compile_domain_with_plan(plan_xml)
 
     def test_dev_query_deprecation_warning(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
         self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
             '<dev_query type="wh_question" predicate="price" />',
-            '<dev_query> is deprecated. Use <invoke_service_query> instead.')
+            '<dev_query> is deprecated. Use <invoke_service_query> instead.'
+        )
 
     def test_deprecated_dev_query(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_domain_with_plan_ignoring_warnings(
-            '<dev_query type="wh_question" predicate="price" />')
-        self._then_result_has_plan(Plan([
-            InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)]))
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan_ignoring_warnings('<dev_query type="wh_question" predicate="price" />')
+        self._then_result_has_plan(
+            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+        )
 
-    def _when_compile_domain_with_plan_and_ignoring_warnings_then_exception_is_raised_matching(
-            self, *args, **kwargs):
+    def _when_compile_domain_with_plan_and_ignoring_warnings_then_exception_is_raised_matching(self, *args, **kwargs):
         with self._mock_warnings():
             self._when_compile_domain_with_plan_then_exception_is_raised_matching(*args, **kwargs)
 
     def test_invoke_service_action_default_attributes(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan(
-            '<invoke_service_action name="MockupAction" />')
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
+        self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" />')
+        self._then_result_has_plan(Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
 
     def test_invoke_service_action_override_preconfirm(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan("""
-          <invoke_service_action name="MockupAction" preconfirm="assertive" />""")
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem(
-                u"MockupOntology", u"MockupAction",
-                preconfirm=InvokeServiceActionPlanItem.ASSERTIVE)]))
+        self._when_compile_domain_with_plan(
+            """
+          <invoke_service_action name="MockupAction" preconfirm="assertive" />"""
+        )
+        self._then_result_has_plan(
+            Plan([
+                InvokeServiceActionPlanItem(
+                    u"MockupOntology", u"MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
+                )
+            ])
+        )
 
     def test_invoke_service_action_override_postconfirm(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan(
-            '<invoke_service_action name="MockupAction" postconfirm="true" />')
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)]))
+        self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" postconfirm="true" />')
+        self._then_result_has_plan(
+            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)])
+        )
 
     def test_invoke_service_action_override_downdate_plan(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan("""
-          <invoke_service_action name="MockupAction" downdate_plan="false" />""")
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem(
-                "MockupOntology", "MockupAction",
-                downdate_plan=False)]))
+        self._when_compile_domain_with_plan(
+            """
+          <invoke_service_action name="MockupAction" downdate_plan="false" />"""
+        )
+        self._then_result_has_plan(
+            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", downdate_plan=False)])
+        )
 
     def test_deprecated_dev_perform_default_attributes(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_ignoring_warnings(
-            '<dev_perform action="MockupAction" />')
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
+        self._when_compile_domain_with_plan_ignoring_warnings('<dev_perform action="MockupAction" />')
+        self._then_result_has_plan(Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
 
     def _when_compile_domain_with_plan_ignoring_warnings(self, plan_xml):
         with self._mock_warnings():
@@ -932,28 +1023,34 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
 
     def test_deprecated_dev_perform_override_preconfirm(self):
         self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_ignoring_warnings("""
-          <dev_perform action="MockupAction" preconfirm="assertive" />""")
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem(
-                "MockupOntology", "MockupAction",
-                preconfirm=InvokeServiceActionPlanItem.ASSERTIVE)]))
+        self._when_compile_domain_with_plan_ignoring_warnings(
+            """
+          <dev_perform action="MockupAction" preconfirm="assertive" />"""
+        )
+        self._then_result_has_plan(
+            Plan([
+                InvokeServiceActionPlanItem(
+                    "MockupOntology", "MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
+                )
+            ])
+        )
 
     def test_deprecated_dev_perform_override_postconfirm(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_ignoring_warnings(
-            '<dev_perform action="MockupAction" postconfirm="true" />')
-        self._then_result_has_plan(Plan([
-            InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)]))
+            '<dev_perform action="MockupAction" postconfirm="true" />'
+        )
+        self._then_result_has_plan(
+            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)])
+        )
 
     def test_dev_perform_deprecation_warning(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
-            '<dev_perform action="MockupAction" />',
-            "<dev_perform> is deprecated. Use <invoke_service_action> instead.")
+            '<dev_perform action="MockupAction" />', "<dev_perform> is deprecated. Use <invoke_service_action> instead."
+        )
 
-    def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(
-            self, plan_xml, expected_warning_message):
+    def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(self, plan_xml, expected_warning_message):
         with self._mock_warnings() as mocked_warnings:
             self._when_compile_domain_with_plan(plan_xml)
             self._then_warning_is_issued(mocked_warnings, expected_warning_message)
@@ -964,15 +1061,20 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
         self._then_result_has_plan(Plan([self._parser.parse("jumpto(perform(top))")]))
 
     def test_assume_shared(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_domain_with_plan("""
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
 <assume_shared>
   <proposition predicate="price" value="123.0"/>
-</assume_shared>""")
+</assume_shared>"""
+        )
         self._then_result_has_plan(Plan([self._parser.parse("assume_shared(price(123.0))")]))
+
 
 class GrammarCompilerTests(DddXmlCompilerTestCase):
     def test_multiple_variants(self):
@@ -981,7 +1083,8 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
   <action name="buy"/>
 </ontology>""")
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="buy">
     <one-of>
@@ -990,14 +1093,24 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
     </one-of>
   </action>
 </grammar>
-""")
+"""
+        )
 
         self._then_result_is(
-            Node(Constants.GRAMMAR, {}, [
-                Node(Constants.ACTION, {"name": "buy"}, [
-                    Node(Constants.ONE_OF, {}, [
-                        Node(Constants.ITEM, {}, ["buy"]),
-                        Node(Constants.ITEM, {}, ["purchase"])])])]))
+            Node(
+                Constants.GRAMMAR, {}, [
+                    Node(
+                        Constants.ACTION, {"name": "buy"}, [
+                            Node(
+                                Constants.ONE_OF, {},
+                                [Node(Constants.ITEM, {}, ["buy"]),
+                                 Node(Constants.ITEM, {}, ["purchase"])]
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
 
     def test_action(self):
         self._given_compiled_ontology("""
@@ -1011,77 +1124,98 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
 </grammar>
 """)
 
-        self._then_grammar_is([
-            Node(Constants.ACTION, {"name": "buy"},
-                 [Node(Constants.ITEM, {}, ["purchase"])])])
+        self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
 
     def test_predicate_explicit_speaker(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <question predicate="price" speaker="all">price information</question>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.PREDICATE, {"name": "price"},
-                 [Node(Constants.ITEM, {}, ["price information"])])])
+            Node(Constants.PREDICATE, {"name": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
+        ])
 
     def test_predicate_implicit_speaker(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <question predicate="price">price information</question>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.PREDICATE, {"name": "price"},
-                 [Node(Constants.ITEM, {}, ["price information"])])])
+            Node(Constants.PREDICATE, {"name": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
+        ])
 
     def test_user_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="price" sort="real"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <question predicate="price" speaker="user">price for travelling to <slot sort="city"/>
   </question>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.USER_QUESTION, {"predicate": "price"},
-                 [Node(Constants.ITEM, {}, ["price for travelling to ",
-                                  Node(Constants.SLOT, {"sort": "city"})])])])
+            Node(
+                Constants.USER_QUESTION, {"predicate": "price"},
+                [Node(Constants.ITEM, {},
+                      ["price for travelling to ", Node(Constants.SLOT, {"sort": "city"})])]
+            )
+        ])
 
     def test_system_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <question predicate="dest_city" speaker="system">where do you want to go</question>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.SYS_QUESTION, {"predicate": "dest_city"},
-                 [Node(Constants.ITEM, {}, ["where do you want to go"])])])
+            Node(
+                Constants.SYS_QUESTION, {"predicate": "dest_city"},
+                [Node(Constants.ITEM, {}, ["where do you want to go"])]
+            )
+        ])
 
     def test_english_noun_phrase_as_single_variant(self):
         self._given_compiled_ontology()
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="top">
     <np>
@@ -1089,16 +1223,25 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       <definite>the start view</definite>
     </np>
   </action>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-            Node(Constants.ACTION, {"name": "top"}, [
-                Node(Constants.NP, {}, [
-                    Node(Constants.INDEFINITE, {}, ["start view"]),
-                    Node(Constants.DEFINITE, {}, ["the start view"])])])])
+            Node(
+                Constants.ACTION, {"name": "top"}, [
+                    Node(
+                        Constants.NP, {}, [
+                            Node(Constants.INDEFINITE, {}, ["start view"]),
+                            Node(Constants.DEFINITE, {}, ["the start view"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_english_noun_phrase_among_multiple_variants(self):
         self._given_compiled_ontology()
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="top">
     <one-of>
@@ -1111,22 +1254,37 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       <item>main menu</item>
     </one-of>
   </action>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "top"}, [
-                        Node(Constants.ONE_OF, {}, [
-                                Node(Constants.ITEM, {}, [
-                                        Node(Constants.NP, {}, [
-                                                Node(Constants.INDEFINITE, {}, ["start view"]),
-                                                Node(Constants.DEFINITE, {}, ["the start view"])])]),
-                                Node(Constants.ITEM, {}, ["main menu"])])])])
+            Node(
+                Constants.ACTION, {"name": "top"}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
+                            Node(
+                                Constants.ITEM, {}, [
+                                    Node(
+                                        Constants.NP, {}, [
+                                            Node(Constants.INDEFINITE, {}, ["start view"]),
+                                            Node(Constants.DEFINITE, {}, ["the start view"])
+                                        ]
+                                    )
+                                ]
+                            ),
+                            Node(Constants.ITEM, {}, ["main menu"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_english_verb_phrase_as_single_variant(self):
         self._given_compiled_ontology("""
 <ontology name="Ontology">
   <action name="buy"/>
 </ontology>""")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="buy">
     <vp>
@@ -1136,22 +1294,30 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       <object>a ticket</object>
     </vp>
   </action>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-            Node(Constants.ACTION, {"name": "buy"}, [
-                Node(Constants.VP, {}, [
-                    Node(Constants.INFINITIVE, {}, ["buy"]),
-                    Node(Constants.IMPERATIVE, {}, ["buy"]),
-                    Node(Constants.ING_FORM, {}, ["buying"]),
-                    Node(Constants.OBJECT, {}, ["a ticket"])
-                ])])])
+            Node(
+                Constants.ACTION, {"name": "buy"}, [
+                    Node(
+                        Constants.VP, {}, [
+                            Node(Constants.INFINITIVE, {}, ["buy"]),
+                            Node(Constants.IMPERATIVE, {}, ["buy"]),
+                            Node(Constants.ING_FORM, {}, ["buying"]),
+                            Node(Constants.OBJECT, {}, ["a ticket"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_english_verb_phrase_among_multiple_variants(self):
         self._given_compiled_ontology("""
 <ontology name="Ontology">
   <action name="buy"/>
 </ontology>""")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="buy">
     <one-of>
@@ -1166,25 +1332,39 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       <item>purchase</item>
     </one-of>
   </action>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "buy"}, [
-                        Node(Constants.ONE_OF, {}, [
-                                Node(Constants.ITEM, {}, [
-                                        Node(Constants.VP, {}, [
-                                                Node(Constants.INFINITIVE, {}, ["buy"]),
-                                                Node(Constants.IMPERATIVE, {}, ["buy"]),
-                                                Node(Constants.ING_FORM, {}, ["buying"]),
-                                                Node(Constants.OBJECT, {}, ["a ticket"])
-                                                ])]),
-                                Node(Constants.ITEM, {}, ["purchase"])])])])
+            Node(
+                Constants.ACTION, {"name": "buy"}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
+                            Node(
+                                Constants.ITEM, {}, [
+                                    Node(
+                                        Constants.VP, {}, [
+                                            Node(Constants.INFINITIVE, {}, ["buy"]),
+                                            Node(Constants.IMPERATIVE, {}, ["buy"]),
+                                            Node(Constants.ING_FORM, {}, ["buying"]),
+                                            Node(Constants.OBJECT, {}, ["a ticket"])
+                                        ]
+                                    )
+                                ]
+                            ),
+                            Node(Constants.ITEM, {}, ["purchase"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_swedish_verb_phrase(self):
         self._given_compiled_ontology("""
 <ontology name="Ontology">
   <action name="buy"/>
 </ontology>""")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="buy">
     <vp>
@@ -1194,22 +1374,30 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       <object>en biljett</object>
     </vp>
   </action>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-            Node(Constants.ACTION, {"name": "buy"}, [
-                Node(Constants.VP, {}, [
-                    Node(Constants.INFINITIVE, {}, [u"köpa"]),
-                    Node(Constants.IMPERATIVE, {}, [u"köp"]),
-                    Node(Constants.ING_FORM, {}, [u"köper"]),
-                    Node(Constants.OBJECT, {}, [u"en biljett"])
-                ])])])
+            Node(
+                Constants.ACTION, {"name": "buy"}, [
+                    Node(
+                        Constants.VP, {}, [
+                            Node(Constants.INFINITIVE, {}, [u"köpa"]),
+                            Node(Constants.IMPERATIVE, {}, [u"köp"]),
+                            Node(Constants.ING_FORM, {}, [u"köper"]),
+                            Node(Constants.OBJECT, {}, [u"en biljett"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_spanish_verb_phrase(self):
-            self._given_compiled_ontology("""
+        self._given_compiled_ontology("""
     <ontology name="Ontology">
       <action name="buy"/>
     </ontology>""")
-            self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
     <grammar>
       <action name="buy">
         <vp>
@@ -1219,26 +1407,35 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
           <object>un billete</object>
         </vp>
       </action>
-    </grammar>""")
-            self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "buy"}, [
-                    Node(Constants.VP, {}, [
-                        Node(Constants.INFINITIVE, {}, ["comprar"]),
-                        Node(Constants.IMPERATIVE, {}, ["compra"]),
-                        Node(Constants.ING_FORM, {}, ["comprando"]),
-                        Node(Constants.OBJECT, {}, ["un billete"])
-                    ])])])
-
+    </grammar>"""
+        )
+        self._then_grammar_is([
+            Node(
+                Constants.ACTION, {"name": "buy"}, [
+                    Node(
+                        Constants.VP, {}, [
+                            Node(Constants.INFINITIVE, {}, ["comprar"]),
+                            Node(Constants.IMPERATIVE, {}, ["compra"]),
+                            Node(Constants.ING_FORM, {}, ["comprando"]),
+                            Node(Constants.OBJECT, {}, ["un billete"])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_answer_combination(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dept_city" sort="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="user">
     <one-of>
@@ -1250,142 +1447,191 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
       </item>
     </one-of>
   </answer>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.ANSWER_COMBINATION, {}, [
-                Node(Constants.ONE_OF, {}, [
-                    Node(Constants.ITEM, {}, [
-                        "from ",
-                        Node(Constants.SLOT, {"predicate": "dept_city"}),
-                        " to ",
-                        Node(Constants.SLOT, {"predicate": "dest_city"})]),
-                    Node(Constants.ITEM, {}, [
-                        "from ",
-                        Node(Constants.SLOT, {"predicate": "dept_city"})])])])])
+            Node(
+                Constants.ANSWER_COMBINATION, {}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
+                            Node(
+                                Constants.ITEM, {}, [
+                                    "from ",
+                                    Node(Constants.SLOT, {"predicate": "dept_city"}), " to ",
+                                    Node(Constants.SLOT, {"predicate": "dest_city"})
+                                ]
+                            ),
+                            Node(Constants.ITEM, {},
+                                 ["from ", Node(Constants.SLOT, {"predicate": "dept_city"})])
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_report_started(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="IncomingCall" status="started">incoming call</report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.REPORT_STARTED, {"action": "IncomingCall"},
-                     [Node(Constants.ITEM, {}, ["incoming call"])])])
+            Node(Constants.REPORT_STARTED, {"action": "IncomingCall"}, [Node(Constants.ITEM, {}, ["incoming call"])])
+        ])
 
     def test_report_ended(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="IncomingCall" status="ended">call ended</report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.REPORT_ENDED, {"action": "IncomingCall"},
-                     [Node(Constants.ITEM, {}, ["call ended"])])])
+            Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [Node(Constants.ITEM, {}, ["call ended"])])
+        ])
 
     def test_action_with_empty_string(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="IncomingCall" status="ended">
   </report>
-</grammar>""")
-        self._then_grammar_is([
-            Node(Constants.REPORT_ENDED, {"action": "IncomingCall"},
-                 [None])])
+</grammar>"""
+        )
+        self._then_grammar_is([Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [None])])
 
     def test_report_failed(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("CancelReservation")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="CancelReservation" status="failed" reason="no_reservation_exists">there is no reservation</report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.REPORT_FAILED, {"action": "CancelReservation",
-                                     "reason": "no_reservation_exists"},
-                     [Node(Constants.ITEM, {}, ["there is no reservation"])])])
+            Node(
+                Constants.REPORT_FAILED, {
+                    "action": "CancelReservation",
+                    "reason": "no_reservation_exists"
+                }, [Node(Constants.ITEM, {}, ["there is no reservation"])]
+            )
+        ])
 
     def test_individual(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <individual name="city1" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
         self._when_compile_grammar("""
 <grammar>
   <individual name="city_1">paris</individual>
 </grammar>""")
-        self._then_grammar_is([
-            Node(Constants.INDIVIDUAL, {"name": "city_1"},
-                 [Node(Constants.ITEM, {}, ["paris"])])])
+        self._then_grammar_is([Node(Constants.INDIVIDUAL, {"name": "city_1"}, [Node(Constants.ITEM, {}, ["paris"])])])
 
     def test_system_answer(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system">to <slot type="individual" predicate="dest_city"/></answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.SYS_ANSWER, {"predicate": "dest_city"}, [
-                        Node(Constants.ITEM, {}, ["to ",
-                                        Node(Constants.SLOT, {})])])])
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "dest_city"},
+                [Node(Constants.ITEM, {}, ["to ", Node(Constants.SLOT, {})])]
+            )
+        ])
 
     def test_system_answer_with_embedded_answer(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system" predicate="price">
     the price to <slot type="individual" predicate="dest_city"/>
     is <slot type="individual" predicate="price"/>
   </answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.SYS_ANSWER, {"predicate": "price"}, [
-                        Node(Constants.ITEM, {}, [
-                                "the price to ",
-                                Node(Constants.SLOT, {"predicate": "dest_city"}),
-                                " is ",
-                                Node(Constants.SLOT, {})])])])
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "price"}, [
+                    Node(
+                        Constants.ITEM, {}, [
+                            "the price to ",
+                            Node(Constants.SLOT, {"predicate": "dest_city"}), " is ",
+                            Node(Constants.SLOT, {})
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_positive_system_answer(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="qualified" sort="boolean"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system" predicate="qualified" polarity="positive">you are qualified</answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.POSITIVE_SYS_ANSWER, {"predicate": "qualified"},
-                     [Node(Constants.ITEM, {}, ["you are qualified"])])])
+            Node(
+                Constants.POSITIVE_SYS_ANSWER, {"predicate": "qualified"},
+                [Node(Constants.ITEM, {}, ["you are qualified"])]
+            )
+        ])
 
     def test_negative_system_answer(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="qualified" sort="boolean"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system" predicate="qualified" polarity="negative">you are not qualified</answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.NEGATIVE_SYS_ANSWER, {"predicate": "qualified"},
-                     [Node(Constants.ITEM, {}, ["you are not qualified"])])])
+            Node(
+                Constants.NEGATIVE_SYS_ANSWER, {"predicate": "qualified"},
+                [Node(Constants.ITEM, {}, ["you are not qualified"])]
+            )
+        ])
 
     def test_action_title(self):
         self._given_compiled_ontology()
@@ -1394,62 +1640,82 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
   <title type="action" action="top">main menu</title>
 </grammar>""")
         self._then_grammar_is([
-                Node(Constants.ACTION_TITLE, {"action": "top"},
-                     [Node(Constants.ITEM, {}, ["main menu"])])])
+            Node(Constants.ACTION_TITLE, {"action": "top"}, [Node(Constants.ITEM, {}, ["main menu"])])
+        ])
 
     def test_issue_title(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <title type="question" predicate="price">price information</title>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.ISSUE_TITLE, {"predicate": "price"},
-                     [Node(Constants.ITEM, {}, ["price information"])])])
+            Node(Constants.ISSUE_TITLE, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
+        ])
 
     def test_validity(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
         self._given_service_interface_with_validity("CityValidity")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <validity name="CityValidity">
     invalid city <slot type="individual" predicate="dest_city" />
   </validity>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.VALIDITY, {"name": "CityValidity"}, [
-                        Node(Constants.ITEM, {}, [
-                                "invalid city ",
-                                Node(Constants.SLOT, {"predicate": "dest_city"})])])])
+            Node(
+                Constants.VALIDITY, {"name": "CityValidity"},
+                [Node(Constants.ITEM, {},
+                      ["invalid city ", Node(Constants.SLOT, {"predicate": "dest_city"})])]
+            )
+        ])
 
     def test_prereport(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("MakeReservation")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="MakeReservation" status="started" source="dialogue">making the reservation</report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.PREREPORT, {"action": "MakeReservation"},
-                     [Node(Constants.ITEM, {}, ["making the reservation"])])])
+            Node(
+                Constants.PREREPORT, {"action": "MakeReservation"},
+                [Node(Constants.ITEM, {}, ["making the reservation"])]
+            )
+        ])
 
     def test_preconfirm(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("MakeReservation")
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <preconfirm action="MakeReservation">would you like to make the reservation</preconfirm>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.PRECONFIRM, {"action": "MakeReservation"},
-                     [Node(Constants.ITEM, {}, ["would you like to make the reservation"])])])
+            Node(
+                Constants.PRECONFIRM, {"action": "MakeReservation"},
+                [Node(Constants.ITEM, {}, ["would you like to make the reservation"])]
+            )
+        ])
 
     def test_greeting(self):
         self._given_compiled_ontology()
@@ -1457,67 +1723,91 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
 <grammar>
   <greeting>Welcome</greeting>
 </grammar>""")
-        self._then_grammar_is([
-                Node(Constants.GREETING, {},
-                     [Node(Constants.ITEM, {}, ["Welcome"])])])
+        self._then_grammar_is([Node(Constants.GREETING, {}, [Node(Constants.ITEM, {}, ["Welcome"])])])
 
     def test_whitespacing_for_trailing_text_node(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system">
     <slot type="individual" predicate="dest_city"/> as destination
   </answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.SYS_ANSWER, {"predicate": "dest_city"}, [
-                        Node(Constants.ITEM, {}, [Node(Constants.SLOT, {}),
-                                        " as destination"])])])
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "dest_city"},
+                [Node(Constants.ITEM, {}, [Node(Constants.SLOT, {}), " as destination"])]
+            )
+        ])
 
     def test_whitespacing_between_slots(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <predicate name="alarm_hour" sort="integer"/>
   <predicate name="alarm_minute" sort="integer"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <report action="AlarmRings" status="started">
     the time is <slot type="individual" predicate="alarm_hour"/> <slot type="individual" predicate="alarm_minute"/>
   </report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.REPORT_STARTED, {"action": "AlarmRings"}, [
-                        Node(Constants.ITEM, {}, [
-                                "the time is ",
-                                Node(Constants.SLOT, {"predicate": "alarm_hour"}),
-                                " ",
-                                Node(Constants.SLOT, {"predicate": "alarm_minute"})])])])
+            Node(
+                Constants.REPORT_STARTED, {"action": "AlarmRings"}, [
+                    Node(
+                        Constants.ITEM, {}, [
+                            "the time is ",
+                            Node(Constants.SLOT, {"predicate": "alarm_hour"}), " ",
+                            Node(Constants.SLOT, {"predicate": "alarm_minute"})
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_system_answer_with_embedded_answer(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology name="Ontology">
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
   <predicate name="price" sort="real"/>
-</ontology>""")
-        self._when_compile_grammar("""
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
 <grammar>
   <answer speaker="system" predicate="price">
     the price to <slot type="individual" predicate="dest_city"/> is <slot type="individual" predicate="price"/>
   </answer>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.SYS_ANSWER, {"predicate": "price"}, [
-                        Node(Constants.ITEM, {}, [
-                                "the price to ",
-                                Node(Constants.SLOT, {"predicate": "dest_city"}),
-                                " is ",
-                                Node(Constants.SLOT, {})])])])
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "price"}, [
+                    Node(
+                        Constants.ITEM, {}, [
+                            "the price to ",
+                            Node(Constants.SLOT, {"predicate": "dest_city"}), " is ",
+                            Node(Constants.SLOT, {})
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_unexpected_element_yields_exception(self):
         self._given_compiled_ontology()
@@ -1533,113 +1823,129 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
   <action name="buy"/>
 </ontology>""")
 
-        self._when_compile_grammar("""
+        self._when_compile_grammar(
+            """
 <grammar>
   <action name="buy">purchase</action>
   <!-- this is a comment -->
 </grammar>
-""")
+"""
+        )
 
-        self._then_grammar_is([
-            Node(Constants.ACTION, {"name": "buy"},
-                 [Node(Constants.ITEM, {}, ["purchase"])])])
+        self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
 
     def setUp(self):
         super(GrammarCompilerTests, self).setUp()
         self._device_handler = None
 
+
 class RglGrammarCompilerTests(DddXmlCompilerTestCase):
     def test_action_with_noun_phrase(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <action name="top">
     <noun-phrase>
       <noun ref="menu"/>
     </noun-phrase>
   </action>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "top"},
-                     [Node(rgl_types.NOUN_PHRASE, {},
-                           [Node(rgl_types.NOUN, {"ref": "menu"})])])])
+            Node(
+                Constants.ACTION, {"name": "top"},
+                [Node(rgl_types.NOUN_PHRASE, {}, [Node(rgl_types.NOUN, {"ref": "menu"})])]
+            )
+        ])
 
     def test_lexicon_with_noun(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <lexicon>
     <noun id="menu">
       <singular>menu</singular>
     </noun>
   </lexicon>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(rgl_types.LEXICON, {},
-                     [Node(rgl_types.NOUN, {"id": "menu"},
-                           [Node("singular", {},
-                                 ["menu"])])])])
+            Node(rgl_types.LEXICON, {}, [Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["menu"])])])
+        ])
 
     def test_action_with_verb_phrase(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <action name="top">
     <verb-phrase>
       <verb ref="restart"/>
     </verb-phrase>
   </action>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "top"},
-                     [Node(rgl_types.VERB_PHRASE, {},
-                           [Node(rgl_types.VERB, {"ref": "restart"})])])])
+            Node(
+                Constants.ACTION, {"name": "top"},
+                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "restart"})])]
+            )
+        ])
 
     def test_predicate_with_noun_phrase(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <predicate name="phone_number_of_contact">
     <noun-phrase>
       <noun ref="number" />
     </noun-phrase>
   </predicate>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(Constants.PREDICATE, {"name": "phone_number_of_contact"},
-                     [Node(rgl_types.NOUN_PHRASE, {},
-                           [Node(rgl_types.NOUN, {"ref": "number"})])])])
+            Node(
+                Constants.PREDICATE, {"name": "phone_number_of_contact"},
+                [Node(rgl_types.NOUN_PHRASE, {}, [Node(rgl_types.NOUN, {"ref": "number"})])]
+            )
+        ])
 
     def test_lexicon_with_verb(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <lexicon>
     <verb id="restart">
       <infinitive>restart</infinitive>
     </verb>
   </lexicon>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(rgl_types.LEXICON, {},
-                     [Node(rgl_types.VERB, {"id": "restart"},
-                           [Node("infinitive", {},
-                                 ["restart"])])])])
+            Node(
+                rgl_types.LEXICON, {}, [Node(rgl_types.VERB, {"id": "restart"}, [Node("infinitive", {}, ["restart"])])]
+            )
+        ])
 
     def test_one_of_for_action(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <action name="top">
     <one-of>
@@ -1655,31 +1961,42 @@ class RglGrammarCompilerTests(DddXmlCompilerTestCase):
       </item>
     </one-of>
   </action>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-                Node(Constants.ACTION, {"name": "top"},
-                     [Node(Constants.ONE_OF, {},
-                           [Node(Constants.ITEM, {},
-                                 [Node(rgl_types.VERB_PHRASE, {},
-                                       [Node(rgl_types.VERB, {"ref": "restart"})])]),
-                            Node(Constants.ITEM, {},
-                                 [Node(rgl_types.VERB_PHRASE, {},
-                                       [Node(rgl_types.VERB, {"ref": "forget"})])])
-                            ])])])
+            Node(
+                Constants.ACTION, {"name": "top"}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
+                            Node(
+                                Constants.ITEM, {},
+                                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "restart"})])]
+                            ),
+                            Node(
+                                Constants.ITEM, {},
+                                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "forget"})])]
+                            )
+                        ]
+                    )
+                ]
+            )
+        ])
 
     def test_simple_request(self):
         self._given_compiled_ontology()
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <request action="top"><utterance>forget everything</utterance></request>
 </grammar>
-""")
+"""
+        )
 
         self._then_grammar_is([
-                Node(rgl_types.REQUEST, {"action": "top"},
-                     [Node(rgl_types.UTTERANCE, {}, ["forget everything"])])])
+            Node(rgl_types.REQUEST, {"action": "top"}, [Node(rgl_types.UTTERANCE, {}, ["forget everything"])])
+        ])
 
     def test_request_with_individual(self):
         self._given_compiled_ontology("""
@@ -1689,69 +2006,86 @@ class RglGrammarCompilerTests(DddXmlCompilerTestCase):
 </ontology>
 """)
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <request action="call">
     <utterance>call <individual sort="contact"/></utterance>
   </request>
 </grammar>
-""")
+"""
+        )
 
         self._then_grammar_is([
-                Node(rgl_types.REQUEST, {"action": "call"},
-                     [Node(rgl_types.UTTERANCE, {},
-                           ["call ",
-                            Node(Constants.INDIVIDUAL, {"sort": "contact"}, [])])])])
+            Node(
+                rgl_types.REQUEST, {"action": "call"},
+                [Node(rgl_types.UTTERANCE, {}, ["call ", Node(Constants.INDIVIDUAL, {"sort": "contact"}, [])])]
+            )
+        ])
 
     def test_individual_as_proper_noun(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology>
   <sort name="city"/>
   <individual name="city1" sort="city"/>
-</ontology>""")
-        self._when_compile_rgl_grammar("""
+</ontology>"""
+        )
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <individual name="city_1">
     <proper-noun>Paris</proper-noun>
   </individual>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-            Node(Constants.INDIVIDUAL, {"name": "city_1"},
-                 [Node(rgl_types.PROPER_NOUN, {}, ["Paris"])])])
+            Node(Constants.INDIVIDUAL, {"name": "city_1"}, [Node(rgl_types.PROPER_NOUN, {}, ["Paris"])])
+        ])
 
     def test_report_ended(self):
         self._given_compiled_ontology()
         self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <report action="IncomingCall" status="ended"><utterance>call ended</utterance></report>
-</grammar>""")
+</grammar>"""
+        )
         self._then_grammar_is([
-                Node(Constants.REPORT_ENDED, {"action": "IncomingCall"},
-                     [Node(rgl_types.UTTERANCE, {}, ["call ended"])])])
+            Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [Node(rgl_types.UTTERANCE, {}, ["call ended"])])
+        ])
 
     def test_system_question(self):
-        self._given_compiled_ontology("""
+        self._given_compiled_ontology(
+            """
 <ontology>
   <sort name="city"/>
   <predicate name="dest_city" sort="city"/>
-</ontology>""")
+</ontology>"""
+        )
 
-        self._when_compile_rgl_grammar("""
+        self._when_compile_rgl_grammar(
+            """
 <grammar>
   <question predicate="dest_city" speaker="system">
     <utterance>where do you want to go</utterance>
   </question>
-</grammar>""")
+</grammar>"""
+        )
 
         self._then_grammar_is([
-            Node(Constants.SYS_QUESTION, {"predicate": "dest_city"},
-                 [Node(rgl_types.UTTERANCE, {}, ["where do you want to go"])])])
+            Node(
+                Constants.SYS_QUESTION, {"predicate": "dest_city"},
+                [Node(rgl_types.UTTERANCE, {}, ["where do you want to go"])]
+            )
+        ])
 
 
 class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     def test_action_without_parameters(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="EndCall">
     <parameters/>
@@ -1761,10 +2095,12 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("EndCall", target=DeviceModuleTarget("CallDevice"), parameters=[],
-                                   failure_reasons=[])
+            ServiceActionInterface(
+                "EndCall", target=DeviceModuleTarget("CallDevice"), parameters=[], failure_reasons=[]
+            )
         ])
 
     def _when_compile_service_interface(self, device_xml):
@@ -1774,7 +2110,8 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         self.assertEqual(self._result.actions, expected_actions)
 
     def test_action_with_parameters(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -1787,16 +2124,23 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("CallContact", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
-                ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
-            ], failure_reasons=[])
+            ServiceActionInterface(
+                "CallContact",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
+                    ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_action_with_failure_reasons(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -1812,19 +2156,26 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("CallContact", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
-                ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
-            ], failure_reasons=[
-                ActionFailureReason("invalid_number"),
-                ActionFailureReason("missing_number"),
-            ])
+            ServiceActionInterface(
+                "CallContact",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
+                    ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
+                ],
+                failure_reasons=[
+                    ActionFailureReason("invalid_number"),
+                    ActionFailureReason("missing_number"),
+                ]
+            )
         ])
 
     def test_optional_parameter(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="Snooze">
     <parameters>
@@ -1836,15 +2187,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("Snooze", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("minutes_to_snooze", ParameterField.VALUE, is_optional=True),
-            ], failure_reasons=[])
+            ServiceActionInterface(
+                "Snooze",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("minutes_to_snooze", ParameterField.VALUE, is_optional=True),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_parameter_field(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -1856,16 +2214,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("CallContact", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
-            ], failure_reasons=[])
+            ServiceActionInterface(
+                "CallContact",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_unexpected_parameter_field(self):
         self._when_compile_service_interface_then_exception_is_raised_matching(
-"""
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -1877,20 +2241,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameter', "
             "attribute 'format': \[facet 'enumeration'\] The value 'something_else' is not an element of the set "
-            "\{'value', 'grammar_entry'\}., line 5")
+            "\{'value', 'grammar_entry'\}., line 5"
+        )
 
-    def _when_compile_service_interface_then_exception_is_raised_matching(self, xml, expected_exception,
-                                                                          expected_message):
+    def _when_compile_service_interface_then_exception_is_raised_matching(
+        self, xml, expected_exception, expected_message
+    ):
 
         with self.assertRaisesRegexp(expected_exception, expected_message):
             self._when_compile_service_interface(xml)
 
     def test_query_with_device_module_target(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <query name="available_contact">
     <parameters>
@@ -1901,18 +2267,24 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </query>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_queries([
-            ServiceQueryInterface("available_contact", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.VALUE),
-            ])
+            ServiceQueryInterface(
+                "available_contact",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.VALUE),
+                ]
+            )
         ])
 
     def _then_service_interface_has_queries(self, expected_queries):
         self.assertEqual(self._result.queries, expected_queries)
 
     def test_entity_recognizer_with_device_module_target(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <entity_recognizer name="ContactNameRecognizer">
     <target>
@@ -1920,7 +2292,8 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </entity_recognizer>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_entity_recognizers([
             ServiceEntityRecognizerInterface("ContactNameRecognizer", target=DeviceModuleTarget("CallDevice")),
         ])
@@ -1929,7 +2302,8 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         self.assertEqual(self._result.entity_recognizers, expected_entity_recognizers)
 
     def test_validity_with_device_module_target(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <validator name="RouteValidator">
     <parameters>
@@ -1941,19 +2315,25 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </validator>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_validities([
-            ServiceValidatorInterface("RouteValidator", target=DeviceModuleTarget("NavigationDevice"), parameters=[
-                ServiceParameter("navigation_origin", ParameterField.VALUE),
-                ServiceParameter("navigation_destination", ParameterField.VALUE),
-            ])
+            ServiceValidatorInterface(
+                "RouteValidator",
+                target=DeviceModuleTarget("NavigationDevice"),
+                parameters=[
+                    ServiceParameter("navigation_origin", ParameterField.VALUE),
+                    ServiceParameter("navigation_destination", ParameterField.VALUE),
+                ]
+            )
         ])
 
     def _then_service_interface_has_validities(self, expected_validities):
         self.assertEqual(self._result.validators, expected_validities)
 
     def test_frontend_target_for_action(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -1965,11 +2345,17 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("CallContact", target=FrontendTarget(), parameters=[
-                ServiceParameter("contact_to_call"),
-            ], failure_reasons=[])
+            ServiceActionInterface(
+                "CallContact",
+                target=FrontendTarget(),
+                parameters=[
+                    ServiceParameter("contact_to_call"),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_frontend_target_for_query(self):
@@ -1985,13 +2371,14 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </query>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 8")
+            "This element is not expected. Expected is one of \( device_module, http \)., line 8"
+        )
 
     def test_frontend_target_for_validator(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching("""
+        self._when_compile_service_interface_then_exception_is_raised_matching(
+            """
 <service_interface>
   <validator name="RouteValidator">
     <parameters>
@@ -2003,13 +2390,14 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </validator>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 9")
+            "This element is not expected. Expected is one of \( device_module, http \)., line 9"
+        )
 
     def test_frontend_target_for_entity_recognizer(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching("""
+        self._when_compile_service_interface_then_exception_is_raised_matching(
+            """
 <service_interface>
   <entity_recognizer name="ContactNameRecognizer">
     <target>
@@ -2017,13 +2405,14 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </entity_recognizer>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 5")
+            "This element is not expected. Expected is one of \( device_module, http \)., line 5"
+        )
 
     def test_http_target_for_action(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <action name="CallContact">
     <parameters>
@@ -2035,15 +2424,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            ServiceActionInterface("CallContact", target=HttpTarget("mock_endpoint"), parameters=[
-                ServiceParameter("contact_to_call"),
-            ], failure_reasons=[])
+            ServiceActionInterface(
+                "CallContact",
+                target=HttpTarget("mock_endpoint"),
+                parameters=[
+                    ServiceParameter("contact_to_call"),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_http_target_for_query(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <query name="available_contact">
     <parameters>
@@ -2054,15 +2450,21 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </query>
 </service_interface>
-    """)
+    """
+        )
         self._then_service_interface_has_queries([
-            ServiceQueryInterface("available_contact", target=HttpTarget("mock_endpoint"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.VALUE),
-            ])
+            ServiceQueryInterface(
+                "available_contact",
+                target=HttpTarget("mock_endpoint"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.VALUE),
+                ]
+            )
         ])
 
     def test_http_target_for_entity_recognizer(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <entity_recognizer name="ContactNameRecognizer">
     <target>
@@ -2070,13 +2472,15 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </entity_recognizer>
 </service_interface>
-    """)
+    """
+        )
         self._then_service_interface_has_entity_recognizers([
             ServiceEntityRecognizerInterface("ContactNameRecognizer", target=HttpTarget("mock_endpoint"))
         ])
 
     def test_http_target_for_validator(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <validator name="RouteValidator">
     <parameters>
@@ -2088,16 +2492,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </validator>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_validities([
-            ServiceValidatorInterface("RouteValidator", target=HttpTarget("mock_endpoint"), parameters=[
-                ServiceParameter("navigation_origin", ParameterField.VALUE),
-                ServiceParameter("navigation_destination", ParameterField.VALUE),
-            ])
+            ServiceValidatorInterface(
+                "RouteValidator",
+                target=HttpTarget("mock_endpoint"),
+                parameters=[
+                    ServiceParameter("navigation_origin", ParameterField.VALUE),
+                    ServiceParameter("navigation_destination", ParameterField.VALUE),
+                ]
+            )
         ])
 
     def test_play_audio_action_without_url_parameter(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching("""
+        self._when_compile_service_interface_then_exception_is_raised_matching(
+            """
 <service_interface>
   <play_audio_action name="PlayAudio">
     <parameters/>
@@ -2106,13 +2516,14 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </play_audio_action>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameters': "
-            "This element is not expected. Expected is \( audio_url_parameter \)., line 4")
+            "This element is not expected. Expected is \( audio_url_parameter \)., line 4"
+        )
 
     def test_play_audio_action_with_parameters(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <play_audio_action name="PlayAudio">
     <audio_url_parameter predicate="url_of_song"/>
@@ -2124,15 +2535,22 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </play_audio_action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            PlayAudioActionInterface("PlayAudio", target=FrontendTarget(), parameters=[
-                ServiceParameter("artist"),
-            ], audio_url_parameter=AudioURLServiceParameter("url_of_song"))
+            PlayAudioActionInterface(
+                "PlayAudio",
+                target=FrontendTarget(),
+                parameters=[
+                    ServiceParameter("artist"),
+                ],
+                audio_url_parameter=AudioURLServiceParameter("url_of_song")
+            )
         ])
 
     def test_play_audio_action_and_custom_action_together(self):
-        self._when_compile_service_interface("""
+        self._when_compile_service_interface(
+            """
 <service_interface>
   <play_audio_action name="PlayAudio">
     <audio_url_parameter predicate="url_of_song"/>
@@ -2153,18 +2571,30 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </action>
 </service_interface>
-""")
+"""
+        )
         self._then_service_interface_has_actions([
-            PlayAudioActionInterface("PlayAudio", target=FrontendTarget(), parameters=[
-                ServiceParameter("artist"),
-            ], audio_url_parameter=AudioURLServiceParameter("url_of_song")),
-            ServiceActionInterface("CallContact", target=DeviceModuleTarget("CallDevice"), parameters=[
-                ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
-            ], failure_reasons=[])
+            PlayAudioActionInterface(
+                "PlayAudio",
+                target=FrontendTarget(),
+                parameters=[
+                    ServiceParameter("artist"),
+                ],
+                audio_url_parameter=AudioURLServiceParameter("url_of_song")
+            ),
+            ServiceActionInterface(
+                "CallContact",
+                target=DeviceModuleTarget("CallDevice"),
+                parameters=[
+                    ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
+                ],
+                failure_reasons=[]
+            )
         ])
 
     def test_play_audio_action_with_invalid_target(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching("""
+        self._when_compile_service_interface_then_exception_is_raised_matching(
+            """
 <service_interface>
   <play_audio_action name="PlayAudio">
     <audio_url_parameter predicate="url_of_song"/>
@@ -2176,7 +2606,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     </target>
   </play_audio_action>
 </service_interface>
-""",
-            ViolatesSchemaException,
+""", ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'device_module': "
-            "This element is not expected. Expected is \( frontend \)., line 9")
+            "This element is not expected. Expected is \( frontend \)., line 9"
+        )

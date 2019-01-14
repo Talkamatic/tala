@@ -2,7 +2,8 @@ import contextlib
 import os
 
 
-class DirectoryException(Exception): pass
+class DirectoryException(Exception):
+    pass
 
 
 @contextlib.contextmanager

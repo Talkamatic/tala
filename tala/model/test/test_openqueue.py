@@ -11,7 +11,6 @@ class MockElement:
 
 
 class OpenQueueTests(unittest.TestCase):
-
     def setUp(self):
         self.queue = OpenQueue()
 
@@ -101,8 +100,7 @@ class OpenQueueTests(unittest.TestCase):
     def test_string_representation(self):
         self.queue.enqueue(MockElement("first"))
         self.queue.enqueue(MockElement("second"))
-        self.assertEquals("OpenQueue(['#', MockElement('first'), MockElement('second')])",
-                          unicode(self.queue))
+        self.assertEquals("OpenQueue(['#', MockElement('first'), MockElement('second')])", unicode(self.queue))
 
     def test_create_from_iterable(self):
         self.queue = OpenQueue(["a", "b", "c"])
@@ -139,7 +137,6 @@ class OpenQueueTests(unittest.TestCase):
 
     def _object_is_emptied(self):
         self.assertTrue(self.queue.is_empty())
-
 
     def test_empty_queues_are_equal(self):
         first_queue = OpenQueue()

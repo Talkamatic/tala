@@ -7,7 +7,8 @@ from tala.model.proposition import PredicateProposition, ServiceActionTerminated
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 
 
-class DddDomain: pass
+class DddDomain:
+    pass
 
 
 class Domain:
@@ -17,14 +18,7 @@ class Domain:
     SILENT_IO_STATUS = "silent"
     DISABLED_IO_STATUS = "disabled"
 
-    def __init__(self,
-                 ddd_name,
-                 name,
-                 ontology,
-                 plans=[],
-                 default_questions=[],
-                 parameters={},
-                 dependencies={}):
+    def __init__(self, ddd_name, name, ontology, plans=[], default_questions=[], parameters={}, dependencies={}):
         self.ddd_name = ddd_name
         self.name = name
         self.ontology = ontology
@@ -149,7 +143,6 @@ class Domain:
     def goal_is_preferred(self, goal):
         return self.goal_is_conditionally_preferred(goal, [])
 
-
     def goal_is_conditionally_preferred(self, goal, facts):
         condition = self.get_preferred(goal)
         if condition == True or condition in facts:
@@ -271,17 +264,12 @@ class Domain:
     def _add_up_plan(self):
         up_action = self.action("up")
         goal = PerformGoal(up_action)
-        self.plans[goal] = {
-            "goal": goal,
-            "plan": Plan()
-            }
+        self.plans[goal] = {"goal": goal, "plan": Plan()}
 
     def _add_top_plan_if_missing(self):
         top_goal = PerformGoal(self.action("top"))
         if top_goal not in self.plans:
-            self.plans[top_goal] = {
-                "goal": top_goal,
-                "plan": Plan()}
+            self.plans[top_goal] = {"goal": top_goal, "plan": Plan()}
 
     def get_graphical_type(self, semantic_object):
         return self._get_parameter(semantic_object, "graphical_type")
@@ -350,8 +338,7 @@ class Domain:
         for plan_item in plan:
             if plan_item.is_question_plan_item():
                 question = plan_item.getContent()
-                for feature_question in self.get_feature_questions_for_plan_item(
-                    question, plan_item):
+                for feature_question in self.get_feature_questions_for_plan_item(question, plan_item):
                     yield feature_question
                 yield question
 
@@ -359,8 +346,7 @@ class Domain:
         feature_questions = []
         if question.get_content().is_lambda_abstracted_predicate_proposition():
             for predicate in self.ontology.get_predicates().values():
-                if predicate.is_feature_of(
-                        question.get_content().getPredicate()):
+                if predicate.is_feature_of(question.get_content().getPredicate()):
                     feature_question = self.ontology.create_wh_question(predicate.get_name())
                     feature_questions.append(feature_question)
         return feature_questions

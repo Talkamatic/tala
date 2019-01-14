@@ -31,6 +31,7 @@ class Constants:
     ING_FORM = "ing-form"
     OBJECT = "object"
 
+
 class Node:
     def __init__(self, type_, parameters=None, children=None):
         self.type = type_
@@ -47,14 +48,12 @@ class Node:
         return self._pretty_string()
 
     def _pretty_string(self, indentation=0):
-        string = "%sNode(%s, %s)" % ("  " * indentation, self.type,
-                                     self.parameters)
+        string = "%sNode(%s, %s)" % ("  " * indentation, self.type, self.parameters)
         if isinstance(self.children, list):
             if len(self.children) > 0:
                 for child in self.children:
                     if isinstance(child, Node):
-                        string += "\n%s" % (child._pretty_string(
-                            indentation + 1))
+                        string += "\n%s" % (child._pretty_string(indentation + 1))
                     else:
                         string += "\n%s%r" % ("  " * (indentation + 1), child)
             else:
@@ -64,8 +63,7 @@ class Node:
         return string
 
     def __repr__(self):
-        return "Node(%s, %s, %r)" % (self.type, self.parameters,
-                                     self.children)
+        return "Node(%s, %s, %r)" % (self.type, self.parameters, self.children)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

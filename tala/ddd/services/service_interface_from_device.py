@@ -79,7 +79,7 @@ class ServiceInterfaceFromDevice(object):
     @staticmethod
     def to_xml(service_interface):
         template = Template(
-"""{%- macro parameters(parameters) %}
+            """{%- macro parameters(parameters) %}
 {%- if parameters -%}
     <parameters>
 {%- for parameter in parameters %}
@@ -137,6 +137,7 @@ class ServiceInterfaceFromDevice(object):
   </entity_recognizer>
 {%- endfor %}
 </service_interface>
-""")
+"""
+        )
         written_interface = template.render(service_interface=service_interface)
         return written_interface

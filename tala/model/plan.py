@@ -3,7 +3,8 @@ from tala.model.plan_item import PlanItem
 from tala.model.semantic_object import SemanticObject
 
 
-class UnableToDetermineOntologyException(Exception): pass
+class UnableToDetermineOntologyException(Exception):
+    pass
 
 
 class Plan(Stack, SemanticObject):
@@ -67,7 +68,7 @@ class Plan(Stack, SemanticObject):
     def remove_nested(self, to_remove, plan_item):
         if to_remove == plan_item.consequent:
             plan_item.consequent = None
-        if to_remove  == plan_item.alternative:
+        if to_remove == plan_item.alternative:
             plan_item.alternative = None
 
     def get_questions_in_plan_without_feature_question(self):
@@ -76,7 +77,6 @@ class Plan(Stack, SemanticObject):
                 question = plan_item.getContent()
                 yield question
 
-
     def __str__(self):
         return "Plan(%s)" % self.content
 
@@ -84,4 +84,5 @@ class Plan(Stack, SemanticObject):
         return "%s%s" % (self.__class__.__name__, (self.content or self.contentclass, ))
 
 
-class InvalidPlansException(Exception): pass
+class InvalidPlansException(Exception):
+    pass

@@ -7,15 +7,40 @@ from tala.nl.gf.grammar_entry_types import Constants
 from tala.model.sort import STRING
 
 
-class NoIndividualsFoundException(Exception): pass
-class NoRequestsFoundException(Exception): pass
-class NoQuestionsFoundException(Exception): pass
-class UnexpectedIndividualsFoundException(Exception): pass
-class UnexpectedRequestsFoundException(Exception): pass
-class UnexpectedQuestionsFoundException(Exception): pass
-class UnexpectedAnswersFoundException(Exception): pass
-class UnexpectedAnswerFormatException(Exception): pass
-class UnexpectedStringsFoundException(Exception): pass
+class NoIndividualsFoundException(Exception):
+    pass
+
+
+class NoRequestsFoundException(Exception):
+    pass
+
+
+class NoQuestionsFoundException(Exception):
+    pass
+
+
+class UnexpectedIndividualsFoundException(Exception):
+    pass
+
+
+class UnexpectedRequestsFoundException(Exception):
+    pass
+
+
+class UnexpectedQuestionsFoundException(Exception):
+    pass
+
+
+class UnexpectedAnswersFoundException(Exception):
+    pass
+
+
+class UnexpectedAnswerFormatException(Exception):
+    pass
+
+
+class UnexpectedStringsFoundException(Exception):
+    pass
 
 
 class GrammarBase(object):
@@ -25,24 +50,24 @@ class GrammarBase(object):
         self._local_individual_identifier = None
 
     def requests_of_action(self, action):
-        raise NotImplementedError(
-            "%s.requests_of_action(...) need to be implemented." % self.__class__.__name__)
+        raise NotImplementedError("%s.requests_of_action(...) need to be implemented." % self.__class__.__name__)
 
     def _find_individuals_of(self, name):
-        raise NotImplementedError(
-            "%s._find_individual(...) need to be implemented." % self.__class__.__name__)
+        raise NotImplementedError("%s._find_individual(...) need to be implemented." % self.__class__.__name__)
 
     def entries_of_individual(self, name):
         individuals = self._find_individuals_of(name)
         if len(individuals) < 1:
             all_names = [individual.get("name") for individual in self._grammar_root.findall(Constants.INDIVIDUAL)]
-            raise NoIndividualsFoundException("Expected at least one <%s ...> for individual '%s', but it was "
-                                              "not found among %s in %s" %
-                                              (self._local_individual_identifier, name, all_names, self._grammar_path))
+            raise NoIndividualsFoundException(
+                "Expected at least one <%s ...> for individual '%s', but it was "
+                "not found among %s in %s" % (self._local_individual_identifier, name, all_names, self._grammar_path)
+            )
         if len(individuals) > 1:
             raise UnexpectedIndividualsFoundException(
-                "Expected a single <%s ...> for individual '%s' but found %d in %s"
-                % (self._local_individual_identifier, name, len(individuals), self._grammar_path))
+                "Expected a single <%s ...> for individual '%s' but found %d in %s" %
+                (self._local_individual_identifier, name, len(individuals), self._grammar_path)
+            )
         return self._process_individual_entries(individuals[0])
 
     def _process_individual_entries(self, individual_element):
@@ -63,13 +88,15 @@ class GrammarBase(object):
         if len(questions) < 1:
             actual_questions = self._grammar_root.findall("question[@speaker='user']")
             actual_predicates = [question.get("predicate") for question in actual_questions]
-            raise NoQuestionsFoundException("Expected at least one <question speaker='user'...> for predicate '%s' but "
-                                            "it was not found among %s in %s"
-                                            % (predicate, actual_predicates, self._grammar_path))
+            raise NoQuestionsFoundException(
+                "Expected at least one <question speaker='user'...> for predicate '%s' but "
+                "it was not found among %s in %s" % (predicate, actual_predicates, self._grammar_path)
+            )
         if len(questions) > 1:
-            raise UnexpectedQuestionsFoundException("Expected a single <question speaker='user' ...> for predicate "
-                                                    "'%s' but found %d in %s"
-                                                    % (predicate, len(questions), self._grammar_path))
+            raise UnexpectedQuestionsFoundException(
+                "Expected a single <question speaker='user' ...> for predicate "
+                "'%s' but found %d in %s" % (predicate, len(questions), self._grammar_path)
+            )
         question = questions[0]
         items = self._plain_text_items_of(question)
         for item in items:
@@ -81,8 +108,9 @@ class GrammarBase(object):
         if not answers:
             return
         if len(answers) > 1:
-            raise UnexpectedAnswersFoundException("Expected a single <answer speaker='user'> but found %d in %s"
-                                                  % (len(answers), self._grammar_path))
+            raise UnexpectedAnswersFoundException(
+                "Expected a single <answer speaker='user'> but found %d in %s" % (len(answers), self._grammar_path)
+            )
         answer = answers[0]
         items = self._plain_text_items_of(answer)
         for item in items:
@@ -90,25 +118,30 @@ class GrammarBase(object):
             if not required_entities:
                 raise UnexpectedAnswerFormatException(
                     "Expected at least one <%s .../> in every item in <answer speaker=\"user\"> "
-                    "but found some without" % self._local_individual_identifier)
+                    "but found some without" % self._local_individual_identifier
+                )
             yield Answer(text_chunks, required_entities)
 
     def strings_of_predicate(self, predicate):
         strings = self._grammar_root.findall("string[@predicate='%s']" % predicate)
         if len(strings) > 1:
-            raise UnexpectedStringsFoundException("Expected a single <string predicate='%s'> but found %d in %s"
-                                                    % (predicate, len(strings), self._grammar_path))
+            raise UnexpectedStringsFoundException(
+                "Expected a single <string predicate='%s'> but found %d in %s" %
+                (predicate, len(strings), self._grammar_path)
+            )
 
         if len(strings) == 0:
-            warnings.warn("Expected training examples for predicate '{predicate}' of sort '{sort}' but found none. "
-                          "Add them with:\n"
-                          "\n"
-                          "<string predicate=\"{predicate}\">\n"
-                          "  <one-of>\n"
-                          "    <item>an example</item>\n"
-                          "    <item>another example</item>\n"
-                          "  </one-of>\n"
-                          "</string>".format(predicate=predicate, sort=STRING))
+            warnings.warn(
+                "Expected training examples for predicate '{predicate}' of sort '{sort}' but found none. "
+                "Add them with:\n"
+                "\n"
+                "<string predicate=\"{predicate}\">\n"
+                "  <one-of>\n"
+                "    <item>an example</item>\n"
+                "    <item>another example</item>\n"
+                "  </one-of>\n"
+                "</string>".format(predicate=predicate, sort=STRING)
+            )
             return
 
         string = strings[0]
@@ -117,8 +150,9 @@ class GrammarBase(object):
             text_chunks, required_entities = self._chunks_and_entities_of_item(item)
             if any(required_entities):
                 raise UnexpectedIndividualsFoundException(
-                    "Expected no <%s ...> in <string predicate='%s'> but found some"
-                    % (self._local_individual_identifier, predicate))
+                    "Expected no <%s ...> in <string predicate='%s'> but found some" %
+                    (self._local_individual_identifier, predicate)
+                )
             assert len(text_chunks) == 1, "Expected 1 text chunk but got %d" % len(text_chunks)
             yield text_chunks[0]
 
@@ -145,12 +179,13 @@ class GrammarBase(object):
         sort = element.attrib.get("sort")
         if sort:
             return RequiredSortalEntity(sort)
-        raise UnexpectedIndividualsFoundException("Expected either a 'sort' or 'predicate' attribute in "
-                                                  "<%s ...>: %s" % (self._local_individual_identifier, element))
+        raise UnexpectedIndividualsFoundException(
+            "Expected either a 'sort' or 'predicate' attribute in "
+            "<%s ...>: %s" % (self._local_individual_identifier, element)
+        )
 
     def _plain_text_items_of(self, item):
-        raise NotImplementedError(
-            "%s._plain_text_items_of(...) need to be implemented." % self.__class__.__name__)
+        raise NotImplementedError("%s._plain_text_items_of(...) need to be implemented." % self.__class__.__name__)
 
 
 class Grammar(GrammarBase):
@@ -163,11 +198,15 @@ class Grammar(GrammarBase):
         if len(actions) < 1:
             all_actions = self._grammar_root.findall(Constants.ACTION)
             all_names = [action.get("name") for action in all_actions]
-            raise NoRequestsFoundException("Expected at least one <action ...> for action '%s' but it was not found "
-                                           "among %s in %s" % (name, all_names, self._grammar_path))
+            raise NoRequestsFoundException(
+                "Expected at least one <action ...> for action '%s' but it was not found "
+                "among %s in %s" % (name, all_names, self._grammar_path)
+            )
         if len(actions) > 1:
-            raise UnexpectedRequestsFoundException("Expected a single <action ...> for action '%s' but found %d in %s"
-                                                   % (name, len(actions), self._grammar_path))
+            raise UnexpectedRequestsFoundException(
+                "Expected a single <action ...> for action '%s' but found %d in %s" %
+                (name, len(actions), self._grammar_path)
+            )
         action_item = actions[0]
         items = list(self._plain_text_items_of(action_item))
         for item in items:
@@ -184,8 +223,10 @@ class Grammar(GrammarBase):
 
         plain_text_items = list(get_items(root))
         if not plain_text_items:
-            warnings.warn("%s ignores element '%s' with attributes %s since there are no plain text items"
-                          % (self.__class__.__name__, root.tag, root.attrib))
+            warnings.warn(
+                "%s ignores element '%s' with attributes %s since there are no plain text items" %
+                (self.__class__.__name__, root.tag, root.attrib)
+            )
         return plain_text_items
 
     def _items_of(self, root):
@@ -209,11 +250,15 @@ class GrammarForRGL(GrammarBase):
         if len(requests) < 1:
             actual_requests = self._grammar_root.findall(rgl_grammar_entry_types.REQUEST)
             actual_actions = [request.get("action") for request in actual_requests]
-            raise NoRequestsFoundException("Expected at least one <request ...> for action '%s' but it was not found "
-                                           "among %s in %s" % (action, actual_actions, self._grammar_path))
+            raise NoRequestsFoundException(
+                "Expected at least one <request ...> for action '%s' but it was not found "
+                "among %s in %s" % (action, actual_actions, self._grammar_path)
+            )
         if len(requests) > 1:
-            raise UnexpectedRequestsFoundException("Expected a single <request ...> for action '%s' but found %d in %s"
-                                                   % (action, len(requests), self._grammar_path))
+            raise UnexpectedRequestsFoundException(
+                "Expected a single <request ...> for action '%s' but found %d in %s" %
+                (action, len(requests), self._grammar_path)
+            )
         request = requests[0]
         items = self._plain_text_items_of(request)
         for item in items:
@@ -223,8 +268,10 @@ class GrammarForRGL(GrammarBase):
     def _plain_text_items_of(self, item):
         utterances = item.findall(rgl_grammar_entry_types.UTTERANCE)
         if not utterances:
-            warnings.warn("%s ignores element '%s' with attributes %s since it has no <utterance>"
-                          % (self.__class__.__name__, item.tag, item.attrib))
+            warnings.warn(
+                "%s ignores element '%s' with attributes %s since it has no <utterance>" %
+                (self.__class__.__name__, item.tag, item.attrib)
+            )
             return
 
         for utterance in utterances:
@@ -236,4 +283,5 @@ class GrammarForRGL(GrammarBase):
 
     def _find_individuals_of(self, name):
         return self._grammar_root.findall(
-            "%s[@name='%s']/%s" % (Constants.INDIVIDUAL, name, rgl_grammar_entry_types.PROPER_NOUN))
+            "%s[@name='%s']/%s" % (Constants.INDIVIDUAL, name, rgl_grammar_entry_types.PROPER_NOUN)
+        )

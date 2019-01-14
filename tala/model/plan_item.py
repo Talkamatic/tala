@@ -34,7 +34,7 @@ class PlanItem(SemanticObject):
         self._type = type
 
     def __repr__(self):
-        return "%s%s" % (PlanItem.__class__.__name__, (self._type,))
+        return "%s%s" % (PlanItem.__class__.__name__, (self._type, ))
 
     def __str__(self):
         return unicode(self._type)
@@ -89,9 +89,7 @@ class PlanItem(SemanticObject):
         return self._type == self.TYPE_EMIT_ICM
 
     def is_question_plan_item(self):
-        return self._type in [self.TYPE_FINDOUT,
-                              self.TYPE_RAISE,
-                              self.TYPE_BIND]
+        return self._type in [self.TYPE_FINDOUT, self.TYPE_RAISE, self.TYPE_BIND]
 
     def is_forget_all_plan_item(self):
         return self._type == self.TYPE_FORGET_ALL
@@ -229,14 +227,14 @@ class EmitIcmPlanItem(PlanItemWithSemanticContent):
 
     def is_question_raising_item(self):
         icm = self.getContent()
-        return (icm.get_type() == ICMMove.UND and
-                not (icm.get_polarity() == ICMMove.POS and
-                     not icm.get_content().is_positive()))
+        return (
+            icm.get_type() == ICMMove.UND
+            and not (icm.get_polarity() == ICMMove.POS and not icm.get_content().is_positive())
+        )
 
     def is_turn_yielding(self):
         icm = self.getContent()
-        return (icm.get_type() == ICMMove.ACC and
-                icm.get_polarity() == ICMMove.NEG)
+        return (icm.get_type() == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
 
 
 class BindPlanItem(PlanItemWithSemanticContent):
@@ -286,10 +284,7 @@ class IfThenElse(PlanItem):
         self.alternative = None
 
     def __str__(self):
-        return "if_then_else(%s, %s, %s)" % (
-            self.condition,
-            self.consequent,
-            self.alternative)
+        return "if_then_else(%s, %s, %s)" % (self.condition, self.consequent, self.alternative)
 
 
 class ForgetAllPlanItem(PlanItem):
@@ -307,21 +302,24 @@ class ForgetIssuePlanItem(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, PlanItem.TYPE_FORGET_ISSUE, issue)
 
 
-class MinResultsNotSupportedException(Exception): pass
-class MaxResultsNotSupportedException(Exception): pass
+class MinResultsNotSupportedException(Exception):
+    pass
+
+
+class MaxResultsNotSupportedException(Exception):
+    pass
 
 
 class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
     def __init__(self, issue, min_results=None, max_results=None):
         min_results = min_results or 0
         if min_results < 0:
-            raise MinResultsNotSupportedException(
-                "Expected 'min_results' to be 0 or above but got %r." % min_results)
+            raise MinResultsNotSupportedException("Expected 'min_results' to be 0 or above but got %r." % min_results)
         if max_results is not None and max_results < 1:
             raise MaxResultsNotSupportedException(
-                "Expected 'max_results' to be None or above 0 but got %r." % max_results)
-        PlanItemWithSemanticContent.__init__(
-            self, PlanItem.TYPE_INVOKE_SERVICE_QUERY, issue)
+                "Expected 'max_results' to be None or above 0 but got %r." % max_results
+            )
+        PlanItemWithSemanticContent.__init__(self, PlanItem.TYPE_INVOKE_SERVICE_QUERY, issue)
         self._min_results = min_results
         self._max_results = max_results
 
@@ -333,11 +331,13 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
 
     def __str__(self):
         return "invoke_service_query(%s, min_results=%s, max_results=%s)" % (
-            self._content, self._min_results, self._max_results)
+            self._content, self._min_results, self._max_results
+        )
 
     def __repr__(self):
         return "%s(%r, min_results=%r, max_results=%r)" % (
-            self.__class__.__name__, self._content, self._min_results, self._max_results)
+            self.__class__.__name__, self._content, self._min_results, self._max_results
+        )
 
     def __eq__(self, other):
         return super(PlanItemWithSemanticContent, self).__eq__(other) and \
@@ -349,8 +349,7 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
     INTERROGATIVE = "INTERROGATIVE"
     ASSERTIVE = "ASSERTIVE"
 
-    def __init__(self, ontology_name, service_action,
-                 preconfirm=None, postconfirm=False, downdate_plan=True):
+    def __init__(self, ontology_name, service_action, preconfirm=None, postconfirm=False, downdate_plan=True):
         self.service_action = service_action
         self.preconfirm = preconfirm
         self.postconfirm = postconfirm
@@ -387,8 +386,9 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
 
     def __repr__(self):
         return "%s(%r, %r, preconfirm=%r, postconfirm=%r, downdate_plan=%r)" % (
-            self.__class__.__name__, self.ontology_name, self.service_action,
-            self.preconfirm, self.postconfirm, self._downdate_plan)
+            self.__class__.__name__, self.ontology_name, self.service_action, self.preconfirm, self.postconfirm,
+            self._downdate_plan
+        )
 
 
 class ServiceReportPlanItem(PlanItemWithSemanticContent):

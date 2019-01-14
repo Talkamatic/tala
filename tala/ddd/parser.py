@@ -23,8 +23,12 @@ from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, Findo
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 
 
-class ParseError(Exception): pass
-class ParseFailure(Exception): pass
+class ParseError(Exception):
+    pass
+
+
+class ParseFailure(Exception):
+    pass
 
 
 class Parser:
@@ -107,7 +111,7 @@ class Parser:
         raise ParseError("failed to parse '" + string + "' (ontology=" + unicode(self.ontology) + ")")
 
     def _parse_incrementally(self, string):
-        for n in range(1, len(string)+1):
+        for n in range(1, len(string) + 1):
             try:
                 result = self._parse(string[0:n])
                 if result:
@@ -118,24 +122,27 @@ class Parser:
     def _parse_goal(self, string):
         try:
             return self._parse_resolve_goal(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_resolve_user_goal(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_perform_goal(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_handle_goal(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         raise ParseFailure()
 
     def _parse_decorated_non_icm_move(self, string):
         m = re.search('^Move\((.*)\)$', string)
         if m:
             move_and_maybe_realization_data_string = m.group(1)
-            move, rest = self._parse_incrementally(
-                move_and_maybe_realization_data_string)
+            move, rest = self._parse_incrementally(move_and_maybe_realization_data_string)
             if rest:
                 m = re.search('^, (.*)$', rest)
                 if m:
@@ -149,27 +156,32 @@ class Parser:
     def _parse_non_icm_move(self, string):
         try:
             return self._parse_basic_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_request_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_ask_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_answer_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_report_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_prereport_move(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         raise ParseFailure()
 
     def _parse_basic_move(self, string):
-        matcher = re.search(
-            '^(greet|mute|unmute|quit)$', string)
+        matcher = re.search('^(greet|mute|unmute|quit)$', string)
         if matcher:
             move_type_string = matcher.group(1)
             if move_type_string == "greet":
@@ -207,31 +219,40 @@ class Parser:
     def _parse_proposition(self, string):
         try:
             return self._parse_deprecated_service_action_terminated_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_deprecated_service_action_started_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_preconfirmation_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_prereport_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_goal_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_rejected_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_predicate_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_understanding_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_resolvedness_proposition(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         self._check_if_deprecated_action_proposition(string)
         self._check_if_deprecated_issue_proposition(string)
         raise ParseFailure()
@@ -240,15 +261,19 @@ class Parser:
         m = re.search('^action\((\w+)\)$', string)
         if m:
             action_name = m.group(1)
-            raise ParseError("'action(%s)' is not a valid proposition. Perhaps you mean 'goal(perform(%s))'." % (
-                    action_name, action_name))
+            raise ParseError(
+                "'action(%s)' is not a valid proposition. Perhaps you mean 'goal(perform(%s))'." %
+                (action_name, action_name)
+            )
 
     def _check_if_deprecated_issue_proposition(self, string):
         m = re.search('^issue\((.+)\)$', string)
         if m:
             issue_name = m.group(1)
-            raise ParseError("'issue(%s)' is not a valid proposition. Perhaps you mean 'goal(resolve(%s))'." % (
-                    issue_name, issue_name))
+            raise ParseError(
+                "'issue(%s)' is not a valid proposition. Perhaps you mean 'goal(resolve(%s))'." %
+                (issue_name, issue_name)
+            )
 
     def _parse_preconfirmation_proposition(self, string):
         m = re.search('^(~?)preconfirmed\((?P<action>\w+), (\[[^\]]*\])\)$', string)
@@ -282,8 +307,7 @@ class Parser:
             (action_value, parameter_string, action_outcome_string) = m.groups()
             parameter_list = self._parse_proposition_list(parameter_string)
             action_outcome = self._parse(action_outcome_string)
-            return ServiceResultProposition(
-                self.ontology_name, action_value, parameter_list, action_outcome)
+            return ServiceResultProposition(self.ontology_name, action_value, parameter_list, action_outcome)
         raise ParseFailure()
 
     def _parse_successful_service_action(self, string):
@@ -294,7 +318,7 @@ class Parser:
     def _parse_failed_service_action(self, string):
         m = re.search('^FailedServiceAction\((\w+)\)$', string)
         if m:
-            (failure_reason,) = m.groups()
+            (failure_reason, ) = m.groups()
             return FailedServiceAction(failure_reason)
         raise ParseFailure()
 
@@ -323,19 +347,23 @@ class Parser:
             try:
                 if question_content.is_lambda_abstracted_predicate_proposition():
                     return WhQuestion(question_content)
-            except AttributeError: pass
+            except AttributeError:
+                pass
             try:
                 if question_content.is_lambda_abstracted_goal_proposition():
                     return WhQuestion(question_content)
-            except AttributeError: pass
+            except AttributeError:
+                pass
             try:
                 if question_content.is_proposition_set():
                     return AltQuestion(question_content)
-            except AttributeError: pass
+            except AttributeError:
+                pass
             try:
                 if question_content.is_proposition():
                     return YesNoQuestion(question_content)
-            except AttributeError: pass
+            except AttributeError:
+                pass
         raise ParseFailure()
 
     def _parse_list_of_questions(self, string):
@@ -432,22 +460,26 @@ class Parser:
         if m:
             try:
                 return self._parse_reraise_or_accommodate_or_resume_icm(string)
-            except ParseFailure: pass
+            except ParseFailure:
+                pass
             try:
                 return self._parse_loadplan_icm(string)
-            except ParseFailure: pass
+            except ParseFailure:
+                pass
             try:
                 return self._parse_perception_or_acceptance_icm(string)
-            except ParseFailure: pass
+            except ParseFailure:
+                pass
             try:
                 return self._parse_understanding_icm(string)
-            except ParseFailure: pass
+            except ParseFailure:
+                pass
         raise ParseFailure()
 
     def _parse_reraise_or_accommodate_or_resume_icm(self, string):
-        matcher = re.search('^icm:(%s|%s|%s)(:([^:]+))?$' %
-                            (ICMMove.RERAISE, ICMMove.ACCOMMODATE, ICMMove.RESUME),
-                            string)
+        matcher = re.search(
+            '^icm:(%s|%s|%s)(:([^:]+))?$' % (ICMMove.RERAISE, ICMMove.ACCOMMODATE, ICMMove.RESUME), string
+        )
         if matcher:
             (icm_type, content_string) = (matcher.group(1), matcher.group(3))
             if content_string:
@@ -467,18 +499,20 @@ class Parser:
     def _parse_perception_or_acceptance_icm(self, string):
         try:
             return self._parse_contentless_perception_or_acceptance_icm(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_contentful_perception_icm(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_contentful_acceptance_icm(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         raise ParseFailure()
 
     def _parse_contentless_perception_or_acceptance_icm(self, string):
-        m = re.search('^icm:(per|acc)\*(pos|neg|int)$', 
-                      string)
+        m = re.search('^icm:(per|acc)\*(pos|neg|int)$', string)
         if m:
             icm_type = m.group(1)
             polarity = m.group(2)
@@ -488,19 +522,19 @@ class Parser:
     def _parse_contentful_perception_icm(self, string):
         m = re.search('^icm:per\*(pos|neg|int):"([^"]*)"$', string)
         if m:
-             (polarity, content_string) = m.groups()
-             return ICMMoveWithStringContent(ICMMove.PER, content_string, polarity=polarity)
+            (polarity, content_string) = m.groups()
+            return ICMMoveWithStringContent(ICMMove.PER, content_string, polarity=polarity)
         raise ParseFailure()
 
     def _parse_contentful_acceptance_icm(self, string):
         m = re.search('^icm:(per|acc)\*(pos|neg|int)(:([^:]*))?$', string)
         if m:
-             (icm_type, polarity, junk, content_string) = m.groups()
-             if content_string == "issue":
-                 return IssueICMMove(icm_type, polarity=polarity)
-             else:
-                 content = self.parse(content_string)
-             return ICMMoveWithSemanticContent(type=icm_type, content=content, polarity=polarity)
+            (icm_type, polarity, junk, content_string) = m.groups()
+            if content_string == "issue":
+                return IssueICMMove(icm_type, polarity=polarity)
+            else:
+                content = self.parse(content_string)
+            return ICMMoveWithSemanticContent(type=icm_type, content=content, polarity=polarity)
         raise ParseFailure()
 
     def _parse_understanding_icm(self, string):
@@ -603,7 +637,6 @@ class Parser:
         else:
             raise ParseFailure()
 
-
     def _parse_forget_issue_plan_item(self, string):
         m = re.search('^forget_issue\((.+)\)$', string)
         if m:
@@ -614,10 +647,9 @@ class Parser:
             raise ParseFailure()
 
     def _parse_invoke_service_query_plan_item(self, string):
-        m = re.search(
-            '^invoke_service_query\(([^,]+)\)$', string)
+        m = re.search('^invoke_service_query\(([^,]+)\)$', string)
         if m:
-            (issue_string,) = m.groups()
+            (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
             return InvokeServiceQueryPlanItem(issue, min_results=1, max_results=1)
         else:
@@ -626,7 +658,7 @@ class Parser:
     def _parse_deprecated_dev_query_plan_item(self, string):
         m = re.search('^dev_query\(([^,]+)\)$', string)
         if m:
-            (issue_string,) = m.groups()
+            (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
             return InvokeServiceQueryPlanItem(issue, min_results=1, max_results=1)
         else:
@@ -778,13 +810,12 @@ class Parser:
             return ServiceActionStartedProposition(self.ontology_name, service_action)
         raise ParseFailure()
 
-
     def _parse_predicate_proposition(self, string):
         m = re.search('^(~?)(\w+)(\((.*)\))$', string)
         if m:
             (polarity_str, predicate_name, individual_string) = \
                 (m.group(1), m.group(2), m.group(4))
-            
+
             if self.ontology.has_predicate(predicate_name):
                 predicate = self.ontology.get_predicate(predicate_name)
                 if individual_string is None or individual_string is "":
@@ -807,16 +838,20 @@ class Parser:
     def _parse_individual(self, string):
         try:
             return self._parse_real_individual(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_integer_individual(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_string_individual(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         try:
             return self._parse_individual_of_enumerated_sort(string)
-        except ParseFailure: pass
+        except ParseFailure:
+            pass
         raise ParseFailure()
 
     def _parse_individual_of_enumerated_sort(self, string):
@@ -824,7 +859,7 @@ class Parser:
         if m:
             individual_value = m.group(1)
             try:
-                sort = self.ontology.individual_sort(individual_value) 
+                sort = self.ontology.individual_sort(individual_value)
             except OntologyError:
                 raise ParseFailure()
             if not sort.is_string_sort() and not sort.is_real_sort():
@@ -863,9 +898,7 @@ class Parser:
             speaker = self._parse_speaker(m.group(2))
             proposition_str = m.group(3)
             proposition = self.parse(proposition_str)
-            und = UnderstandingProposition(speaker,
-                                           proposition,
-                                           polarity)
+            und = UnderstandingProposition(speaker, proposition, polarity)
             return und
         else:
             raise ParseFailure()
@@ -905,9 +938,9 @@ class Parser:
             if m:
                 action_value = m.group(1)
                 return self.ontology.create_action(action_value)
-        except OntologyError: pass
+        except OntologyError:
+            pass
         raise ParseFailure()
-
 
     def _parse_predicate(self, string):
         m = re.search('^(\w+)$', string)
@@ -927,7 +960,6 @@ class Parser:
             polarity = self._parse_polarity(polarity_str)
             return PropositionSet(propositions, polarity)
         raise ParseFailure()
-
 
     def _parse_proposition_list(self, string):
         propositions = []
@@ -1004,19 +1036,16 @@ class Parser:
     def _parse_predicate_list(self, string):
         string_without_brackets = self._strip_brackets(string)
         predicate_strings = [str.strip() for str in string_without_brackets.split(",")]
-        return [self._parse_predicate(predicate_string)
-                for predicate_string in predicate_strings]
+        return [self._parse_predicate(predicate_string) for predicate_string in predicate_strings]
 
     def _parse_findout_type(self, string):
-        if string in [QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST,
-                      QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT]:
+        if string in [QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT]:
             return string
         else:
             raise ParseFailure()
 
     def _parse_findout_source(self, string):
-        if string in [QuestionRaisingPlanItem.SOURCE_SERVICE,
-                      QuestionRaisingPlanItem.SOURCE_DOMAIN]:
+        if string in [QuestionRaisingPlanItem.SOURCE_SERVICE, QuestionRaisingPlanItem.SOURCE_DOMAIN]:
             return string
         else:
             raise ParseFailure()

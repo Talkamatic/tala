@@ -18,9 +18,9 @@ class DddCompilerTestCase(unittest.TestCase):
         return mock_target
 
     def _given_service_interface_with_validity(self, validity_name):
-        self._create_service_interface(validators=[
-            ServiceValidatorInterface(validity_name, self.mock_service_target, parameters=[])
-        ])
+        self._create_service_interface(
+            validators=[ServiceValidatorInterface(validity_name, self.mock_service_target, parameters=[])]
+        )
 
     def _create_service_interface(self, actions=None, queries=None, validators=None, entity_recognizers=None):
         def has_action(name):
@@ -37,6 +37,6 @@ class DddCompilerTestCase(unittest.TestCase):
         self._create_service_interface()
 
     def _given_service_interface_with_action(self, action_name):
-        self._create_service_interface(actions=[
-            ServiceActionInterface(action_name, self.mock_service_target, parameters=[], failure_reasons=[])
-        ])
+        self._create_service_interface(
+            actions=[ServiceActionInterface(action_name, self.mock_service_target, parameters=[], failure_reasons=[])]
+        )

@@ -26,8 +26,9 @@ class DDDLoader(object):
         self._xml_compiler = DddXmlCompiler()
 
         if ddd_config["enable_rasa_nlu"]:
-            warnings.warn("The support for RASA NLU is still in BETA. Talk gently. It is currently enabled in DDD '%s'."
-                          % name)
+            warnings.warn(
+                "The support for RASA NLU is still in BETA. Talk gently. It is currently enabled in DDD '%s'." % name
+            )
 
     def _load_grammar(self, language_code):
         if GrammarReader.xml_grammar_exists_for_language(language_code, path="grammar"):
@@ -57,8 +58,9 @@ class DDDLoader(object):
             empty_service_interface = ServiceInterface([], [], [], [])
             suggestion = ServiceInterfaceFromDevice.to_xml(empty_service_interface)
             raise DddLoaderException(
-                "Expected 'service_interface.xml' to exist but it does not. Start by adding an empty one:\n\n%s\n"
-                % suggestion)
+                "Expected 'service_interface.xml' to exist but it does not. Start by adding an empty one:\n\n%s\n" %
+                suggestion
+            )
         service_interface_xml = self._load_xml_resource("service_interface.xml")
         return self._xml_compiler.compile_service_interface(service_interface_xml)
 
@@ -69,8 +71,9 @@ class DDDLoader(object):
     def _domain_as_dict(self, ontology, parser, service_interface):
         if os.path.exists("domain.xml"):
             domain_xml = self._load_xml_resource("domain.xml")
-            domain_as_dict = self._xml_compiler.compile_domain(self._name, domain_xml, ontology, parser,
-                                                               service_interface)
+            domain_as_dict = self._xml_compiler.compile_domain(
+                self._name, domain_xml, ontology, parser, service_interface
+            )
         elif os.path.exists("domain.py"):
             domain_class = PythonModuleLoader(self._name).load_py_module_class("domain.py", DddDomain)
             domain_as_dict = self._py_compiler.compile_domain(self._name, domain_class, ontology, parser)
@@ -118,11 +121,6 @@ class DDDLoader(object):
 
     def _create_ddd(self, ontology, domain, service_interface, grammars):
         return DDD(
-            self._name,
-            ontology,
-            domain,
-            self._ddd_config["enable_rasa_nlu"],
-            service_interface,
-            grammars,
-            self._languages,
-            self._ddd_config["use_rgl"])
+            self._name, ontology, domain, self._ddd_config["enable_rasa_nlu"], service_interface, grammars,
+            self._languages, self._ddd_config["use_rgl"]
+        )

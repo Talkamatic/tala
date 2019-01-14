@@ -14,22 +14,15 @@ class PlanTests(LibTestCase):
         self.findout_dest_city = FindoutPlanItem(self.domain_name, self.dest_city_question)
         self.consequent = RaisePlanItem(self.domain_name, self.price_question)
         self.alternative = RaisePlanItem(self.domain_name, self.dest_city_question)
-        self.if_then_else_item = IfThenElse("mockup_condition",
-                                            self.consequent,
-                                            self.alternative)
+        self.if_then_else_item = IfThenElse("mockup_condition", self.consequent, self.alternative)
 
     def test_plan_iteration_steps_into_nested_blocks(self):
         self._given_plan_with_nested_item()
-        expected_list = [self.findout_price,
-                         self.findout_dest_city,
-                         self.consequent,
-                         self.alternative]
+        expected_list = [self.findout_price, self.findout_dest_city, self.consequent, self.alternative]
         self.assertEquals(expected_list, list(self.plan))
 
     def _given_plan_with_nested_item(self):
-        self.plan = Plan([self.if_then_else_item,
-                          self.findout_dest_city,
-                          self.findout_price])
+        self.plan = Plan([self.if_then_else_item, self.findout_dest_city, self.findout_price])
 
     def test_plan_iteration_after_modification(self):
         plan = Plan()
@@ -46,10 +39,9 @@ class PlanTests(LibTestCase):
         self.plan.remove(self.consequent)
 
     def _then_all_elements_but_consequent_are_left(self):
-        expected_list = [self.findout_price,
-                         self.findout_dest_city,
-                         self.alternative]
+        expected_list = [self.findout_price, self.findout_dest_city, self.alternative]
         self.assertEquals(expected_list, list(self.plan))
+
 
 class SemanticObjectPlanTests(unittest.TestCase):
     def setUp(self):
@@ -91,4 +83,3 @@ class SemanticObjectPlanTests(unittest.TestCase):
         self._given_plan()
         self._when_asking_for_ontology_name()
         self._then_ontology_name_is("an ontology")
-

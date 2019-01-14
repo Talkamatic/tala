@@ -5,6 +5,7 @@ class NP:
         self.gender = gender
         self.number = number
 
+
 class VP:
     def __init__(self, infinitive, imperative, ing_form, object_):
         self.infinitive = infinitive
@@ -12,7 +13,18 @@ class VP:
         self.ing_form = ing_form
         self.object = object_
 
-class FEMININE: pass
-class MASCULINE: pass
-class PLURAL: pass
-class SINGULAR: pass
+
+class FEMININE:
+    pass
+
+
+class MASCULINE:
+    pass
+
+
+class PLURAL:
+    pass
+
+
+class SINGULAR:
+    pass

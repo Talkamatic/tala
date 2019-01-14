@@ -75,10 +75,8 @@ class YesNoQuestionTests(LibTestCase):
 class AltQuestionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        propositions = [self.proposition_dest_city_paris,
-                        self.proposition_dest_city_london]
-        self.question = AltQuestion(
-            PropositionSet(propositions))
+        propositions = [self.proposition_dest_city_paris, self.proposition_dest_city_london]
+        self.question = AltQuestion(PropositionSet(propositions))
 
     def test_is_question(self):
         self.assertTrue(self.question.is_question())
@@ -97,10 +95,12 @@ class AltQuestionTests(LibTestCase):
 
     def test_string_format_for_goal_alt_question(self):
         alt_question = AltQuestion(
-            PropositionSet([GoalProposition(PerformGoal(self.top_action)),
-                            GoalProposition(PerformGoal(self.buy_action))]))
+            PropositionSet([
+                GoalProposition(PerformGoal(self.top_action)),
+                GoalProposition(PerformGoal(self.buy_action))
+            ])
+        )
         self.assertEquals("?set([goal(perform(top)), goal(perform(buy))])", unicode(alt_question))
 
     def test_string_format_for_predicate_alt_question(self):
-        self.assertEquals("?X.dest_city(X), set([dest_city(paris), dest_city(london)])",
-                          unicode(self.question))
+        self.assertEquals("?X.dest_city(X), set([dest_city(paris), dest_city(london)])", unicode(self.question))

@@ -4,7 +4,8 @@ INACTIVE_SECONDS_ALLOWED_MIN = 60 * 60
 INACTIVE_SECONDS_ALLOWED_MAX = 60 * 60 * 24 * 30
 
 
-class InvalidConfigValue(Exception): pass
+class InvalidConfigValue(Exception):
+    pass
 
 
 class AbstractBackendDependencies(object):
@@ -34,10 +35,9 @@ class AbstractBackendDependencies(object):
         if self._inactive_seconds_allowed < INACTIVE_SECONDS_ALLOWED_MIN or \
            self._inactive_seconds_allowed > INACTIVE_SECONDS_ALLOWED_MAX:
             raise InvalidConfigValue(
-                "Expected inactive_seconds_allowed to be in the range %d-%d, but it was %d." % (
-                INACTIVE_SECONDS_ALLOWED_MIN,
-                INACTIVE_SECONDS_ALLOWED_MAX,
-                self._inactive_seconds_allowed))
+                "Expected inactive_seconds_allowed to be in the range %d-%d, but it was %d." %
+                (INACTIVE_SECONDS_ALLOWED_MIN, INACTIVE_SECONDS_ALLOWED_MAX, self._inactive_seconds_allowed)
+            )
 
     def load_ddds(self, ddd_names):
         raise NotImplementedError("Expected method _load_ddds(...) to be implemented but it wasn't")

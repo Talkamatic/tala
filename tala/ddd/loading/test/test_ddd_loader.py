@@ -18,8 +18,7 @@ class TestDDDLoader(DddMockingTestCase):
         with patch('%s.warnings' % ddd_loader.__name__) as mock_warnings:
             self._mock_warnings = mock_warnings
             languages = languages or ["eng"]
-            mock_ddd_loader = DDDLoader(
-                ddd_name, self._mock_ddd_config, languages)
+            mock_ddd_loader = DDDLoader(ddd_name, self._mock_ddd_config, languages)
             self._result = mock_ddd_loader.load()
 
     def test_loading_with_rasa_posts_warning_message(self):
@@ -29,8 +28,10 @@ class TestDDDLoader(DddMockingTestCase):
         self._given_device_py_file("mockup_app/device.py")
         self._given_mocked_ddd_config(enable_rasa_nlu=True)
         self._when_load_is_called("mockup_app")
-        self._then_warning_message_is_posted("The support for RASA NLU is still in BETA. Talk gently. "
-                                             "It is currently enabled in DDD 'mockup_app'.")
+        self._then_warning_message_is_posted(
+            "The support for RASA NLU is still in BETA. Talk gently. "
+            "It is currently enabled in DDD 'mockup_app'."
+        )
 
     def _then_warning_message_is_posted(self, expected_warning):
         self._mock_warnings.warn.assert_any_call(expected_warning)

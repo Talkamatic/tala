@@ -134,16 +134,15 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         testset.add(MockElement("element1"))
         testset.add(MockElement("element2"))
         self.assertTrue(
-            "{MockElement('element1'), MockElement('element2')}" == unicode(testset) or
-            "{MockElement('element2'), MockElement('element1')}" == unicode(testset))
-
+            "{MockElement('element1'), MockElement('element2')}" == unicode(testset)
+            or "{MockElement('element2'), MockElement('element1')}" == unicode(testset)
+        )
 
     def test_set_property(self):
         set = tala.model.set.Set()
         set.add("first")
         set.add("first")
         self.assertEquals(1, len(set))
-
 
     def test_remove_existing_element_from_single_element_set(self):
         set = tala.model.set.Set(["first"])

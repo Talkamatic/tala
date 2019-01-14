@@ -50,13 +50,13 @@ class Set:
                 return False
         return True
 
-
     def _typecheck(self, element):
         if self.contentclass:
             if not isinstance(element, self.contentclass):
-                raise TypeError("object " + unicode(element) + " of type "
-                                + element.__class__.__name__ +
-                                " is not of type " + unicode(self.contentclass))
+                raise TypeError(
+                    "object " + unicode(element) + " of type " + element.__class__.__name__ + " is not of type " +
+                    unicode(self.contentclass)
+                )
 
     def __len__(self):
         return len(self.content)

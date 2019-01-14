@@ -47,4 +47,6 @@ class Predicate(OntologySpecificSemanticObject):
         return self.get_name()
 
     def __repr__(self):
-        return "%s%s" % (self.__class__.__name__, (self.name, self.sort, self.feature_of_name, self._multiple_instances))
+        return "%s%s" % (
+            self.__class__.__name__, (self.name, self.sort, self.feature_of_name, self._multiple_instances)
+        )

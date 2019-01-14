@@ -3,7 +3,8 @@ import copy
 from tala.utils.unicodify import unicodify
 
 
-class OpenQueueError(Exception): pass
+class OpenQueueError(Exception):
+    pass
 
 
 class OpenQueue:
@@ -131,8 +132,7 @@ class OpenQueue:
             if len(self) == 1:
                 return self._check_single_element_equality(other)
 
-            elif (self.front_content == other.front_content and
-                  self.back_content == other.back_content):
+            elif (self.front_content == other.front_content and self.back_content == other.back_content):
                 return True
 
         except (AttributeError, TypeError):

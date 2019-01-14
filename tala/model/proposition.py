@@ -6,7 +6,8 @@ from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticO
 from tala.utils.unicodify import unicodify
 
 
-class PropositionsFromDifferentOntologiesException(Exception): pass
+class PropositionsFromDifferentOntologiesException(Exception):
+    pass
 
 
 class Proposition(SemanticObject):
@@ -46,7 +47,7 @@ class Proposition(SemanticObject):
         if self._polarity == Polarity.NEG:
             return "~"
         else:
-            return  ""
+            return ""
 
     def get_type(self):
         return self._type
@@ -182,11 +183,8 @@ class PredicateProposition(PropositionWithSemanticContent):
         self.individual = individual
         self._predicted = predicted
         if individual is not None and individual.getSort() != predicate.getSort():
-            raise OntologyError(
-                ("Sortal mismatch between predicate %s " + 
-                 "(sort %s) and individual %s (sort %s)") %
-                (predicate, predicate.getSort(), individual, 
-                 individual.getSort()))
+            raise OntologyError(("Sortal mismatch between predicate %s " + "(sort %s) and individual %s (sort %s)") %
+                                (predicate, predicate.getSort(), individual, individual.getSort()))
 
     def getPredicate(self):
         return self.predicate
@@ -195,26 +193,28 @@ class PredicateProposition(PropositionWithSemanticContent):
         return self.individual
 
     def is_incompatible_with(self, other):
-        return (self.negate() == other or
-                (self._proposes_other_individual_of_same_predicate(other)
-                 and not self.getPredicate().allows_multiple_instances()) or
-                self._is_feature_of_the_following_negative_proposition(other) or
-                (self._polarity == Polarity.NEG and self._is_feature(other)))
+        return (
+            self.negate() == other or (
+                self._proposes_other_individual_of_same_predicate(other)
+                and not self.getPredicate().allows_multiple_instances()
+            ) or self._is_feature_of_the_following_negative_proposition(other)
+            or (self._polarity == Polarity.NEG and self._is_feature(other))
+        )
 
     def _proposes_other_individual_of_same_predicate(self, other):
-        return (other.is_predicate_proposition() and
-                self.getPredicate() == other.getPredicate() and
-                self.is_positive() and other.is_positive() and
-                self.getArgument() != other.getArgument())
+        return (
+            other.is_predicate_proposition() and self.getPredicate() == other.getPredicate() and self.is_positive()
+            and other.is_positive() and self.getArgument() != other.getArgument()
+        )
 
     def _is_feature_of_the_following_negative_proposition(self, other):
-        return (other.is_predicate_proposition() and
-                self.predicate.is_feature_of(other.getPredicate()) and
-                other.get_polarity() == Polarity.NEG)
+        return (
+            other.is_predicate_proposition() and self.predicate.is_feature_of(other.getPredicate())
+            and other.get_polarity() == Polarity.NEG
+        )
 
     def _is_feature(self, answer):
-        return (answer.is_predicate_proposition() and
-                answer.getPredicate().is_feature_of(self.predicate))
+        return (answer.is_predicate_proposition() and answer.getPredicate().is_feature_of(self.predicate))
 
     def __eq__(self, other):
         try:
@@ -232,12 +232,9 @@ class PredicateProposition(PropositionWithSemanticContent):
 
     def __unicode__(self):
         if self.individual is None:
-            return "%s%s" % (self.get_polarity_prefix_string(),
-                             unicode(self.predicate))
+            return "%s%s" % (self.get_polarity_prefix_string(), unicode(self.predicate))
         else:
-            return "%s%s(%s)" % (self.get_polarity_prefix_string(),
-                                 unicode(self.predicate),
-                                 unicode(self.individual))
+            return "%s%s(%s)" % (self.get_polarity_prefix_string(), unicode(self.predicate), unicode(self.individual))
 
     def __hash__(self):
         return hash((self.predicate, self.individual, self.get_polarity()))
@@ -277,10 +274,7 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, service_action, arguments, polarity=None):
         self.service_action = service_action
         self._arguments = arguments
-        self._hash = hash((ontology_name,
-                           polarity,
-                           service_action,
-                           frozenset(arguments)))
+        self._hash = hash((ontology_name, polarity, service_action, frozenset(arguments)))
         Proposition.__init__(self, Proposition.PRECONFIRMATION, polarity)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
@@ -295,13 +289,12 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_preconfirmation_proposition() and
-                    other.ontology_name == self.ontology_name and
-                    other.get_type() == self.get_type() and
-                    other.get_service_action() == self.get_service_action() and
-                    other.get_polarity() == self.get_polarity() and
-                    other.get_arguments() == self.get_arguments())
+            return (
+                other.is_proposition() and other.is_preconfirmation_proposition()
+                and other.ontology_name == self.ontology_name and other.get_type() == self.get_type()
+                and other.get_service_action() == self.get_service_action()
+                and other.get_polarity() == self.get_polarity() and other.get_arguments() == self.get_arguments()
+            )
         except AttributeError:
             return False
 
@@ -309,9 +302,9 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
         return not (self == other)
 
     def __unicode__(self):
-        return "%spreconfirmed(%s, %s)" % (self.get_polarity_prefix_string(),
-                                           unicode(self.service_action),
-                                           unicodify(self._arguments))
+        return "%spreconfirmed(%s, %s)" % (
+            self.get_polarity_prefix_string(), unicode(self.service_action), unicodify(self._arguments)
+        )
 
     def __hash__(self):
         return self._hash
@@ -335,12 +328,12 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_prereport_proposition() and
-                    other.ontology_name == self.ontology_name and
-                    other.get_service_action() == self.get_service_action() and
-                    other.get_polarity() == self.get_polarity() and
-                    other.argument_set == self.argument_set)
+            return (
+                other.is_proposition() and other.is_prereport_proposition()
+                and other.ontology_name == self.ontology_name
+                and other.get_service_action() == self.get_service_action()
+                and other.get_polarity() == self.get_polarity() and other.argument_set == self.argument_set
+            )
         except AttributeError:
             return False
 
@@ -351,8 +344,7 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
         return hash((self.ontology_name, self.service_action, self.argument_set))
 
     def __unicode__(self):
-        return "prereported(%s, %s)" % (unicode(self.service_action),
-                                        unicode(self.get_arguments()))
+        return "prereported(%s, %s)" % (unicode(self.service_action), unicode(self.get_arguments()))
 
 
 class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticObject):
@@ -370,11 +362,12 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_service_action_terminated_proposition() and
-                    other.ontology_name == self.ontology_name and
-                    other.get_service_action() == self.get_service_action() and
-                    other.get_polarity() == self.get_polarity())
+            return (
+                other.is_proposition() and other.is_service_action_terminated_proposition()
+                and other.ontology_name == self.ontology_name
+                and other.get_service_action() == self.get_service_action()
+                and other.get_polarity() == self.get_polarity()
+            )
         except AttributeError:
             return False
 
@@ -386,7 +379,8 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
 
     def __repr__(self):
         return "%s(%r, %r, %r)" % (
-            self.__class__.__name__, self.ontology_name, self.service_action, self.get_polarity())
+            self.__class__.__name__, self.ontology_name, self.service_action, self.get_polarity()
+        )
 
 
 class PredictedProposition(PropositionWithSemanticContent):
@@ -398,15 +392,15 @@ class PredictedProposition(PropositionWithSemanticContent):
         return self.predicted_proposition
 
     def __unicode__(self):
-        return "%spredicted(%s)" % (self.get_polarity_prefix_string(), 
-                                    self.predicted_proposition)
+        return "%spredicted(%s)" % (self.get_polarity_prefix_string(), self.predicted_proposition)
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_predicted_proposition() and
-                    other.predicted_proposition == self.predicted_proposition and
-                    other.get_polarity() == self.get_polarity())
+            return (
+                other.is_proposition() and other.is_predicted_proposition()
+                and other.predicted_proposition == self.predicted_proposition
+                and other.get_polarity() == self.get_polarity()
+            )
         except AttributeError:
             return False
 
@@ -449,11 +443,11 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_service_result_proposition() and
-                    other.get_service_action() == self.get_service_action() and
-                    other.get_arguments() == self.get_arguments() and
-                    other.get_result() == self.get_result())
+            return (
+                other.is_proposition() and other.is_service_result_proposition()
+                and other.get_service_action() == self.get_service_action()
+                and other.get_arguments() == self.get_arguments() and other.get_result() == self.get_result()
+            )
         except AttributeError:
             return False
 
@@ -461,12 +455,10 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
         return not (self == other)
 
     def __unicode__(self):
-        return "ServiceResultProposition(%s, %s, %s)" % (
-            self.service_action, unicodify(self.arguments), self.result)
+        return "ServiceResultProposition(%s, %s, %s)" % (self.service_action, unicodify(self.arguments), self.result)
 
     def __hash__(self):
-        return hash((self.get_service_action(),
-                     self.get_result()))
+        return hash((self.get_service_action(), self.get_result()))
 
 
 class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObject):
@@ -478,11 +470,11 @@ class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObjec
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_service_action_started_proposition() and
-                    other.ontology_name == self.ontology_name and
-                    other.service_action == self.service_action and
-                    other.get_polarity() == self.get_polarity())
+            return (
+                other.is_proposition() and other.is_service_action_started_proposition()
+                and other.ontology_name == self.ontology_name and other.service_action == self.service_action
+                and other.get_polarity() == self.get_polarity()
+            )
         except AttributeError:
             return False
 
@@ -509,26 +501,24 @@ class RejectedPropositions(PropositionWithSemanticContent):
     def __unicode__(self):
         if self.reason_for_rejection:
             return "%srejected(%s, %s)" % (
-                self.get_polarity_prefix_string(),
-                self.rejected_combination,
-                self.reason_for_rejection)
+                self.get_polarity_prefix_string(), self.rejected_combination, self.reason_for_rejection
+            )
         else:
-            return "%srejected(%s)" % (self.get_polarity_prefix_string(),
-                                       unicode(self.rejected_combination))
+            return "%srejected(%s)" % (self.get_polarity_prefix_string(), unicode(self.rejected_combination))
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_rejected_proposition() and
-                    other.get_rejected_combination() == self.get_rejected_combination() and
-                    other.get_reason() == self.get_reason() and
-                    other.get_polarity() == self.get_polarity())
+            return (
+                other.is_proposition() and other.is_rejected_proposition()
+                and other.get_rejected_combination() == self.get_rejected_combination()
+                and other.get_reason() == self.get_reason() and other.get_polarity() == self.get_polarity()
+            )
         except AttributeError:
             return False
-        
 
     def __ne__(self, other):
         return not (self == other)
+
 
 class PropositionSet(Proposition):
     def __init__(self, propositions, polarity=Polarity.POS):
@@ -569,10 +559,10 @@ class PropositionSet(Proposition):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_proposition_set() and
-                    self.get_polarity() == other.get_polarity() and
-                    self.get_propositions() == other.get_propositions())
+            return (
+                other.is_proposition() and other.is_proposition_set() and self.get_polarity() == other.get_polarity()
+                and self.get_propositions() == other.get_propositions()
+            )
         except AttributeError:
             return False
 
@@ -580,8 +570,7 @@ class PropositionSet(Proposition):
         return not (self == other)
 
     def __unicode__(self):
-        return "%sset(%s)" % (self.get_polarity_prefix_string(),
-                              self.unicode_propositions())
+        return "%sset(%s)" % (self.get_polarity_prefix_string(), self.unicode_propositions())
 
     def __repr__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self._propositions, self._polarity)
@@ -621,6 +610,7 @@ class PropositionSet(Proposition):
     def has_semantic_content(self):
         return True
 
+
 class UnderstandingProposition(PropositionWithSemanticContent):
     def __init__(self, speaker, content, polarity=Polarity.POS):
         PropositionWithSemanticContent.__init__(self, Proposition.UNDERSTANDING, content, polarity=polarity)
@@ -638,10 +628,10 @@ class UnderstandingProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_understanding_proposition() and
-                    self.get_speaker() == other.get_speaker() and
-                    self.get_content() == other.get_content())
+            return (
+                other.is_proposition() and other.is_understanding_proposition()
+                and self.get_speaker() == other.get_speaker() and self.get_content() == other.get_content()
+            )
         except AttributeError:
             return False
 
@@ -665,9 +655,9 @@ class ResolvednessProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_resolvedness_proposition() and
-                    other.get_issue() == self.get_issue())
+            return (
+                other.is_proposition() and other.is_resolvedness_proposition() and other.get_issue() == self.get_issue()
+            )
         except AttributeError:
             return False
 

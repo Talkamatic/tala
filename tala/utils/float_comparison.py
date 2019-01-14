@@ -10,4 +10,4 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     :param abs_tol: Minimum absolute tolerance level.
     :return: True if a and b are within at least one of the relative or the absolute tolerances. False otherwise.
     """
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)

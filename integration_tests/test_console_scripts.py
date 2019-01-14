@@ -54,11 +54,7 @@ class ConsoleScriptTestCase(TempDirTestCase):
         console_script.main(args)
 
     def _run_command(self, command_line):
-        self._process = subprocess.Popen(
-            command_line,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True)
+        self._process = subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         return self._process.communicate()
 
     def _then_stderr_contains_constructive_error_message_for_missing_backend_config(self, config_path):
@@ -72,10 +68,7 @@ class ConsoleScriptTestCase(TempDirTestCase):
         assert re.search(pattern, self._stderr) is not None
 
     def _given_config_overrides_missing_parent(self, path):
-        self._replace_in_file(
-            path,
-            '"overrides": null',
-            '"overrides": "missing_parent.json"')
+        self._replace_in_file(path, '"overrides": null', '"overrides": "missing_parent.json"')
 
     def _replace_in_file(self, path, old, new):
         with path.open() as f:
@@ -157,9 +150,10 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     @pytest.mark.parametrize(
         "ConfigClass,command", [
             (BackendConfig, "create-backend-config"),
-            (DddConfig,     "create-ddd-config"),
-            (RasaConfig,    "create-rasa-config"),
-        ])
+            (DddConfig, "create-ddd-config"),
+            (RasaConfig, "create-rasa-config"),
+        ]
+    )
     def test_create_config_without_path(self, ConfigClass, command):
         self._when_running_command("tala {}".format(command))
         self._then_config_contains_defaults(ConfigClass, ConfigClass.default_name())
@@ -172,9 +166,10 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     @pytest.mark.parametrize(
         "ConfigClass,command", [
             (BackendConfig, "create-backend-config"),
-            (DddConfig,     "create-ddd-config"),
-            (RasaConfig,    "create-rasa-config"),
-        ])
+            (DddConfig, "create-ddd-config"),
+            (RasaConfig, "create-rasa-config"),
+        ]
+    )
     def test_create_config_with_path(self, ConfigClass, command):
         self._when_running_command("tala {} --filename my_ddd.config.json".format(command))
         self._then_config_contains_defaults(ConfigClass, "my_ddd.config.json")
@@ -182,24 +177,25 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     @pytest.mark.parametrize(
         "name,command", [
             ("backend", "create-backend-config"),
-            ("DDD",     "create-ddd-config"),
-            ("RASA",    "create-rasa-config"),
-        ])
+            ("DDD", "create-ddd-config"),
+            ("RASA", "create-rasa-config"),
+        ]
+    )
     def test_exception_raised_if_config_file_already_exists(self, name, command):
         self._given_config_was_created_with([command, "--filename", "test.config.json"])
         self._when_running_command("tala {} --filename test.config.json".format(command))
         self._then_stderr_contains(
-            "Expected to be able to create {} config file 'test.config.json' but it already exists.".format(name))
+            "Expected to be able to create {} config file 'test.config.json' but it already exists.".format(name)
+        )
 
     def _given_config_was_created_with(self, arguments):
         self._run_tala_with(arguments)
 
-    @pytest.mark.parametrize(
-        "command", [
-            "create-backend-config",
-            "create-ddd-config",
-            "create-rasa-config",
-        ])
+    @pytest.mark.parametrize("command", [
+        "create-backend-config",
+        "create-ddd-config",
+        "create-rasa-config",
+    ])
     def test_config_file_not_overwritten(self, command):
         self._given_file_contains("test.config.json", "unmodified_mock_content")
         self._when_running_command("tala {} --filename test.config.json".format(command))
@@ -253,11 +249,13 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         self._given_created_ddd_in_a_target_dir()
         with self._given_changed_directory_to_target_dir():
             self._when_running_command("tala verify")
-        self._then_stdout_matches("^Verifying models for DDD 'test_ddd'.\n"
-                                  "\[eng\] Verifying grammar.\n"
-                                  "\[eng\] Finished verifying grammar.\n"
-                                  "\[eng\] RASA NLU is disabled, skipping its grammar verification.\n"
-                                  "Finished verifying models for DDD 'test_ddd'.\n$")
+        self._then_stdout_matches(
+            "^Verifying models for DDD 'test_ddd'.\n"
+            "\[eng\] Verifying grammar.\n"
+            "\[eng\] Finished verifying grammar.\n"
+            "\[eng\] RASA NLU is disabled, skipping its grammar verification.\n"
+            "Finished verifying models for DDD 'test_ddd'.\n$"
+        )
 
     def _then_stdout_matches(self, expected_pattern):
         assert re.match(expected_pattern, self._stdout) is not None, \
@@ -270,21 +268,20 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         with self._given_changed_directory_to_target_dir():
             self._given_rasa_config_created()
             self._when_running_command("tala verify")
-        self._then_stdout_matches("^Verifying models for DDD 'test_ddd'.\n"
-                                  "\[eng\] Verifying grammar.\n"
-                                  "\[eng\] Finished verifying grammar.\n"
-                                  "\[eng\] Verifying grammar for RASA NLU.\n"
-                                  "\[eng\] Finished verifying grammar for RASA NLU.\n"
-                                  "Finished verifying models for DDD 'test_ddd'.\n$")
+        self._then_stdout_matches(
+            "^Verifying models for DDD 'test_ddd'.\n"
+            "\[eng\] Verifying grammar.\n"
+            "\[eng\] Finished verifying grammar.\n"
+            "\[eng\] Verifying grammar for RASA NLU.\n"
+            "\[eng\] Finished verifying grammar for RASA NLU.\n"
+            "Finished verifying models for DDD 'test_ddd'.\n$"
+        )
 
     def _given_rasa_config_created(self):
         self._run_tala_with(["create-rasa-config"])
 
     def _given_enabled_rasa(self):
-        self._replace_in_file(
-            Path(DddConfig.default_name()),
-            '"enable_rasa_nlu": false',
-            '"enable_rasa_nlu": true')
+        self._replace_in_file(Path(DddConfig.default_name()), '"enable_rasa_nlu": false', '"enable_rasa_nlu": true')
 
     def test_stderr_when_verifying_boilerplate_ddd(self):
         self._given_created_ddd_in_a_target_dir()
@@ -308,13 +305,16 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         self._then_stderr_matches_only(
             format_regular_expression_as_warning(
                 "UserWarning: The support for RASA NLU is still in BETA. Talk gently. "
-                "It is currently enabled in DDD 'test_ddd'.\n"))
+                "It is currently enabled in DDD 'test_ddd'.\n"
+            )
+        )
 
     def _then_stderr_matches_only(self, pattern):
         expected_pattern = "^{}$".format(pattern)
         match = re.match(expected_pattern, self._stderr)
-        assert match is not None, "Expected pattern {!r} to match stderr {!r} but it didn't".format(expected_pattern,
-                                                                                                    self._stderr)
+        assert match is not None, "Expected pattern {!r} to match stderr {!r} but it didn't".format(
+            expected_pattern, self._stderr
+        )
 
     def test_verify_creates_no_build_folders(self):
         self._given_created_ddd_in_a_target_dir()
@@ -356,6 +356,8 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             self._given_schema_violation_in_ontology()
         with self._given_changed_directory_to_target_dir():
             self._when_running_command("tala verify")
-        self._then_stderr_contains("Expected ontology.xml compliant with schema but it's in violation: "
-                                   "Element 'hello': "
-                                   "No matching global declaration available for the validation root., line 2")
+        self._then_stderr_contains(
+            "Expected ontology.xml compliant with schema but it's in violation: "
+            "Element 'hello': "
+            "No matching global declaration available for the validation root., line 2"
+        )

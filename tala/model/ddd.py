@@ -1,13 +1,5 @@
 class DDD(object):
-    def __init__(self,
-                 name,
-                 ontology,
-                 domain,
-                 is_rasa_enabled,
-                 service_interface,
-                 grammars,
-                 language_codes,
-                 use_rgl):
+    def __init__(self, name, ontology, domain, is_rasa_enabled, service_interface, grammars, language_codes, use_rgl):
         self._name = name
         self._ontology = ontology
         self._domain = domain
@@ -51,9 +43,10 @@ class DDD(object):
 
     def __repr__(self):
         return "%s(%s)" % (
-            self.__class__.__name__,
-            (self.name, self.ontology, self.domain, self.is_rasa_enabled, self.service_interface, self.grammars,
-             self.language_codes, self.use_rgl)
+            self.__class__.__name__, (
+                self.name, self.ontology, self.domain, self.is_rasa_enabled, self.service_interface, self.grammars,
+                self.language_codes, self.use_rgl
+            )
         )
 
     def __eq__(self, other):

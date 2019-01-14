@@ -9,7 +9,6 @@ from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
 
-
 BOOLEAN = "boolean"
 INTEGER = "integer"
 DATETIME = "datetime"
@@ -70,8 +69,7 @@ class Sort(SemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.get_name() == self.get_name() and
-                    other.is_dynamic() == self.is_dynamic())
+            return (other.get_name() == self.get_name() and other.is_dynamic() == self.is_dynamic())
         except AttributeError:
             return False
 
@@ -90,7 +88,8 @@ class BuiltinSort(Sort):
         return value
 
 
-class InvalidValueException(Exception): pass
+class InvalidValueException(Exception):
+    pass
 
 
 class RealSort(BuiltinSort):
@@ -101,8 +100,7 @@ class RealSort(BuiltinSort):
         try:
             return float(value)
         except (ValueError, AttributeError, TypeError):
-            raise InvalidValueException(
-                "Expected a real-number value but got '%s'." % value)
+            raise InvalidValueException("Expected a real-number value but got '%s'." % value)
 
 
 class IntegerSort(BuiltinSort):
@@ -125,7 +123,8 @@ class StringSort(BuiltinSort):
             return value
         else:
             raise InvalidValueException(
-                "Expected a string value but got %s of type %s." % (value, value.__class__.__name__))
+                "Expected a string value but got %s of type %s." % (value, value.__class__.__name__)
+            )
 
 
 class ImageSort(BuiltinSort):
@@ -202,8 +201,8 @@ class DateTimeSort(BuiltinSort):
                 iso8601.parse_date(value.iso8601_string)
             except iso8601.ParseError:
                 raise InvalidValueException(
-                    "Expected a datetime value in ISO 8601 format but got '%s'." %
-                    value.iso8601_string)
+                    "Expected a datetime value in ISO 8601 format but got '%s'." % value.iso8601_string
+                )
             return value
         else:
             raise InvalidValueException("Expected a datetime object but got '%s'." % value)
@@ -233,7 +232,8 @@ class BuiltinSortRepository(object):
         STRING: StringSort(),
         IMAGE: ImageSort(),
         DOMAIN: DomainSort(),
-        WEBVIEW: WebviewSort()}
+        WEBVIEW: WebviewSort()
+    }
 
     @classmethod
     def has_sort(cls, name):
@@ -247,4 +247,5 @@ class BuiltinSortRepository(object):
             raise UndefinedSort("Expected a built-in sort but got '%s'." % name)
 
 
-class UndefinedSort(Exception): pass
+class UndefinedSort(Exception):
+    pass

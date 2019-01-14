@@ -21,6 +21,7 @@ class YesTestCase(unittest.TestCase):
     def test_yes_is_positive(self):
         self.assertTrue(Yes().is_positive())
 
+
 class NoTestCase(unittest.TestCase):
     def test_is_no(self):
         self.when_created_no()

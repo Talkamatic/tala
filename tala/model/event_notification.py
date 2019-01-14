@@ -10,8 +10,8 @@ class EventNotification(object):
     def __init__(self, action, status, parameters):
         if status not in self.SUPPORTED_STATUSES:
             raise EventNotificationException(
-                "Expected status to be one of %s but got '%s'." % (
-                    self.SUPPORTED_STATUSES, status))
+                "Expected status to be one of %s but got '%s'." % (self.SUPPORTED_STATUSES, status)
+            )
         self._action = action
         self._status = status
         self._parameters = parameters
@@ -37,5 +37,4 @@ class EventNotification(object):
         return not (self == other)
 
     def __unicode__(self):
-        return "EventNotification(%r, %r, %r)" % (
-            self._action, self._status, self._parameters)
+        return "EventNotification(%r, %r, %r)" % (self._action, self._status, self._parameters)

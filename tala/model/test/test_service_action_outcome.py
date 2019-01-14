@@ -41,18 +41,13 @@ class ServiceActionOutcomeTests(unittest.TestCase):
         self.assertNotEqual(SuccessfulServiceAction(), "non_service_action_outcome")
 
     def test_failed_service_action_equals_failed_service_action_with_same_failure_reason(self):
-        self.assertEquals(
-            FailedServiceAction("mock_failure_reason"),
-            FailedServiceAction("mock_failure_reason"))
+        self.assertEquals(FailedServiceAction("mock_failure_reason"), FailedServiceAction("mock_failure_reason"))
 
     def test_failed_service_action_not_equals_failed_service_action_with_other_failure_reason(self):
-        self.assertNotEqual(
-            FailedServiceAction("mock_failure_reason_1"),
-            FailedServiceAction("mock_failure_reason_2"))
+        self.assertNotEqual(FailedServiceAction("mock_failure_reason_1"), FailedServiceAction("mock_failure_reason_2"))
 
     def test_failed_service_action_not_equals_non_service_action_outcome(self):
-        self.assertNotEqual(
-            FailedServiceAction("mock_failure_reason"), "non_service_action_outcome")
+        self.assertNotEqual(FailedServiceAction("mock_failure_reason"), "non_service_action_outcome")
 
     def test_successful_service_action_not_equals_failed_service_action(self):
         self.assertNotEqual(SuccessfulServiceAction(), FailedServiceAction("mock_failure_reason"))
@@ -65,10 +60,8 @@ class ServiceActionOutcomeTests(unittest.TestCase):
 
     def test_failed_service_action_repr(self):
         self.assertEquals(
-            "FailedServiceAction('mock_failure_reason')",
-            repr(FailedServiceAction("mock_failure_reason")))
+            "FailedServiceAction('mock_failure_reason')", repr(FailedServiceAction("mock_failure_reason"))
+        )
 
     def test_failed_service_action_str(self):
-        self.assertEquals(
-            "FailedServiceAction(mock_failure_reason)",
-            str(FailedServiceAction("mock_failure_reason")))
+        self.assertEquals("FailedServiceAction(mock_failure_reason)", str(FailedServiceAction("mock_failure_reason")))

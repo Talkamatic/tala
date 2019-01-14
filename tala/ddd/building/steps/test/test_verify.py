@@ -72,8 +72,9 @@ class TestVerifyStepsForGFGeneration(object):
     def _given_step_created(self, VerifyStep):
         ignore_warnings = True
         verbose = False
-        self._verify_step = VerifyStep(self._mock_ddd, ignore_warnings, self._language_codes,
-                                       verbose, self._ddd_name, "grammar")
+        self._verify_step = VerifyStep(
+            self._mock_ddd, ignore_warnings, self._language_codes, verbose, self._ddd_name, "grammar"
+        )
 
     def _when_calling_build(self):
         self._verify_step.build()

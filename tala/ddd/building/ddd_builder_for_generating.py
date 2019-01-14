@@ -5,21 +5,20 @@ from tala.ddd.building.supported_asrs import SUPPORTED_ASRS
 from tala.utils import chdir
 
 
-class DDDsNotSpecifiedException(Exception): pass
+class DDDsNotSpecifiedException(Exception):
+    pass
 
 
-class DDDNotFoundException(Exception): pass
+class DDDNotFoundException(Exception):
+    pass
 
 
-class UnexpectedASRException(Exception): pass
+class UnexpectedASRException(Exception):
+    pass
 
 
 class DDDBuilderForGenerating(object):
-    def __init__(self,
-                 backend_dependencies,
-                 verbose=False,
-                 ignore_warnings=False,
-                 language_codes=None):
+    def __init__(self, backend_dependencies, verbose=False, ignore_warnings=False, language_codes=None):
         super(DDDBuilderForGenerating, self).__init__()
         self._verbose = verbose
         self._ignore_warnings = ignore_warnings
@@ -28,7 +27,8 @@ class DDDBuilderForGenerating(object):
 
         if self._backend_dependencies.asr not in SUPPORTED_ASRS:
             raise UnexpectedASRException(
-                "Expected ASR as one of %s but got %r" % (SUPPORTED_ASRS, self._backend_dependencies.asr))
+                "Expected ASR as one of %s but got %r" % (SUPPORTED_ASRS, self._backend_dependencies.asr)
+            )
 
         if not self._backend_dependencies.ddds:
             raise DDDsNotSpecifiedException("Expected DDDs to be specified in the backend config, but found none.")

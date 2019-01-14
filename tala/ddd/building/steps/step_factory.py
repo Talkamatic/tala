@@ -18,7 +18,8 @@ class AbstractStepFactory(object):
         self._grammar_directory = "grammar"
         grammar_path = Path.cwd() / self._ddd.name / self._grammar_directory
         self._has_handcrafted_gf_grammar = any(
-            utils.has_handcrafted_gf_grammar(self._ddd.name, lang, str(grammar_path)) for lang in self._language_codes)
+            utils.has_handcrafted_gf_grammar(self._ddd.name, lang, str(grammar_path)) for lang in self._language_codes
+        )
 
         self._ddd_root_directory = Path.cwd() / self._ddd.name
 
@@ -40,11 +41,7 @@ class AbstractStepFactory(object):
 
     def _create(self, class_):
         return class_(
-            self._ddd,
-            self._ignore_warnings,
-            self._language_codes,
-            self._verbose,
-            str(self._ddd_root_directory),
+            self._ddd, self._ignore_warnings, self._language_codes, self._verbose, str(self._ddd_root_directory),
             self._grammar_directory
         )
 

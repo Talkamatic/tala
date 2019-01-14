@@ -33,8 +33,7 @@ class TestStepFactories(object):
 
     @patch("{}.utils".format(step_factory.__name__), autospec=True)
     @patch("{}.VerifyStepForGFGeneration".format(step_factory.__name__), autospec=True)
-    def test_created_verification_step_is_returned(
-            self, MockVerificationStepForGFGeneration, mocked_utils):
+    def test_created_verification_step_is_returned(self, MockVerificationStepForGFGeneration, mocked_utils):
         self._given_ddd_name("app")
         self._given_mocked_ddd(use_rgl=False)
         self._given_file_exists("app/grammar/grammar_eng.py")
@@ -89,10 +88,12 @@ class TestStepFactories(object):
         self._when_creating_step()
         self._then_step_is_returned(MockGenerationStepForGFGeneration)
 
-    @pytest.mark.parametrize("StepFactory,ExpectedStep", [
-        (VerifyStepFactory, VerifyStepForGFGeneration),
-        (GenerateStepFactory, GenerateStepForGFGeneration),
-    ])
+    @pytest.mark.parametrize(
+        "StepFactory,ExpectedStep", [
+            (VerifyStepFactory, VerifyStepForGFGeneration),
+            (GenerateStepFactory, GenerateStepForGFGeneration),
+        ]
+    )
     @patch("{}.utils".format(step_factory.__name__), autospec=True)
     def test_creating_step_for_gf_generation(self, mocked_utils, StepFactory, ExpectedStep):
         self._given_ddd_name("app")
@@ -111,10 +112,12 @@ class TestStepFactories(object):
     def _then_step_is_created_with_expected_parameters(self, MockExpectedStep):
         MockExpectedStep.assert_called_once_with(self._mock_ddd, False, self._language_codes, False, ANY, "grammar")
 
-    @pytest.mark.parametrize("StepFactory,ExpectedStep", [
-        (VerifyStepFactory, VerifyStepForGFRGLGeneration),
-        (GenerateStepFactory, GenerateStepForGFRGLGeneration),
-    ])
+    @pytest.mark.parametrize(
+        "StepFactory,ExpectedStep", [
+            (VerifyStepFactory, VerifyStepForGFRGLGeneration),
+            (GenerateStepFactory, GenerateStepForGFRGLGeneration),
+        ]
+    )
     @patch("{}.utils".format(step_factory.__name__), autospec=True)
     def test_verify_creates_step_for_gf_rgl_generation(self, mocked_utils, StepFactory, ExpectedStep):
         self._given_ddd_name("app")
@@ -127,10 +130,12 @@ class TestStepFactories(object):
             self._when_creating_step()
             self._then_step_is_created_with_expected_parameters(MockExpectedStep)
 
-    @pytest.mark.parametrize("StepFactory,ExpectedStep", [
-        (VerifyStepFactory, VerifyStepForHandcraftedGFFiles),
-        (GenerateStepFactory, GenerateStepForHandcraftedGFFiles),
-    ])
+    @pytest.mark.parametrize(
+        "StepFactory,ExpectedStep", [
+            (VerifyStepFactory, VerifyStepForHandcraftedGFFiles),
+            (GenerateStepFactory, GenerateStepForHandcraftedGFFiles),
+        ]
+    )
     @patch("{}.utils".format(step_factory.__name__), autospec=True)
     def test_verify_creates_step_for_handcrafted_grammar(self, mocked_utils, StepFactory, ExpectedStep):
         self._given_ddd_name("app")

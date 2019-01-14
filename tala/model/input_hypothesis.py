@@ -19,8 +19,7 @@ class InputHypothesis(object):
         return not (self == other)
 
     def __unicode__(self):
-        return "InputHypothesis(%r, %r)" % (
-            self._utterance, self._confidence)
+        return "InputHypothesis(%r, %r)" % (self._utterance, self._confidence)
 
     def __str__(self):
         return unicode(self).encode("utf-8")

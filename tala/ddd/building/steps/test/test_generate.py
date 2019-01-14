@@ -57,8 +57,9 @@ class TestAbstractGenerateStep(object):
     def _given_generate_step_created(self):
         ignore_warnings = True
         verbose = False
-        self._generate_step = AbstractGenerateStep(self._mock_ddd, ignore_warnings, self._language_codes,
-                                                   verbose, self._ddd_name, "grammar")
+        self._generate_step = AbstractGenerateStep(
+            self._mock_ddd, ignore_warnings, self._language_codes, verbose, self._ddd_name, "grammar"
+        )
 
     def _given_mocked_generate_grammars_method(self):
         self._generate_step._generate_grammars = Mock()

@@ -25,7 +25,8 @@ class ValidationResultTests(TestBase):
     def test_creation(self):
         self.given_created_object()
         self.when_accessing_is_successful_then_exception_is_raised_matching(
-            NotImplementedError, "This property needs to be implemented in a subclass")
+            NotImplementedError, "This property needs to be implemented in a subclass"
+        )
 
     def given_created_object(self):
         self._validation_object = ValidationResult()

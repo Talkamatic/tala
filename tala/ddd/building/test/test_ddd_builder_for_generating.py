@@ -64,8 +64,7 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
 
     def _given_ddds_builder_created(self):
         self._ddds_builder = DDDBuilderForGenerating(
-            self._mocked_backend_dependencies,
-            language_codes=self._language_codes
+            self._mocked_backend_dependencies, language_codes=self._language_codes
         )
 
     def _given_asr(self, asr):

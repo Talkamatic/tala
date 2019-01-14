@@ -19,6 +19,7 @@ class BackendDependenciesBase(object):
     def given_mock_ddd_set_loader(self, MockDddSetLoader):
         def mock_ddds_as_list(ddd_names, path=".", *args, **kwargs):
             return [self._get_ddd(name) for name in ddd_names]
+
         mock_ddd_set_loader = MockDddSetLoader.return_value
         mock_ddd_set_loader.ddds_as_list.side_effect = mock_ddds_as_list
 
@@ -48,6 +49,7 @@ class BackendDependenciesBase(object):
     def given_mocked_ontology_has_predicates_of_sort(self, ddd, expected_sort):
         def return_true_for_expected_sort(actual_sort):
             return actual_sort == expected_sort
+
         self._get_ddd(ddd).ontology.predicates_contain_sort.side_effect = return_true_for_expected_sort
 
     def _create_backend_dependencies(self):

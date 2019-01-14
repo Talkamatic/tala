@@ -5,8 +5,12 @@ from tala.ddd.loading.ddd_loader import DDDLoader
 from tala.utils.chdir import chdir
 
 
-class DddNotFoundException(Exception): pass
-class OverriddenDddConfigNotFoundException(Exception): pass
+class DddNotFoundException(Exception):
+    pass
+
+
+class OverriddenDddConfigNotFoundException(Exception):
+    pass
 
 
 class DDDSetLoader(object):
@@ -19,8 +23,9 @@ class DDDSetLoader(object):
         for overridden_config in self._overridden_ddd_configs:
             if not os.path.exists(overridden_config.ddd_name):
                 raise DddNotFoundException(
-                    "Expected overridden DDD '%s' to exist in the working directory '%s', but it doesn't." % (
-                        overridden_config.ddd_name, os.getcwd()))
+                    "Expected overridden DDD '%s' to exist in the working directory '%s', but it doesn't." %
+                    (overridden_config.ddd_name, os.getcwd())
+                )
 
     def _validate_that_configs_in_overridden_ddd_configs_exist(self):
         for overridden_config in self._overridden_ddd_configs:
@@ -29,8 +34,9 @@ class DDDSetLoader(object):
                     DddConfig(overridden_config.path).read()
                 except DddConfigNotFoundException:
                     raise OverriddenDddConfigNotFoundException(
-                        "Expected DDD config '%s' to exist in DDD '%s' but it was not found." % (
-                            overridden_config.path, overridden_config.ddd_name))
+                        "Expected DDD config '%s' to exist in DDD '%s' but it was not found." %
+                        (overridden_config.path, overridden_config.ddd_name)
+                    )
 
     def ddds_as_list(self, ddds, path=".", *args, **kwargs):
         with chdir(path):

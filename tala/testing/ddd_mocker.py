@@ -83,11 +83,9 @@ class MockupDevice(DddDevice):
 """
         self.create_mockup_file(path, content)
 
-    def _given_mocked_ddd_config(self,
-                                 use_rgl=False,
-                                 use_third_party_parser=False,
-                                 device_module="device.py",
-                                 enable_rasa_nlu=False):
+    def _given_mocked_ddd_config(
+        self, use_rgl=False, use_third_party_parser=False, device_module="device.py", enable_rasa_nlu=False
+    ):
         default_config = DddConfig.default_config()
         overrides = {
             "use_rgl": use_rgl,

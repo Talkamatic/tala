@@ -18,8 +18,7 @@ class RequiredEntity(object):
         return "%s(%r)" % (self.__class__.__name__, self._name)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self._name == other.name)
+        return bool(isinstance(other, self.__class__) and self._name == other.name)
 
 
 class RequiredSortalEntity(RequiredEntity):

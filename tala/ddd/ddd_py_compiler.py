@@ -11,9 +11,12 @@ from tala.nl.gf.resource import VP as VpClass
 from tala.model.sort import CustomSort, BuiltinSort
 
 
-class DddPyCompilerException(Exception): pass
+class DddPyCompilerException(Exception):
+    pass
+
 
 IDENTITY = lambda x: x
+
 
 class DddPyCompiler:
     def compile_ontology(self, *args, **kwargs):
@@ -28,6 +31,7 @@ class DddPyCompiler:
     def decompile_grammar_node(self, ddd, languages, node):
         return GrammarCompiler().decompile_node(node)
 
+
 class OntologyCompiler:
     def compile(self, description):
         self._ontology_name = description.__name__
@@ -38,7 +42,7 @@ class OntologyCompiler:
             "predicates": self._compile_predicates(description.predicates),
             "individuals": self._compile_individuals(description.individuals),
             "actions": description.actions,
-            }
+        }
 
     def _compile_sorts(self, sorts_description):
         self._sorts_dict = {}
@@ -83,6 +87,7 @@ class OntologyCompiler:
             individuals[individual_name] = sort
         return individuals
 
+
 class DomainCompiler:
     def compile(self, ddd_name, description, ontology, parser):
         self._ddd_name = ddd_name
@@ -100,7 +105,8 @@ class DomainCompiler:
             "plans": self._plans,
             "default_questions": self._default_questions,
             "parameters": self._parameters,
-            "dependencies": self._dependencies}
+            "dependencies": self._dependencies
+        }
 
     def get_name(self, description):
         return description.__name__
@@ -118,8 +124,7 @@ class DomainCompiler:
         self._plan_description = copy.copy(plan_description)
         plan = self._parse_plan_from_description()
         if len(self._plan_description) > 0:
-            raise DddPyCompilerException("unsupported plan descriptor(s): %s" %
-                                               self._plan_description)
+            raise DddPyCompilerException("unsupported plan descriptor(s): %s" % self._plan_description)
         return plan
 
     def _parse_plan_from_description(self):
@@ -127,17 +132,12 @@ class DomainCompiler:
         plan["goal"] = self._compile_goal(self._select_plan_descriptor("goal"))
         plan["plan"] = self._compile_plan(self._select_plan_descriptor("plan"))
         self._compile_plan_single_attribute(plan, "preferred", self._parse_boolean)
-        self._compile_plan_single_attribute(
-            plan, "accommodate_without_feedback", self._parse_boolean)
+        self._compile_plan_single_attribute(plan, "accommodate_without_feedback", self._parse_boolean)
         self._compile_plan_single_attribute(plan, "dynamic_title")
-        self._compile_plan_single_attribute(
-            plan, "postplan", self._compile_plan)
-        self._compile_plan_multi_attribute(
-            plan, "superactions", self._compile_superaction)
-        self._compile_plan_multi_attribute(
-            plan, "gui_context", self._compile_gui_context)
-        self._compile_plan_multi_attribute(
-            plan, "postconds", self._parse)
+        self._compile_plan_single_attribute(plan, "postplan", self._compile_plan)
+        self._compile_plan_multi_attribute(plan, "superactions", self._compile_superaction)
+        self._compile_plan_multi_attribute(plan, "gui_context", self._compile_gui_context)
+        self._compile_plan_multi_attribute(plan, "postconds", self._parse)
         self._compile_plan_single_attribute(plan, "io_status")
         self._compile_plan_single_attribute(plan, "restart_on_completion")
         return plan
@@ -149,32 +149,30 @@ class DomainCompiler:
         else:
             if potential_goal.is_action():
                 raise DddPyCompilerException(
-                    'in %s: "%s" is not a goal. Perhaps you mean "perform(%s)"?' % (
-                        inspect.getsourcefile(self._domain_description), string, string))
+                    'in %s: "%s" is not a goal. Perhaps you mean "perform(%s)"?' %
+                    (inspect.getsourcefile(self._domain_description), string, string)
+                )
             elif potential_goal.is_question():
                 raise DddPyCompilerException(
-                    'in %s: "%s" is not a goal. Perhaps you mean "resolve(%s)"?' % (
-                        inspect.getsourcefile(self._domain_description), string, string))
+                    'in %s: "%s" is not a goal. Perhaps you mean "resolve(%s)"?' %
+                    (inspect.getsourcefile(self._domain_description), string, string)
+                )
             else:
                 raise DddPyCompilerException(
-                    "in %s: Expected goal but found %s (parsed as %s)" % (
-                        inspect.getsourcefile(self._domain_description),
-                        unicode(string), unicode(potential_goal)))
+                    "in %s: Expected goal but found %s (parsed as %s)" %
+                    (inspect.getsourcefile(self._domain_description), unicode(string), unicode(potential_goal))
+                )
 
-    def _compile_plan_single_attribute(self,
-                                       plan, attribute_name,
-                                       compilation_method=IDENTITY):
+    def _compile_plan_single_attribute(self, plan, attribute_name, compilation_method=IDENTITY):
         if attribute_name in self._plan_description:
             attribute = self._select_plan_descriptor(attribute_name)
             plan[attribute_name] = compilation_method(attribute)
 
-    def _compile_plan_multi_attribute(self,
-                                       plan, attribute_name,
-                                       compilation_method=IDENTITY):
+    def _compile_plan_multi_attribute(self, plan, attribute_name, compilation_method=IDENTITY):
         if attribute_name in self._plan_description:
             plan[attribute_name] = map(
-                lambda string: compilation_method(string),
-                self._select_plan_descriptor(attribute_name))
+                lambda string: compilation_method(string), self._select_plan_descriptor(attribute_name)
+            )
 
     def _compile_superaction(self, string):
         return Action(string, self._ontology.get_name())
@@ -228,7 +226,8 @@ class DomainCompiler:
                 self._dependencies[dependent] = others
 
     def _parse(self, string):
-        return self._parser.parse(string) 
+        return self._parser.parse(string)
+
 
 class KeyParser:
     def __init__(self, entry_type, pattern, *conditions):
@@ -268,25 +267,26 @@ class KeyParser:
                 result = result.replace("$", value, 1)
         return result
 
+
 class GrammarCompiler:
     PARAMETER_MAP = {
-        Constants.ACTION_TITLE: ("action",),
-        Constants.ACTION: ("name",),
-        Constants.SYS_ANSWER: ("predicate",),
-        Constants.USER_QUESTION: ("predicate",),
-        Constants.INDIVIDUAL: ("name",),
-        Constants.ISSUE_TITLE: ("predicate",),
-        Constants.VALIDITY: ("name",),
-        Constants.SYS_QUESTION: ("predicate",),
-        Constants.REPORT_STARTED: ("action",),
+        Constants.ACTION_TITLE: ("action", ),
+        Constants.ACTION: ("name", ),
+        Constants.SYS_ANSWER: ("predicate", ),
+        Constants.USER_QUESTION: ("predicate", ),
+        Constants.INDIVIDUAL: ("name", ),
+        Constants.ISSUE_TITLE: ("predicate", ),
+        Constants.VALIDITY: ("name", ),
+        Constants.SYS_QUESTION: ("predicate", ),
+        Constants.REPORT_STARTED: ("action", ),
         Constants.REPORT_FAILED: ("action", "reason"),
-        Constants.REPORT_ENDED: ("action",),
-        Constants.PREREPORT: ("action",),
-        Constants.PREDICATE: ("name",),
-        Constants.PRECONFIRM: ("action",),
-        Constants.POSITIVE_SYS_ANSWER: ("predicate",),
-        Constants.NEGATIVE_SYS_ANSWER: ("predicate",)
-        }
+        Constants.REPORT_ENDED: ("action", ),
+        Constants.PREREPORT: ("action", ),
+        Constants.PREDICATE: ("name", ),
+        Constants.PRECONFIRM: ("action", ),
+        Constants.POSITIVE_SYS_ANSWER: ("predicate", ),
+        Constants.NEGATIVE_SYS_ANSWER: ("predicate", )
+    }
 
     def __init__(self):
         self._key_parsers = {}
@@ -335,7 +335,7 @@ class GrammarCompiler:
         self._ontology = ontology
         self._service_interface = service_interface
         module_dict = dict()
-        exec(string, module_dict)
+        exec (string, module_dict)
         return self._compile_entries_from_dict(module_dict)
 
     def _compile_entries_from_dict(self, module_dict):
@@ -415,8 +415,7 @@ class GrammarCompiler:
         elif isinstance(form_object, (str, unicode)):
             return self._compile_form_string(form_object)
         else:
-            raise DddPyCompilerException(
-                "failed to compile grammar form %r" % form_object)
+            raise DddPyCompilerException("failed to compile grammar form %r" % form_object)
 
     def _compile_one_of(self, obj):
         result = Node(Constants.ONE_OF, {})
@@ -446,23 +445,16 @@ class GrammarCompiler:
         return np_node
 
     def _create_vp_node(self, resource_vp):
-        infinitive_node = Node(Constants.INFINITIVE, {},
-                               [resource_vp.infinitive])
-        imperative_node = Node(Constants.IMPERATIVE, {},
-                               [resource_vp.imperative])
-        ing_form_node = Node(Constants.ING_FORM, {},
-                             [resource_vp.ing_form])
-        object_node = Node(Constants.OBJECT, {},
-                           [resource_vp.object])
-        vp_node = Node(Constants.VP, {}, [infinitive_node, imperative_node,
-                                ing_form_node, object_node])
+        infinitive_node = Node(Constants.INFINITIVE, {}, [resource_vp.infinitive])
+        imperative_node = Node(Constants.IMPERATIVE, {}, [resource_vp.imperative])
+        ing_form_node = Node(Constants.ING_FORM, {}, [resource_vp.ing_form])
+        object_node = Node(Constants.OBJECT, {}, [resource_vp.object])
+        vp_node = Node(Constants.VP, {}, [infinitive_node, imperative_node, ing_form_node, object_node])
         return vp_node
 
     def _compile_form_string(self, string):
         parts = re.split("(<answer:[^<>]+>|<individual>)", string)
-        child_nodes = [self._compile_form_part(part)
-                       for part in parts
-                       if part != ""]
+        child_nodes = [self._compile_form_part(part) for part in parts if part != ""]
         return Node(Constants.ITEM, {}, child_nodes)
 
     def _compile_form_part(self, string):
@@ -477,8 +469,7 @@ class GrammarCompiler:
                 elif self._ontology.has_sort(predicate_or_sort):
                     return Node(Constants.SLOT, {"sort": predicate_or_sort})
                 else:
-                    raise DddPyCompilerException(
-                        "expected predicate or sort but found %r" % predicate_or_sort)
+                    raise DddPyCompilerException("expected predicate or sort but found %r" % predicate_or_sort)
             else:
                 return string
 
@@ -502,8 +493,7 @@ class GrammarCompiler:
             result += "]"
             return result
         else:
-            children_string = "".join([self._decompile_node_value(child)
-                                       for child in node.children])
+            children_string = "".join([self._decompile_node_value(child) for child in node.children])
             if self._children_is_a_one_of(node.children):
                 return children_string
             else:

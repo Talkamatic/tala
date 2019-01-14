@@ -14,17 +14,35 @@ from tala.model.webview import Webview
 from tala.model.date_time import DateTime
 
 
-class IndividualExistsException(Exception): pass
-class SortDoesNotExistException(Exception): pass
-class ActionDoesNotExistException(Exception): pass
-class PredicateDoesNotExistException(Exception): pass
-class InvalidIndividualName(Exception): pass
-class AmbiguousNamesException(Exception): pass
+class IndividualExistsException(Exception):
+    pass
+
+
+class SortDoesNotExistException(Exception):
+    pass
+
+
+class ActionDoesNotExistException(Exception):
+    pass
+
+
+class PredicateDoesNotExistException(Exception):
+    pass
+
+
+class InvalidIndividualName(Exception):
+    pass
+
+
+class AmbiguousNamesException(Exception):
+    pass
+
 
 individual_name_mather = re.compile("^[a-zA-Z0-9_]{1,}$")
 
 
-class DddOntology: pass
+class DddOntology:
+    pass
 
 
 class Ontology(object):
@@ -71,8 +89,7 @@ class Ontology(object):
 
     def _validate_individual_sort(self, name, sort):
         if sort not in self._sorts.values():
-            raise OntologyError("individual '%s' has unknown sort '%s' (%s)" %
-                                (name, sort.get_name(), self.__dict__))
+            raise OntologyError("individual '%s' has unknown sort '%s' (%s)" % (name, sort.get_name(), self.__dict__))
 
     def _add_default_sorts(self):
         self._sorts["domain"] = DomainSort()
@@ -89,15 +106,17 @@ class Ontology(object):
     def _validate_predicates(self):
         for predicate in self._predicates.values():
             if predicate.getSort() not in self._sorts.values():
-                raise OntologyError("predicate '%s' has unknown sort '%s' (sorts=%s)" %
-                                    (predicate.get_name(), predicate.getSort(), self._sorts))
+                raise OntologyError(
+                    "predicate '%s' has unknown sort '%s' (sorts=%s)" %
+                    (predicate.get_name(), predicate.getSort(), self._sorts)
+                )
 
     def _check_predicate_action_integrity(self):
         for action in self._actions:
             if action in self._predicates:
                 raise AmbiguousNamesException(
-                    "Action '%s' is also a predicate name in %s ontology." % 
-                    (action, self.name))
+                    "Action '%s' is also a predicate name in %s ontology." % (action, self.name)
+                )
 
     def get_sorts(self):
         return self._sorts
@@ -188,13 +207,16 @@ class Ontology(object):
             if isinstance(value, DateTime):
                 return DateTimeSort()
             raise OntologyError(
-                "Expected a value of an individual, or matching one of the builtin sorts, but got '{}'".format(value))
+                "Expected a value of an individual, or matching one of the builtin sorts, but got '{}'".format(value)
+            )
 
         sort = sort_of(value)
         if not self.predicates_contain_sort(sort.name):
             raise OntologyError(
                 "Expected one of the predicate sorts {} in ontology '{}', but got value '{}' of sort '{}'".format(
-                    self._predicate_sorts, self.name, value, sort.name))
+                    self._predicate_sorts, self.name, value, sort.name
+                )
+            )
         return sort
 
     def _individual_is_of_enumerated_sort(self, value):
@@ -204,8 +226,7 @@ class Ontology(object):
         try:
             return self._individuals[value]
         except KeyError:
-            raise OntologyError("failed to get sort of unknown individual: "
-                                + unicode(value))
+            raise OntologyError("failed to get sort of unknown individual: " + unicode(value))
 
     def predicates_contain_sort(self, sort):
         return sort in self._predicate_sorts
@@ -239,8 +260,7 @@ class Ontology(object):
 
     def create_lambda_abstracted_predicate_proposition(self, predicate):
         if not self.isPredicate(predicate):
-            raise OntologyError("predicate %s is not valid in ontology %s" %
-                                (unicode(predicate), self.name))
+            raise OntologyError("predicate %s is not valid in ontology %s" % (unicode(predicate), self.name))
         return LambdaAbstractedPredicateProposition(predicate, self.name)
 
     def create_action(self, action):
@@ -275,15 +295,13 @@ class Ontology(object):
         try:
             self.individual_sort(value)
         except OntologyError as error:
-            raise OntologyError(
-                "failed to create individual with unknown value: " + unicode(error))
+            raise OntologyError("failed to create individual with unknown value: " + unicode(error))
 
     def create_negative_individual(self, value):
         try:
             sort = self.individual_sort(value)
         except OntologyError:
-            raise OntologyError(
-                "failed to create negative individual with unknown value: %r" % value)
+            raise OntologyError("failed to create negative individual with unknown value: %r" % value)
         return NegativeIndividual(self.name, value, sort)
 
     def create_yes_no_question(self, predicate_name, individual_value):

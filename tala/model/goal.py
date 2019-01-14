@@ -36,8 +36,7 @@ class Goal(SemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.get_target() == self.get_target() and
-                    other.get_goal_type() == self.get_goal_type())
+            return (other.get_target() == self.get_target() and other.get_goal_type() == self.get_goal_type())
         except AttributeError:
             return False
 
@@ -83,15 +82,12 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
 
     def __eq__(self, other):
         try:
-            return (other.is_goal() and
-                    other.has_semantic_content() and
-                    other.get_content() == self.get_content() and
-                    other.get_target() == self.get_target() and
-                    other.get_goal_type() == self.get_goal_type())
+            return (
+                other.is_goal() and other.has_semantic_content() and other.get_content() == self.get_content()
+                and other.get_target() == self.get_target() and other.get_goal_type() == self.get_goal_type()
+            )
         except AttributeError:
             return False
-
-
 
 
 class PerformGoal(GoalWithSemanticContent):
@@ -126,7 +122,7 @@ class ResolveGoal(GoalWithSemanticContent):
 
     def get_question(self):
         return self.get_content()
-    
+
     @staticmethod
     def filter():
         return Goal.goal_filter(ResolveGoal.RESOLVE_GOAL)
@@ -158,10 +154,10 @@ class HandleGoal(Goal, OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.is_ontology_specific() and
-                    other.ontology_name == self.ontology_name and
-                    Goal.__eq__(self, other) and
-                    other.get_device_event() == self.get_device_event())
+            return (
+                other.is_ontology_specific() and other.ontology_name == self.ontology_name and Goal.__eq__(self, other)
+                and other.get_device_event() == self.get_device_event()
+            )
         except AttributeError:
             return False
 
@@ -173,5 +169,3 @@ class HandleGoal(Goal, OntologySpecificSemanticObject):
 
     def __unicode__(self):
         return "handle(%s)" % self.get_device_event()
-
-

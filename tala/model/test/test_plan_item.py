@@ -26,9 +26,8 @@ class PlanItemTests(LibTestCase):
                        self.if_consequent,
                        self.if_alternative)
         self.service_result_proposition = ServiceResultProposition(
-            self.ontology_name,
-            "mockup_service_action",
-            [], "mock_perform_result")
+            self.ontology_name, "mockup_service_action", [], "mock_perform_result"
+        )
         self.service_report_item = ServiceReportPlanItem(self.service_result_proposition)
 
     def test_equality_with_none(self):
@@ -84,7 +83,6 @@ class PlanItemTests(LibTestCase):
     def test_respond_is_not_question_plan_item(self):
         self.assertFalse(self.respond_plan_item.is_question_plan_item())
 
-
     def test_findout_is_question_raising_item(self):
         self.assertTrue(self.findout_plan_item.is_question_raising_item())
 
@@ -117,7 +115,6 @@ class PlanItemTests(LibTestCase):
         emit_item = EmitIcmPlanItem(icm)
         self.assertFalse(emit_item.is_question_raising_item())
 
-
     def test_report_item_is_turn_yielding(self):
         self.assertTrue(self.service_report_item.is_turn_yielding())
 
@@ -134,7 +131,6 @@ class PlanItemTests(LibTestCase):
         emit_item = EmitIcmPlanItem(icm_acc_pos)
         self.assertFalse(emit_item.is_turn_yielding())
 
-
     def test_if_then_else_getters(self):
         plan_item = self.if_then_else_plan_item
         self.assertEquals(PlanItem.TYPE_IF_THEN_ELSE, plan_item.getType())
@@ -143,9 +139,7 @@ class PlanItemTests(LibTestCase):
         self.assertEquals(self.if_alternative, plan_item.get_alternative())
 
     def test_if_then_else_to_string(self):
-        expected_string = "if_then_else(%s, %s, %s)" % (self.if_condition,
-                                                        self.if_consequent,
-                                                        self.if_alternative)
+        expected_string = "if_then_else(%s, %s, %s)" % (self.if_condition, self.if_consequent, self.if_alternative)
         self.assertEquals(expected_string, unicode(self.if_then_else_plan_item))
 
     def test_create_forget_all(self):
@@ -184,7 +178,6 @@ class PlanItemTests(LibTestCase):
         item2 = FindoutPlanItem(self.domain_name, self.price_question)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(item1, item2)
 
-
     def test_clone_findout_into_raise_plan_item(self):
         findout_plan_item = FindoutPlanItem(self.domain_name, self.question)
         raise_plan_item = findout_plan_item.clone_as_type(PlanItem.TYPE_RAISE)
@@ -201,8 +194,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
         self.when_call(self._plan_item.is_invoke_service_action_plan_item)
         self.then_result_is(True)
 
-    def given_created_service_action_plan_item(
-            self, service_action="mock_service_action", **kwargs):
+    def given_created_service_action_plan_item(self, service_action="mock_service_action", **kwargs):
         self._plan_item = InvokeServiceActionPlanItem(self.ontology.name, service_action, **kwargs)
 
     def test_get_service_action(self):
@@ -216,8 +208,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
         self.then_result_is(False)
 
     def test_interrogative_preconfirmation_true(self):
-        self.given_created_service_action_plan_item(
-            preconfirm=InvokeServiceActionPlanItem.INTERROGATIVE)
+        self.given_created_service_action_plan_item(preconfirm=InvokeServiceActionPlanItem.INTERROGATIVE)
         self.when_call(self._plan_item.has_interrogative_preconfirmation)
         self.then_result_is(True)
 
@@ -227,8 +218,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
         self.then_result_is(False)
 
     def test_assertive_preconfirmation_true(self):
-        self.given_created_service_action_plan_item(
-            preconfirm=InvokeServiceActionPlanItem.ASSERTIVE)
+        self.given_created_service_action_plan_item(preconfirm=InvokeServiceActionPlanItem.ASSERTIVE)
         self.when_call(self._plan_item.has_assertive_preconfirmation)
         self.then_result_is(True)
 
@@ -254,11 +244,12 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
 
     def test_unicode(self):
         self.given_created_service_action_plan_item(
-            service_action="mock_service_action",
-            preconfirm=None, postconfirm=False, downdate_plan=True)
+            service_action="mock_service_action", preconfirm=None, postconfirm=False, downdate_plan=True
+        )
         self.when_get_unicode()
         self.then_result_is(
-            "invoke_service_action(mock_service_action, {preconfirm=None, postconfirm=False, downdate_plan=True})")
+            "invoke_service_action(mock_service_action, {preconfirm=None, postconfirm=False, downdate_plan=True})"
+        )
 
     def when_get_unicode(self):
         self._actual_result = unicode(self._plan_item)
@@ -276,8 +267,7 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
     def given_created_invoke_service_query_plan_item(self, *args, **kwargs):
         self._create_invoke_service_query_plan_item(*args, **kwargs)
 
-    def _create_invoke_service_query_plan_item(
-            self, issue="mock_issue", min_results=None, max_results=None):
+    def _create_invoke_service_query_plan_item(self, issue="mock_issue", min_results=None, max_results=None):
         self._plan_item = InvokeServiceQueryPlanItem(issue, min_results, max_results)
 
     def test_min_results_is_0_by_default(self):
@@ -317,10 +307,10 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
             "Expected 'max_results' to be None or above 0 but got 0.")
 
     def when_created_invoke_service_query_plan_item_then_exception_is_raised(
-            self, min_results, max_results, expected_exception, expected_message):
+        self, min_results, max_results, expected_exception, expected_message
+    ):
         with self.assertRaises(expected_exception) as context_manager:
-            self._create_invoke_service_query_plan_item(
-                min_results=min_results, max_results=max_results)
+            self._create_invoke_service_query_plan_item(min_results=min_results, max_results=max_results)
         self.assertEquals(expected_message, str(context_manager.exception))
 
     def test_getContent(self):
@@ -329,8 +319,7 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
         self.then_result_is("mock_issue")
 
     def test_unicode(self):
-        self.given_created_invoke_service_query_plan_item(
-            issue="mock_issue", min_results=0, max_results=1)
+        self.given_created_invoke_service_query_plan_item(issue="mock_issue", min_results=0, max_results=1)
         self.when_get_unicode()
         self.then_result_is("invoke_service_query(mock_issue, min_results=0, max_results=1)")
 
@@ -375,8 +364,7 @@ class AssumePlanItemTests(LibTestCase):
         self.assume_price = AssumePlanItem(self.price_proposition)
 
     def test_unicode(self):
-        self.assertEquals(
-            "assume(price(1234.0))", unicode(self.assume_price))
+        self.assertEquals("assume(price(1234.0))", unicode(self.assume_price))
 
     def test_is_assume_item(self):
         self.assertTrue(self.assume_price.is_assume_plan_item())
@@ -385,12 +373,10 @@ class AssumePlanItemTests(LibTestCase):
 class AssumeSharedPlanItemTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.assume_shared_price = AssumeSharedPlanItem(
-            self.price_proposition)
+        self.assume_shared_price = AssumeSharedPlanItem(self.price_proposition)
 
     def test_unicode(self):
-        self.assertEquals("assume_shared(price(1234.0))",
-                          unicode(self.assume_shared_price))
+        self.assertEquals("assume_shared(price(1234.0))", unicode(self.assume_shared_price))
 
     def test_is_assume_shared_item(self):
         self.assertTrue(self.assume_shared_price.is_assume_shared_plan_item())
@@ -402,9 +388,7 @@ class AssumeSharedIssuePlanItemTests(LibTestCase):
         self.assume_price_issue = AssumeIssuePlanItem(self.price_question)
 
     def test_unicode(self):
-        self.assertEquals("assume_issue(?X.price(X))",
-                          unicode(self.assume_price_issue))
+        self.assertEquals("assume_issue(?X.price(X))", unicode(self.assume_price_issue))
 
     def test_is_assume_shared_issue(self):
-        self.assertTrue(
-            self.assume_price_issue.is_assume_issue_plan_item())
+        self.assertTrue(self.assume_price_issue.is_assume_issue_plan_item())

@@ -14,7 +14,7 @@ class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject):
         return variable + "." + self.getPredicate().get_name() + "(" + variable + ")"
 
     def __eq__(self, other):
-        if(isinstance(other, LambdaAbstractedPredicateProposition)):
+        if (isinstance(other, LambdaAbstractedPredicateProposition)):
             return self.getPredicate() == other.getPredicate()
         else:
             return False
@@ -40,7 +40,7 @@ class LambdaAbstractedGoalProposition(SemanticObject):
         return True
 
     def __eq__(self, other):
-         return isinstance(other, LambdaAbstractedGoalProposition)
+        return isinstance(other, LambdaAbstractedGoalProposition)
 
     def __ne__(self, other):
         return not (self == other)

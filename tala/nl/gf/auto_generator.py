@@ -19,10 +19,20 @@ from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename
 UNKNOWN_CATEGORY = "Unknown"
 
 
-class MissingEntry(Exception): pass
-class UnexpectedParameter(Exception): pass
-class InvalidSortOfBackgroundPredicateException(Exception): pass
-class LanguageNotSupportedByPythonFormatException(Exception): pass
+class MissingEntry(Exception):
+    pass
+
+
+class UnexpectedParameter(Exception):
+    pass
+
+
+class InvalidSortOfBackgroundPredicateException(Exception):
+    pass
+
+
+class LanguageNotSupportedByPythonFormatException(Exception):
+    pass
 
 
 class LowerCaseGfFileWriter(object):
@@ -121,21 +131,17 @@ class AutoGenerator(object):
         return "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code))
 
     def _add_header_in_auto_generated_gf_files(self, language_code):
-        self._abstract_gf_content.write(
-            "abstract %s = TDM, Integers ** {\n\n"
-            "cat\n\n" % self._ddd_name)
+        self._abstract_gf_content.write("abstract %s = TDM, Integers ** {\n\n" "cat\n\n" % self._ddd_name)
         for category in self._categories.values():
             self._abstract_gf_content.write("%s;\n" % category)
         if self._is_unknown_category_needed():
             self._abstract_gf_content.write("%s;\n" % UNKNOWN_CATEGORY)
-        self._abstract_gf_content.write(
-            "\n"
-            "fun\n\n")
+        self._abstract_gf_content.write("\n" "fun\n\n")
 
         self._semantic_gf_content.write(
-            "concrete %s_sem of %s = TDM_sem, Integers_sem ** open Utils_sem in {\n\n" % (
-                self._ddd_name,
-                self._ddd_name))
+            "concrete %s_sem of %s = TDM_sem, Integers_sem ** open Utils_sem in {\n\n" %
+            (self._ddd_name, self._ddd_name)
+        )
         self._semantic_gf_content.write("lincat\n\n")
         for category in self._categories.values():
             self._semantic_gf_content.write("%s = SS;\n" % category)
@@ -144,7 +150,9 @@ class AutoGenerator(object):
         self._semantic_gf_content.write("\nlin\n\n")
 
         self._natural_language_gf_content.write(
-            "concrete %s_%s of %s = TDM_%s, Integers_%s ** open Utils_%s, Prelude in {\n\n" % (self._ddd_name, language_code, self._ddd_name, language_code, language_code, language_code))
+            "concrete %s_%s of %s = TDM_%s, Integers_%s ** open Utils_%s, Prelude in {\n\n" %
+            (self._ddd_name, language_code, self._ddd_name, language_code, language_code, language_code)
+        )
         self._natural_language_gf_content.write("lin\n\n")
 
     def _add_footer_in_auto_generated_gf_files(self):
@@ -166,9 +174,9 @@ class AutoGenerator(object):
                     semantic_file.write(line)
 
         def write_natural_language_file():
-            with LowerCaseGfFileWriter.open(self._name_of_natural_language_gf_file(language_code),
-                                            "w",
-                                            encoding="utf-8") as natural_language_file:
+            with LowerCaseGfFileWriter.open(
+                self._name_of_natural_language_gf_file(language_code), "w", encoding="utf-8"
+            ) as natural_language_file:
                 self._natural_language_gf_content.seek(0)
                 for line in self._natural_language_gf_content:
                     natural_language_file.write(line)
@@ -200,8 +208,7 @@ class AutoGenerator(object):
             self._generate_greeting_content(form)
 
     def _generate_greeting_content(self, form):
-        self._natural_language_gf_content.write(
-            'sysGreet = ss "%s";' % self._form_to_gf_string(form))
+        self._natural_language_gf_content.write('sysGreet = ss "%s";' % self._form_to_gf_string(form))
 
     def _add_content_based_on_ontology(self):
         self._generate_actions()
@@ -273,23 +280,18 @@ class AutoGenerator(object):
     def _generate_placeholders_for_integers(self):
         for index in range(0, utils.MAX_NUM_PLACEHOLDERS):
             function_name = "integer_placeholder_%d" % index
-            self._abstract_gf_content.write(
-                '%s : Integer;\n' % function_name)
-            self._semantic_gf_content.write(
-                '%s = pp "_integer_placeholder_%d_";\n' % (function_name, index))
+            self._abstract_gf_content.write('%s : Integer;\n' % function_name)
+            self._semantic_gf_content.write('%s = pp "_integer_placeholder_%d_";\n' % (function_name, index))
             self._natural_language_gf_content.write(
-                '%s = integer "_integer_placeholder_%d_" "_integer_placeholder_%d_";\n' % (
-                    function_name, index, index))
+                '%s = integer "_integer_placeholder_%d_" "_integer_placeholder_%d_";\n' % (function_name, index, index)
+            )
 
     def _generate_placeholders_for_datetime(self):
         for index in range(0, utils.MAX_NUM_PLACEHOLDERS):
             function_name = "datetime_placeholder_%d" % index
-            self._abstract_gf_content.write(
-                '%s : DateTime;\n' % function_name)
-            self._semantic_gf_content.write(
-                '%s = pp "_datetime_placeholder_%d_";\n' % (function_name, index))
-            self._natural_language_gf_content.write(
-                '%s = ss "_datetime_placeholder_%d_";\n' % (function_name, index))
+            self._abstract_gf_content.write('%s : DateTime;\n' % function_name)
+            self._semantic_gf_content.write('%s = pp "_datetime_placeholder_%d_";\n' % (function_name, index))
+            self._natural_language_gf_content.write('%s = ss "_datetime_placeholder_%d_";\n' % (function_name, index))
 
     def _generate_placeholders_for_dynamic_custom_sorts(self):
         for sort in self._ontology.get_sorts().values():
@@ -302,12 +304,9 @@ class AutoGenerator(object):
         nl_placeholder = utils.nl_user_answer_placeholder_of_sort(sort.get_name(), index)
         sem_placeholder = utils.semantic_user_answer_placeholder_of_sort(sort.get_name(), index)
 
-        self._abstract_gf_content.write(
-            "%s : %s;\n" % (placeholder_name, self._categories[sort.get_name()]))
-        self._semantic_gf_content.write(
-            '%s = pp "%s";\n' % (placeholder_name, sem_placeholder))
-        self._natural_language_gf_content.write(
-            '%s = ss "%s";\n' % (placeholder_name, nl_placeholder))
+        self._abstract_gf_content.write("%s : %s;\n" % (placeholder_name, self._categories[sort.get_name()]))
+        self._semantic_gf_content.write('%s = pp "%s";\n' % (placeholder_name, sem_placeholder))
+        self._natural_language_gf_content.write('%s = ss "%s";\n' % (placeholder_name, nl_placeholder))
 
     def _generate_potential_user_answer_sequences(self):
         forms = self._get_form_as_options(Node(Constants.ANSWER_COMBINATION), optional=True)
@@ -316,14 +315,12 @@ class AutoGenerator(object):
 
     def _generate_user_answer_sequence(self, form):
         def generate_semantic_value(semantic_value_arguments):
-            return "moveseq %s" % " ".join(
-                ['(move "answer" %s)' % semantic_value_argument
-                 for semantic_value_argument in semantic_value_arguments])
+            return "moveseq %s" % " ".join([
+                '(move "answer" %s)' % semantic_value_argument for semantic_value_argument in semantic_value_arguments
+            ])
 
         function_name = self._generate_new_function_name("user_answer_sequence")
-        self._generate_function_with_answers(
-            function_name, form, "UserAnswerSequence",
-            generate_semantic_value)
+        self._generate_function_with_answers(function_name, form, "UserAnswerSequence", generate_semantic_value)
 
     def _generate_features(self):
         for predicate in self._ontology.get_predicates().values():
@@ -334,49 +331,40 @@ class AutoGenerator(object):
         super_predicate_name = feature.get_feature_of_name()
         function_name = "%s_%s" % (feature.get_name(), super_predicate_name)
         self._abstract_gf_content.write(
-            "%s : %s -> %s;\n" % (
-                function_name,
-                self._categories[feature.get_name()],
-                self._categories[super_predicate_name]))
-        self._semantic_gf_content.write(
-            "%s individual = individual;\n" % (
-                function_name))
-        self._natural_language_gf_content.write(
-            "%s individual = individual;\n" % (
-                function_name))
+            "%s : %s -> %s;\n" %
+            (function_name, self._categories[feature.get_name()], self._categories[super_predicate_name])
+        )
+        self._semantic_gf_content.write("%s individual = individual;\n" % (function_name))
+        self._natural_language_gf_content.write("%s individual = individual;\n" % (function_name))
 
     def _generate_individual(self, individual, sort):
         try:
             key = Node(Constants.INDIVIDUAL, {"name": individual})
             forms = self._get_form_as_options(key)
-            self._abstract_gf_content.write(
-                "%s : %s;\n" % (individual, self._categories[sort.get_name()]))
-            self._semantic_gf_content.write(
-                '%s = pp "%s";\n' % (individual, individual))
+            self._abstract_gf_content.write("%s : %s;\n" % (individual, self._categories[sort.get_name()]))
+            self._semantic_gf_content.write('%s = pp "%s";\n' % (individual, individual))
             self._natural_language_gf_content.write(
-                "%s = ss (%s);\n" % (
-                    individual,
-                    self._speaker_independent_linearization(forms)))
+                "%s = ss (%s);\n" % (individual, self._speaker_independent_linearization(forms))
+            )
         except MissingEntry:
             self._missing_entry(self._missing_individual, individual)
 
     def _generate_potential_action_title(self, action):
-        form = self._get_form(Node(Constants.ACTION_TITLE, {"action": action}),
-                              optional=True)
+        form = self._get_form(Node(Constants.ACTION_TITLE, {"action": action}), optional=True)
         if form:
             self._generate_action_title_content(action, form)
 
     def _generate_action_title_content(self, action, form):
         self._write_gf(
-            function_name = "%s_title" % action,
-            category = "SysTitle",
-            arguments = [],
-            semantic = 'actionTitle (pp "%s")' % action,
-            natural_language = 'ss "%s"' % self._form_to_gf_string(form))
+            function_name="%s_title" % action,
+            category="SysTitle",
+            arguments=[],
+            semantic='actionTitle (pp "%s")' % action,
+            natural_language='ss "%s"' % self._form_to_gf_string(form)
+        )
 
     def _generate_potential_issue_title(self, predicate):
-        form = self._get_form(Node(Constants.ISSUE_TITLE, {"predicate": predicate}),
-                                   optional=True)
+        form = self._get_form(Node(Constants.ISSUE_TITLE, {"predicate": predicate}), optional=True)
         if form:
             self._generate_issue_title_content(predicate, form)
 
@@ -394,10 +382,8 @@ class AutoGenerator(object):
 
     def _generate_issue_title_content(self, predicate, form):
         self._abstract_gf_content.write("%s_title : SysTitle;\n" % predicate)
-        self._semantic_gf_content.write('%s_title = issueTitle %s;\n' % (
-                predicate, predicate))
-        self._natural_language_gf_content.write('%s_title = ss "%s";\n' % (
-                predicate, self._form_to_gf_string(form)))
+        self._semantic_gf_content.write('%s_title = issueTitle %s;\n' % (predicate, predicate))
+        self._natural_language_gf_content.write('%s_title = ss "%s";\n' % (predicate, self._form_to_gf_string(form)))
 
     def _add_content_based_on_service_interface(self):
         for action_interface in self._ddd.service_interface.actions:
@@ -439,7 +425,8 @@ class AutoGenerator(object):
         try:
             forms = self._get_form_as_options(key)
             self._generate_validity_content_for_grammar_forms(
-                validator_interface, forms, validator_interface.parameters)
+                validator_interface, forms, validator_interface.parameters
+            )
         except MissingEntry:
             self._missing_entry(self._missing_validity, validator_interface, key)
 
@@ -457,26 +444,21 @@ class AutoGenerator(object):
 
         self._write_gf(
             function_name,
-            category = "SysICM",
-            arguments = [Argument(parameter.name, "SysAnswer")
-                         for parameter in combination],
-            semantic = 'rejectICM (set (list %s)) "%s"' % (
-                " ".join(parameter_names), validity_name),
-            natural_language = 'ss (%s)' % self._parameterized_sys_form(form))
+            category="SysICM",
+            arguments=[Argument(parameter.name, "SysAnswer") for parameter in combination],
+            semantic='rejectICM (set (list %s)) "%s"' % (" ".join(parameter_names), validity_name),
+            natural_language='ss (%s)' % self._parameterized_sys_form(form)
+        )
 
     def _pick_validity_form(self, forms, combination, validator_interface):
         for form in forms:
-            if not self._form_contains_parameter_not_in_combination(
-                    form, combination, validator_interface):
+            if not self._form_contains_parameter_not_in_combination(form, combination, validator_interface):
                 return form
 
-    def _form_contains_parameter_not_in_combination(
-        self, form, combination, service_interface):
-        parameter_names_in_form = self._parameters_in_form(
-            form, service_interface)
+    def _form_contains_parameter_not_in_combination(self, form, combination, service_interface):
+        parameter_names_in_form = self._parameters_in_form(form, service_interface)
         parameter_names_in_combination = [parameter.name for parameter in combination]
-        return any(filter(lambda parameter: parameter not in parameter_names_in_combination,
-                          parameter_names_in_form))
+        return any(filter(lambda parameter: parameter not in parameter_names_in_combination, parameter_names_in_form))
 
     def _parameters_in_form(self, form, service_interface):
         parameter_names_in_device = [parameter.name for parameter in service_interface.parameters]
@@ -489,14 +471,14 @@ class AutoGenerator(object):
                 else:
                     raise UnexpectedParameter(
                         "unexpected parameter name %s in form %s (device declares %s)" %
-                        (parameter_name, form, parameter_names_in_device))
+                        (parameter_name, form, parameter_names_in_device)
+                    )
         return result
 
     def _generate_ended_content(self, action_interface):
         key = Node(Constants.REPORT_ENDED, {"action": action_interface.name})
         try:
-            self._generate_parameterized_service_action_entry(
-                "SysReportEnded", "report_ended", key, action_interface)
+            self._generate_parameterized_service_action_entry("SysReportEnded", "report_ended", key, action_interface)
         except MissingEntry:
             if self._service_action_has_postconfirm(action_interface.name):
                 self._missing_entry(self._missing_ended, key, action_interface)
@@ -504,16 +486,14 @@ class AutoGenerator(object):
     def _generate_preconfirm_content(self, action_interface):
         key = Node(Constants.PRECONFIRM, {"action": action_interface.name})
         try:
-            self._generate_parameterized_service_action_entry(
-                "SysYNQ", "ask_preconfirm", key, action_interface)
+            self._generate_parameterized_service_action_entry("SysYNQ", "ask_preconfirm", key, action_interface)
         except MissingEntry:
             self._missing_entry(self._missing_preconfirm, key, action_interface)
 
     def _generate_prereport_content(self, action_interface):
         key = Node(Constants.PREREPORT, {"action": action_interface.name})
         try:
-            self._generate_parameterized_service_action_entry(
-                "SysPreReport", "prereport", key, action_interface)
+            self._generate_parameterized_service_action_entry("SysPreReport", "prereport", key, action_interface)
         except MissingEntry:
             self._missing_entry(self._missing_prereport, key, action_interface)
 
@@ -521,7 +501,8 @@ class AutoGenerator(object):
         key = Node(Constants.REPORT_STARTED, {"action": action_interface.name})
         try:
             self._generate_parameterized_service_action_entry(
-                "SysReportStarted", "report_started", key, action_interface)
+                "SysReportStarted", "report_started", key, action_interface
+            )
         except MissingEntry:
             pass
 
@@ -535,27 +516,27 @@ class AutoGenerator(object):
             natural_language_gf = 'undefined_service_action_failure'
             self._generate_parameterized_service_action_content(
                 "SysReportFailed", "report_failed", action_interface.name, UNDEFINED_SERVICE_ACTION_FAILURE,
-                natural_language_gf, combination)
+                natural_language_gf, combination
+            )
 
     def _generate_failed_content_for_reason(self, action_interface, failure_reason):
         key = Node(Constants.REPORT_FAILED, {"action": action_interface.name, "reason": failure_reason.name})
         try:
             self._generate_parameterized_service_action_entry(
-                "SysReportFailed", "report_failed", key, action_interface, failure_reason.name)
+                "SysReportFailed", "report_failed", key, action_interface, failure_reason.name
+            )
         except MissingEntry:
             pass
 
-    def _generate_parameterized_service_action_entry(self, gf_category, sem_util,
-                                                    key, action_interface,
-                                                    reason=None):
+    def _generate_parameterized_service_action_entry(self, gf_category, sem_util, key, action_interface, reason=None):
         forms = self._get_form_as_options(key)
         for combination in self._service_action_parameter_combinations(action_interface):
             form = self._pick_service_action_form(forms, combination, action_interface)
             if form is not None and len(form.children) > 0:
                 natural_language_gf = 'ss (%s)' % self._parameterized_sys_form(form)
                 self._generate_parameterized_service_action_content(
-                    gf_category, sem_util, action_interface.name, reason,
-                    natural_language_gf, combination)
+                    gf_category, sem_util, action_interface.name, reason, natural_language_gf, combination
+                )
 
     def _service_action_parameter_combinations(self, action_interface):
         parameters = action_interface.parameters
@@ -570,21 +551,15 @@ class AutoGenerator(object):
                 return True
 
     def _pick_service_action_form(self, forms, combination, action_interface):
-        relevant_forms = self._relevant_service_action_forms(
-            forms, combination, action_interface)
+        relevant_forms = self._relevant_service_action_forms(forms, combination, action_interface)
 
         if len(relevant_forms) == 0:
             return None
         else:
-            return self._select_most_relevant_service_action_form(
-                relevant_forms, combination, action_interface)
+            return self._select_most_relevant_service_action_form(relevant_forms, combination, action_interface)
 
     def _relevant_service_action_forms(self, forms, combination, action_interface):
-        return [
-            form
-            for form in forms
-            if self._combination_matches_form(
-                combination, form, action_interface)]
+        return [form for form in forms if self._combination_matches_form(combination, form, action_interface)]
 
     def _combination_matches_form(self, combination, form, action_interface):
         parameter_names_in_form = self._parameters_in_form(form, action_interface)
@@ -595,20 +570,15 @@ class AutoGenerator(object):
         return True
 
     def _select_most_relevant_service_action_form(self, forms, combination, action_interface):
-        return max(
-            forms,
-            key=lambda form: self._num_referenced_parameters(
-                form, combination, action_interface))
+        return max(forms, key=lambda form: self._num_referenced_parameters(form, combination, action_interface))
 
     def _num_referenced_parameters(self, form, combination, action_interface):
         parameter_names_in_form = self._parameters_in_form(form, action_interface)
-        return len([parameter
-                    for parameter in combination
-                    if parameter.name in parameter_names_in_form])
+        return len([parameter for parameter in combination if parameter.name in parameter_names_in_form])
 
     def _generate_parameterized_service_action_content(
-        self, gf_category, sem_util, action_name, reason,
-        natural_language_gf, combination):
+        self, gf_category, sem_util, action_name, reason, natural_language_gf, combination
+    ):
 
         function_name_prefix = "%s_%s" % (sem_util, action_name)
         if reason is not None:
@@ -624,9 +594,7 @@ class AutoGenerator(object):
         self._semantic_gf_content.write(function_name)
         for parameter_name in parameter_names:
             self._semantic_gf_content.write(" %s" % parameter_name)
-        self._semantic_gf_content.write(' = %s "%s" %s' % (
-                sem_util, action_name,
-                self._gf_list(parameter_names)))
+        self._semantic_gf_content.write(' = %s "%s" %s' % (sem_util, action_name, self._gf_list(parameter_names)))
         if reason:
             self._semantic_gf_content.write(' "%s"' % reason)
         self._semantic_gf_content.write(";\n")
@@ -634,8 +602,7 @@ class AutoGenerator(object):
         self._natural_language_gf_content.write(function_name)
         for parameter_name in parameter_names:
             self._natural_language_gf_content.write(" %s" % parameter_name)
-        self._natural_language_gf_content.write(
-            ' = %s;\n' % natural_language_gf)
+        self._natural_language_gf_content.write(' = %s;\n' % natural_language_gf)
 
     def _gf_list(self, strings):
         if len(strings) == 0:
@@ -692,9 +659,9 @@ class AutoGenerator(object):
                 forms_without_answers.append(form)
 
         if len(forms_without_answers) > 0:
-            self._natural_language_gf_content.write('%s = ss (%s);\n' % (
-                    predicate,
-                    self._speaker_independent_linearization(forms_without_answers)))
+            self._natural_language_gf_content.write(
+                '%s = ss (%s);\n' % (predicate, self._speaker_independent_linearization(forms_without_answers))
+            )
 
     def _generate_system_ask_whq_with_background(self, predicate, forms):
         for form in forms:
@@ -709,18 +676,19 @@ class AutoGenerator(object):
                     elif form_part:
                         nl_parts.append('"%s"' % self._form_to_gf_string(form_part))
 
-                function_name = self._generate_new_function_name(
-                    "%s_ask_whq_with_background" % predicate)
+                function_name = self._generate_new_function_name("%s_ask_whq_with_background" % predicate)
 
                 natural_language_content = '%s ++ "?"' % (" ++ ".join(nl_parts))
                 self._write_gf(
                     function_name,
-                    category = "System",
-                    arguments = [Argument(background_predicate, "SysAnswer")
-                                 for background_predicate in background_predicates],
-                    semantic = 'pp "Move" (move "ask" (eta_expand %s) (list %s))' % (
-                        predicate, " ".join(background_predicates)),
-                    natural_language = self._capitalize(natural_language_content))
+                    category="System",
+                    arguments=[
+                        Argument(background_predicate, "SysAnswer") for background_predicate in background_predicates
+                    ],
+                    semantic='pp "Move" (move "ask" (eta_expand %s) (list %s))' %
+                    (predicate, " ".join(background_predicates)),
+                    natural_language=self._capitalize(natural_language_content)
+                )
 
     def _capitalize(self, string):
         return "ss (CAPIT ++ %s)" % string
@@ -730,8 +698,7 @@ class AutoGenerator(object):
 
     def _generate_resolve_ynq(self, predicate, forms):
         for form in forms:
-            function_name = self._generate_new_function_name(
-                "%s_resolve_ynq" % predicate)
+            function_name = self._generate_new_function_name("%s_resolve_ynq" % predicate)
             if self._form_contains_answer_slots(form):
                 background_predicates = []
                 nl_parts = []
@@ -753,25 +720,20 @@ class AutoGenerator(object):
                 self._write_ynq_to_natural_language_gf(function_name, predicate)
 
     def _write_ynq_to_abstract_gf(self, function_name):
-        self._abstract_gf_content.write(
-                    '%s : SysResolveGoal;\n' % function_name)
+        self._abstract_gf_content.write('%s : SysResolveGoal;\n' % function_name)
 
     def _write_ynq_to_semantic_gf(self, function_name, predicate):
-        self._semantic_gf_content.write(
-                    '%s = resolve_ynq %s;\n' % (function_name, predicate))
+        self._semantic_gf_content.write('%s = resolve_ynq %s;\n' % (function_name, predicate))
 
     def _write_ynq_to_natural_language_gf(self, function_name, predicate):
-        self._natural_language_gf_content.write(
-                    '%s = resolve_ynq %s;\n' % (function_name, predicate))
+        self._natural_language_gf_content.write('%s = resolve_ynq %s;\n' % (function_name, predicate))
 
     def _write_ynq_with_answers_to_abstract_gf(self, function_name, background_predicates):
         SysAnswer_string = "SysAnswer -> " * len(background_predicates)
         string_to_write = "%s : %sSysResolveGoal;\n" % (function_name, SysAnswer_string)
         self._abstract_gf_content.write(string_to_write)
 
-    def _write_ynq_with_answers_to_semantic_gf(self, function_name,
-                                               background_predicates,
-                                               predicate):
+    def _write_ynq_with_answers_to_semantic_gf(self, function_name, background_predicates, predicate):
         background_predicates_string = " ".join(background_predicates)
         string_to_write = \
             '%s %s = resolve_ynq_with_background %s (list %s);\n' % (
@@ -779,14 +741,13 @@ class AutoGenerator(object):
             predicate, background_predicates_string)
         self._semantic_gf_content.write(string_to_write)
 
-    def _write_ynq_with_answers_to_natural_language_gf(
-        self, function_name, background_predicates, nl_parts):
+    def _write_ynq_with_answers_to_natural_language_gf(self, function_name, background_predicates, nl_parts):
 
         background_predicates_string = " ".join(background_predicates)
         nl_parts_string = " ++ ".join(nl_parts)
         string_to_write = '%s %s = resolve_ynq_with_background (ss (%s));\n' % (
-                        function_name, background_predicates_string,
-                        " ++ ".join(nl_parts))
+            function_name, background_predicates_string, " ++ ".join(nl_parts)
+        )
 
         self._natural_language_gf_content.write(string_to_write)
 
@@ -810,14 +771,11 @@ class AutoGenerator(object):
                 self._missing_entry(self._missing_user_question, predicate)
 
     def _generate_system_question(self, predicate, form):
-        self._natural_language_gf_content.write('%s = ss "%s";\n' % (
-                predicate, self._form_to_gf_string(form)))
+        self._natural_language_gf_content.write('%s = ss "%s";\n' % (predicate, self._form_to_gf_string(form)))
 
     def _speaker_independent_linearization(self, forms):
 
-        return "(%s)" % "|".join([
-                '"%s"' % self._form_to_gf_string(form)
-                for form in forms])
+        return "(%s)" % "|".join(['"%s"' % self._form_to_gf_string(form) for form in forms])
 
     def _generate_system_answer_content(self, predicate):
         sort = predicate.getSort()
@@ -827,9 +785,7 @@ class AutoGenerator(object):
             self._generate_unary_system_answer_content(predicate)
 
     def _generate_unary_system_answer_content(self, predicate):
-        form = self._get_form(
-            Node(Constants.SYS_ANSWER, {"predicate": predicate.get_name()}),
-            optional=True)
+        form = self._get_form(Node(Constants.SYS_ANSWER, {"predicate": predicate.get_name()}), optional=True)
         sort = predicate.getSort()
         if sort.is_builtin():
             self._assert_sorts_of_background_predicates_are_valid(predicate.get_name(), sort.get_name(), form)
@@ -845,7 +801,9 @@ class AutoGenerator(object):
     def _assert_sorts_of_background_predicates_are_valid(self, predicate, sort, form):
         background_predicates = self._background_predicates_of_form(form, key_predicate=predicate)
         if background_predicates:
-            msg = "Background is not allowed for predicate %r of sort %r. Perhaps you can create a new sort for it?" % (predicate, sort)
+            msg = "Background is not allowed for predicate %r of sort %r. Perhaps you can create a new sort for it?" % (
+                predicate, sort
+            )
             raise InvalidSortOfBackgroundPredicateException(msg)
 
     def _generate_nullary_system_answer_content(self, predicate):
@@ -853,91 +811,79 @@ class AutoGenerator(object):
         self._generate_negative_nullary_system_answer_content(predicate)
 
     def _generate_positive_nullary_system_answer_content(self, predicate):
-        form = self._get_form(
-            Node(Constants.POSITIVE_SYS_ANSWER, {"predicate": predicate}),
-            optional=True)
+        form = self._get_form(Node(Constants.POSITIVE_SYS_ANSWER, {"predicate": predicate}), optional=True)
         if form:
             argument_category = None
             function_name = "%s_positive_sys_answer" % predicate
-            self._generate_sys_answer_with_potential_background(
-                predicate, function_name, form, argument_category)
+            self._generate_sys_answer_with_potential_background(predicate, function_name, form, argument_category)
 
-    def _generate_sys_answer_with_potential_background(
-        self, predicate, function_name, form, argument_category):
+    def _generate_sys_answer_with_potential_background(self, predicate, function_name, form, argument_category):
         if self._form_contains_answer_slots(form):
-            self._generate_sys_answer_with_background(
-                predicate, function_name, form, argument_category)
+            self._generate_sys_answer_with_background(predicate, function_name, form, argument_category)
         else:
-            self._generate_sys_answer_without_background(
-                predicate, function_name, form, argument_category)
+            self._generate_sys_answer_without_background(predicate, function_name, form, argument_category)
 
-    def _generate_sys_answer_without_background(
-        self, predicate, function_name, form, argument_category):
-        self._write_abstract_for_sys_answer_without_background(
-            function_name, argument_category)
-        self._write_semantic_for_sys_answer_without_background(
-            function_name, predicate, argument_category)
-        self._write_nl_for_sys_answer_without_background(
-            function_name, form, argument_category)
+    def _generate_sys_answer_without_background(self, predicate, function_name, form, argument_category):
+        self._write_abstract_for_sys_answer_without_background(function_name, argument_category)
+        self._write_semantic_for_sys_answer_without_background(function_name, predicate, argument_category)
+        self._write_nl_for_sys_answer_without_background(function_name, form, argument_category)
 
-    def _write_abstract_for_sys_answer_without_background(
-        self, function_name, argument_category):
+    def _write_abstract_for_sys_answer_without_background(self, function_name, argument_category):
         if argument_category:
             output = "%s : %s -> SysAnswer;\n" % (function_name, argument_category)
         else:
             output = "%s : SysAnswer;\n" % function_name
         self._abstract_gf_content.write(output)
 
-    def _write_semantic_for_sys_answer_without_background(
-        self, function_name, predicate, argument_category):
+    def _write_semantic_for_sys_answer_without_background(self, function_name, predicate, argument_category):
         if argument_category:
             output = "%s individual = pp %s.s individual;\n" % (function_name, predicate)
         else:
             output = "%s = pp %s.s;\n" % (function_name, predicate)
         self._semantic_gf_content.write(output)
 
-    def _write_nl_for_sys_answer_without_background(
-        self, function_name, form, argument_category):
+    def _write_nl_for_sys_answer_without_background(self, function_name, form, argument_category):
         if argument_category:
             if form:
                 gf_string = self._generate_nl_for_system_answer(form)
             else:
                 gf_string = "individual.s"
-            output = "%s individual = answer (%s) individual.s;\n" % (
-                    function_name, gf_string)
+            output = "%s individual = answer (%s) individual.s;\n" % (function_name, gf_string)
         else:
             gf_string = self._generate_nl_for_system_answer(form)
             output = '%s = answer %s;\n' % (function_name, gf_string)
 
         self._natural_language_gf_content.write(output)
 
-    def _generate_sys_answer_with_background(
-        self, predicate, function_name, form, argument_category):
+    def _generate_sys_answer_with_background(self, predicate, function_name, form, argument_category):
 
         background_predicates = self._background_predicates_of_form(form)
         predicates_string = " ".join(background_predicates)
 
         self._write_abstract_for_sys_answer_with_background(
-            predicate, function_name, argument_category, background_predicates)
+            predicate, function_name, argument_category, background_predicates
+        )
         self._write_semantic_for_sys_answer_with_background(
-            predicate, function_name, argument_category, predicates_string)
+            predicate, function_name, argument_category, predicates_string
+        )
         self._write_nl_for_sys_answer_with_background(
-            predicate, function_name, argument_category, form, predicates_string)
+            predicate, function_name, argument_category, form, predicates_string
+        )
 
     def _write_abstract_for_sys_answer_with_background(
-        self, predicate, function_name, argument_category, background_predicates):
+        self, predicate, function_name, argument_category, background_predicates
+    ):
         if argument_category:
-            argument_categories_string = "%s -> %s" % (
-                argument_category, "SysAnswer -> " * len(background_predicates))
+            argument_categories_string = "%s -> %s" % (argument_category, "SysAnswer -> " * len(background_predicates))
         else:
             argument_categories_string = "SysAnswer -> " * len(background_predicates)
 
-        output = "%s : %sSystem;\n" % (
-            function_name, argument_categories_string)
+        output = "%s : %sSystem;\n" % (function_name, argument_categories_string)
         self._abstract_gf_content.write(output)
 
     def _write_semantic_for_sys_answer_with_background(
-        self, predicate, function_name, argument_category, predicates_string):
+        self, predicate, function_name, argument_category, predicates_string
+    ):
         if argument_category:
             arguments = "individual %s" % predicates_string
             answer_content = "pp %s.s individual" % predicate
@@ -947,12 +893,12 @@ class AutoGenerator(object):
 
         self._semantic_gf_content.write(
             '%s %s = pp "Move" '
-            '(move "answer" (%s) (list %s));\n' % (
-                function_name, arguments,
-                answer_content, predicates_string))
+            '(move "answer" (%s) (list %s));\n' % (function_name, arguments, answer_content, predicates_string)
+        )
 
     def _write_nl_for_sys_answer_with_background(
-        self, predicate, function_name, argument_category, form, predicates_string):
+        self, predicate, function_name, argument_category, form, predicates_string
+    ):
         if argument_category:
             arguments = "individual %s" % predicates_string
         else:
@@ -960,33 +906,27 @@ class AutoGenerator(object):
 
         gf_string = self._generate_nl_for_system_answer(form)
         capitalized_gf_string = self._capitalize('%s ++ "."' % gf_string)
-        self._natural_language_gf_content.write(
-            '%s %s = %s;\n' % (
-                function_name, arguments, capitalized_gf_string))
+        self._natural_language_gf_content.write('%s %s = %s;\n' % (function_name, arguments, capitalized_gf_string))
 
     def _generate_negative_nullary_system_answer_content(self, predicate):
-        form = self._get_form(
-            Node(Constants.NEGATIVE_SYS_ANSWER, {"predicate": predicate}), optional=True)
+        form = self._get_form(Node(Constants.NEGATIVE_SYS_ANSWER, {"predicate": predicate}), optional=True)
         if form:
-            self._abstract_gf_content.write(
-                "%s_negative_sys_answer : SysAnswer;\n" % predicate)
-            self._semantic_gf_content.write(
-                '%s_negative_sys_answer = pp ("~" ++ %s.s);\n' % (predicate, predicate))
+            self._abstract_gf_content.write("%s_negative_sys_answer : SysAnswer;\n" % predicate)
+            self._semantic_gf_content.write('%s_negative_sys_answer = pp ("~" ++ %s.s);\n' % (predicate, predicate))
             self._natural_language_gf_content.write(
-                '%s_negative_sys_answer = answer "%s";\n' % (
-                    predicate, self._form_to_gf_string(form)))
+                '%s_negative_sys_answer = answer "%s";\n' % (predicate, self._form_to_gf_string(form))
+            )
 
-    def _generate_unary_propositional_system_answer_content_for_custom_sort(
-        self, predicate, form):
+    def _generate_unary_propositional_system_answer_content_for_custom_sort(self, predicate, form):
         sort = predicate.getSort()
         argument_category = self._categories[sort.get_name()]
         function_name = "%s_sys_answer" % predicate.get_name()
         self._generate_sys_answer_with_potential_background(
-            predicate.get_name(), function_name, form, argument_category)
+            predicate.get_name(), function_name, form, argument_category
+        )
 
     def _generate_nl_for_system_answer(self, form):
-        parts = [self._generate_system_answer_part(part)
-                 for part in form.children]
+        parts = [self._generate_system_answer_part(part) for part in form.children]
         return " ++ ".join(parts)
 
     def _generate_system_answer_part(self, part):
@@ -1017,11 +957,12 @@ class AutoGenerator(object):
     def _generate_user_short_answer_content(self, sort):
         if not sort.is_boolean_sort():
             self._write_gf(
-                function_name = "%s_user_answer" % sort.get_name(),
-                category = "UsrAnswer",
-                arguments = [Argument("answer", self._categories[sort.get_name()])],
-                semantic = "answer",
-                natural_language = "answer")
+                function_name="%s_user_answer" % sort.get_name(),
+                category="UsrAnswer",
+                arguments=[Argument("answer", self._categories[sort.get_name()])],
+                semantic="answer",
+                natural_language="answer"
+            )
 
     def _generate_propositional_user_answer_of_non_integer_sort(self, predicate, sort):
         if sort.is_string_sort():
@@ -1031,81 +972,69 @@ class AutoGenerator(object):
 
     def _generate_propositional_user_answer_of_string_sort(self, predicate):
         self._abstract_gf_content.write(
-            '%s_propositional_usr_answer : Unknown -> %s;\n' % (
-                predicate,
-                self._categories[predicate.get_name()]))
+            '%s_propositional_usr_answer : Unknown -> %s;\n' % (predicate, self._categories[predicate.get_name()])
+        )
         self._semantic_gf_content.write(
-            '%s_propositional_usr_answer answer = pp %s.s (ss ("\\"" ++ answer.s ++ "\\""));\n' % (
-                predicate, predicate))
-        self._natural_language_gf_content.write(
-            '%s_propositional_usr_answer answer = answer;\n' % predicate)
+            '%s_propositional_usr_answer answer = pp %s.s (ss ("\\"" ++ answer.s ++ "\\""));\n' %
+            (predicate, predicate)
+        )
+        self._natural_language_gf_content.write('%s_propositional_usr_answer answer = answer;\n' % predicate)
 
     def _generate_propositional_user_answer_of_custom_sort(self, predicate, sort):
         self._abstract_gf_content.write(
-            "%s_propositional_usr_answer : Sort_%s -> %s;\n" % (
-                predicate,
-                sort.get_name(),
-                self._categories[predicate.get_name()]))
+            "%s_propositional_usr_answer : Sort_%s -> %s;\n" %
+            (predicate, sort.get_name(), self._categories[predicate.get_name()])
+        )
         self._semantic_gf_content.write(
-            "%s_propositional_usr_answer answer = pp %s.s answer;\n" % (
-                predicate, predicate))
-        self._natural_language_gf_content.write(
-            "%s_propositional_usr_answer answer = answer;\n" % predicate)
+            "%s_propositional_usr_answer answer = pp %s.s answer;\n" % (predicate, predicate)
+        )
+        self._natural_language_gf_content.write("%s_propositional_usr_answer answer = answer;\n" % predicate)
 
     def _generate_sortal_user_answer(self, predicate, sort):
         if not sort.is_boolean_sort():
             self._abstract_gf_content.write(
-                "%s_sortal_usr_answer : Sort_%s -> UsrAnswer;\n" % (predicate, sort.get_name()))
-            self._semantic_gf_content.write(
-                "%s_sortal_usr_answer answer = answer;\n" % predicate)
-            self._natural_language_gf_content.write(
-                "%s_sortal_usr_answer answer = answer;\n" % predicate)
+                "%s_sortal_usr_answer : Sort_%s -> UsrAnswer;\n" % (predicate, sort.get_name())
+            )
+            self._semantic_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
+            self._natural_language_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
 
     def _generate_user_multi_answer_content(self, sort):
         self._abstract_gf_content.write(
-            "%s_user_multi_answer : %s -> %s -> User;\n" % (
-                sort.get_name(),
-                self._categories[sort.get_name()],
-                self._categories[sort.get_name()]
-            ))
+            "%s_user_multi_answer : %s -> %s -> User;\n" %
+            (sort.get_name(), self._categories[sort.get_name()], self._categories[sort.get_name()])
+        )
         self._semantic_gf_content.write(
-            "%s_user_multi_answer answer1 answer2 = multi_answer answer1 answer2;\n" % sort.get_name())
+            "%s_user_multi_answer answer1 answer2 = multi_answer answer1 answer2;\n" % sort.get_name()
+        )
         self._natural_language_gf_content.write(
-            "%s_user_multi_answer answer1 answer2 = multi_answer answer1 answer2;\n" % sort.get_name())
+            "%s_user_multi_answer answer1 answer2 = multi_answer answer1 answer2;\n" % sort.get_name()
+        )
 
     def _generate_individual_content(self, sort):
         self._abstract_gf_content.write(
-            "%s_individual : %s -> Individual;\n" % (
-                sort.get_name(), self._categories[sort.get_name()]))
-        self._semantic_gf_content.write(
-            "%s_individual individual = individual;\n" % sort.get_name())
-        self._natural_language_gf_content.write(
-            "%s_individual individual = individual;\n" % sort.get_name())
+            "%s_individual : %s -> Individual;\n" % (sort.get_name(), self._categories[sort.get_name()])
+        )
+        self._semantic_gf_content.write("%s_individual individual = individual;\n" % sort.get_name())
+        self._natural_language_gf_content.write("%s_individual individual = individual;\n" % sort.get_name())
 
     def _generate_system_string_answer_content(self, predicate, form):
         for placeholder_id in range(utils.MAX_NUM_PLACEHOLDERS):
-            self._generate_system_string_answer_content_for_placeholder_id(
-                predicate, form, placeholder_id)
+            self._generate_system_string_answer_content_for_placeholder_id(predicate, form, placeholder_id)
 
     def _generate_system_string_answer_content_for_placeholder_id(self, predicate, form, placeholder_id):
         function_name = "%s_sys_answer_%s" % (predicate, placeholder_id)
-        self._abstract_gf_content.write(
-            "%s : SysAnswer;\n" % function_name)
+        self._abstract_gf_content.write("%s : SysAnswer;\n" % function_name)
         self._semantic_gf_content.write(
-            '%s = pp "%s" string_placeholder_%s;\n' % (
-                function_name, predicate, placeholder_id))
+            '%s = pp "%s" string_placeholder_%s;\n' % (function_name, predicate, placeholder_id)
+        )
 
         if form is None:
-            natural_language_form = self._generate_system_string_answer_part(
-                Node(Constants.SLOT), placeholder_id)
+            natural_language_form = self._generate_system_string_answer_part(Node(Constants.SLOT), placeholder_id)
             natural_language_gf = 'answer ("%s")' % natural_language_form
         else:
-            gf_parts = [
-                self._generate_system_string_answer_part(part, placeholder_id)
-                for part in form.children]
+            gf_parts = [self._generate_system_string_answer_part(part, placeholder_id) for part in form.children]
             natural_language_gf = 'answer ("%s")' % "".join(gf_parts)
-        self._natural_language_gf_content.write(
-            '%s = %s;\n' % (function_name, natural_language_gf))
+        self._natural_language_gf_content.write('%s = %s;\n' % (function_name, natural_language_gf))
 
     def _generate_system_string_answer_part(self, part, placeholder_id):
         if self._is_individual_slot(part):
@@ -1114,61 +1043,49 @@ class AutoGenerator(object):
             return self._form_to_gf_string(part)
 
     def _generate_system_integer_answer_content(self, predicate, form):
-        self._abstract_gf_content.write(
-            "%s_sys_answer : %s -> SysAnswer;\n" % (predicate, self.INTEGER_CATEGORY))
-        self._semantic_gf_content.write(
-            '%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
+        self._abstract_gf_content.write("%s_sys_answer : %s -> SysAnswer;\n" % (predicate, self.INTEGER_CATEGORY))
+        self._semantic_gf_content.write('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
 
         if form:
-            parts = [self._generate_system_answer_part(part)
-                     for part in form.children]
+            parts = [self._generate_system_answer_part(part) for part in form.children]
             natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
         else:
             natural_language_gf = "individual"
-        self._natural_language_gf_content.write(
-            "%s_sys_answer individual = %s;\n" % (
-                predicate, natural_language_gf))
+        self._natural_language_gf_content.write("%s_sys_answer individual = %s;\n" % (predicate, natural_language_gf))
 
     def _generate_user_integer_answer_content(self, predicate):
         self._abstract_gf_content.write(
-            "%s_propositional_usr_answer : %s -> %s;\n" % (
-                predicate,
-                self.INTEGER_CATEGORY,
-                self._categories[predicate.get_name()]))
+            "%s_propositional_usr_answer : %s -> %s;\n" %
+            (predicate, self.INTEGER_CATEGORY, self._categories[predicate.get_name()])
+        )
         self._semantic_gf_content.write(
-            "%s_propositional_usr_answer answer = pp %s.s answer;\n" % (
-                predicate, predicate))
-        self._natural_language_gf_content.write(
-            "%s_propositional_usr_answer answer = answer;\n" % predicate)
+            "%s_propositional_usr_answer answer = pp %s.s answer;\n" % (predicate, predicate)
+        )
+        self._natural_language_gf_content.write("%s_propositional_usr_answer answer = answer;\n" % predicate)
 
         self._abstract_gf_content.write(
-            "%s_sortal_usr_answer : %s -> UsrAnswer;\n" % (predicate, self.INTEGER_CATEGORY))
-        self._semantic_gf_content.write(
-            "%s_sortal_usr_answer answer = answer;\n" % predicate)
-        self._natural_language_gf_content.write(
-            "%s_sortal_usr_answer answer = answer;\n" % predicate)
+            "%s_sortal_usr_answer : %s -> UsrAnswer;\n" % (predicate, self.INTEGER_CATEGORY)
+        )
+        self._semantic_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
+        self._natural_language_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
 
     def _generate_system_datetime_answer_content(self, predicate, form):
         for placeholder_id in range(utils.MAX_NUM_PLACEHOLDERS):
-            self._generate_system_datetime_answer_content_for_placeholder_id(
-                predicate, form, placeholder_id)
+            self._generate_system_datetime_answer_content_for_placeholder_id(predicate, form, placeholder_id)
 
     def _generate_system_datetime_answer_content_for_placeholder_id(self, predicate, form, placeholder_id):
         function_name = "%s_sys_answer_%s" % (predicate, placeholder_id)
-        self._abstract_gf_content.write(
-            "%s : SysAnswer;\n" % function_name)
+        self._abstract_gf_content.write("%s : SysAnswer;\n" % function_name)
         self._semantic_gf_content.write(
-            '%s = pp "%s" datetime_placeholder_%s;\n' % (
-                function_name, predicate, placeholder_id))
+            '%s = pp "%s" datetime_placeholder_%s;\n' % (function_name, predicate, placeholder_id)
+        )
 
         if form:
-            parts = [self._generate_system_datetime_answer_part(part, placeholder_id)
-                     for part in form.children]
-            natural_language_gf = "answer (%s)" % " ++ ".join(parts);
+            parts = [self._generate_system_datetime_answer_part(part, placeholder_id) for part in form.children]
+            natural_language_gf = "answer (%s)" % " ++ ".join(parts)
         else:
             natural_language_gf = 'answer ("_datetime_placeholder_%s_")' % placeholder_id
-        self._natural_language_gf_content.write(
-            '%s = %s;\n' % (function_name, natural_language_gf))
+        self._natural_language_gf_content.write('%s = %s;\n' % (function_name, natural_language_gf))
 
     def _generate_system_datetime_answer_part(self, part, placeholder_id):
         if self._is_individual_slot(part):
@@ -1178,8 +1095,7 @@ class AutoGenerator(object):
 
     def _generate_user_question(self, predicate, forms):
         self._abstract_gf_content.write("ask_%s : UsrWHQ;\n" % predicate)
-        self._semantic_gf_content.write("ask_%s = ask_whq %s;\n" % (
-                predicate, predicate))
+        self._semantic_gf_content.write("ask_%s = ask_whq %s;\n" % (predicate, predicate))
 
         forms_without_answers = []
         for form in forms:
@@ -1189,9 +1105,9 @@ class AutoGenerator(object):
                 forms_without_answers.append(form)
 
         if len(forms_without_answers) > 0:
-            self._natural_language_gf_content.write("ask_%s = ss (%s);\n" % (
-                    predicate,
-                    self._speaker_independent_linearization(forms_without_answers)))
+            self._natural_language_gf_content.write(
+                "ask_%s = ss (%s);\n" % (predicate, self._speaker_independent_linearization(forms_without_answers))
+            )
 
     def _generate_action_content(self, action):
         forms, grammatical_features = self._get_action_forms_and_grammatical_features(action)
@@ -1209,25 +1125,25 @@ class AutoGenerator(object):
     def _get_action_forms_and_grammatical_features(self, action):
         genders = [None, tala.nl.gf.resource.FEMININE, tala.nl.gf.resource.MASCULINE]
         numbers = [None, tala.nl.gf.resource.SINGULAR, tala.nl.gf.resource.PLURAL]
-        permutations = [{"gender": gender, "number": number}
-                        for gender in genders
-                        for number in numbers]
+        permutations = [{"gender": gender, "number": number} for gender in genders for number in numbers]
 
-        genderless_forms = self._get_form_as_options(
-            Node(Constants.ACTION, {"name": action}),
-            optional=True)
+        genderless_forms = self._get_form_as_options(Node(Constants.ACTION, {"name": action}), optional=True)
         for permutation in permutations:
             if permutation['gender'] is None:
                 continue
             forms = self._get_form_as_options(
-                Node(Constants.ACTION, {"name": action,
-                              "gender": permutation['gender'],
-                              "number": permutation["number"]}),
-                optional=True)
+                Node(
+                    Constants.ACTION, {
+                        "name": action,
+                        "gender": permutation['gender'],
+                        "number": permutation["number"]
+                    }
+                ),
+                optional=True
+            )
             if len(forms) > 0:
                 return genderless_forms + forms, permutation
-        return genderless_forms, {"gender": None,
-                                  "number": None}
+        return genderless_forms, {"gender": None, "number": None}
 
     def _generate_action_as_verb_phrase(self, action, forms):
         function_name = action
@@ -1264,17 +1180,14 @@ class AutoGenerator(object):
 
     def _write_forms_without_answers_to_nl_content(self, phrase_function, function_name, forms_without_answers):
         if len(forms_without_answers) > 0:
-            gf_forms = [phrase_function(form)
-                        for form
-                        in forms_without_answers]
-            self._natural_language_gf_content.write(u"%s = (%s);\n" % (
-                function_name,
-                u"|".join(gf_forms)))
+            gf_forms = [phrase_function(form) for form in forms_without_answers]
+            self._natural_language_gf_content.write(u"%s = (%s);\n" % (function_name, u"|".join(gf_forms)))
 
     def _get_np_action_category(self, grammatical_features):
         return "NpAction%s%s" % (
             self._get_category_number_substring(grammatical_features["number"]),
-            self._get_category_gender_substring(grammatical_features["gender"]))
+            self._get_category_gender_substring(grammatical_features["gender"])
+        )
 
     def _get_category_gender_substring(self, gender):
         if gender is None:
@@ -1297,9 +1210,8 @@ class AutoGenerator(object):
         self._abstract_gf_content.write("%s : UsrRequest;\n" % function_name)
         self._semantic_gf_content.write("%s = request %s;\n" % (function_name, action))
         self._natural_language_gf_content.write(
-            "%s = ss (%s);\n" % (
-                function_name,
-                self._speaker_independent_linearization(requests_without_answers)))
+            "%s = ss (%s);\n" % (function_name, self._speaker_independent_linearization(requests_without_answers))
+        )
 
     def _verb_phrase(self, form):
         if isinstance(form, Node) and form.type == Constants.ITEM:
@@ -1309,7 +1221,8 @@ class AutoGenerator(object):
                 self._form_to_gf_string(form.get_child(Constants.INFINITIVE).get_single_child()),
                 self._form_to_gf_string(form.get_child(Constants.IMPERATIVE).get_single_child()),
                 self._form_to_gf_string(form.get_child(Constants.ING_FORM).get_single_child()),
-                self._form_to_gf_string(form.get_child(Constants.OBJECT).get_single_child()))
+                self._form_to_gf_string(form.get_child(Constants.OBJECT).get_single_child())
+            )
         else:
             gf_string = self._form_to_gf_string(form)
             return 'mkverb "%s" "%s" "%s"' % (gf_string, gf_string, gf_string)
@@ -1320,10 +1233,10 @@ class AutoGenerator(object):
         elif form.get_child(Constants.DEFINITE):
             return 'mkdef "%s" "%s"' % (
                 self._form_to_gf_string(form.get_child(Constants.INDEFINITE).get_single_child()),
-                self._form_to_gf_string(form.get_child(Constants.DEFINITE).get_single_child()))
+                self._form_to_gf_string(form.get_child(Constants.DEFINITE).get_single_child())
+            )
         else:
-            return 'mkdef "%s"' % (
-                self._form_to_gf_string(form.get_child(Constants.INDEFINITE).get_single_child()))
+            return 'mkdef "%s"' % (self._form_to_gf_string(form.get_child(Constants.INDEFINITE).get_single_child()))
 
     def _form_contains_answer_slots(self, form):
         return bool(self._answer_slots_of_form(form))
@@ -1352,21 +1265,16 @@ class AutoGenerator(object):
             return "ask_whq %s %s" % (predicate, " ".join(semantic_value_arguments))
 
         function_name = self._generate_new_function_name("%s_user_question" % predicate)
-        self._generate_function_with_answers(
-            function_name, form, "UsrWHQ", generate_semantic_value)
+        self._generate_function_with_answers(function_name, form, "UsrWHQ", generate_semantic_value)
 
     def _generate_request_with_answers(self, action, form):
         def generate_semantic_value(semantic_value_arguments):
-            return 'request (pp "%s") %s' % (
-                action, " ".join(semantic_value_arguments))
+            return 'request (pp "%s") %s' % (action, " ".join(semantic_value_arguments))
 
         function_name = self._generate_new_function_name("%s_request" % action)
-        self._generate_function_with_answers(
-            function_name, form, "UsrRequest", generate_semantic_value, action)
+        self._generate_function_with_answers(function_name, form, "UsrRequest", generate_semantic_value, action)
 
-    def _generate_function_with_answers(self, function_name, form,
-                                        output_category,
-                                        semantic_value_function, action=""):
+    def _generate_function_with_answers(self, function_name, form, output_category, semantic_value_function, action=""):
         answer_categories = []
         arguments = []
         semantic_value_arguments = []
@@ -1385,40 +1293,38 @@ class AutoGenerator(object):
                 answer_categories.append(self._categories[sort])
                 nl_parts.append("%s.s" % sort)
             elif form_part:
-                nl_parts.append(
-                    '"%s"' % self._form_to_gf_string(form_part))
+                nl_parts.append('"%s"' % self._form_to_gf_string(form_part))
 
-        self._write_function_with_answers_in_abstract_gf(
-            answer_categories, function_name, output_category)
+        self._write_function_with_answers_in_abstract_gf(answer_categories, function_name, output_category)
         self._write_function_with_answers_in_semantic_gf(
-            answer_categories, function_name, arguments,
-            semantic_value_arguments, semantic_value_function, action)
-        self._write_function_with_answers_in_natural_language_gf(
-            function_name, nl_parts, arguments)
+            answer_categories, function_name, arguments, semantic_value_arguments, semantic_value_function, action
+        )
+        self._write_function_with_answers_in_natural_language_gf(function_name, nl_parts, arguments)
 
-    def _write_function_with_answers_in_natural_language_gf(
-        self, function_name, nl_parts, arguments):
+    def _write_function_with_answers_in_natural_language_gf(self, function_name, nl_parts, arguments):
         natural_content = u"{function_name} {joined_arguments} = ss ({concatenated_nl_parts});\n".format(
             function_name=function_name,
             joined_arguments=" ".join(arguments),
-            concatenated_nl_parts=" ++ ".join(nl_parts))
+            concatenated_nl_parts=" ++ ".join(nl_parts)
+        )
         self._natural_language_gf_content.write(natural_content)
 
     def _write_function_with_answers_in_semantic_gf(
-        self, answer_categories, function_name, arguments,
-        semantic_value_arguments, semantic_value_function, action):
+        self, answer_categories, function_name, arguments, semantic_value_arguments, semantic_value_function, action
+    ):
         semantic_content = "{function_name} {arguments} = {value};\n".format(
             function_name=function_name,
             arguments=" ".join(arguments),
-            value=semantic_value_function(semantic_value_arguments))
+            value=semantic_value_function(semantic_value_arguments)
+        )
         self._semantic_gf_content.write(semantic_content)
 
-    def _write_function_with_answers_in_abstract_gf(
-        self, answer_categories, function_name, output_category):
+    def _write_function_with_answers_in_abstract_gf(self, answer_categories, function_name, output_category):
         abstract_content = "{function_name} : {argument_categories} -> {output_category};\n".format(
             function_name=function_name,
             argument_categories=" -> ".join(answer_categories),
-            output_category=output_category)
+            output_category=output_category
+        )
         self._abstract_gf_content.write(abstract_content)
 
     def _get_predicate_sort(self, predicate_as_string):
@@ -1436,13 +1342,16 @@ class AutoGenerator(object):
         if self._xml_grammar_exists(language_code):
             return self._load_xml_grammar(language_code)
         elif language_code not in self._supported_py_grammar_languages():
-            raise LanguageNotSupportedByPythonFormatException("Expected '%s' but couldn't find it in '%s'" %
-                            (self._xml_grammar_path(language_code), os.getcwd()))
+            raise LanguageNotSupportedByPythonFormatException(
+                "Expected '%s' but couldn't find it in '%s'" % (self._xml_grammar_path(language_code), os.getcwd())
+            )
         elif self._py_grammar_exists(language_code):
             return self._load_py_grammar(language_code)
         else:
-            raise Exception("Expected either '%s' or '%s' but found neither in '%s'" %
-                            (self._xml_grammar_path(language_code), self._py_grammar_path(language_code), os.getcwd()))
+            raise Exception(
+                "Expected either '%s' or '%s' but found neither in '%s'" %
+                (self._xml_grammar_path(language_code), self._py_grammar_path(language_code), os.getcwd())
+            )
 
     def _supported_py_grammar_languages(self):
         supported_languages = [languages.ENGLISH, languages.SWEDISH, languages.ITALIAN]
@@ -1458,8 +1367,7 @@ class AutoGenerator(object):
     def _load_py_grammar(self, language_code):
         grammar_source = self._load_py_grammar_source(language_code)
         self._grammar_compiler = DddPyCompiler()
-        return self._grammar_compiler.compile_grammar(
-            grammar_source, self._ontology, self._ddd.service_interface)
+        return self._grammar_compiler.compile_grammar(grammar_source, self._ontology, self._ddd.service_interface)
 
     def _load_py_grammar_source(self, language_code):
         return open(self._py_grammar_path(language_code)).read()
@@ -1474,7 +1382,8 @@ class AutoGenerator(object):
         grammar_string = self._load_xml_grammar_source(language_code)
         self._grammar_compiler = DddXmlCompiler()
         return self._grammar_compiler.compile_grammar(
-            grammar_string, self._ontology, self._ddd.service_interface, language_code)
+            grammar_string, self._ontology, self._ddd.service_interface, language_code
+        )
 
     def _load_xml_grammar_source(self, language_code):
         grammar_object = open(self._xml_grammar_path(language_code))
@@ -1483,49 +1392,61 @@ class AutoGenerator(object):
 
     def _missing_entry(self, reporting_method, *args):
         if not self._ignore_warnings:
-            print >>sys.stderr, "Missing grammar entry:",
+            print >> sys.stderr, "Missing grammar entry:",
             reporting_method(*args)
 
     def _missing_action(self, action):
         self._warn( 'How do speakers talk about the action %s? Specify the utterance:\n' % \
             action)
         example_phrase = self._example_phrase_from_semantic_value(action)
-        simple_code_example = self._decompile_entry(
-            Node(Constants.ACTION, {"name": action}), example_phrase)
+        simple_code_example = self._decompile_entry(Node(Constants.ACTION, {"name": action}), example_phrase)
         self._warn(simple_code_example)
         self._warn('Alternatively, you can specify several possible utterances in a list:\n')
         complex_code_example = self._decompile_node(
-            Node(Constants.ACTION, {"name": action}, [
-                    Node(Constants.ONE_OF, {}, [
+            Node(
+                Constants.ACTION, {"name": action}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
                             Node(Constants.ITEM, {}, ["%s one way" % example_phrase]),
                             Node(Constants.ITEM, {}, ["%s another way" % example_phrase]),
-                            Node(Constants.ITEM, {}, [
-                                    "%s " % example_phrase,
-                                    Node(Constants.SLOT, {"predicate": "city"})])])]))
+                            Node(
+                                Constants.ITEM, {},
+                                ["%s " % example_phrase,
+                                 Node(Constants.SLOT, {"predicate": "city"})]
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
         self._warn('%s\n\n' % complex_code_example)
 
     def _missing_individual(self, individual):
         self._warn( 'How do speakers talk about the individual %s? Specify the utterance:\n' % \
             individual)
         example_phrase = self._example_phrase_from_semantic_value(individual)
-        simple_code_example = self._decompile_entry(
-            Node(Constants.INDIVIDUAL, {"name": individual}), example_phrase)
+        simple_code_example = self._decompile_entry(Node(Constants.INDIVIDUAL, {"name": individual}), example_phrase)
         self._warn(simple_code_example)
         self._warn('Alternatively, you can specify several possible utterances in a list:\n')
         complex_code_example = self._decompile_node(
-            Node(Constants.INDIVIDUAL, {"name": individual}, [
-                    Node(Constants.ONE_OF, {}, [
+            Node(
+                Constants.INDIVIDUAL, {"name": individual}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
                             Node(Constants.ITEM, {}, ["%s one way" % example_phrase]),
                             Node(Constants.ITEM, {}, ["%s another way" % example_phrase]),
-                            ])]))
+                        ]
+                    )
+                ]
+            )
+        )
         self._warn('%s\n\n' % complex_code_example)
 
     def _missing_ended(self, key, action_interface):
         self._warn( 'How does the system report that the service action %s ended? Specify the utterance:\n' % \
                     action_interface.name)
         example_phrase = "performed %s." % self._example_phrase_for_parameterized_service_action(action_interface)
-        self._warn('%s\n\n' % (
-            self._decompile_entry(key, example_phrase)))
+        self._warn('%s\n\n' % (self._decompile_entry(key, example_phrase)))
 
     def _missing_preconfirm(self, key, action_interface):
         self._warn( 'How does the system ask the user to confirm the service action %s, ' % action_interface.name + \
@@ -1550,8 +1471,7 @@ class AutoGenerator(object):
         for parameter in validator_interface.parameters:
             children.append(" ")
             children.append(Node(Constants.SLOT, {"predicate": parameter.name}))
-        example_code = self._decompile_node(
-            Node(key.type, key.parameters, children))
+        example_code = self._decompile_node(Node(key.type, key.parameters, children))
         self._warn('%s\n\n' % example_code)
 
     def _example_phrase_for_parameterized_service_action(self, action_interface):
@@ -1565,44 +1485,52 @@ class AutoGenerator(object):
             'The entry is used in questions such as "Do you want to know X?" ' + \
             'or "I want to know X", where X is the grammar entry.\n\nExample:\n')
         example_phrase = self._example_phrase_from_semantic_value(predicate)
-        simple_code_example = self._decompile_entry(
-            Node(Constants.PREDICATE, {"name": predicate}), example_phrase)
+        simple_code_example = self._decompile_entry(Node(Constants.PREDICATE, {"name": predicate}), example_phrase)
         self._warn(simple_code_example)
         self._warn('Alternatively, you can specify several possible utterances in a list:\n')
         complex_code_example = self._decompile_node(
-            Node(Constants.PREDICATE, {"name": predicate}, [
-                    Node(Constants.ONE_OF, {}, [
+            Node(
+                Constants.PREDICATE, {"name": predicate}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
                             Node(Constants.ITEM, {}, ["%s one way" % example_phrase]),
                             Node(Constants.ITEM, {}, ["%s another way" % example_phrase]),
-                            ])]))
+                        ]
+                    )
+                ]
+            )
+        )
         self._warn('%s\n\n' % complex_code_example)
 
     def _missing_user_question(self, predicate):
-        self._warn('How does the user ask about %s?\n\nExample:\n\n%s_user_question = [\n  "what is %s",\n  "i want to know %s"\n]\n' % (predicate, predicate, predicate, predicate))
+        self._warn(
+            'How does the user ask about %s?\n\nExample:\n\n%s_user_question = [\n  "what is %s",\n  "i want to know %s"\n]\n'
+            % (predicate, predicate, predicate, predicate)
+        )
 
     def _missing_system_question(self, key, predicate):
         example_phrase = "what is %s" % \
             self._example_phrase_from_semantic_value(predicate)
-        self._warn('How does the system ask about %s?\n\nExample:\n\n%s\n' % (
-            predicate,
-            self._decompile_entry(key, example_phrase),
-            ))
+        self._warn(
+            'How does the system ask about %s?\n\nExample:\n\n%s\n' % (
+                predicate,
+                self._decompile_entry(key, example_phrase),
+            )
+        )
 
     def _is_goal_issue(self, predicate):
         goal_string = "resolve(?X.%s(X))" % predicate
-        resolve_goals = filter(ResolveGoal.filter(),
-                               self._domain.get_all_goals())
+        resolve_goals = filter(ResolveGoal.filter(), self._domain.get_all_goals())
         return goal_string in [unicode(resolve_goal) for resolve_goal in resolve_goals]
 
     def _warn(self, warning):
-        print >>sys.stderr, warning
+        print >> sys.stderr, warning
 
     def _form_to_gf_string(self, form):
         if isinstance(form, (str, unicode)):
             return form
         elif form.type == Constants.ITEM:
-            return " ".join([self._form_to_gf_string(child)
-                             for child in form.children])
+            return " ".join([self._form_to_gf_string(child) for child in form.children])
         elif self._is_propositional_answer_slot(form):
             return self._form_to_gf_string(form.parameters["predicate"])
         else:
@@ -1610,10 +1538,11 @@ class AutoGenerator(object):
 
     def _can_be_asked_by_system(self, predicate):
         return predicate in [
-            unicode(question.get_predicate())
-            for question in self._domain.get_plan_questions()
-            if (question.get_content().is_lambda_abstracted_predicate_proposition() and
-                question.get_predicate().get_feature_of_name() is None)]
+            unicode(question.get_predicate()) for question in self._domain.get_plan_questions() if (
+                question.get_content().is_lambda_abstracted_predicate_proposition()
+                and question.get_predicate().get_feature_of_name() is None
+            )
+        ]
 
     def _get_action_parameters(self, action_interface):
         return [parameter.name for parameter in action_interface.parameters]
@@ -1662,8 +1591,7 @@ class AutoGenerator(object):
         return self._is_slot(form) and len(form.parameters) == 0
 
     def _has_np(self, forms):
-        return any(filter(lambda form: self._is_np(form),
-                          forms))
+        return any(filter(lambda form: self._is_np(form), forms))
 
     def _is_np(self, form):
         if isinstance(form, Node) and form.type == Constants.ITEM:
@@ -1672,14 +1600,14 @@ class AutoGenerator(object):
             return isinstance(form, Node) and form.type == Constants.NP
 
     def _has_vp(self, forms):
-        return any(filter(lambda form: self._is_vp(form),
-                          forms))
+        return any(filter(lambda form: self._is_vp(form), forms))
 
     def _is_vp(self, form):
         if isinstance(form, Node) and form.type == Constants.ITEM:
             return self._has_vp(form.children)
         else:
             return isinstance(form, Node) and form.type == Constants.VP
+
 
 class Argument:
     def __init__(self, name, category):

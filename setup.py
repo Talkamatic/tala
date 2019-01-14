@@ -7,7 +7,6 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py
 
-
 if __name__ == "__main__":
     setup(
         use_scm_version={"write_to": "tala/installed_version.py"},
@@ -15,14 +14,16 @@ if __name__ == "__main__":
         name="tala",
         packages=find_packages(exclude=["tala/ddds", "test", "*.test", "test.*", "*.test.*"]),
         package_dir={"tala": "tala"},
-        package_data={"tala": [
-            "ddd/maker/templates/*.txt",
-            "ddd/maker/templates/*.xml",
-            "ddd/schemas/grammar.xsd",
-            "ddd/schemas/grammar_rgl.xsd",
-            "ddd/schemas/ontology.xsd",
-            "ddd/schemas/service_interface.xsd",
-        ]},
+        package_data={
+            "tala": [
+                "ddd/maker/templates/*.txt",
+                "ddd/maker/templates/*.xml",
+                "ddd/schemas/grammar.xsd",
+                "ddd/schemas/grammar_rgl.xsd",
+                "ddd/schemas/ontology.xsd",
+                "ddd/schemas/service_interface.xsd",
+            ]
+        },
         scripts=[],
         entry_points={
             "console_scripts": [

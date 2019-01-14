@@ -10,18 +10,19 @@ class MockElement:
     def __unicode__(self):
         return "MockElement(%r)" % self._name
 
+
 class StackTester(EqualityAssertionTestCaseMixin):
     def test_stacking(self):
         stack = self.create_stack()
         stack.push("first")
         stack.push("second")
-        self.assertEquals(stack.pop(), "second")    
+        self.assertEquals(stack.pop(), "second")
         self.assertEquals(stack.pop(), "first")
-        self.assertEquals(len(stack), 0)                
+        self.assertEquals(len(stack), 0)
 
     def test_initialize_with_content(self):
         stack = self.create_stack(["first", "second"])
-        self.assertEquals(stack.pop(), "second")    
+        self.assertEquals(stack.pop(), "second")
         self.assertEquals(stack.pop(), "first")
 
     def test_equality_based_on_contents(self):
@@ -36,7 +37,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
     def test_top_on_empty_stack_raises_exception(self):
         stack = self.create_stack()
         self.assertRaises(StackError, stack.top)
-        
+
     def test_top_returns_latest_stacked_element(self):
         stack = self.create_stack()
         stack.push("harry")
@@ -52,7 +53,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         stack = self.create_stack()
         stack.push("randomString")
         self.assertFalse(stack.isEmpty())
-    
+
     def test_empty_stack_not_equals_none(self):
         empty_stack = self.create_stack()
         self.assertNotEquals(None, empty_stack)
@@ -79,7 +80,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         stack.push(topElement)
         testElement = "nisse"
         self.assertFalse(stack.isTop(testElement))
-    
+
     def test_iteration(self):
         stack = self.create_stack()
         stack.push("bottom")
@@ -123,11 +124,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         self.assertEquals(expected_stack, result_stack)
 
 
-
-    
-  
 class TestStacks(unittest.TestCase, StackTester):
-    
     def setUp(self):
         self.create_stack = Stack
 
@@ -135,20 +132,18 @@ class TestStacks(unittest.TestCase, StackTester):
         stack = Stack()
         stack.push(MockElement("bottom"))
         stack.push(MockElement("top"))
-        self.assertEquals("Stack([MockElement('top'), MockElement('bottom')])",
-                          unicode(stack))
+        self.assertEquals("Stack([MockElement('top'), MockElement('bottom')])", unicode(stack))
+
 
 class TestStackSets(unittest.TestCase, StackTester):
-
     def setUp(self):
         self.create_stack = StackSet
-        
+
     def test_string_representation(self):
         stack = StackSet()
         stack.push(MockElement("bottom"))
         stack.push(MockElement("top"))
-        self.assertEquals("stackset([MockElement('top'), MockElement('bottom')])",
-                          unicode(stack))
+        self.assertEquals("stackset([MockElement('top'), MockElement('bottom')])", unicode(stack))
 
     def test_stacking_two_identical_elements_leaves_only_one(self):
         stack = StackSet()
@@ -166,21 +161,21 @@ class TestStackSets(unittest.TestCase, StackTester):
         expected_stack.push("first")
 
         self.assertEquals(expected_stack, stack)
-        
+
     def test_remove_if_exists_for_existing_element(self):
         set = StackSet(["first", "second"])
         set.remove_if_exists("first")
         expected_result = StackSet(["second"])
         self.assertEquals(expected_result, set)
-        
+
     def test_remove_if_exists_for_non_existing_element_has_no_effect(self):
         set = StackSet(["first", "second"])
         set.remove_if_exists("third")
         expected_result = StackSet(["first", "second"])
         self.assertEquals(expected_result, set)
-  
+
+
 class TestStackSetView(unittest.TestCase):
-    
     def test_get_view_of_stack_set(self):
         self._given_a_stack_set([0, 1, 2])
         self._given_a_ONE_pass_filter()
@@ -192,11 +187,11 @@ class TestStackSetView(unittest.TestCase):
         self._stack_set = StackSet(integers)
 
     def _given_a_ONE_pass_filter(self):
-        self._filter = lambda integer: integer == 1 
+        self._filter = lambda integer: integer == 1
 
     def _given_a_filtered_view_of_stack(self):
         self._view = self._stack_set.create_view(self._filter)
-        
+
     def _when_peeking_top_of_view(self):
         self._result = self._view.top()
 
@@ -211,8 +206,8 @@ class TestStackSetView(unittest.TestCase):
         self._then_the_object_becomes_locally_and_globally_visible()
 
     def _given_a_positive_filter(self):
-        self._filter = lambda element: element > 0 
-        
+        self._filter = lambda element: element > 0
+
     def _when_pushing_an_element_in_view(self):
         self._view.push(42)
 
@@ -259,7 +254,7 @@ class TestStackSetView(unittest.TestCase):
 
     def _then_the_list_is(self, elems):
         self.assertEquals(elems, self._integer_list)
-        
+
     def test_iterate_in_view(self):
         self._given_a_stack_set([2, 1, 0, -1])
         self._given_a_positive_filter()

@@ -15,6 +15,7 @@ class GrammarReader(object):
             if path:
                 return os.path.join(path, filename)
             return filename
+
         path = relative_path(language_code, path)
         return os.path.abspath(path)
 

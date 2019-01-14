@@ -47,8 +47,7 @@ class ConfigTester(object):
         except UnexpectedConfigEntriesException:
             pass
 
-    def when_reading_then_exception_is_raised_with_message_that_matches_regex(
-        self, exception_class, expected_regex):
+    def when_reading_then_exception_is_raised_with_message_that_matches_regex(self, exception_class, expected_regex):
         with self.assertRaisesRegexp(exception_class, expected_regex) as e:
             self.when_reading()
 
@@ -88,8 +87,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
 
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
-    def test_read_with_unexpected_and_missing_entry_raises_exception(
-        self, mock_default_name, mock_default_config):
+    def test_read_with_unexpected_and_missing_entry_raises_exception(self, mock_default_name, mock_default_config):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {"mock_unexpected_key": ""})
@@ -97,33 +95,32 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             UnexpectedConfigEntriesException,
             "Parameter mock_unexpected_key is unexpected while mock_key is missing from.*"
-            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\.")
+            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\."
+        )
 
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
     def test_read_with_unexpected_entry_raises_exception(self, mock_default_name, mock_default_config):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
-        self.given_config_file_exists(Config, {"mock_key": "mock_value",
-                                               "mock_unexpected_key": ""})
+        self.given_config_file_exists(Config, {"mock_key": "mock_value", "mock_unexpected_key": ""})
         self.given_created_config(Config)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
-            UnexpectedConfigEntriesException,
-            "Parameter mock_unexpected_key is unexpected in.*"
-            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\.")
+            UnexpectedConfigEntriesException, "Parameter mock_unexpected_key is unexpected in.*"
+            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\."
+        )
 
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
     def test_read_with_missing_entries_raises_exception(self, mock_default_name, mock_default_config):
-        self.given_default_config(mock_default_config, {"mock_key_1": "mock_value",
-                                                        "mock_key_2": "mock_value"})
+        self.given_default_config(mock_default_config, {"mock_key_1": "mock_value", "mock_key_2": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {})
         self.given_created_config(Config)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
-            UnexpectedConfigEntriesException,
-            "Parameter mock_key_1 and mock_key_2 is missing from.*"
-            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\.")
+            UnexpectedConfigEntriesException, "Parameter mock_key_1 and mock_key_2 is missing from.*"
+            "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\."
+        )
 
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
@@ -138,15 +135,27 @@ class TestConfig(unittest.TestCase, ConfigTester):
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
     def test_read_with_missing_entries_writes_updated_config(self, mock_default_name, mock_default_config):
-        self.given_default_config(mock_default_config, {"mock_key_1": "mock_default_value_1",
-                                                        "mock_key_2": "mock_default_value_2"})
+        self.given_default_config(
+            mock_default_config, {
+                "mock_key_1": "mock_default_value_1",
+                "mock_key_2": "mock_default_value_2"
+            }
+        )
         self.given_default_name(mock_default_name, "mock.config.json")
-        self.given_config_file_exists(Config, {"mock_unexpected_key": "mock_unexpected_value",
-                                               "mock_key_2": "mock_updated_value_2"})
+        self.given_config_file_exists(
+            Config, {
+                "mock_unexpected_key": "mock_unexpected_value",
+                "mock_key_2": "mock_updated_value_2"
+            }
+        )
         self.given_created_config(Config)
         self.when_trying_to_read()
-        self.then_config_is(Config.default_name(), {"mock_key_1": "mock_default_value_1",
-                                                    "mock_key_2": "mock_updated_value_2"})
+        self.then_config_is(
+            Config.default_name(), {
+                "mock_key_1": "mock_default_value_1",
+                "mock_key_2": "mock_updated_value_2"
+            }
+        )
 
     @patch.object(Config, "default_config")
     @patch.object(Config, "default_name")
@@ -169,41 +178,46 @@ class TestInheritance(unittest.TestCase, ConfigTester):
 
     @patch.object(Config, "default_config")
     def test_override_value_from_parent(self, mock_default_config):
-        self.given_default_config(mock_default_config, {"key_to_override": "mock_default_value",
-                                                        "overrides": None})
-        self.given_config_file_exists(Config, {"key_to_override": "parent_value",
-                                               "overrides": None}, name="parent.config.json")
+        self.given_default_config(mock_default_config, {"key_to_override": "mock_default_value", "overrides": None})
         self.given_config_file_exists(
-            Config, {"overrides": "parent.config.json",
-                     "key_to_override": "child_value"},
-            name="child.config.json")
+            Config, {
+                "key_to_override": "parent_value",
+                "overrides": None
+            }, name="parent.config.json"
+        )
+        self.given_config_file_exists(
+            Config, {
+                "overrides": "parent.config.json",
+                "key_to_override": "child_value"
+            }, name="child.config.json"
+        )
         self.given_created_config(Config, "child.config.json")
         self.when_reading()
-        self.then_read_config_was({"key_to_override": "child_value",
-                                   "overrides": "parent.config.json"})
+        self.then_read_config_was({"key_to_override": "child_value", "overrides": "parent.config.json"})
 
     @patch.object(Config, "default_config")
     def test_keep_value_from_parent(self, mock_default_config):
-        self.given_default_config(mock_default_config, {"key_to_override": "mock_default_value",
-                                                        "overrides": None})
-        self.given_config_file_exists(Config, {"key_to_override": "parent_value",
-                                               "overrides": None}, name="parent.config.json")
+        self.given_default_config(mock_default_config, {"key_to_override": "mock_default_value", "overrides": None})
         self.given_config_file_exists(
-            Config, {"overrides": "parent.config.json"},
-            name="child.config.json")
+            Config, {
+                "key_to_override": "parent_value",
+                "overrides": None
+            }, name="parent.config.json"
+        )
+        self.given_config_file_exists(Config, {"overrides": "parent.config.json"}, name="child.config.json")
         self.given_created_config(Config, "child.config.json")
         self.when_reading()
-        self.then_read_config_was({"key_to_override": "parent_value",
-                                   "overrides": "parent.config.json"})
+        self.then_read_config_was({"key_to_override": "parent_value", "overrides": "parent.config.json"})
 
     def test_read_with_missing_parent_raises_exception(self):
         self.given_config_file_exists(
-            BackendConfig, {"overrides": "non_existing_parent.config.json"},
-            name="child.config.json")
+            BackendConfig, {"overrides": "non_existing_parent.config.json"}, name="child.config.json"
+        )
         self.given_created_config(BackendConfig, "child.config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             BackendConfigNotFoundException,
-            "Expected backend config '.*non_existing_parent\.config\.json' to exist but it was not found\.")
+            "Expected backend config '.*non_existing_parent\.config\.json' to exist but it was not found\."
+        )
 
 
 class TestDddConfig(unittest.TestCase, ConfigTester):
@@ -218,8 +232,7 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
 
     def test_default_config(self):
         self.assertEqual(
-            DddConfig.default_config(),
-            {
+            DddConfig.default_config(), {
                 "use_rgl": True,
                 "use_third_party_parser": False,
                 "device_module": None,
@@ -233,7 +246,8 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
         self.given_created_config(DddConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             DddConfigNotFoundException,
-            "Expected DDD config '.*non_existing_config\.json' to exist but it was not found\.")
+            "Expected DDD config '.*non_existing_config\.json' to exist but it was not found\."
+        )
 
     def given_default_ddd_config_with_rasa_enabled_and_rgl_disabled(self):
         self._json_config = DddConfig.default_config()
@@ -256,8 +270,7 @@ class TestRasaConfig(unittest.TestCase, ConfigTester):
 
     def test_default_config(self):
         self.assertEqual(
-            RasaConfig.default_config(),
-            {
+            RasaConfig.default_config(), {
                 "enable_duckling": False,
                 "duckling_url": "http://127.0.0.1:10090",
             }
@@ -267,7 +280,8 @@ class TestRasaConfig(unittest.TestCase, ConfigTester):
         self.given_created_config(RasaConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             RasaConfigNotFoundException,
-            "Expected RASA config '.*non_existing_config\.json' to exist but it was not found\.")
+            "Expected RASA config '.*non_existing_config\.json' to exist but it was not found\."
+        )
 
 
 class TestBackendConfig(unittest.TestCase, ConfigTester):
@@ -282,8 +296,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
 
     def test_default_config(self):
         self.assertEqual(
-            BackendConfig.default_config(),
-            {
+            BackendConfig.default_config(), {
                 "asr": "none",
                 "supported_languages": ["eng"],
                 "ddds": [""],
@@ -299,8 +312,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
 
     def test_default_config_with_ddd_name(self):
         self.assertEqual(
-            BackendConfig.default_config(ddd_name="my-ddd"),
-            {
+            BackendConfig.default_config(ddd_name="my-ddd"), {
                 "asr": "none",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -318,10 +330,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
         self.given_created_config(BackendConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             BackendConfigNotFoundException,
-            "Expected backend config '.*non_existing_config\.json' to exist but it was not found\.")
+            "Expected backend config '.*non_existing_config\.json' to exist but it was not found\."
+        )
 
     def test_read_with_android_asr_and_missing_use_word_list_correction_sets_it_to_true(self):
-        self.given_config_file_exists(BackendConfig, {
+        self.given_config_file_exists(
+            BackendConfig, {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -330,10 +344,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "repeat_questions": True,
                 "overrides": None,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
         self.given_created_config(BackendConfig)
         self.when_trying_to_read()
-        self.then_config_is(BackendConfig.default_name(), {
+        self.then_config_is(
+            BackendConfig.default_name(), {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -344,10 +360,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "overrides": None,
                 "rerank_amount": 0.2,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
 
     def test_read_with_android_asr_and_something_missing_keeps_use_word_list_correction_if_false(self):
-        self.given_config_file_exists(BackendConfig, {
+        self.given_config_file_exists(
+            BackendConfig, {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -356,10 +374,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "use_word_list_correction": False,
                 "overrides": None,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
         self.given_created_config(BackendConfig)
         self.when_trying_to_read()
-        self.then_config_is(BackendConfig.default_name(), {
+        self.then_config_is(
+            BackendConfig.default_name(), {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -370,10 +390,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "overrides": None,
                 "rerank_amount": 0.2,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
 
     def test_read_with_android_asr_and_something_missing_keeps_use_word_list_correction_if_true(self):
-        self.given_config_file_exists(BackendConfig, {
+        self.given_config_file_exists(
+            BackendConfig, {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -382,10 +404,12 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "use_word_list_correction": True,
                 "overrides": None,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
         self.given_created_config(BackendConfig)
         self.when_trying_to_read()
-        self.then_config_is(BackendConfig.default_name(), {
+        self.then_config_is(
+            BackendConfig.default_name(), {
                 "asr": "android",
                 "supported_languages": ["eng"],
                 "ddds": ["my-ddd"],
@@ -396,7 +420,8 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "overrides": None,
                 "rerank_amount": 0.2,
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            })
+            }
+        )
 
     def test_write_default_config_with_ddd(self):
         self.when_writing_default_config_with_ddd_name("my-ddd")

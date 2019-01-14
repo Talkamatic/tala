@@ -37,12 +37,10 @@ class Question(SemanticObjectWithContent):
         return self._type == self.TYPE_ALT
 
     def is_understanding_question(self):
-        return (self._type == self.TYPE_YESNO and
-                self._content.is_understanding_proposition())
+        return (self._type == self.TYPE_YESNO and self._content.is_understanding_proposition())
 
     def is_preconfirmation_question(self):
-        return (self._type == self.TYPE_YESNO and
-                self._content.is_preconfirmation_proposition())
+        return (self._type == self.TYPE_YESNO and self._content.is_preconfirmation_proposition())
 
     def get_sort(self):
         predicate = self.get_predicate()
@@ -77,9 +75,7 @@ class AltQuestion(Question):
             return Question.__unicode__(self)
 
     def _contains_single_predicate(self):
-        predicates = set([alt.getPredicate()
-                          for alt in self._content
-                          if alt.is_predicate_proposition()])
+        predicates = set([alt.getPredicate() for alt in self._content if alt.is_predicate_proposition()])
         return len(predicates) == 1
 
     def _predicate(self):
@@ -89,4 +85,3 @@ class AltQuestion(Question):
 class YesNoQuestion(Question):
     def __init__(self, proposition):
         Question.__init__(self, Question.TYPE_YESNO, proposition)
-

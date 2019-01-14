@@ -13,9 +13,16 @@ from tala.nl.rasa.generating.examples import Examples
 from tala.utils.file_writer import UTF8FileWriter
 
 
-class RASANotSupportedByGrammarFormatException(Exception): pass
-class UnexpectedRequiredEntityException(Exception): pass
-class RASADataNotGeneratedException(Exception): pass
+class RASANotSupportedByGrammarFormatException(Exception):
+    pass
+
+
+class UnexpectedRequiredEntityException(Exception):
+    pass
+
+
+class RASADataNotGeneratedException(Exception):
+    pass
 
 
 class RasaGenerator(object):
@@ -30,8 +37,9 @@ class RasaGenerator(object):
     def generate(self):
         if not GrammarReader.xml_grammar_exists_for_language(self._language_code):
             raise RASANotSupportedByGrammarFormatException(
-                "Expected an XML-based grammar at '%s', but it does not exist"
-                % os.path.abspath(GrammarReader.path(self._language_code)))
+                "Expected an XML-based grammar at '%s', but it does not exist" %
+                os.path.abspath(GrammarReader.path(self._language_code))
+            )
         grammar = self._ddd.grammars[self._language_code]
 
         examples = set()
@@ -102,20 +110,23 @@ class RasaGenerator(object):
             if required_entity.is_sortal:
                 new_examples = list(self._examples_from_sortal_individual(grammar, required_entity, example, tail))
             elif required_entity.is_propositional:
-                new_examples = list(self._examples_from_propositional_individual(
-                    grammar, required_entity, example, tail))
+                new_examples = list(
+                    self._examples_from_propositional_individual(grammar, required_entity, example, tail)
+                )
             else:
                 raise UnexpectedRequiredEntityException(
-                    "Expected either a sortal or propositional required entity but got a %s"
-                    % required_entity.__class__.__name__)
+                    "Expected either a sortal or propositional required entity but got a %s" %
+                    required_entity.__class__.__name__
+                )
             all_new_examples.extend(new_examples)
         return self._examples_with_individuals(grammar, text_chunks[1:], required_entities[1:], all_new_examples)
 
     def _examples_from_sortal_individual(self, grammar, required_sortal_entity, example_so_far, tail):
         sort = self._ddd.ontology.get_sort(required_sortal_entity.name)
         individuals = self._individual_grammar_entries_samples(grammar, sort)
-        return self._examples_from_individuals(self._sortal_entity_factory, sort.get_name(), individuals,
-                                               example_so_far, tail)
+        return self._examples_from_individuals(
+            self._sortal_entity_factory, sort.get_name(), individuals, example_so_far, tail
+        )
 
     def _sample_individuals_of_builtin_sort(self, sort):
         examples = self._language_examples.get_builtin_sort_examples(sort)
@@ -138,11 +149,11 @@ class RasaGenerator(object):
         individuals = self._individual_grammar_entries_samples(grammar, sort)
         if sort.is_string_sort():
             predicate_specific_samples = self._string_examples_of_predicate(grammar, predicate)
-            individuals.extend([
-                [predicate_specific_sample]
-                for predicate_specific_sample in predicate_specific_samples])
-        return self._examples_from_individuals(self._propositional_entity_factory, predicate_name,
-                                               individuals, example_so_far, tail)
+            individuals.extend([[predicate_specific_sample]
+                                for predicate_specific_sample in predicate_specific_samples])
+        return self._examples_from_individuals(
+            self._propositional_entity_factory, predicate_name, individuals, example_so_far, tail
+        )
 
     def _string_examples_of_predicate(self, grammar, predicate):
         return grammar.strings_of_predicate(predicate.get_name())
@@ -193,8 +204,9 @@ class RasaGenerator(object):
 
     def _examples_of_sortal_answers_of_kind(self, grammar, sort, kind, templates):
         for grammar_entries in self._individual_grammar_entries_samples(grammar, sort):
-            examples = self._examples_of_individual(kind, self._sortal_entity_factory, grammar_entries, sort.get_name(),
-                                                    templates)
+            examples = self._examples_of_individual(
+                kind, self._sortal_entity_factory, grammar_entries, sort.get_name(), templates
+            )
             for example in examples:
                 yield example
 
@@ -202,8 +214,9 @@ class RasaGenerator(object):
         for sort in self._ddd.ontology.get_sorts().values():
             if sort.is_string_sort():
                 continue
-            examples = self._examples_of_sortal_answers_of_kind(grammar, sort, ANSWER_NEGATION_INTENT,
-                                                                 self._answer_negation_templates)
+            examples = self._examples_of_sortal_answers_of_kind(
+                grammar, sort, ANSWER_NEGATION_INTENT, self._answer_negation_templates
+            )
             for example in examples:
                 yield example
 
@@ -234,8 +247,9 @@ class RasaGenerator(object):
     def _create_example_with_only_an_entity(intent, entity_factory, identifier, grammar_entry, text):
         start = text.find(grammar_entry)
         if start < 0:
-            raise RuntimeError("Expected to find individual named '%s' in example '%s' but it was not found." %
-                               (grammar_entry, text))
+            raise RuntimeError(
+                "Expected to find individual named '%s' in example '%s' but it was not found." % (grammar_entry, text)
+            )
         end = start + len(grammar_entry)
         entity = entity_factory.create(identifier, grammar_entry, start=start, end=end)
         return CommonExample(intent, text, [entity])

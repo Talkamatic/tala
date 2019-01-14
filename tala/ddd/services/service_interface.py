@@ -1,13 +1,32 @@
 from tala.model.device import ParameterField
 
 
-class UnexpectedParameterFieldException(Exception): pass
-class UnexpectedActionException(Exception): pass
-class UnexpectedQueryException(Exception): pass
-class UnexpectedValidatorException(Exception): pass
-class DuplicateNameException(Exception): pass
-class FailureReasonsNotAllowedException(Exception): pass
-class UnsupportedServiceInterfaceTarget(Exception): pass
+class UnexpectedParameterFieldException(Exception):
+    pass
+
+
+class UnexpectedActionException(Exception):
+    pass
+
+
+class UnexpectedQueryException(Exception):
+    pass
+
+
+class UnexpectedValidatorException(Exception):
+    pass
+
+
+class DuplicateNameException(Exception):
+    pass
+
+
+class FailureReasonsNotAllowedException(Exception):
+    pass
+
+
+class UnsupportedServiceInterfaceTarget(Exception):
+    pass
 
 
 class ServiceInterface(object):
@@ -24,8 +43,9 @@ class ServiceInterface(object):
     def _validate(self, specific_interfaces):
         names = [interface.name for interface in specific_interfaces]
         if not self._all_unique(names):
-            raise DuplicateNameException("Expected all names to be unique among %s but they weren't"
-                                         % specific_interfaces)
+            raise DuplicateNameException(
+                "Expected all names to be unique among %s but they weren't" % specific_interfaces
+            )
 
     def _all_unique(self, all_names):
         unique_names = set(all_names)
@@ -37,8 +57,9 @@ class ServiceInterface(object):
 
     def get_action(self, name):
         if not self.has_action(name):
-            raise UnexpectedActionException("Expected one of the known actions %s but got '%s'"
-                                            % (self._actions.keys(), name))
+            raise UnexpectedActionException(
+                "Expected one of the known actions %s but got '%s'" % (self._actions.keys(), name)
+            )
         return self._actions[name]
 
     def has_action(self, name):
@@ -46,8 +67,9 @@ class ServiceInterface(object):
 
     def get_query(self, name):
         if not self.has_query(name):
-            raise UnexpectedQueryException("Expected one of the known queries %s but got '%s'"
-                                           % (self._queries.keys(), name))
+            raise UnexpectedQueryException(
+                "Expected one of the known queries %s but got '%s'" % (self._queries.keys(), name)
+            )
         return self._queries[name]
 
     def has_query(self, name):
@@ -55,8 +77,9 @@ class ServiceInterface(object):
 
     def get_validator(self, name):
         if not self.has_validator(name):
-            raise UnexpectedValidatorException("Expected one of the known validators %s but got '%s'"
-                                               % (self._validators.keys(), name))
+            raise UnexpectedValidatorException(
+                "Expected one of the known validators %s but got '%s'" % (self._validators.keys(), name)
+            )
         return self._validators[name]
 
     def has_validator(self, name):
@@ -83,11 +106,9 @@ class ServiceInterface(object):
             return all(this in those for this in these) and all(that in these for that in those)
 
         return bool(
-            isinstance(other, self.__class__) and
-            has_all(self.actions, other.actions) and
-            has_all(self.queries, other.queries) and
-            has_all(self.validators, other.validators) and
-            has_all(self.entity_recognizers, other.entity_recognizers)
+            isinstance(other, self.__class__) and has_all(self.actions, other.actions)
+            and has_all(self.queries, other.queries) and has_all(self.validators, other.validators)
+            and has_all(self.entity_recognizers, other.entity_recognizers)
         )
 
 
@@ -111,19 +132,19 @@ class SpecificServiceInterface(object):
         return self._target
 
     def __repr__(self):
-        return "%s(%r, %r, %r)" % (
-            self.__class__.__name__, self.interface_type, self.name, self.target)
+        return "%s(%r, %r, %r)" % (self.__class__.__name__, self.interface_type, self.name, self.target)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.interface_type == other.interface_type and
-                    self.name == other.name and
-                    self.target == other.target)
+        return bool(
+            isinstance(other, self.__class__) and self.interface_type == other.interface_type
+            and self.name == other.name and self.target == other.target
+        )
 
     def ensure_target_is_not_frontend(self):
         if self.target.is_frontend:
             raise UnsupportedServiceInterfaceTarget(
-                "Expected a non-frontend target for service interface '%s' but got a frontend target." % self.name)
+                "Expected a non-frontend target for service interface '%s' but got a frontend target." % self.name
+            )
 
 
 class ParameterizedSpecificServiceInterface(SpecificServiceInterface):
@@ -139,10 +160,10 @@ class ParameterizedSpecificServiceInterface(SpecificServiceInterface):
         return "%s(%r, %r, parameters=%s)" % (self.__class__.__name__, self.name, self.target, self.parameters)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.name == other.name and
-                    self.target == other.target and
-                    self.parameters == other.parameters)
+        return bool(
+            isinstance(other, self.__class__) and self.name == other.name and self.target == other.target
+            and self.parameters == other.parameters
+        )
 
 
 class BaseActionInterface(ParameterizedSpecificServiceInterface):
@@ -156,8 +177,9 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
             if self.failure_reasons:
                 failure_reason_names = [reason.name for reason in self.failure_reasons]
                 raise FailureReasonsNotAllowedException(
-                    "Expected no failure reasons for action '%s' with target 'frontend', but got %s"
-                    % (self.name, failure_reason_names))
+                    "Expected no failure reasons for action '%s' with target 'frontend', but got %s" %
+                    (self.name, failure_reason_names)
+                )
 
     @property
     def failure_reasons(self):
@@ -172,11 +194,10 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
                % (self.__class__.__name__, self.name, self.target, self.parameters, self.failure_reasons)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.name == other.name and
-                    self.target == other.target and
-                    self.parameters == other.parameters and
-                    self.failure_reasons == other.failure_reasons)
+        return bool(
+            isinstance(other, self.__class__) and self.name == other.name and self.target == other.target
+            and self.parameters == other.parameters and self.failure_reasons == other.failure_reasons
+        )
 
 
 class ServiceActionInterface(BaseActionInterface):
@@ -204,11 +225,10 @@ class PlayAudioActionInterface(BaseActionInterface):
                % (self.__class__.__name__, self.name, self.target, self.parameters, self.audio_url_parameter)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.name == other.name and
-                    self.target == other.target and
-                    self.parameters == other.parameters and
-                    self.audio_url_parameter == other.audio_url_parameter)
+        return bool(
+            isinstance(other, self.__class__) and self.name == other.name and self.target == other.target
+            and self.parameters == other.parameters and self.audio_url_parameter == other.audio_url_parameter
+        )
 
 
 class ServiceQueryInterface(ParameterizedSpecificServiceInterface):
@@ -265,8 +285,9 @@ class ServiceParameter(AbstractServiceParameter):
         is_optional = is_optional or False
         format = format or ParameterField.VALUE
         if format not in self.VALID_FORMATS:
-            raise UnexpectedParameterFieldException("Expected format as one of %s but got '%s' for parameter '%s'"
-                                                    % (self.VALID_FORMATS, format, name))
+            raise UnexpectedParameterFieldException(
+                "Expected format as one of %s but got '%s' for parameter '%s'" % (self.VALID_FORMATS, format, name)
+            )
         super(ServiceParameter, self).__init__(name, format)
         self._is_optional = is_optional
 
@@ -278,10 +299,10 @@ class ServiceParameter(AbstractServiceParameter):
         return "%s(%r, format=%r, is_optional=%r)" % (self.__class__.__name__, self.name, self.format, self.is_optional)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.name == other.name and
-                    self.format == other.format and
-                    self.is_optional == other.is_optional)
+        return bool(
+            isinstance(other, self.__class__) and self.name == other.name and self.format == other.format
+            and self.is_optional == other.is_optional
+        )
 
 
 class AudioURLServiceParameter(AbstractServiceParameter):
@@ -297,9 +318,7 @@ class AudioURLServiceParameter(AbstractServiceParameter):
         return "%s(%r, format=%r)" % (self.__class__.__name__, self.name, self.format)
 
     def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and
-                    self.name == other.name and
-                    self.format == other.format)
+        return bool(isinstance(other, self.__class__) and self.name == other.name and self.format == other.format)
 
 
 class ActionFailureReason(object):
@@ -315,10 +334,7 @@ class ActionFailureReason(object):
         return "%s(%r)" % (self.__class__.__name__, self.name)
 
     def __eq__(self, other):
-        return bool(
-            isinstance(other, self.__class__) and
-            self.name == other.name
-        )
+        return bool(isinstance(other, self.__class__) and self.name == other.name)
 
 
 class ServiceTarget(object):

@@ -33,8 +33,7 @@ class IndividualTestBase(LibTestCase):
             "london": CustomSort(self.ontology_name, "city"),
         }
         actions = set([])
-        self.ontology = Ontology(self.ontology_name,
-                                 sorts, predicates, individuals, actions)
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
         self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
 
@@ -47,12 +46,9 @@ class IndividualTestBase(LibTestCase):
         self.individual_not_paris = self.ontology.create_negative_individual("paris")
         self.integer_individual = self.ontology.create_individual(1234, IntegerSort())
         self.string_individual = self.ontology.create_individual("a string")
-        self.image_individual = self.ontology.create_individual(
-            Image("http://mymap.com/map.png"))
-        self.webview_individual = self.ontology.create_individual(
-            Webview("http://mymap.com/map.html"))
-        self.datetime_individual = self.ontology.create_individual(
-            DateTime("2018-04-11T22:00:00.000Z"))
+        self.image_individual = self.ontology.create_individual(Image("http://mymap.com/map.png"))
+        self.webview_individual = self.ontology.create_individual(Webview("http://mymap.com/map.html"))
+        self.datetime_individual = self.ontology.create_individual(DateTime("2018-04-11T22:00:00.000Z"))
 
 
 class IndividualTest(IndividualTestBase):
@@ -101,12 +97,12 @@ class IndividualTest(IndividualTestBase):
 
     def test_create_invalid_individual(self):
         ontology_without_string_predicate = self.empty_ontology
-        with(self.assertRaises(OntologyError)):
+        with (self.assertRaises(OntologyError)):
             ontology_without_string_predicate.create_individual("kalle")
 
     def test_create_invalid_negative_individual(self):
         ontology_without_string_predicate = self.empty_ontology
-        with(self.assertRaises(OntologyError)):
+        with (self.assertRaises(OntologyError)):
             ontology_without_string_predicate.create_negative_individual("kalle")
 
     def test_get_sort(self):

@@ -11,10 +11,19 @@ def add_common_backend_arguments(parser):
             ddd_name, path = match.group(1), match.group(2)
             return OverriddenDddConfig(ddd_name, path)
         else:
-            raise argparse.ArgumentTypeError(
-                "Expected DDD configs on the format 'DDD:CONFIG' but got '%s'." % string)
+            raise argparse.ArgumentTypeError("Expected DDD configs on the format 'DDD:CONFIG' but got '%s'." % string)
 
-    parser.add_argument("--config", dest="config", default=None,
-                        help="override the default backend config %r" % BackendConfig.default_name())
-    parser.add_argument("--ddd-config", dest="overridden_ddd_config_paths", type=parse_ddd_config, nargs="+",
-                        help="override a DDD config", metavar="DDD:CONFIG")
+    parser.add_argument(
+        "--config",
+        dest="config",
+        default=None,
+        help="override the default backend config %r" % BackendConfig.default_name()
+    )
+    parser.add_argument(
+        "--ddd-config",
+        dest="overridden_ddd_config_paths",
+        type=parse_ddd_config,
+        nargs="+",
+        help="override a DDD config",
+        metavar="DDD:CONFIG"
+    )

@@ -6,7 +6,7 @@ from tala.model.test.utils import LibTestCase
 class GoalTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-    
+
     def test_equality(self):
         goal = Goal("type 1", Speaker.SYS)
         identical_goal = Goal("type 1", Speaker.SYS)
@@ -56,6 +56,7 @@ class ResolveGoalTest(LibTestCase):
 
     def setUp(self):
         self.setUpLibTestCase()
+
 
 class PerformGoalTest(LibTestCase):
     def test_equality(self):

@@ -12,8 +12,12 @@ class DddDevice(object):
         pass
 
 
-class DeviceError(Exception): pass
-class ParameterNotFoundException(Exception): pass
+class DeviceError(Exception):
+    pass
+
+
+class ParameterNotFoundException(Exception):
+    pass
 
 
 class ParameterField:
@@ -49,15 +53,11 @@ class DeviceMethod(object):
                 optional = False
                 default_value = None
 
-            return {
-                "name": name,
-                "field": field,
-                "optional": optional,
-                "default_value": default_value}
+            return {"name": name, "field": field, "optional": optional, "default_value": default_value}
         else:
             raise DeviceError(
-                "failed to parse parameters for %s: invalid syntax %r" % (
-                    self.__class__.__name__, parameters_string))
+                "failed to parse parameters for %s: invalid syntax %r" % (self.__class__.__name__, parameters_string)
+            )
 
     def _check_parameters_sanity(self):
         for parameter in self.parameters:
@@ -66,8 +66,9 @@ class DeviceMethod(object):
     def _check_parameter_sanity(self, parameter):
         if not self.ontology.has_predicate(parameter["name"]):
             raise DeviceError(
-                "illegal parameters for %s: no predicate %r found in the ontology %s" % (
-                    self.__class__.__name__, parameter["name"], self.ontology))
+                "illegal parameters for %s: no predicate %r found in the ontology %s" %
+                (self.__class__.__name__, parameter["name"], self.ontology)
+            )
 
     def current_invocation_id(self):
         return self._current_invocation_id
@@ -94,8 +95,13 @@ class DeviceAction(DeviceMethod):
     TYPE = None
     PLAY_AUDIO = "PLAY_AUDIO"
 
-class DeviceWHQuery(DeviceMethod): pass
-class Validity(DeviceMethod): pass
+
+class DeviceWHQuery(DeviceMethod):
+    pass
+
+
+class Validity(DeviceMethod):
+    pass
 
 
 class DeviceImplication(DeviceMethod):
