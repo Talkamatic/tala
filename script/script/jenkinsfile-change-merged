@@ -106,6 +106,17 @@ pipeline {
         stage('tests') {
             failFast true
             parallel {
+                stage('code checks') {
+                    steps {
+                        sh '''#!/bin/bash -ex
+                            source venv/bin/activate
+
+                            cd tala
+                            flake8 .
+                        '''
+                    }
+                }
+
                 stage('unit test') {
                     steps {
                         sh '''#!/bin/bash -ex
