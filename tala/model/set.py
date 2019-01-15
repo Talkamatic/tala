@@ -1,6 +1,6 @@
 class Set:
     def __init__(self, content_or_contentclass=None):
-        if content_or_contentclass == None:
+        if content_or_contentclass is None:
             contentclass = None
             initial_content = []
         elif hasattr(content_or_contentclass, '__iter__'):
@@ -33,7 +33,7 @@ class Set:
         return not (self == other)
 
     def add(self, element):
-        if not element in self.content:
+        if element not in self.content:
             self._typecheck(element)
             self.content.append(element)
 
@@ -46,7 +46,7 @@ class Set:
 
     def is_subset_of(self, other):
         for item in self.content:
-            if not item in other.content:
+            if item not in other.content:
                 return False
         return True
 

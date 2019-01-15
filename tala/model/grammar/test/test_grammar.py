@@ -2,7 +2,6 @@
 
 from contextlib import contextmanager
 import os
-import re
 import warnings
 
 from mock import Mock, patch

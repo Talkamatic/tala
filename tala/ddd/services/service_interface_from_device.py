@@ -1,8 +1,6 @@
 from jinja2 import Template
 
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget, \
-    ActionFailureReason, ServiceQueryInterface, FrontendTarget, PlayAudioActionInterface, AudioURLServiceParameter, \
-    ServiceEntityRecognizerInterface, ServiceValidatorInterface
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget, ActionFailureReason, ServiceQueryInterface, FrontendTarget, PlayAudioActionInterface, AudioURLServiceParameter, ServiceEntityRecognizerInterface, ServiceValidatorInterface
 from tala.model.device import DeviceAction
 
 

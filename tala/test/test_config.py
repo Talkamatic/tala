@@ -5,9 +5,7 @@ import tempfile
 
 from mock import patch
 
-from tala.config import Config, DddConfig, RasaConfig, BackendConfig, UnexpectedConfigEntriesException, \
-    BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException, \
-    DEFAULT_INACTIVE_SECONDS_ALLOWED
+from tala.config import Config, DddConfig, RasaConfig, BackendConfig, UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException, DEFAULT_INACTIVE_SECONDS_ALLOWED
 
 
 class ConfigTester(object):
@@ -48,7 +46,7 @@ class ConfigTester(object):
             pass
 
     def when_reading_then_exception_is_raised_with_message_that_matches_regex(self, exception_class, expected_regex):
-        with self.assertRaisesRegexp(exception_class, expected_regex) as e:
+        with self.assertRaisesRegexp(exception_class, expected_regex):
             self.when_reading()
 
     def when_reading(self):

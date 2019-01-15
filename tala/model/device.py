@@ -80,9 +80,9 @@ class DeviceMethod(object):
 class EntityRecognizer(DeviceMethod):
     def recognize(self, string, language):
         if hasattr(self, "recognize_entity"):
-            deprecation_message = "The 'recognize_entity' method does not distinguish between languages. " \
-                                  "Use the 'recognize' method instead. This happened in '%s' of '%s'." % \
-                                  (self.__class__.__name__, self.device.__class__.__name__)
+            deprecation_message = "The 'recognize_entity' method does not distinguish between languages. " "Use the 'recognize' method instead. This happened in '%s' of '%s'." % (
+                self.__class__.__name__, self.device.__class__.__name__
+            )
             warnings.warn(deprecation_message, DeprecationWarning)
             return self.recognize_entity(string)
         raise NotImplementedError("This method must be implemented by a subclass if used.")

@@ -8,8 +8,7 @@ import warnings
 
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.cli.argument_parser import add_common_backend_arguments
-from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, \
-    DddConfigNotFoundException, RasaConfigNotFoundException
+from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
 from tala.cli import console_formatting
@@ -85,8 +84,9 @@ def _check_ddds_for_word_lists(ddds):
 @contextlib.contextmanager
 def _config_exception_handling():
     def generate_message(name, command_name, config):
-        return "Expected {name} config '{config}' to exist but it was not found. To create it, " \
-               "run 'tala {command} --filename {config}'.".format(name=name, command=command_name, config=config)
+        return "Expected {name} config '{config}' to exist but it was not found. To create it, " "run 'tala {command} --filename {config}'.".format(
+            name=name, command=command_name, config=config
+        )
 
     try:
         yield

@@ -35,11 +35,11 @@ class Constants:
 class Node:
     def __init__(self, type_, parameters=None, children=None):
         self.type = type_
-        if parameters == None:
+        if parameters is None:
             self.parameters = {}
         else:
             self.parameters = parameters
-        if children == None:
+        if children is None:
             self.children = []
         else:
             self.children = children
@@ -67,9 +67,7 @@ class Node:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return other.type == self.type and \
-                other.parameters == self.parameters and \
-                other.children == self.children
+            return other.type == self.type and other.parameters == self.parameters and other.children == self.children
         else:
             return False
 

@@ -85,7 +85,6 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.assertTrue(testset.isEmpty())
 
     def testNonEmptySetNotisEmpty(self):
-        exception_raised = False
         testset = tala.model.set.Set()
         testset.add("randomString")
         self.assertEquals(1, len(testset))
@@ -182,12 +181,12 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         union = test_set.union(test_set)
         self.assertEquals(test_set, union)
 
-    def test_union_with_empty_set_reflexive(self):
+    def test_union_with_empty_set_reflexive_1(self):
         test_set = tala.model.set.Set(["first", "second"])
         union = tala.model.set.Set().union(test_set)
         self.assertEquals(test_set, union)
 
-    def test_union_with_empty_set_reflexive(self):
+    def test_union_with_empty_set_reflexive_2(self):
         first_list = ["first", "second"]
         second_list = ["third", "fourth"]
         first_set = tala.model.set.Set(first_list)

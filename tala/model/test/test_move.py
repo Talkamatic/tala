@@ -205,8 +205,7 @@ class MoveTests(LibTestCase):
         move = self.move_factory.createMove(
             Move.GREET, understanding_confidence=1.0, speaker=Speaker.SYS, perception_confidence=0.9
         )
-        move_string = "Move(greet, ddd_name='mockup_ddd', speaker=SYS, understanding_confidence=1.0, " \
-                      "weighted_understanding_confidence=1.0, perception_confidence=0.9, modality=speech)"
+        move_string = "Move(greet, ddd_name='mockup_ddd', speaker=SYS, understanding_confidence=1.0, " "weighted_understanding_confidence=1.0, perception_confidence=0.9, modality=speech)"
         self.assertEquals(move_string, unicode(move))
 
     def test_str_with_background(self):
@@ -222,9 +221,7 @@ class MoveTests(LibTestCase):
         move = self.move_factory.createMove(
             Move.GREET, understanding_confidence=0.5, speaker=Speaker.USR, utterance="hello"
         )
-        move_string = "Move(greet, ddd_name='mockup_ddd', speaker=USR, understanding_confidence=0.5, " \
-                      "weighted_understanding_confidence=0.5, perception_confidence=1.0, modality=speech, " \
-                      "utterance='hello')"
+        move_string = "Move(greet, ddd_name='mockup_ddd', speaker=USR, understanding_confidence=0.5, " "weighted_understanding_confidence=0.5, perception_confidence=1.0, modality=speech, " "utterance='hello')"
         self.assertEquals(move_string, unicode(move))
 
     def test_move_equality_basic(self):

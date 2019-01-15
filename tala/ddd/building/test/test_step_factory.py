@@ -6,11 +6,8 @@ import tempfile
 from mock import Mock, ANY, patch
 import pytest
 
-from tala.ddd.building.steps import step_factory
-from tala.ddd.building.steps.generate import GenerateStepForHandcraftedGFFiles, GenerateStepForGFRGLGeneration,\
-    GenerateStepForGFGeneration
-from tala.ddd.building.steps.verify import VerifyStepForGFGeneration, VerifyStepForGFRGLGeneration, \
-    VerifyStepForHandcraftedGFFiles
+from tala.ddd.building.steps.generate import GenerateStepForHandcraftedGFFiles, GenerateStepForGFRGLGeneration, GenerateStepForGFGeneration
+from tala.ddd.building.steps.verify import VerifyStepForGFGeneration, VerifyStepForGFRGLGeneration, VerifyStepForHandcraftedGFFiles
 from tala.ddd.building.steps import step_factory
 from tala.ddd.building.steps.step_factory import GenerateStepFactory, VerifyStepFactory
 from tala.model.ddd import DDD
@@ -54,7 +51,7 @@ class TestStepFactories(object):
 
     def _given_file_exists(self, path):
         self._ensure_dir_exists(os.path.dirname(path))
-        with open(path, "w") as f:
+        with open(path, "w"):
             pass
 
     def _ensure_dir_exists(self, path):

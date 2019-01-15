@@ -1,5 +1,6 @@
+import unittest
+
 from tala.model.openqueue import OpenQueue, OpenQueueError
-from tala.testing import unittest as unittest
 
 
 class MockElement:

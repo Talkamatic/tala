@@ -232,9 +232,9 @@ class GeneratorTestsBase(object):
     def _assert_common_examples_in_generated_data_is(self, expected_common_examples):
         actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
         for expected_common_example in expected_common_examples:
-            assert expected_common_example in actual_common_examples, \
-                "Expected to find %s in %s but didn't" % (
-                    expected_common_example, actual_common_examples)
+            assert expected_common_example in actual_common_examples, "Expected to find %s in %s but didn't" % (
+                expected_common_example, actual_common_examples
+            )
 
     def then_common_examples_have_been_generated(self, expected_common_examples):
         self._assert_common_examples_in_generated_data_is(expected_common_examples)
@@ -244,8 +244,7 @@ class GeneratorTestsBase(object):
         actual_negation_examples = [
             example for example in actual_common_examples if example["intent"] == "rasa_test:answer_negation"
         ]
-        assert len(actual_negation_examples) == 0, \
-            "Expected no answer negations but got %s" % actual_negation_examples
+        assert len(actual_negation_examples) == 0, "Expected no answer negations but got %s" % actual_negation_examples
 
 
 class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):

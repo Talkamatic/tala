@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 try:
     from setuptools.command.build_py import build_py
 except ImportError:
-    from distutils.command.build_py import build_py
+    from distutils.command.build_py import build_py  # noqa: F401
 
 if __name__ == "__main__":
     setup(

@@ -58,13 +58,15 @@ class ConsoleScriptTestCase(TempDirTestCase):
         return self._process.communicate()
 
     def _then_stderr_contains_constructive_error_message_for_missing_backend_config(self, config_path):
-        pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " \
-                  "run 'tala create-backend-config --filename .*{config}'\.".format(config=config_path)
+        pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " "run 'tala create-backend-config --filename .*{config}'\.".format(
+            config=config_path
+        )
         assert re.search(pattern, self._stderr) is not None
 
     def _then_stderr_contains_constructive_error_message_for_missing_ddd_config(self, config_path):
-        pattern = "Expected DDD config '.*{config}' to exist but it was not found. To create it, " \
-                  "run 'tala create-ddd-config --filename .*{config}'\.".format(config=config_path)
+        pattern = "Expected DDD config '.*{config}' to exist but it was not found. To create it, " "run 'tala create-ddd-config --filename .*{config}'\.".format(
+            config=config_path
+        )
         assert re.search(pattern, self._stderr) is not None
 
     def _given_config_overrides_missing_parent(self, path):
@@ -258,8 +260,10 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         )
 
     def _then_stdout_matches(self, expected_pattern):
-        assert re.match(expected_pattern, self._stdout) is not None, \
-            "Expected stdout to match '{}' but got '{}'".format(expected_pattern, self._stdout)
+        assert re.match(expected_pattern,
+                        self._stdout) is not None, "Expected stdout to match '{}' but got '{}'".format(
+                            expected_pattern, self._stdout
+                        )
 
     def test_stdout_when_verifying_boilerplate_ddd_with_rasa_enabled(self):
         self._given_created_ddd_in_a_target_dir()

@@ -36,8 +36,7 @@ class FailedServiceAction(ServiceActionOutcome):
         return self._failure_reason
 
     def __eq__(self, other):
-        return super(FailedServiceAction, self).__eq__(other) and \
-            other.failure_reason == self.failure_reason
+        return super(FailedServiceAction, self).__eq__(other) and other.failure_reason == self.failure_reason
 
     def __str__(self):
         return "%s(%s)" % (self.__class__.__name__, self.failure_reason)

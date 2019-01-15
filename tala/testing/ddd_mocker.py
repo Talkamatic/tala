@@ -1,11 +1,11 @@
 from copy import copy
 import os
 import shutil
-import tempfile
 import sys
+import tempfile
+import unittest
 
 from tala.config import BackendConfig, DddConfig
-import tala.testing.unittest as unittest
 
 
 class DddMockingTestCase(unittest.TestCase):
@@ -22,12 +22,10 @@ class DddMockingTestCase(unittest.TestCase):
         os.chdir(self._working_dir)
         if self._exception_occurred:
             if "--keep-temp-dir" in sys.argv:
-                print "NOTE: Temp dir %s kept for debugging. It needs to be deleted manually." % \
-                    self._temp_dir
+                print "NOTE: Temp dir %s kept for debugging. It needs to be deleted manually." % self._temp_dir
             else:
                 self._delete_temp_dir()
-                print "NOTE: Temp dir deleted. To keep the temp dir for debugging, " \
-                    "run again with --keep-temp-dir"
+                print "NOTE: Temp dir deleted. To keep the temp dir for debugging, " "run again with --keep-temp-dir"
         else:
             self._delete_temp_dir()
 

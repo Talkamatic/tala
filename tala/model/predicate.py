@@ -29,11 +29,9 @@ class Predicate(OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return isinstance(other, Predicate) and \
-                   other.get_name() == self.get_name() and \
-                   other.getSort() == self.getSort() and \
-                   other.get_feature_of_name() == self.get_feature_of_name() and \
-                   other.allows_multiple_instances() == self.allows_multiple_instances()
+            return isinstance(other, Predicate) and other.get_name() == self.get_name() and other.getSort(
+            ) == self.getSort() and other.get_feature_of_name() == self.get_feature_of_name(
+            ) and other.allows_multiple_instances() == self.allows_multiple_instances()
         except AttributeError:
             return False
 

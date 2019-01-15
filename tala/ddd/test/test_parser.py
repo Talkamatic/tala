@@ -1,4 +1,5 @@
-import tala.testing.unittest as unittest
+import unittest
+
 from tala.ddd.parser import Parser, ParseError
 from tala.model.action import Action
 from tala.model.domain import Domain
@@ -8,16 +9,12 @@ from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
 from tala.model.set import Set
-from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove,\
-    GreetMove, MuteMove, PrereportMove
+from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove, GreetMove, MuteMove, PrereportMove
 from tala.model.ontology import Ontology
-from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, \
-    EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
-from tala.model.proposition import ResolvednessProposition, RejectedPropositions, \
-    ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, \
-    ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
+from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
 from tala.model.question import WhQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort
@@ -83,12 +80,12 @@ class ParserTests(unittest.TestCase):
         self.proposition_need_visa = PredicateProposition(self.predicate_need_visa)
         self.proposition_not_need_visa = PredicateProposition(self.predicate_need_visa, polarity=Polarity.NEG)
 
-        self.lambda_abstracted_dest_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dest_city,
-                                                 self.ontology_name)
-        self.lambda_abstracted_price_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_price,
-                                                 self.ontology_name)
+        self.lambda_abstracted_dest_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dest_city, self.ontology_name
+        )
+        self.lambda_abstracted_price_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_price, self.ontology_name
+        )
 
         self.dest_city_question = WhQuestion(self.lambda_abstracted_dest_city_prop)
         self.price_question = WhQuestion(self.lambda_abstracted_price_prop)
@@ -119,10 +116,10 @@ class ParserTests(unittest.TestCase):
         self.assertEquals(None, und.get_speaker())
 
     def test_create_yes_no_question(self):
-        question = self.parser.parse("?dest_city(paris)")
+        question = self.parser.parse("?dest_city(paris)")  # noqa: F841
 
     def test_create_nullary_yes_no_question_I(self):
-        question = self.parser.parse("?need_visa()")
+        question = self.parser.parse("?need_visa()")  # noqa: F841
 
     def test_create_yes(self):
         yes = self.parser.parse("yes")
@@ -344,22 +341,19 @@ class ParserTests(unittest.TestCase):
         self.assertEquals([], preconfirmation.get_arguments())
 
     def test_preconfirmation_w_single_param(self):
-        preconfirmation = \
-            self.parser.parse("~preconfirmed(MakeReservation, [dest_city(paris)])")
+        preconfirmation = self.parser.parse("~preconfirmed(MakeReservation, [dest_city(paris)])")
         self.assertEquals(1, len(preconfirmation.get_arguments()))
         self.assertEquals("dest_city(paris)", unicode(preconfirmation.get_arguments()[0]))
 
     def test_preconfirmation_q_w_single_param(self):
-        preconfirmation = \
-            self.parser.parse("?preconfirmed(MakeReservation, [dest_city(paris)])")
+        preconfirmation = self.parser.parse("?preconfirmed(MakeReservation, [dest_city(paris)])")  # noqa: F841
 
     def test_preconfirmation_q_w_multi_param(self):
         service_action = "MakeReservation"
         prop_1 = "dest_city(paris)"
         prop_2 = "dest_city(london)"
-        preconfirmed_string = \
-            "?preconfirmed(%s, [%s, %s])" % (service_action, prop_1, prop_2)
-        preconfirmation = self.parser.parse(preconfirmed_string)
+        preconfirmed_string = "?preconfirmed(%s, [%s, %s])" % (service_action, prop_1, prop_2)
+        preconfirmation = self.parser.parse(preconfirmed_string)  # noqa: F841
 
     def test_rejected_proposition(self):
         object = self.parser.parse("rejected(set([dest_city(paris)]))")
@@ -377,8 +371,7 @@ class ParserTests(unittest.TestCase):
         self.assertEquals([], confirmation.get_arguments())
 
     def test_create_prereport_w_single_param(self):
-        prereport = \
-            self.parser.parse("prereported(MakeReservation, [dest_city(paris)])")
+        prereport = self.parser.parse("prereported(MakeReservation, [dest_city(paris)])")
         self.assertEquals(1, len(prereport.get_arguments()))
         self.assertEquals("dest_city(paris)", unicode(prereport.get_arguments()[0]))
 
@@ -386,9 +379,8 @@ class ParserTests(unittest.TestCase):
         service_action = "MakeReservation"
         prop_1 = "dest_city(paris)"
         prop_2 = "dest_city(london)"
-        prereport_string = \
-            "?prereported(%s, [%s, %s])" % (service_action, prop_1, prop_2)
-        prereport = self.parser.parse(prereport_string)
+        prereport_string = "?prereported(%s, [%s, %s])" % (service_action, prop_1, prop_2)
+        prereport = self.parser.parse(prereport_string)  # noqa: F841
 
     def test_report_move_successful_with_parameters(self):
         object = self.parser.parse(
@@ -614,9 +606,7 @@ class ParserTests(unittest.TestCase):
         self.assertEquals(expected_item, item)
 
     def test_create_if_then_else_resolvedness_from_string(self):
-        string = \
-            "if resolved(?X.dest_city(X))" \
-            " then jumpto(perform(top))" " else jumpto(perform(buy))"
+        string = "if resolved(?X.dest_city(X))" " then jumpto(perform(top))" " else jumpto(perform(buy))"
         item = self.parser.parse(string)
 
         expected_item = IfThenElse(
@@ -626,9 +616,7 @@ class ParserTests(unittest.TestCase):
         self.assertEquals(expected_item, item)
 
     def test_create_if_then_else_resolvedness_no_else_from_string(self):
-        string = \
-            "if resolved(?X.dest_city(X))" \
-            " then jumpto(perform(top))" " else "
+        string = "if resolved(?X.dest_city(X))" " then jumpto(perform(top))" " else "
         item = self.parser.parse(string)
 
         expected_item = IfThenElse(
@@ -637,9 +625,7 @@ class ParserTests(unittest.TestCase):
         self.assertEquals(expected_item, item)
 
     def test_create_if_then_else_resolvedness_no_then_from_string(self):
-        string = \
-            "if resolved(?X.dest_city(X))" \
-            " then " " else jumpto(perform(top))"
+        string = "if resolved(?X.dest_city(X))" " then " " else jumpto(perform(top))"
         item = self.parser.parse(string)
 
         expected_item = IfThenElse(
@@ -1040,9 +1026,9 @@ class ParserTests(unittest.TestCase):
 
     def test_predicate_proposition_with_string_individual(self):
         object = self.parser.parse('number_to_call("070123456")')
-        expected_object = \
-            PredicateProposition(self.predicate_number_to_call,
-                                 self.ontology.create_individual('"070123456"'))
+        expected_object = PredicateProposition(
+            self.predicate_number_to_call, self.ontology.create_individual('"070123456"')
+        )
         self.assertEquals(expected_object, object)
 
     def test_unknown_term_unparseable(self):

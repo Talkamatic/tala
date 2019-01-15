@@ -77,8 +77,9 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         return hash((self._goal_type, self._target, self._content))
 
     def __repr__(self):
-        return "%s(%s, %s, %s, %s)" % \
-               (GoalWithSemanticContent.__name__, self.ontology_name, self._goal_type, self._target, self._content)
+        return "%s(%s, %s, %s, %s)" % (
+            GoalWithSemanticContent.__name__, self.ontology_name, self._goal_type, self._target, self._content
+        )
 
     def __eq__(self, other):
         try:

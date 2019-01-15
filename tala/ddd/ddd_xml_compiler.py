@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import os
 import re
 import warnings
@@ -5,15 +7,12 @@ import xml.dom.minidom
 
 from lxml import etree
 
-from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface,\
-    ServiceValidatorInterface, ServiceEntityRecognizerInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget,\
-    HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
+from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceEntityRecognizerInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
 from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan
-from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem,\
-    InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem
+from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem
 from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet
 from tala.model.proposition import PredicateProposition
@@ -410,8 +409,9 @@ class DomainCompiler(XmlCompiler):
 
     def _check_deprecation_of_device(self, question, element, name):
         def fail(query, device, tag_name):
-            message = "Attribute 'device=\"%s\"' is not supported in <%s ... predicate='%s'>. " \
-                      "Use 'service_interface.xml' instead." % (device, tag_name, query)
+            message = "Attribute 'device=\"%s\"' is not supported in <%s ... predicate='%s'>. " "Use 'service_interface.xml' instead." % (
+                device, tag_name, query
+            )
             raise UnexpectedAttributeException(message)
 
         device = self._get_optional_attribute(element, "device")
@@ -427,9 +427,9 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_invoke_service_action_or_deprecated_dev_perform_element(self, element, action_attribute):
         def fail(action, device):
-            message = "Attribute 'device=\"%s\"' is not supported in " \
-                      "<invoke_service_action name='%s'>. " \
-                      "Use 'service_interface.xml' instead." % (device, action)
+            message = "Attribute 'device=\"%s\"' is not supported in " "<invoke_service_action name='%s'>. " "Use 'service_interface.xml' instead." % (
+                device, action
+            )
             raise UnexpectedAttributeException(message)
 
         def target_from_service_interface(action):
@@ -971,8 +971,7 @@ class RglGrammarCompiler(GrammarCompiler):
         return [child for child in element.childNodes if not self._is_empty(child)]
 
     def _is_empty(self, node):
-        return node.nodeType == xml.dom.minidom.Node.TEXT_NODE and \
-            node.nodeValue.strip() == ""
+        return node.nodeType == xml.dom.minidom.Node.TEXT_NODE and node.nodeValue.strip() == ""
 
     def compile_form(self, element, itemize):
         if element.nodeType == xml.dom.minidom.Node.TEXT_NODE:

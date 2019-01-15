@@ -11,9 +11,9 @@ from tala.model.test.utils import LibTestCase
 class WhQuestionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.lambda_abstracted_dest_city = \
-            LambdaAbstractedPredicateProposition(self.predicate_dest_city,
-                                                 self.ontology.get_name())
+        self.lambda_abstracted_dest_city = LambdaAbstractedPredicateProposition(
+            self.predicate_dest_city, self.ontology.get_name()
+        )
         self.dest_city_wh_question = WhQuestion(self.lambda_abstracted_dest_city)
 
     def test_is_question(self):

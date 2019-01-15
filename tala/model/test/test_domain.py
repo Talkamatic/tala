@@ -9,8 +9,7 @@ from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.plan_item import BindPlanItem, IfThenElse, InvokeServiceActionPlanItem
 from tala.model.polarity import Polarity
-from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet, \
-    ServiceActionTerminatedProposition
+from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet, ServiceActionTerminatedProposition
 from tala.model.question import WhQuestion, AltQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.sort import CustomSort, RealSort
@@ -73,18 +72,18 @@ class DomainTests(LibTestCase):
         self.predicate_dest_country = self.ontology.get_predicate("dest_country")
         self.predicate_code = self.ontology.get_predicate("code")
 
-        self.lambda_abstracted_price_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_price,
-                                                 self.ontology_name)
-        self.lambda_abstracted_dest_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dest_city,
-                                                 self.ontology_name)
-        self.lambda_abstracted_dest_city_type_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dest_city_type,
-                                                 self.ontology_name)
-        self.lambda_abstracted_dept_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dept_city,
-                                                 self.ontology_name)
+        self.lambda_abstracted_price_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_price, self.ontology_name
+        )
+        self.lambda_abstracted_dest_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dest_city, self.ontology_name
+        )
+        self.lambda_abstracted_dest_city_type_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dest_city_type, self.ontology_name
+        )
+        self.lambda_abstracted_dept_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dept_city, self.ontology_name
+        )
 
         self.price_question = WhQuestion(self.lambda_abstracted_price_prop)
         self.dest_city_question = WhQuestion(self.lambda_abstracted_dest_city_prop)
@@ -96,16 +95,11 @@ class DomainTests(LibTestCase):
 
         self.individual_paris = self.ontology.create_individual("paris")
         self.individual_london = self.ontology.create_individual("london")
-        self.proposition_dest_city_paris = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_paris)
-        self.proposition_dest_city_london = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_london)
-        self.proposition_not_dest_city_paris = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_paris,
-                                 Polarity.NEG)
+        self.proposition_dest_city_paris = PredicateProposition(self.predicate_dest_city, self.individual_paris)
+        self.proposition_dest_city_london = PredicateProposition(self.predicate_dest_city, self.individual_london)
+        self.proposition_not_dest_city_paris = PredicateProposition(
+            self.predicate_dest_city, self.individual_paris, Polarity.NEG
+        )
 
     def _create_domains(self):
         self.domain_name = "mockup_domain"
@@ -369,8 +363,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.downdate_plan_false_action),
             HandleGoal("mockup_ontology", "event")
         }
-        actual_goals = \
-            set([goal for goal in self.domain.get_plan_goal_iterator()])
+        actual_goals = set([goal for goal in self.domain.get_plan_goal_iterator()])
         self.assertEqual(expected_goals, actual_goals)
 
     def test_get_postconds_for_goal_with_postcond(self):
@@ -468,18 +461,19 @@ class DomainTests(LibTestCase):
         self.assertEqual(set(expected_answers), set(self.domain.get_resolving_answers(question)))
 
     def test_question_presented_as_list_forces_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = \
-            {"graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST}
+        self.domain.parameters[self.dest_city_question] = {
+            "graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST
+        }
         self.assertTrue(self.domain.question_forces_graphical_choice(self.dest_city_question))
 
     def test_question_presented_as_text_forces_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = \
-            {"graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT}
+        self.domain.parameters[self.dest_city_question] = {
+            "graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
+        }
         self.assertTrue(self.domain.question_forces_graphical_choice(self.dest_city_question))
 
     def test_incremental_question_does_not_force_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = \
-            {"incremental": True}
+        self.domain.parameters[self.dest_city_question] = {"incremental": True}
         self.assertFalse(self.domain.question_forces_graphical_choice(self.dest_city_question))
 
     def test_get_question_verbalize_returns_true_by_default(self):

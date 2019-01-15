@@ -7,8 +7,7 @@ from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
-from tala.model.sort import DomainSort, RealSort, IntegerSort, StringSort, BooleanSort, ImageSort, WebviewSort, DateTimeSort, \
-    REAL, INTEGER, STRING, BOOLEAN, IMAGE, WEBVIEW, DATETIME, InvalidValueException
+from tala.model.sort import DomainSort, RealSort, IntegerSort, StringSort, BooleanSort, ImageSort, WebviewSort, DateTimeSort, InvalidValueException
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
@@ -155,7 +154,7 @@ class Ontology(object):
         self._individuals[name] = self.get_sort(sort_as_string)
 
     def ensure_individual_exists(self, name, sort_as_string):
-        if not name in self._individuals.keys():
+        if name not in self._individuals.keys():
             self._validate_name_and_add_individual(name, sort_as_string)
 
     def get_name(self):
@@ -264,7 +263,7 @@ class Ontology(object):
         return LambdaAbstractedPredicateProposition(predicate, self.name)
 
     def create_action(self, action):
-        if not action in self._actions:
+        if action not in self._actions:
             raise OntologyError("Expected one of %s but got %r" % (self._actions, action))
         return Action(action, self.name)
 

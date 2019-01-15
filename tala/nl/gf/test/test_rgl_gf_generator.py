@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import re
 import unittest
 
@@ -8,8 +10,7 @@ from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, \
-    DeviceModuleTarget, ServiceValidatorInterface
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceParameter, DeviceModuleTarget, ServiceValidatorInterface
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
@@ -486,8 +487,9 @@ class ReportTestCase(RglGfGeneratorTestCase):
 
         self.then_abstract_contains_function('report_failed_SetTime_undefined_failure : SysReportFailed;')
         self.then_semantic_contains_linearization(
-            'report_failed_SetTime_undefined_failure = report_failed "SetTime" (empty_list) "%s";' % \
-                UNDEFINED_SERVICE_ACTION_FAILURE)
+            'report_failed_SetTime_undefined_failure = report_failed "SetTime" (empty_list) "%s";' %
+            UNDEFINED_SERVICE_ACTION_FAILURE
+        )
         self.then_natural_language_contains_linearization(
             'report_failed_SetTime_undefined_failure = mkSys undefined_service_action_failure;'
         )
@@ -515,8 +517,9 @@ class ReportTestCase(RglGfGeneratorTestCase):
 
         self.then_abstract_contains_function('report_failed_SetTime_undefined_failure : SysAnswer -> SysReportFailed;')
         self.then_semantic_contains_linearization(
-            'report_failed_SetTime_undefined_failure time_to_set = report_failed "SetTime" (list time_to_set) "%s";' % \
-                UNDEFINED_SERVICE_ACTION_FAILURE)
+            'report_failed_SetTime_undefined_failure time_to_set = report_failed "SetTime" (list time_to_set) "%s";' %
+            UNDEFINED_SERVICE_ACTION_FAILURE
+        )
         self.then_natural_language_contains_linearization(
             'report_failed_SetTime_undefined_failure time_to_set = mkSys undefined_service_action_failure;'
         )

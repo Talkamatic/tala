@@ -32,8 +32,7 @@ class AbstractBackendDependencies(object):
         self.ddds = self.load_ddds(self._raw_config["ddds"])
 
     def _validate_inactive_seconds_allowed(self):
-        if self._inactive_seconds_allowed < INACTIVE_SECONDS_ALLOWED_MIN or \
-           self._inactive_seconds_allowed > INACTIVE_SECONDS_ALLOWED_MAX:
+        if self._inactive_seconds_allowed < INACTIVE_SECONDS_ALLOWED_MIN or self._inactive_seconds_allowed > INACTIVE_SECONDS_ALLOWED_MAX:
             raise InvalidConfigValue(
                 "Expected inactive_seconds_allowed to be in the range %d-%d, but it was %d." %
                 (INACTIVE_SECONDS_ALLOWED_MIN, INACTIVE_SECONDS_ALLOWED_MAX, self._inactive_seconds_allowed)

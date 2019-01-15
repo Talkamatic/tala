@@ -1,9 +1,7 @@
+# flake8: noqa
+
 from tala.model.move import ICMMove, ICMMoveWithSemanticContent
-from tala.model.plan_item import RespondPlanItem, BindPlanItem, ConsultDBPlanItem, IfThenElse, ServiceReportPlanItem, \
-    DoPlanItem, PlanItem, QuitPlanItem, GreetPlanItem, EmitIcmPlanItem, ForgetAllPlanItem, ForgetPlanItem, \
-    ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, JumpToPlanItem, AssumePlanItem, \
-    AssumeSharedPlanItem, AssumeIssuePlanItem, \
-    MinResultsNotSupportedException, MaxResultsNotSupportedException
+from tala.model.plan_item import RespondPlanItem, BindPlanItem, ConsultDBPlanItem, IfThenElse, ServiceReportPlanItem, DoPlanItem, PlanItem, QuitPlanItem, GreetPlanItem, EmitIcmPlanItem, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, JumpToPlanItem, AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, MinResultsNotSupportedException, MaxResultsNotSupportedException
 from tala.model.question_raising_plan_item import FindoutPlanItem, RaisePlanItem
 from tala.model.proposition import ServiceResultProposition
 from tala.model.test.utils import LibTestCase
@@ -21,10 +19,7 @@ class PlanItemTests(LibTestCase):
         self.if_condition = self.proposition_dest_city_paris
         self.if_consequent = self.findout_plan_item
         self.if_alternative = self.raise_plan_item
-        self.if_then_else_plan_item = \
-            IfThenElse(self.if_condition,
-                       self.if_consequent,
-                       self.if_alternative)
+        self.if_then_else_plan_item = IfThenElse(self.if_condition, self.if_consequent, self.if_alternative)
         self.service_result_proposition = ServiceResultProposition(
             self.ontology_name, "mockup_service_action", [], "mock_perform_result"
         )
@@ -295,16 +290,16 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
             min_results=-1,
             max_results=None,
             expected_exception=MinResultsNotSupportedException,
-            expected_message=\
-            "Expected 'min_results' to be 0 or above but got -1.")
+            expected_message="Expected 'min_results' to be 0 or above but got -1."
+        )
 
     def test_exception_raised_for_max_results_below_1(self):
         self.when_created_invoke_service_query_plan_item_then_exception_is_raised(
             min_results=0,
             max_results=0,
             expected_exception=MaxResultsNotSupportedException,
-            expected_message=\
-            "Expected 'max_results' to be None or above 0 but got 0.")
+            expected_message="Expected 'max_results' to be None or above 0 but got 0."
+        )
 
     def when_created_invoke_service_query_plan_item_then_exception_is_raised(
         self, min_results, max_results, expected_exception, expected_message

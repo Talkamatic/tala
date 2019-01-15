@@ -134,10 +134,9 @@ class Move(SemanticObject):
         self._ddd_name = ddd_name
 
     def _verify_realization_data(self, understanding_confidence=None, speaker=None, modality=None, ddd_name=None):
-        if self._understanding_confidence is not None or \
-                        self._speaker is not None or \
-                        self._modality is not None or \
-                (self._speaker == Speaker.USR and self._ddd_name is not None):
+        if self._understanding_confidence is not None or self._speaker is not None or self._modality is not None or (
+            self._speaker == Speaker.USR and self._ddd_name is not None
+        ):
             raise MoveException("realization data already set")
         if speaker is None:
             raise MoveException("speaker must be supplied")
@@ -214,9 +213,10 @@ class Move(SemanticObject):
 
     def _are_understanding_confidences_equal(self, other):
         return self._is_confidence_equal(self.understanding_confidence,
-                                         other.understanding_confidence) and \
-               self._is_confidence_equal(self.weighted_understanding_confidence,
-                                         other.weighted_understanding_confidence)
+                                         other.understanding_confidence) and self._is_confidence_equal(
+                                             self.weighted_understanding_confidence,
+                                             other.weighted_understanding_confidence
+                                         )
 
     def _are_perception_confidences_equal(self, other):
         return self._is_confidence_equal(self.perception_confidence, other.perception_confidence)
@@ -444,7 +444,7 @@ class ICMMoveWithContent(ICMMove):
 
     def is_question_raising(self):
         return (
-            self.get_type() == ICMMove.UND and self.get_content() != None
+            self.get_type() == ICMMove.UND and self.get_content() is not None
             and not (self.get_polarity() == ICMMove.POS and not self.get_content().is_positive())
         )
 

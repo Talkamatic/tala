@@ -1,4 +1,5 @@
-import tala.testing.unittest as unittest
+import unittest
+
 from tala.model.stack import StackSet, StackError, Stack
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
@@ -255,7 +256,7 @@ class TestStackSetView(unittest.TestCase):
     def _then_the_list_is(self, elems):
         self.assertEquals(elems, self._integer_list)
 
-    def test_iterate_in_view(self):
+    def test_length_of_view(self):
         self._given_a_stack_set([2, 1, 0, -1])
         self._given_a_positive_filter()
         self._given_a_filtered_view_of_stack()

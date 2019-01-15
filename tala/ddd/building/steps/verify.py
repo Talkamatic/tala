@@ -35,7 +35,7 @@ class AbstractVerifyStep(AbstractBuildStep):
     def _verify_rasa_nlu_model(self, language_code):
         print("[%s] Verifying grammar for RASA NLU." % (language_code))
         generator = RasaGenerator(self._ddd, language_code)
-        unused_rasa_model = generator.generate()
+        generator.generate()
         print("[%s] Finished verifying grammar for RASA NLU." % (language_code))
 
     def _verify_grammars(self, language_code):

@@ -7,17 +7,11 @@ from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
 from tala.model.speaker import Speaker
 from tala.model.set import Set
-from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, \
-    QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
+from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
 from tala.model.ontology import OntologyError
-from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, \
-    BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, \
-    ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
 from tala.model.polarity import Polarity
-from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, \
-    ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, \
-    PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, \
-    PrereportProposition, PredicateProposition
+from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition
 from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -278,8 +272,7 @@ class Parser:
     def _parse_preconfirmation_proposition(self, string):
         m = re.search('^(~?)preconfirmed\((?P<action>\w+), (\[[^\]]*\])\)$', string)
         if m:
-            (polarity_str, action_value, parameter_string) = \
-                (m.group(1), m.group("action"), m.group(3))
+            (polarity_str, action_value, parameter_string) = (m.group(1), m.group("action"), m.group(3))
             polarity = self._parse_polarity(polarity_str)
             parameter_list = self._parse_proposition_list(parameter_string)
             return PreconfirmationProposition(self.ontology_name, action_value, parameter_list, polarity)
@@ -540,8 +533,7 @@ class Parser:
     def _parse_understanding_icm(self, string):
         m = re.search('^icm:(sem|und)\*(int|pos|neg)(:((.+)\*)?([^:]+))?$', string)
         if m:
-            (type, polarity, foo, foo, content_speaker, content_string) = \
-                m.groups()
+            (type, polarity, foo, foo, content_speaker, content_string) = m.groups()
             if content_string:
                 content = self.parse(content_string)
             else:
@@ -747,8 +739,7 @@ class Parser:
     def _parse_if_then_else_plan_item(self, string):
         m = re.search('^if (.+) then (.*) else (.*)$', string)
         if m:
-            (condition_string, consequent_string, alternative_string) = \
-                m.groups()
+            (condition_string, consequent_string, alternative_string) = m.groups()
             condition = self._parse_proposition(condition_string)
             if consequent_string != "":
                 consequent = self.parse(consequent_string)
@@ -774,8 +765,7 @@ class Parser:
     def _parse_goal_proposition(self, string):
         m = re.search('^(~?)goal\((.+)\)$', string)
         if m:
-            (polarity_str, goal_string) = \
-                (m.group(1), m.group(2))
+            (polarity_str, goal_string) = (m.group(1), m.group(2))
             polarity = self._parse_polarity(polarity_str)
             goal = self._parse_goal(goal_string)
             return GoalProposition(goal, polarity)
@@ -787,13 +777,6 @@ class Parser:
             (content_string, dummy, reason_string) = m.groups()
             rejected = self.parse(content_string)
             return RejectedPropositions(rejected, reason=reason_string)
-        raise ParseFailure()
-
-    def _parse_domain_proposition(self, string):
-        m = re.search('^domain\((.+)\)$', string)
-        if m:
-            domain_string = m.group(1)
-            return DomainProposition(domain_string)
         raise ParseFailure()
 
     def _parse_deprecated_service_action_terminated_proposition(self, string):
@@ -813,8 +796,7 @@ class Parser:
     def _parse_predicate_proposition(self, string):
         m = re.search('^(~?)(\w+)(\((.*)\))$', string)
         if m:
-            (polarity_str, predicate_name, individual_string) = \
-                (m.group(1), m.group(2), m.group(4))
+            (polarity_str, predicate_name, individual_string) = (m.group(1), m.group(2), m.group(4))
 
             if self.ontology.has_predicate(predicate_name):
                 predicate = self.ontology.get_predicate(predicate_name)

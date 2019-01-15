@@ -1,5 +1,5 @@
 import tala.nl.gf.resource
-from tala.nl.gf.resource import VP, SINGULAR, PLURAL, MASCULINE, FEMININE
+from tala.nl.gf.resource import VP, SINGULAR, PLURAL, MASCULINE, FEMININE  # noqa: F401
 
 
 class NP(tala.nl.gf.resource.NP):

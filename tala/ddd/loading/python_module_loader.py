@@ -30,7 +30,7 @@ class PythonModuleLoader(object):
         ddd_module_name = "%s_%s" % (self._name, module_name)
         try:
             return imp.load_source(ddd_module_name, module_filename)
-        except IOError as err:
+        except IOError:
             raise DddLoaderException("failed to load module %r from %s" % (module_filename, os.getcwd()))
 
     def _find_subclass_in_module(self, BaseClass, module):

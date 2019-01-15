@@ -1,5 +1,6 @@
+import unittest
+
 from tala.model.speaker import Speaker
-from tala.testing import unittest as unittest
 
 
 class speakerTests(unittest.TestCase):

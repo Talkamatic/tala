@@ -3,10 +3,7 @@ import unittest
 import pytest
 from mock import Mock
 
-from tala.ddd.services.service_interface import ServiceActionInterface, DeviceModuleTarget, ServiceInterface, \
-    UnexpectedActionException, ServiceQueryInterface, ServiceValidatorInterface, ServiceEntityRecognizerInterface, \
-    DuplicateNameException, PlayAudioActionInterface, AudioURLServiceParameter, FrontendTarget, \
-    HttpTarget, FailureReasonsNotAllowedException, ActionFailureReason, UnsupportedServiceInterfaceTarget
+from tala.ddd.services.service_interface import ServiceActionInterface, DeviceModuleTarget, ServiceInterface, UnexpectedActionException, ServiceQueryInterface, ServiceValidatorInterface, ServiceEntityRecognizerInterface, DuplicateNameException, PlayAudioActionInterface, AudioURLServiceParameter, FrontendTarget, HttpTarget, FailureReasonsNotAllowedException, ActionFailureReason, UnsupportedServiceInterfaceTarget
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
 

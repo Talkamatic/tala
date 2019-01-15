@@ -1,15 +1,11 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from mock import Mock, patch
 
 import tala.ddd.ddd_xml_compiler
-from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DddXmlCompilerException, ViolatesSchemaException, \
-    UnexpectedAttributeException
+from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DddXmlCompilerException, ViolatesSchemaException, UnexpectedAttributeException
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceEntityRecognizerInterface,\
-    ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, \
-    HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, \
-    AudioURLServiceParameter
+from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceEntityRecognizerInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.device import ParameterField
 from tala.model.domain import Domain
@@ -295,7 +291,7 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
     def test_exception_raised_for_goal_without_type(self):
         self._given_compiled_ontology()
 
-        with self.assertRaises(DddXmlCompilerException) as cm:
+        with self.assertRaises(DddXmlCompilerException):
             self._when_compile_domain("""
 <domain name="Domain">
   <goal />
@@ -1574,8 +1570,7 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
             """
 <grammar>
   <answer speaker="system" predicate="price">
-    the price to <slot type="individual" predicate="dest_city"/>
-    is <slot type="individual" predicate="price"/>
+    the price to <slot type="individual" predicate="dest_city"/> is <slot type="individual" predicate="price"/>
   </answer>
 </grammar>"""
         )
@@ -1772,37 +1767,6 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
                             "the time is ",
                             Node(Constants.SLOT, {"predicate": "alarm_hour"}), " ",
                             Node(Constants.SLOT, {"predicate": "alarm_minute"})
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_system_answer_with_embedded_answer(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system" predicate="price">
-    the price to <slot type="individual" predicate="dest_city"/> is <slot type="individual" predicate="price"/>
-  </answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "price"}, [
-                    Node(
-                        Constants.ITEM, {}, [
-                            "the price to ",
-                            Node(Constants.SLOT, {"predicate": "dest_city"}), " is ",
-                            Node(Constants.SLOT, {})
                         ]
                     )
                 ]

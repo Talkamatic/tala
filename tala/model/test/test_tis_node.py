@@ -1,5 +1,6 @@
+import unittest
+
 import tala.model.set
-import tala.testing.unittest as unittest
 from tala.model.tis_node import TISNode
 
 

@@ -47,7 +47,7 @@ class TestAbstractGenerateStep(object):
 
     def _given_file_exists(self, path):
         self._ensure_dir_exists(os.path.dirname(path))
-        with open(path, "w") as f:
+        with open(path, "w"):
             pass
 
     def _ensure_dir_exists(self, path):

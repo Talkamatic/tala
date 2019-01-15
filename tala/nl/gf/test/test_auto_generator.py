@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 
 import os
 import re
@@ -15,8 +16,7 @@ from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler, ViolatesSchemaException
 from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, \
-    ServiceParameter, ActionFailureReason, ServiceValidatorInterface
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, ServiceParameter, ActionFailureReason, ServiceValidatorInterface
 from tala.model.device import DeviceAction
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
@@ -1219,8 +1219,9 @@ class ReportTestCase(AutoGeneratorTestCase):
         self.when_generating()
         self.assert_abstract_contains_function('report_failed_Snooze_undefined_failure_1 : SysReportFailed;\n')
         self.assert_semantic_contains_linearization(
-            'report_failed_Snooze_undefined_failure_1 = report_failed "Snooze" (empty_list) "%s";\n' % \
-                UNDEFINED_SERVICE_ACTION_FAILURE)
+            'report_failed_Snooze_undefined_failure_1 = report_failed "Snooze" (empty_list) "%s";\n' %
+            UNDEFINED_SERVICE_ACTION_FAILURE
+        )
         self.assert_natural_language_contains_linearization(
             'report_failed_Snooze_undefined_failure_1 = undefined_service_action_failure;\n'
         )

@@ -11,7 +11,7 @@ class OpenQueue:
     def __init__(self, iterable=None):
         self.front_content = []
         self.back_content = []
-        if iterable != None:
+        if iterable is not None:
             for item in iterable:
                 self.front_content.append(item)
         self._unshifted_content = None
@@ -83,7 +83,7 @@ class OpenQueue:
         self._unshifted_content = copy.copy(self.front_content)
 
     def cancel_shift(self):
-        if self._unshifted_content == None:
+        if self._unshifted_content is None:
             raise OpenQueueError("tried to cancel_shift queue without init_shift")
         result = []
         for element in self._unshifted_content:

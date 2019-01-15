@@ -1,8 +1,8 @@
+import unittest
+
 from mock import Mock
 
-import tala.testing.unittest as unittest
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, \
-    DeviceModuleTarget
+from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, DeviceModuleTarget
 
 
 class DddCompilerTestCase(unittest.TestCase):

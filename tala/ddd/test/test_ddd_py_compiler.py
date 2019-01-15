@@ -1,10 +1,9 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from collections import OrderedDict
 
 import tala.nl.gf.resource
-from tala.ddd.ddd_py_compiler import DddPyCompiler, \
-    DddPyCompilerException, GrammarCompiler
+from tala.ddd.ddd_py_compiler import DddPyCompiler, DddPyCompilerException, GrammarCompiler
 from tala.ddd.parser import Parser
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ontology import Ontology

@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import copy
 import inspect
 import re
@@ -199,8 +201,7 @@ class DomainCompiler:
 
     def _parse_default_questions(self):
         if hasattr(self._domain_description, "default_questions"):
-            self._default_questions = \
-                map(self._parse, self._domain_description.default_questions)
+            self._default_questions = map(self._parse, self._domain_description.default_questions)
         else:
             self._default_questions = []
 

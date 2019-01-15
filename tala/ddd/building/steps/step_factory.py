@@ -1,10 +1,8 @@
 from pathlib import Path
 
 from tala.ddd.building.steps.clean import CleanStepForGFGeneration, CleanStepForHandcraftedGFFiles
-from tala.ddd.building.steps.generate import GenerateStepForGFGeneration, GenerateStepForGFRGLGeneration,\
-    GenerateStepForHandcraftedGFFiles
-from tala.ddd.building.steps.verify import VerifyStepForGFGeneration, VerifyStepForGFRGLGeneration, \
-    VerifyStepForHandcraftedGFFiles
+from tala.ddd.building.steps.generate import GenerateStepForGFGeneration, GenerateStepForGFRGLGeneration, GenerateStepForHandcraftedGFFiles
+from tala.ddd.building.steps.verify import VerifyStepForGFGeneration, VerifyStepForGFRGLGeneration, VerifyStepForHandcraftedGFFiles
 from tala.ddd import utils
 
 

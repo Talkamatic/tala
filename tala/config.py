@@ -103,14 +103,13 @@ class Config(object):
         missing = list(set(expected).difference(actual))
         ending = "The config was updated and the previous config was backed up in %r." % self.back_up_name()
         if unexpected and missing:
-            return "Parameter %s is unexpected while %s is missing from %r. %s" % \
-                   (readable_list(unexpected), readable_list(missing), self._absolute_path, ending)
+            return "Parameter %s is unexpected while %s is missing from %r. %s" % (
+                readable_list(unexpected), readable_list(missing), self._absolute_path, ending
+            )
         if unexpected:
-            return "Parameter %s is unexpected in %r. %s" % \
-                   (readable_list(unexpected), self._absolute_path, ending)
+            return "Parameter %s is unexpected in %r. %s" % (readable_list(unexpected), self._absolute_path, ending)
         if missing:
-            return "Parameter %s is missing from %r. %s" % \
-                   (readable_list(missing), self._absolute_path, ending)
+            return "Parameter %s is missing from %r. %s" % (readable_list(missing), self._absolute_path, ending)
 
     @classmethod
     def _update_config_keys(cls, defaults, config):

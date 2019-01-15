@@ -1,6 +1,5 @@
 from tala.model.speaker import Speaker
-from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
-    ICMMoveWithSemanticContent, ReportMove, PrereportMove
+from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, ReportMove, PrereportMove
 
 
 class MoveFactoryWithPredefinedBoilerplate(object):

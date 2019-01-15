@@ -5,9 +5,7 @@ import pytest
 
 from tala.model.ontology import Ontology, SortDoesNotExistException
 from tala.model.predicate import Predicate
-from tala.model.sort import StringSort, ImageSort, WebviewSort, BooleanSort, RealSort, CustomSort, \
-    IntegerSort, DateTimeSort, InvalidValueException, BuiltinSortRepository, UndefinedSort, DomainSort, \
-    BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW
+from tala.model.sort import StringSort, ImageSort, WebviewSort, BooleanSort, RealSort, CustomSort, IntegerSort, DateTimeSort, InvalidValueException, BuiltinSortRepository, UndefinedSort, DomainSort, BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW
 import tala.model.sort
 from tala.model.image import Image
 from tala.model.webview import Webview

@@ -1,7 +1,6 @@
 from tala.model.ontology import Ontology, OntologyError
 from tala.model.predicate import Predicate
-from tala.model.sort import RealSort, IntegerSort, StringSort, CustomSort, ImageSort, \
-    WebviewSort, DateTimeSort
+from tala.model.sort import RealSort, IntegerSort, StringSort, CustomSort, ImageSort, WebviewSort, DateTimeSort
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
@@ -53,20 +52,20 @@ class IndividualTestBase(LibTestCase):
 
 class IndividualTest(IndividualTestBase):
     def test_create_real_individual_with_ontology_with_real_type(self):
-        price = self.ontology.create_individual(123.50)
+        self.ontology.create_individual(123.50)
 
     def test_create_real_individual_with_ontology_without_real_type(self):
         ontology_without_real_type = self.empty_ontology
         with self.assertRaises(OntologyError):
-            price = ontology_without_real_type.create_individual(123.50)
+            ontology_without_real_type.create_individual(123.50)
 
     def test_create_integer_individual_with_ontology_with_integer_type(self):
-        price = self.ontology.create_individual(123)
+        self.ontology.create_individual(123)
 
     def test_create_integer_individual_with_ontology_without_integer_type(self):
         with self.assertRaises(OntologyError):
             ontology_without_integer_type = self.empty_ontology
-            price = ontology_without_integer_type.create_individual(123)
+            ontology_without_integer_type.create_individual(123)
 
     def test_real_individual_unicode(self):
         real_individual = self.ontology.create_individual(1234.0)

@@ -26,8 +26,7 @@ class Individual(OntologySpecificSemanticObject):
     def __eq__(self, other):
         try:
             if other.is_positive():
-                return self.getValue() == other.getValue() and \
-                    self.getSort() == other.getSort()
+                return self.getValue() == other.getValue() and self.getSort() == other.getSort()
             else:
                 return False
         except AttributeError:
@@ -108,13 +107,13 @@ class Yes(SemanticObject):
     def __eq__(self, other):
         try:
             return self.YES == other.YES
-        except:
+        except:  # noqa: E722
             return False
 
     def __ne__(self, other):
         try:
             return self.YES != other.YES
-        except:
+        except:  # noqa: E722
             return False
 
     def __hash__(self):
@@ -136,13 +135,13 @@ class No(SemanticObject):
     def __eq__(self, other):
         try:
             return self.NO == other.NO
-        except:
+        except:  # noqa: E722
             return False
 
     def __ne__(self, other):
         try:
             return self.NO != other.NO
-        except:
+        except:  # noqa: E722
             return False
 
     def __hash__(self):

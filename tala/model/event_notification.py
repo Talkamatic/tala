@@ -29,9 +29,7 @@ class EventNotification(object):
         return self._parameters
 
     def __eq__(self, other):
-        return other.action == self.action and \
-            other.status == self.status and \
-            other.parameters == self.parameters
+        return other.action == self.action and other.status == self.status and other.parameters == self.parameters
 
     def __ne__(self, other):
         return not (self == other)

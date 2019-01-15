@@ -143,12 +143,11 @@ class GrammarProcessor(object):
         return isinstance(obj, Node) and obj.type == Constants.INDIVIDUAL
 
     def is_individual_with_predicate(self, obj):
-        return isinstance(obj, Node) and obj.type == Constants.INDIVIDUAL and \
-            "predicate" in obj.parameters
+        return isinstance(obj, Node) and obj.type == Constants.INDIVIDUAL and "predicate" in obj.parameters
 
     def is_background_individual(self, form_part, predicate_name):
-        return self.is_individual_with_predicate(form_part) and \
-            self.get_individual_predicate(form_part) != predicate_name
+        return self.is_individual_with_predicate(form_part
+                                                 ) and self.get_individual_predicate(form_part) != predicate_name
 
     def has_background(self, form, predicate):
         if form is None:
@@ -301,9 +300,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         )
 
     def _get_lexicon(self):
-        return \
-            self._get_lexicon_from_grammar(self._grammar) + \
-            self._get_lexicon_from_grammar(self._default_grammar)
+        return self._get_lexicon_from_grammar(self._grammar) + self._get_lexicon_from_grammar(self._default_grammar)
 
     def _get_lexicon_from_grammar(self, grammar):
         for node in grammar.children:
@@ -574,15 +571,14 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
     def _can_be_asked_by_system(self, predicate_name):
         for question in self._domain.get_plan_questions():
-            if self._question_has_predicate_name(question, predicate_name) and \
-                    not self._question_is_feature(question):
+            if self._question_has_predicate_name(question, predicate_name) and not self._question_is_feature(question):
                 return True
             elif self._question_has_ask_feature(question, predicate_name):
                 return True
 
     def _question_has_predicate_name(self, question, predicate_name):
-        return question.get_content().is_lambda_abstracted_predicate_proposition() and \
-            question.get_predicate().get_name() == predicate_name
+        return question.get_content().is_lambda_abstracted_predicate_proposition() and question.get_predicate(
+        ).get_name() == predicate_name
 
     def _question_is_feature(self, question):
         return question.get_predicate().get_feature_of_name() is not None
@@ -595,8 +591,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
                     return True
 
     def _get_warning_for_missing_system_question(self, key, predicate):
-        example_phrase = "what is %s" % \
-            self._example_phrase_from_semantic_value(predicate)
+        example_phrase = "what is %s" % self._example_phrase_from_semantic_value(predicate)
         example_form = Node(rgl_types.UTTERANCE, {}, [example_phrase])
         example_xml = self._decompile_entry(key, example_form)
         return "How does the system ask about '%s'?\n\nExample:\n\n%s\n" % (predicate, example_xml)
@@ -684,9 +679,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             forms = self._get_form_as_options(key)
             ValidityGenerator(self, validator_interface, forms).generate()
         except MissingEntry:
-            warning = \
-                'How does the system report that the device validity %s is unsatisfied?' % \
-                validator_interface.name
+            warning = 'How does the system report that the device validity %s is unsatisfied?' % validator_interface.name
             self._warn_about_missing_entry(warning)
 
     def _create_default_grammar(self):
@@ -1016,8 +1009,9 @@ class FunctionGeneratorForSystemAnswerOfCustomSort(FunctionGenerator):
         return Argument('individual', argument_category)
 
     def _is_individual_of_same_predicate_as_answer(self, form_part):
-        return self.is_individual_with_predicate(form_part) and \
-            self.get_individual_predicate(form_part) == self._predicate.get_name()
+        return self.is_individual_with_predicate(form_part) and self.get_individual_predicate(
+            form_part
+        ) == self._predicate.get_name()
 
 
 class FunctionGeneratorForSystemAnswerOfCustomSortWithoutBackground(FunctionGeneratorForSystemAnswerOfCustomSort):

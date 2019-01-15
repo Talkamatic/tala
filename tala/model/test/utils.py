@@ -1,17 +1,17 @@
+import unittest
+
 from mock import Mock
 
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.model.ddd import DDD
 from tala.model.domain import Domain
-from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition,\
-    LambdaAbstractedGoalProposition
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition, LambdaAbstractedGoalProposition
 from tala.model.ontology import Ontology
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
 from tala.model.proposition import PredicateProposition
 from tala.model.question import WhQuestion
 from tala.model.sort import CustomSort, RealSort, IntegerSort, BooleanSort, StringSort
-import tala.testing.unittest as unittest
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
 
@@ -83,44 +83,33 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
 
         self.real_individual = self.ontology.create_individual(1234.0)
 
-        self.proposition_dest_city_paris = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_paris)
-        self.proposition_dest_city_london = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_london)
-        self.proposition_dept_city_paris = \
-            PredicateProposition(self.predicate_dept_city,
-                                 self.individual_paris)
-        self.proposition_dept_city_london = \
-            PredicateProposition(self.predicate_dept_city,
-                                 self.individual_london)
-        self.proposition_not_dest_city_paris = \
-            PredicateProposition(self.predicate_dest_city,
-                                 self.individual_paris,
-                                 Polarity.NEG)
-        self.price_proposition = \
-            PredicateProposition(self.predicate_price,
-                                 self.real_individual)
+        self.proposition_dest_city_paris = PredicateProposition(self.predicate_dest_city, self.individual_paris)
+        self.proposition_dest_city_london = PredicateProposition(self.predicate_dest_city, self.individual_london)
+        self.proposition_dept_city_paris = PredicateProposition(self.predicate_dept_city, self.individual_paris)
+        self.proposition_dept_city_london = PredicateProposition(self.predicate_dept_city, self.individual_london)
+        self.proposition_not_dest_city_paris = PredicateProposition(
+            self.predicate_dest_city, self.individual_paris, Polarity.NEG
+        )
+        self.price_proposition = PredicateProposition(self.predicate_price, self.real_individual)
 
-        self.lambda_abstracted_price_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_price,
-                                                 self.ontology_name)
-        self.lambda_abstracted_dest_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dest_city,
-                                                 self.ontology_name)
-        self.lambda_abstracted_dept_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_dept_city,
-                                                 self.ontology_name)
-        self.lambda_abstracted_ticket_type_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_available_ticket_type,
-                                                self.ontology_name)
-        self.lambda_abstracted_available_city_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_available_city,
-                                                self.ontology_name)
-        self.lambda_abstracted_number_of_passengers_prop = \
-            LambdaAbstractedPredicateProposition(self.predicate_number_of_passengers,
-                                                 self.ontology_name)
+        self.lambda_abstracted_price_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_price, self.ontology_name
+        )
+        self.lambda_abstracted_dest_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dest_city, self.ontology_name
+        )
+        self.lambda_abstracted_dept_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_dept_city, self.ontology_name
+        )
+        self.lambda_abstracted_ticket_type_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_available_ticket_type, self.ontology_name
+        )
+        self.lambda_abstracted_available_city_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_available_city, self.ontology_name
+        )
+        self.lambda_abstracted_number_of_passengers_prop = LambdaAbstractedPredicateProposition(
+            self.predicate_number_of_passengers, self.ontology_name
+        )
 
         self.price_question = WhQuestion(self.lambda_abstracted_price_prop)
         self.dest_city_question = WhQuestion(self.lambda_abstracted_dest_city_prop)

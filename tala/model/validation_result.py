@@ -41,10 +41,6 @@ class ValidationFailure(ValidationResult):
         return self._invalidity_reason
 
     @property
-    def is_successful(self):
-        return False
-
-    @property
     def invalid_parameters(self):
         return self._invalid_parameters
 
@@ -54,5 +50,4 @@ class ValidationFailure(ValidationResult):
     def __eq__(self, other):
         if not isinstance(self, other.__class__):
             return NotImplemented
-        return self.invalidity_reason == other.invalidity_reason and \
-               self.invalid_parameters == other.invalid_parameters
+        return self.invalidity_reason == other.invalidity_reason and self.invalid_parameters == other.invalid_parameters

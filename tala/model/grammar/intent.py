@@ -40,8 +40,9 @@ class Intent(object):
         )
 
     def __repr__(self):
-        return "%s(%r, text_chunks=%s, required_entities=%s)" \
-               % (self.__class__.__name__, self._intent, self._text_chunks, self._required_entities)
+        return "%s(%r, text_chunks=%s, required_entities=%s)" % (
+            self.__class__.__name__, self._intent, self._text_chunks, self._required_entities
+        )
 
 
 class Request(Intent):

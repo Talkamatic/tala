@@ -39,7 +39,7 @@ class Domain:
                               (plan["goal"].is_goal() and
                                plan["goal"].get_goal_type() == PerformGoal.PERFORM_GOAL and
                                plan["goal"].get_action().get_value() == "top"),
-                          self.plans.values()))
+                          self.plans.values()))  # noqa: E127
 
     def get_ontology(self):
         return self.ontology
@@ -48,8 +48,7 @@ class Domain:
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name and \
-               self.ddd_name == other.ddd_name
+        return self.name == other.name and self.ddd_name == other.ddd_name
 
     def __ne__(self, other):
         return not (self == other)
@@ -75,8 +74,7 @@ class Domain:
 
     def is_feature_of(self, feature_question, question):
         try:
-            feature_question_predicate =\
-                feature_question.get_content().getPredicate()
+            feature_question_predicate = feature_question.get_content().getPredicate()
             question_predicate = question.get_content().getPredicate()
         except AttributeError:
             return False
@@ -145,7 +143,7 @@ class Domain:
 
     def goal_is_conditionally_preferred(self, goal, facts):
         condition = self.get_preferred(goal)
-        if condition == True or condition in facts:
+        if condition is True or condition in facts:
             return True
 
     def is_default_question(self, question):
@@ -156,7 +154,7 @@ class Domain:
         for goal in self.plans:
             plan = self.get_plan(goal)
             for question in self.get_questions_in_plan(plan):
-                if not question in already_found:
+                if question not in already_found:
                     already_found.add(question)
                     yield question
 
@@ -323,10 +321,9 @@ class Domain:
             return True
 
     def question_forces_graphical_choice(self, question):
-        return self.get_graphical_type(question) in \
-            [QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST,
-             QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT] \
-             and not self.get_incremental(question)
+        return self.get_graphical_type(question) in [
+            QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
+        ] and not self.get_incremental(question)
 
     def _get_parameter(self, question, parameter):
         try:
@@ -355,6 +352,5 @@ class Domain:
         for goal in self.get_all_goals():
             plan = self.get_plan(goal)
             for item in plan:
-                if item.is_invoke_service_action_plan_item() and \
-                   item.get_service_action() == action_name:
+                if item.is_invoke_service_action_plan_item() and item.get_service_action() == action_name:
                     yield item

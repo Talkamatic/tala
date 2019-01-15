@@ -203,8 +203,7 @@ class DomainConverter(PyToXmlConverter):
                     perform_element = self._create_element("perform", action=action)
                     element.append(perform_element)
                 elif question.get_content().get_goal().is_resolve_goal():
-                    predicate = question.get_content().get_goal().\
-                                get_content().get_predicate()
+                    predicate = question.get_content().get_goal().get_content().get_predicate()
                     perform_element = self._create_element("resolve", type="wh_question", predicate=predicate)
                     element.append(perform_element)
             else:

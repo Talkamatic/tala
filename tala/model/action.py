@@ -29,9 +29,8 @@ class Action(OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         try:
-            return other.is_action() and \
-                   other.get_value() == self.get_value() and \
-                   other.ontology_name == self.ontology_name
+            return other.is_action() and other.get_value() == self.get_value(
+            ) and other.ontology_name == self.ontology_name
         except AttributeError:
             return False
 

@@ -84,6 +84,10 @@ pipeline {
                                 $class: 'SubmoduleOption',
                                 disableSubmodules: false,
                                 parentCredentials: true
+                            ],
+                            [
+                                $class: 'RelativeTargetDirectory',
+                                relativeTargetDir: 'tala'
                             ]
                         ],
                         submoduleCfg: [],
@@ -105,12 +109,12 @@ pipeline {
                     virtualenv venv
                     source venv/bin/activate
 
-                    pip install --editable .
+                    pip install --editable ./tala
                 '''
                 sh '''#!/bin/bash -ex
                     source venv/bin/activate
 
-                    pip install -r dev-requirements.txt
+                    pip install -r tala/dev-requirements.txt
                 '''
             }
         }
@@ -123,6 +127,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
+                            cd tala
                             flake8 .
                         '''
                     }
@@ -133,6 +138,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
+                            cd tala
                             py.test tala
                         '''
                     }
@@ -143,6 +149,7 @@ pipeline {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
 
+                            cd tala
                             py.test integration_tests
                         '''
                     }

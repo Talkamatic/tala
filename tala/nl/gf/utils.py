@@ -144,7 +144,8 @@ def startswith(sequence, prefix):
 
 
 def str_path(path):
-    if path is None: return unicode(None)
+    if path is None:
+        return unicode(None)
     return "".join(map(str, path))
 
 
@@ -197,7 +198,7 @@ def without_comments(line):
 
 def language_tokens(line):
     tokens = line.split('"')
-    language_tokens = tokens[1::2]  #every odd element
+    language_tokens = tokens[1::2]  # every odd element
     return [token for token in language_tokens if not language_token_is_constant(token)]
 
 

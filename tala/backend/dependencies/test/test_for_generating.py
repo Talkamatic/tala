@@ -1,7 +1,7 @@
 import unittest
 import warnings
 
-from mock import Mock, patch, call
+from mock import patch, call
 
 from tala.backend import dependencies
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating

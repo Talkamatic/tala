@@ -78,10 +78,6 @@ class Stack:
         return self.content.__iter__()
 
 
-class StackError(Exception):
-    pass
-
-
 class StackSet(Stack):
     def __unicode__(self):
         string = "stackset(" + unicodify(self.content) + ")"

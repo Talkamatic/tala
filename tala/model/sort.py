@@ -133,8 +133,8 @@ class ImageSort(BuiltinSort):
 
     def normalize_value(self, value):
         if isinstance(value, Image):
-            if isinstance(value.url, (str, unicode)) and "http" in value.url and \
-                self._has_mime_type(value.url, "image"):
+            if isinstance(value.url,
+                          (str, unicode)) and "http" in value.url and self._has_mime_type(value.url, "image"):
                 return value
             else:
                 raise InvalidValueException("Expected an image URL but got '%s'." % value.url)

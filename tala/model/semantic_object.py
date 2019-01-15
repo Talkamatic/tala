@@ -46,8 +46,9 @@ class SemanticObject(object):
 
     @property
     def ontology_name(self):
-        message = "%s derives from %s and does not have an ontology name. Use %s instead." % \
-                  (self, SemanticObject.__name__, OntologySpecificSemanticObject.__name__)
+        message = "%s derives from %s and does not have an ontology name. Use %s instead." % (
+            self, SemanticObject.__name__, OntologySpecificSemanticObject.__name__
+        )
         raise NotImplementedError(message)
 
     def is_ontology_specific(self):

@@ -40,8 +40,7 @@ class PlanItem(SemanticObject):
         return unicode(self._type)
 
     def __eq__(self, other):
-        return other.is_plan_item() and \
-               self.get_type() == other.get_type()
+        return other.is_plan_item() and self.get_type() == other.get_type()
 
     def __ne__(self, other):
         return not (self == other)
@@ -150,11 +149,8 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return "%s(%s)" % (unicode(self._type), unicode(self._content))
 
     def __eq__(self, other):
-        return other is not None and \
-            other.is_plan_item() and \
-            other.has_semantic_content() and \
-            self.get_type() == other.get_type() and \
-            self.get_content() == other.get_content()
+        return other is not None and other.is_plan_item() and other.has_semantic_content() and self.get_type(
+        ) == other.get_type() and self.get_content() == other.get_content()
 
     def __ne__(self, other):
         return not (self == other)
@@ -260,12 +256,13 @@ class IfThenElse(PlanItem):
         self.condition = condition
         self.consequent = consequent
         self.alternative = alternative
-        assert consequent is not None or alternative is not None, \
-            "One of consequent (%s) and alternative (%s) must not be None" % (consequent, alternative)
+        assert consequent is not None or alternative is not None, "One of consequent (%s) and alternative (%s) must not be None" % (
+            consequent, alternative
+        )
         if consequent is not None and alternative is not None:
-            assert consequent.ontology_name == alternative.ontology_name, \
-                "Expected identical ontologies in both consequent (%s) and alternative (%s) but got %r and %r" % \
-                (consequent, alternative, consequent.ontology_name, alternative.ontology_name)
+            assert consequent.ontology_name == alternative.ontology_name, "Expected identical ontologies in both consequent (%s) and alternative (%s) but got %r and %r" % (
+                consequent, alternative, consequent.ontology_name, alternative.ontology_name
+            )
         PlanItem.__init__(self, PlanItem.TYPE_IF_THEN_ELSE)
 
     def get_condition(self):
@@ -340,9 +337,8 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         )
 
     def __eq__(self, other):
-        return super(PlanItemWithSemanticContent, self).__eq__(other) and \
-            other.get_min_results() == self.get_min_results() and \
-            other.get_max_results() == self.get_max_results()
+        return super(PlanItemWithSemanticContent, self).__eq__(other) and other.get_min_results(
+        ) == self.get_min_results() and other.get_max_results() == self.get_max_results()
 
 
 class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
@@ -373,16 +369,16 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
         return self._downdate_plan
 
     def __eq__(self, other):
-        return super(InvokeServiceActionPlanItem, self).__eq__(other) and \
-            other.get_service_action() == self.get_service_action() and \
-            other.has_interrogative_preconfirmation() == self.has_interrogative_preconfirmation() and \
-            other.has_assertive_preconfirmation() == self.has_assertive_preconfirmation() and \
-            other.has_postconfirmation() == self.has_postconfirmation() and \
-            other.should_downdate_plan() == self.should_downdate_plan()
+        return super(InvokeServiceActionPlanItem, self).__eq__(other) and other.get_service_action(
+        ) == self.get_service_action() and other.has_interrogative_preconfirmation(
+        ) == self.has_interrogative_preconfirmation() and other.has_assertive_preconfirmation(
+        ) == self.has_assertive_preconfirmation() and other.has_postconfirmation() == self.has_postconfirmation(
+        ) and other.should_downdate_plan() == self.should_downdate_plan()
 
     def __str__(self):
-        return "invoke_service_action(%s, {preconfirm=%s, postconfirm=%s, downdate_plan=%s})" % \
-            (self.service_action, self.preconfirm, self.postconfirm, self._downdate_plan)
+        return "invoke_service_action(%s, {preconfirm=%s, postconfirm=%s, downdate_plan=%s})" % (
+            self.service_action, self.preconfirm, self.postconfirm, self._downdate_plan
+        )
 
     def __repr__(self):
         return "%s(%r, %r, preconfirm=%r, postconfirm=%r, downdate_plan=%r)" % (

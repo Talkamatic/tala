@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import codecs
 import contextlib
 import itertools
@@ -416,8 +418,7 @@ class AutoGenerator(object):
         for goal in self._domain.get_all_goals():
             plan = self._domain.get_plan(goal)
             for item in plan:
-                if item.is_invoke_service_action_plan_item() and \
-                   item.get_service_action() == action_name:
+                if item.is_invoke_service_action_plan_item() and item.get_service_action() == action_name:
                     yield item
 
     def _generate_validity_content(self, validator_interface):
@@ -626,9 +627,7 @@ class AutoGenerator(object):
             if gf_string:
                 if result:
                     result += " ++ "
-                if previous_form and \
-                   self._is_propositional_answer_slot(previous_form) and \
-                   form[0] not in separators:
+                if previous_form and self._is_propositional_answer_slot(previous_form) and form[0] not in separators:
                     result += " BIND ++ "
                 result += gf_string
                 previous_form = form
@@ -735,10 +734,9 @@ class AutoGenerator(object):
 
     def _write_ynq_with_answers_to_semantic_gf(self, function_name, background_predicates, predicate):
         background_predicates_string = " ".join(background_predicates)
-        string_to_write = \
-            '%s %s = resolve_ynq_with_background %s (list %s);\n' % (
-            function_name, background_predicates_string,
-            predicate, background_predicates_string)
+        string_to_write = '%s %s = resolve_ynq_with_background %s (list %s);\n' % (
+            function_name, background_predicates_string, predicate, background_predicates_string
+        )
         self._semantic_gf_content.write(string_to_write)
 
     def _write_ynq_with_answers_to_natural_language_gf(self, function_name, background_predicates, nl_parts):
@@ -757,8 +755,9 @@ class AutoGenerator(object):
             form = self._get_form(key)
             self._generate_system_question(predicate, form)
         except MissingEntry:
-            if self._can_be_asked_by_system(predicate) and not \
-                    self._entry_exists(Node(Constants.PREDICATE, {"name": predicate})):
+            if self._can_be_asked_by_system(predicate) and not self._entry_exists(
+                Node(Constants.PREDICATE, {"name": predicate})
+            ):
                 self._missing_entry(self._missing_system_question, key, predicate)
 
     def _generate_potential_user_question(self, predicate):
@@ -1396,8 +1395,7 @@ class AutoGenerator(object):
             reporting_method(*args)
 
     def _missing_action(self, action):
-        self._warn( 'How do speakers talk about the action %s? Specify the utterance:\n' % \
-            action)
+        self._warn('How do speakers talk about the action %s? Specify the utterance:\n' % action)
         example_phrase = self._example_phrase_from_semantic_value(action)
         simple_code_example = self._decompile_entry(Node(Constants.ACTION, {"name": action}), example_phrase)
         self._warn(simple_code_example)
@@ -1422,8 +1420,7 @@ class AutoGenerator(object):
         self._warn('%s\n\n' % complex_code_example)
 
     def _missing_individual(self, individual):
-        self._warn( 'How do speakers talk about the individual %s? Specify the utterance:\n' % \
-            individual)
+        self._warn('How do speakers talk about the individual %s? Specify the utterance:\n' % individual)
         example_phrase = self._example_phrase_from_semantic_value(individual)
         simple_code_example = self._decompile_entry(Node(Constants.INDIVIDUAL, {"name": individual}), example_phrase)
         self._warn(simple_code_example)
@@ -1443,30 +1440,37 @@ class AutoGenerator(object):
         self._warn('%s\n\n' % complex_code_example)
 
     def _missing_ended(self, key, action_interface):
-        self._warn( 'How does the system report that the service action %s ended? Specify the utterance:\n' % \
-                    action_interface.name)
+        self._warn(
+            'How does the system report that the service action %s ended? Specify the utterance:\n' %
+            action_interface.name
+        )
         example_phrase = "performed %s." % self._example_phrase_for_parameterized_service_action(action_interface)
         self._warn('%s\n\n' % (self._decompile_entry(key, example_phrase)))
 
     def _missing_preconfirm(self, key, action_interface):
-        self._warn( 'How does the system ask the user to confirm the service action %s, ' % action_interface.name + \
-            'before performing the action? ' + \
-            'The entry is used in questions such as "Do you want to X?" ' + \
-            'where X is the grammar entry. Example:\n')
+        self._warn(
+            'How does the system ask the user to confirm the service action %s, ' % action_interface.name +
+            'before performing the action? ' + 'The entry is used in questions such as "Do you want to X?" ' +
+            'where X is the grammar entry. Example:\n'
+        )
         example_phrase = "perform %s." % self._example_phrase_for_parameterized_service_action(action_interface)
         example_code = self._decompile_entry(key, example_phrase)
         self._warn('%s\n\n' % example_code)
 
     def _missing_prereport(self, key, action_interface):
-        self._warn( 'How does the system give positive feedback about the service action %s,' % action_interface.name + \
-            ' before performing the action? Specify the utterance:\n')
+        self._warn(
+            'How does the system give positive feedback about the service action %s,' % action_interface.name +
+            ' before performing the action? Specify the utterance:\n'
+        )
         example_phrase = "performing %s." % self._example_phrase_for_parameterized_service_action(action_interface)
         example_code = self._decompile_entry(key, example_phrase)
         self._warn('%s\n\n' % example_code)
 
     def _missing_validity(self, validator_interface, key):
-        self._warn( 'How does the system report that the device validity %s is unsatisfied? Specify the utterance:\n' % \
-                    validator_interface.name)
+        self._warn(
+            'How does the system report that the device validity %s is unsatisfied? Specify the utterance:\n' %
+            validator_interface.name
+        )
         children = ["invalid parameters"]
         for parameter in validator_interface.parameters:
             children.append(" ")
@@ -1481,9 +1485,11 @@ class AutoGenerator(object):
         return phrase
 
     def _missing_goal_issue(self, predicate):
-        self._warn( 'How do the speakers talk about the issue %s? ' % predicate + \
-            'The entry is used in questions such as "Do you want to know X?" ' + \
-            'or "I want to know X", where X is the grammar entry.\n\nExample:\n')
+        self._warn(
+            'How do the speakers talk about the issue %s? ' % predicate +
+            'The entry is used in questions such as "Do you want to know X?" ' +
+            'or "I want to know X", where X is the grammar entry.\n\nExample:\n'
+        )
         example_phrase = self._example_phrase_from_semantic_value(predicate)
         simple_code_example = self._decompile_entry(Node(Constants.PREDICATE, {"name": predicate}), example_phrase)
         self._warn(simple_code_example)
@@ -1509,8 +1515,7 @@ class AutoGenerator(object):
         )
 
     def _missing_system_question(self, key, predicate):
-        example_phrase = "what is %s" % \
-            self._example_phrase_from_semantic_value(predicate)
+        example_phrase = "what is %s" % self._example_phrase_from_semantic_value(predicate)
         self._warn(
             'How does the system ask about %s?\n\nExample:\n\n%s\n' % (
                 predicate,
@@ -1581,8 +1586,7 @@ class AutoGenerator(object):
         return self._is_slot(form) and "predicate" in form.parameters
 
     def _is_slot(self, form):
-        return isinstance(form, Node) and \
-               form.type == Constants.SLOT
+        return isinstance(form, Node) and form.type == Constants.SLOT
 
     def _is_sortal_answer_slot(self, form):
         return self._is_slot(form) and "sort" in form.parameters

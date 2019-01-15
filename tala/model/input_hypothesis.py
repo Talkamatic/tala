@@ -12,8 +12,7 @@ class InputHypothesis(object):
         return self._confidence
 
     def __eq__(self, other):
-        return self.utterance == other.utterance and \
-            self.confidence == other.confidence
+        return self.utterance == other.utterance and self.confidence == other.confidence
 
     def __ne__(self, other):
         return not (self == other)

@@ -30,8 +30,9 @@ class Plan(Stack, SemanticObject):
         if self.is_ontology_specific():
             return self._ontology_names.pop()
 
-        message = "Expected all propositions %s\n\nin ontology %s\n\nbut they're from %s" \
-                  % (self.content, self.content[0].ontology_name, self._ontology_names)
+        message = "Expected all propositions %s\n\nin ontology %s\n\nbut they're from %s" % (
+            self.content, self.content[0].ontology_name, self._ontology_names
+        )
         raise UnableToDetermineOntologyException(message)
 
     @property

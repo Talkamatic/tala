@@ -9,9 +9,7 @@ from tala.model.speaker import Speaker
 from tala.model.ontology import Ontology
 from tala.model.polarity import Polarity
 from tala.model.question import YesNoQuestion
-from tala.model.proposition import PreconfirmationProposition, ResolvednessProposition, PrereportProposition, \
-    ServiceActionTerminatedProposition, RejectedPropositions, PropositionSet, ServiceResultProposition, Proposition, \
-    QuitProposition, MuteProposition, UnderstandingProposition, UnmuteProposition, PredicateProposition, GoalProposition
+from tala.model.proposition import PreconfirmationProposition, ResolvednessProposition, PrereportProposition, ServiceActionTerminatedProposition, RejectedPropositions, PropositionSet, ServiceResultProposition, Proposition, QuitProposition, MuteProposition, UnderstandingProposition, UnmuteProposition, PredicateProposition, GoalProposition
 from tala.model.sort import StringSort, ImageSort
 from tala.model.test.utils import LibTestCase
 from tala.model.image import Image
@@ -72,8 +70,9 @@ class ServiceResultPropositionTests(LibTestCase):
         self.assertEquals("mock_perform_result", self.proposition.get_result())
 
     def test_equality(self):
-        identical_proposition = ServiceResultProposition(\
-            self.ontology_name, self.action, self.arguments, "mock_perform_result")
+        identical_proposition = ServiceResultProposition(
+            self.ontology_name, self.action, self.arguments, "mock_perform_result"
+        )
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(self.proposition, identical_proposition)
 
     def test_inequality_due_to_result(self):
@@ -84,8 +83,9 @@ class ServiceResultPropositionTests(LibTestCase):
 
     def test_inequality_due_to_action(self):
         other_action = "other_service_action"
-        non_identical_proposition = ServiceResultProposition(\
-            self.ontology_name, other_action, self.arguments, True, None)
+        non_identical_proposition = ServiceResultProposition(
+            self.ontology_name, other_action, self.arguments, True, None
+        )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.proposition, non_identical_proposition)
 
     def test_unicode(self):
@@ -294,10 +294,7 @@ class PrereportPropositionTests(LibTestCase):
         self.prereport = self._create_with_empty_param_list()
 
     def _create_with_empty_param_list(self):
-        confirmation_proposition = \
-            PrereportProposition(self.ontology_name,
-                                 self.service_action,
-                                 self.empty_arguments)
+        confirmation_proposition = PrereportProposition(self.ontology_name, self.service_action, self.empty_arguments)
         return confirmation_proposition
 
     def test_type(self):
@@ -313,18 +310,12 @@ class PrereportPropositionTests(LibTestCase):
         self.assertEquals("prereported(MakeReservation, [])", unicode(self.prereport))
 
     def test_equality(self):
-        identical_prereport =\
-            PrereportProposition(self.ontology_name,
-                                 self.service_action,
-                                 self.empty_arguments)
+        identical_prereport = PrereportProposition(self.ontology_name, self.service_action, self.empty_arguments)
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(self.prereport, identical_prereport)
 
     def test_inequality_due_to_action(self):
         other_action = "CacelTransaction"
-        non_identical_proposition = \
-            PrereportProposition(self.ontology_name,
-                                 other_action,
-                                 self.empty_arguments)
+        non_identical_proposition = PrereportProposition(self.ontology_name, other_action, self.empty_arguments)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.prereport, non_identical_proposition)
 
 
@@ -333,10 +324,7 @@ class PreconfirmationTests(LibTestCase):
         self.setUpLibTestCase()
         self.service_action = "MakeReservation"
         self.arguments = [self.proposition_dest_city_paris, self.proposition_dept_city_london]
-        self.preconfirmation = \
-            PreconfirmationProposition(self.ontology_name,
-                                       self.service_action,
-                                       self.arguments)
+        self.preconfirmation = PreconfirmationProposition(self.ontology_name, self.service_action, self.arguments)
 
     def test_type(self):
         self.assertTrue(self.preconfirmation.is_preconfirmation_proposition())
@@ -359,10 +347,7 @@ class PreconfirmationTests(LibTestCase):
         )
 
     def test_equality(self):
-        identical_preconfirmation =\
-            PreconfirmationProposition(self.ontology_name,
-                                       self.service_action,
-                                       self.arguments)
+        identical_preconfirmation = PreconfirmationProposition(self.ontology_name, self.service_action, self.arguments)
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(self.preconfirmation, identical_preconfirmation)
 
     def test_inequality_due_to_other_class(self):
@@ -371,10 +356,7 @@ class PreconfirmationTests(LibTestCase):
 
     def test_inequality_due_to_action(self):
         other_action = "CancelTransaction"
-        non_identical_proposition = \
-            PreconfirmationProposition(self.ontology_name,
-                                       other_action,
-                                       self.arguments)
+        non_identical_proposition = PreconfirmationProposition(self.ontology_name, other_action, self.arguments)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.preconfirmation, non_identical_proposition)
 
     def test_inequality_due_to_polarity(self):
@@ -384,10 +366,7 @@ class PreconfirmationTests(LibTestCase):
 
     def test_inequality_due_to_arguments_in_other_order(self):
         other_arguments = [self.proposition_dept_city_london, self.proposition_dest_city_paris]
-        other_preconfirmation = \
-            PreconfirmationProposition(self.ontology_name,
-                                       self.service_action,
-                                       other_arguments)
+        other_preconfirmation = PreconfirmationProposition(self.ontology_name, self.service_action, other_arguments)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.preconfirmation, other_preconfirmation)
 
     def test_default_polarity_is_positive(self):

@@ -98,8 +98,9 @@ class ServiceInterface(object):
         return self._entity_recognizers.values()
 
     def __repr__(self):
-        return "%s(actions=%s, queries=%s, validators=%s, entity_recognizers=%s)"\
-               % (self.__class__.__name__, self.actions, self.queries, self.validators, self.entity_recognizers)
+        return "%s(actions=%s, queries=%s, validators=%s, entity_recognizers=%s)" % (
+            self.__class__.__name__, self.actions, self.queries, self.validators, self.entity_recognizers
+        )
 
     def __eq__(self, other):
         def has_all(these, those):
@@ -190,8 +191,9 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
         raise NotImplementedError("Needs to be implemented")
 
     def __repr__(self):
-        return "%s(%r, %r, parameters=%s, failure_reasons=%s)" \
-               % (self.__class__.__name__, self.name, self.target, self.parameters, self.failure_reasons)
+        return "%s(%r, %r, parameters=%s, failure_reasons=%s)" % (
+            self.__class__.__name__, self.name, self.target, self.parameters, self.failure_reasons
+        )
 
     def __eq__(self, other):
         return bool(
@@ -221,8 +223,9 @@ class PlayAudioActionInterface(BaseActionInterface):
         return True
 
     def __repr__(self):
-        return "%s(%r, %r, parameters=%s, audio_url_parameter=%s)" \
-               % (self.__class__.__name__, self.name, self.target, self.parameters, self.audio_url_parameter)
+        return "%s(%r, %r, parameters=%s, audio_url_parameter=%s)" % (
+            self.__class__.__name__, self.name, self.target, self.parameters, self.audio_url_parameter
+        )
 
     def __eq__(self, other):
         return bool(
