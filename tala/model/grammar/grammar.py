@@ -44,9 +44,10 @@ class UnexpectedStringsFoundException(Exception):
 
 
 class GrammarBase(object):
-    def __init__(self, grammar_root):
+    def __init__(self, grammar_root, grammar_path):
         super(GrammarBase, self).__init__()
         self._grammar_root = grammar_root
+        self._grammar_path = grammar_path
         self._local_individual_identifier = None
 
     def requests_of_action(self, action):
@@ -61,12 +62,12 @@ class GrammarBase(object):
             all_names = [individual.get("name") for individual in self._grammar_root.findall(Constants.INDIVIDUAL)]
             raise NoIndividualsFoundException(
                 "Expected at least one <%s ...> for individual '%s', but it was "
-                "not found among %s in %s" % (self._local_individual_identifier, name, all_names, self._grammar_path)
+                "not found among %s in %s" % (Constants.INDIVIDUAL, name, all_names, self._grammar_path)
             )
         if len(individuals) > 1:
             raise UnexpectedIndividualsFoundException(
                 "Expected a single <%s ...> for individual '%s' but found %d in %s" %
-                (self._local_individual_identifier, name, len(individuals), self._grammar_path)
+                (Constants.INDIVIDUAL, name, len(individuals), self._grammar_path)
             )
         return self._process_individual_entries(individuals[0])
 
@@ -189,8 +190,8 @@ class GrammarBase(object):
 
 
 class Grammar(GrammarBase):
-    def __init__(self, language_code):
-        super(Grammar, self).__init__(language_code)
+    def __init__(self, language_code, grammar_path):
+        super(Grammar, self).__init__(language_code, grammar_path)
         self._local_individual_identifier = Constants.SLOT
 
     def requests_of_action(self, name):
@@ -241,8 +242,8 @@ class Grammar(GrammarBase):
 
 
 class GrammarForRGL(GrammarBase):
-    def __init__(self, grammar_root):
-        super(GrammarForRGL, self).__init__(grammar_root)
+    def __init__(self, grammar_root, grammar_path):
+        super(GrammarForRGL, self).__init__(grammar_root, grammar_path)
         self._local_individual_identifier = Constants.INDIVIDUAL
 
     def requests_of_action(self, action):

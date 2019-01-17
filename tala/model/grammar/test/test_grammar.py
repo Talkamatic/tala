@@ -78,7 +78,7 @@ class TestGrammar(object):
         with open(self._grammar_path, 'r') as grammar_file:
             grammar_string = grammar_file.read()
         grammar_root = GrammarParser.parse(grammar_string)
-        self._grammar = GrammarClass(grammar_root)
+        self._grammar = GrammarClass(grammar_root, self._grammar_path)
 
     def when_fetching_requests_of_action(self, action):
         self._result = list(self._grammar.requests_of_action(action))

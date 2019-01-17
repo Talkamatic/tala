@@ -33,11 +33,12 @@ class DDDLoader(object):
     def _load_grammar(self, language_code):
         if GrammarReader.xml_grammar_exists_for_language(language_code, path="grammar"):
             grammar_string = GrammarReader.read(language_code, path="grammar")
+            grammar_path = GrammarReader.path(language_code, path="grammar")
             grammar_root = GrammarParser.parse(grammar_string)
             if self._ddd_config["use_rgl"]:
-                return GrammarForRGL(grammar_root)
+                return GrammarForRGL(grammar_root, grammar_path)
             else:
-                return Grammar(grammar_root)
+                return Grammar(grammar_root, grammar_path)
         return None
 
     def _compile_ontology(self):
