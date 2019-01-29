@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from tala.nl.languages import ENGLISH, SWEDISH
+from tala.nl.languages import ENGLISH, SWEDISH, SPANISH
 from tala.nl.rasa.constants import NEGATIVE_INTENT
 from tala.nl.rasa.generating.common_example import CommonExample
 
@@ -42,6 +42,7 @@ class Examples(object):
         examples = {
             ENGLISH: EnglishExamples(),
             SWEDISH: SwedishExamples(),
+            SPANISH: SpanishExamples()
         }
         return examples[language_code]
 
@@ -139,4 +140,65 @@ class SwedishExamples(Examples):
         return [
             "idag", u"måndag 18 mars", "1:a mars", "klockan 11.45", u"följande tre veckor", "om tio minuter",
             u"20:e mars vid 22.00", u"tjugonde mars vid tio på kvällen"
+        ]
+
+
+class SpanishExamples(Examples):
+    @property
+    def negative(self):
+        phrases = [
+            "a bordo", "acerca de", "arriba", u"a través de", u"después de", "en contra", "a lo largo de", "entre",
+            "como", "en", "en", "en lo alto", "antes", u"detrás", "abajo", "debajo", "al lado", "entre", u"más allá de",
+            "pero", "por", "abajo", "durante", "excepto", "para", "desde", "en", "dentro", "en", "menos", "como",
+            "cerca", "de", "encima de", "sobre", "opuesto", "fuera", "fuera de", "corto", "desde", "que", "entonces",
+            "a lo largo de", "hasta", "hacia", "debajo de", "a diferencia de", "hasta", "arriba", "con", "dentro de",
+            "sin", "vale", "es" "se", "el", "la" "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", u"él",
+            "ella", "ellos", "ellas", "su", "sus", "mi", "tu", u"tú", "nosotros", "nosotras", "vosotros", "vosotras",
+            "nuestro", "nuestra", "vuestro", "vuestra", "vuestros", "vuestras", u"mío", u"mía", u"míos", u"mías",
+            "tuyo", "tuyos", "tuya", "tuyas", "suyo", "suya", "suyos", "suyas"
+        ]
+        question_phrases = [
+            u"cómo", u"cómo está", u"cómo es", u"cómo está el", u"cómo es el", u"cómo está la", u"cómo es la",
+            u"cómo están los", u"cómo están las"
+            u"cuándo", u"cuándo es", u"cuándo está", u"cuándo es el", u"cuándo es la", u"cuándo son los",
+            u"cuándo son las", u"cuándo está el", u"cuándo está la", u"cuándo están los",
+            u"cuándo están las", u"qué", u"qué es", u"qué es la", u"qué es el", u"qué son los", u"qué son las",
+            u"cuál", u"cuál es", u"cuál es la", u"cuál es el", u"cuáles son los", u"cuáles son las",
+            u"por qué", u"por qué es", u"por qué está", u"por qué es el", u"por qué es la", u"por qué son",
+            u"por qué son los", u"por qué son las", u"por qué está el", u"por qué está la",
+            u"por qué están los", u"por qué están las"
+        ]
+        action_phrases = [
+            "hacer", "decir", "iniciar", "detener", "habilitar", "deshabilitar", "querer", "dar", "haber"
+            "subir", "bajar", "disminuir", "aumentar", "actuar", "determinar", "preguntar", "ir", "disparar",
+            "esperar", "esperar", "aceptar", "mostrar", u"enseñar", "ayudar"
+        ]
+        intent = NEGATIVE_INTENT
+        for phrase in phrases:
+            yield CommonExample(intent, phrase)
+        for phrase in question_phrases:
+            yield CommonExample(intent, phrase)
+        for phrase in action_phrases:
+            yield CommonExample(intent, phrase)
+
+    @property
+    def integer(self):
+        return ["0", "99", "1224", "100000", "100.000", "una", "uno", u"dieciséis", "veintiuno", "veintiuno",
+                "veinte y uno", "tres", "dos mil quince", "mil cincuenta y siete"]
+
+    @property
+    def string(self):
+        return [
+            "singular", "doble palabra", "tres en uno", "hey pon cuatro", u"cuanto más mejor cinco",
+            u"cálmate y cuenta hasta seis", u"llévalos hasta el siete",
+            "nadie cuenta los dedos de los pies como un chico de ocho dedos",
+            "importa tener sentido para nueve de nosotros", u"llevarías diez o ninguno a una isla desierta"
+        ]
+
+    @property
+    def datetime(self):
+        return [
+            "hoy", "ayer", "este lunes", u"miércoles", "viernes 18 de febrero", "20 de febrero", "el 1 de marzo",
+            "11:45 de la noche", "a las tres y quince", "la semana que viene", "en cinco minutos",
+            u"próximos tres meses", "este fin de semana", u"el 12 de marzo a las 8 de la mañana"
         ]

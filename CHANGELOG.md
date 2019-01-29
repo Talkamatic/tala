@@ -11,3 +11,4 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Command `tala create-backend-config` has been added. Run it to create a backend config with default values.
 - Command `tala create-rasa-config` has been added. Run it to create a RASA config with default values.
 - Command `tala verify` has been added. It verifies DDD files with XML schemas and additionally checks the sanity of the grammar.
+- RASA NLU can now be used for Spanish.
