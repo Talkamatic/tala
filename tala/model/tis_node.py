@@ -1,3 +1,6 @@
+from tala.utils.as_json import can_convert_to_json
+
+
 class TISNode:
     def pretty_string_new(self, path):
         output = ""
@@ -33,3 +36,12 @@ class TISNode:
 
     def indent(self, indentation_level):
         return "\t" * indentation_level
+
+    def as_json(self):
+        dict_ = {}
+        for key, value in self.__dict__.items():
+            if can_convert_to_json(value):
+                dict_[key] = value.as_json()
+            else:
+                dict_[key] = value
+        return dict_

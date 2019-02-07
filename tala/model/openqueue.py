@@ -1,5 +1,6 @@
 import copy
 
+from tala.utils.as_json import can_convert_to_json
 from tala.utils.unicodify import unicodify
 
 
@@ -15,6 +16,19 @@ class OpenQueue:
             for item in iterable:
                 self.front_content.append(item)
         self._unshifted_content = None
+
+    def as_json(self):
+        def json_result():
+            for object_ in self:
+                if can_convert_to_json(object_):
+                    yield object_.as_json()
+                else:
+                    yield object_
+
+        return {
+            "type": "openqueue",
+            "content": list(json_result()),
+        }
 
     def enqueue(self, element):
         if element not in self:

@@ -1,3 +1,6 @@
+from tala.utils.as_json import can_convert_to_json
+
+
 class Set:
     def __init__(self, content_or_contentclass=None):
         if content_or_contentclass is None:
@@ -22,6 +25,19 @@ class Set:
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.content or self.contentclass or [])
+
+    def as_json(self):
+        def json_result():
+            for object_ in self.content:
+                if can_convert_to_json(object_):
+                    yield object_.as_json()
+                else:
+                    yield object_
+
+        return {
+            "type": "set",
+            "content": list(json_result()),
+        }
 
     def __eq__(self, other):
         try:

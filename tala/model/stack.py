@@ -1,3 +1,4 @@
+from tala.utils.as_json import can_convert_to_json
 from tala.utils.unicodify import unicodify
 
 
@@ -11,6 +12,22 @@ class Stack:
         self.content = list()
         for x in content:
             self.push(x)
+
+    def as_json(self):
+        def json_result():
+            for object_ in self.content:
+                if can_convert_to_json(object_):
+                    yield object_.as_json()
+                else:
+                    yield object_
+
+        return {
+            "type": "stack",
+            "content": list(json_result()),
+        }
+
+    def __repr__(self):
+        return "{name}(content={content})".format(name=self.__class__.__name__, content=self.content)
 
     def __str__(self):
         return unicode(self).encode("utf-8")
@@ -84,7 +101,6 @@ class StackSet(Stack):
         return string
 
     def push(self, element):
-
         self._typecheck(element)
         if element in self.content:
             self.content.remove(element)
