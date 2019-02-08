@@ -1,6 +1,7 @@
 from tala.model.move import ICMMove
 from tala.model.proposition import Proposition
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
+from tala.utils.as_json import convert_to_json
 
 
 class PlanItem(SemanticObject):
@@ -135,6 +136,15 @@ class PlanItem(SemanticObject):
     def is_turn_yielding(self):
         return False
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): None,
+        }
+
 
 class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
     def __init__(self, type, content):
@@ -166,6 +176,13 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
 
     def getContent(self):
         return self.get_content()
+
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {self.get_type(): convert_to_json(self._content)}
 
 
 class AssumePlanItem(PlanItemWithSemanticContent):
@@ -283,6 +300,19 @@ class IfThenElse(PlanItem):
     def __str__(self):
         return "if_then_else(%s, %s, %s)" % (self.condition, self.consequent, self.alternative)
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): {
+                "condition": convert_to_json(self.condition),
+                "consequent": convert_to_json(self.consequent),
+                "alternative": convert_to_json(self.alternative),
+            }
+        }
+
 
 class ForgetAllPlanItem(PlanItem):
     def __init__(self):
@@ -340,6 +370,19 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         return super(PlanItemWithSemanticContent, self).__eq__(other) and other.get_min_results(
         ) == self.get_min_results() and other.get_max_results() == self.get_max_results()
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): {
+                "issue": convert_to_json(self._content),
+                "min_results": self._min_results,
+                "max_results": self._max_results,
+            }
+        }
+
 
 class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
     INTERROGATIVE = "INTERROGATIVE"
@@ -386,6 +429,21 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
             self._downdate_plan
         )
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): {
+                "service_action": convert_to_json(self.service_action),
+                "ontology": convert_to_json(self.ontology_name),
+                "preconfirm": convert_to_json(self.preconfirm),
+                "postconfirm": convert_to_json(self.postconfirm),
+                "downdate_plan": convert_to_json(self._downdate_plan),
+            }
+        }
+
 
 class ServiceReportPlanItem(PlanItemWithSemanticContent):
     def __init__(self, result_proposition):
@@ -409,3 +467,15 @@ class HandlePlanItem(PlanItem, OntologySpecificSemanticObject):
     @property
     def service_action(self):
         return self._service_action
+
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): {
+                "service_action": convert_to_json(self._service_action),
+                "ontology": convert_to_json(self.ontology_name),
+            }
+        }

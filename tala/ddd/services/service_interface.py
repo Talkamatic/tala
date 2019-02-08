@@ -1,4 +1,5 @@
 from tala.model.device import ParameterField
+from tala.utils.as_json import JSONLoggable
 
 
 class UnexpectedParameterFieldException(Exception):
@@ -29,7 +30,7 @@ class UnsupportedServiceInterfaceTarget(Exception):
     pass
 
 
-class ServiceInterface(object):
+class ServiceInterface(JSONLoggable):
     def __init__(self, actions, queries, entity_recognizers, validators):
         self._validate(actions)
         self._actions = {action.name: action for action in actions}
@@ -113,7 +114,7 @@ class ServiceInterface(object):
         )
 
 
-class SpecificServiceInterface(object):
+class SpecificServiceInterface(JSONLoggable):
     def __init__(self, interface_type, name, target):
         super(SpecificServiceInterface, self).__init__()
         self._interface_type = interface_type
@@ -263,7 +264,7 @@ class ServiceImplicationInterface(SpecificServiceInterface):
         return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.target)
 
 
-class AbstractServiceParameter(object):
+class AbstractServiceParameter(JSONLoggable):
     def __init__(self, name, format):
         self._name = name
         self._format = format
@@ -324,7 +325,7 @@ class AudioURLServiceParameter(AbstractServiceParameter):
         return bool(isinstance(other, self.__class__) and self.name == other.name and self.format == other.format)
 
 
-class ActionFailureReason(object):
+class ActionFailureReason(JSONLoggable):
     def __init__(self, name):
         super(ActionFailureReason, self).__init__()
         self._name = name
@@ -340,7 +341,7 @@ class ActionFailureReason(object):
         return bool(isinstance(other, self.__class__) and self.name == other.name)
 
 
-class ServiceTarget(object):
+class ServiceTarget(JSONLoggable):
     @property
     def is_device_module(self):
         return False

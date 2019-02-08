@@ -119,6 +119,10 @@ class Proposition(SemanticObject):
     def __repr__(self):
         return "%s%s" % (Proposition.__name__, (self._type, self._polarity))
 
+    @property
+    def can_convert_to_json(self):
+        return False
+
 
 class PropositionWithSemanticContent(Proposition, SemanticObjectWithContent):
     def __init__(self, type, content, polarity=None):

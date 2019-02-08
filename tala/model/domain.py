@@ -5,13 +5,14 @@ from tala.model.speaker import Speaker
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
+from tala.utils.as_json import JSONLoggable
 
 
 class DddDomain:
     pass
 
 
-class Domain:
+class Domain(JSONLoggable):
     DEFAULT_IO_STATUS = "default"
     EXCLUDED_IO_STATUS = "excluded"
     HIDDEN_IO_STATUS = "hidden"
@@ -29,6 +30,11 @@ class Domain:
         self._goals_in_defined_order = [plan["goal"] for plan in plans]
         self._add_top_plan_if_missing()
         self._add_up_plan()
+
+    def as_json(self):
+        json = super(Domain, self).as_json()
+        json["ontology"] = "<skipped>"
+        return json
 
     @property
     def goals(self):

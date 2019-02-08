@@ -11,6 +11,7 @@ from tala.model.sort import DomainSort, RealSort, IntegerSort, StringSort, Boole
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
+from tala.utils.as_json import JSONLoggable
 
 
 class IndividualExistsException(Exception):
@@ -44,7 +45,7 @@ class DddOntology:
     pass
 
 
-class Ontology(object):
+class Ontology(JSONLoggable):
     DEFAULT_ACTIONS = {"top", "up"}
 
     def __init__(self, name, sorts, predicates, individuals, actions):
@@ -60,6 +61,11 @@ class Ontology(object):
         self._validate_individuals()
         self._validate_predicates()
         self._check_predicate_action_integrity()
+
+    def as_json(self):
+        json = super(Ontology, self).as_json()
+        json["_original_individuals"] = "<skipped>"
+        return json
 
     def reset(self):
         self._individuals = copy.deepcopy(self._original_individuals)

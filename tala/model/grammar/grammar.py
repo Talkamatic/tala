@@ -50,6 +50,15 @@ class GrammarBase(object):
         self._grammar_path = grammar_path
         self._local_individual_identifier = None
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            "answers": self.answers(),
+        }
+
     def requests_of_action(self, action):
         raise NotImplementedError("%s.requests_of_action(...) need to be implemented." % self.__class__.__name__)
 

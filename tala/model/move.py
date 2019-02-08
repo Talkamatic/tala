@@ -1,6 +1,7 @@
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
+from tala.utils.as_json import convert_to_json
 from tala.utils.unicodify import unicodify
 from tala.utils import float_comparison
 
@@ -254,6 +255,24 @@ class Move(SemanticObject):
     def set_background(self, background):
         self._background = background
 
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            self.get_type(): {
+                "ddd_name": convert_to_json(self._ddd_name),
+                "speaker": convert_to_json(self._speaker),
+                "understanding_confidence": convert_to_json(self._understanding_confidence),
+                "weighted_understanding_confidence": convert_to_json(self._weighted_understanding_confidence),
+                "perception_confidence": convert_to_json(self.perception_confidence),
+                "modality": convert_to_json(self._modality),
+                "utterance": convert_to_json(self._utterance),
+                "background": convert_to_json(self._background),
+            }
+        }
+
 
 class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def __init__(self, type, content, *args, **kwargs):
@@ -283,6 +302,15 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
 
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
+
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        json = Move.as_json(self)
+        json[self.get_type()]["content"] = convert_to_json(self._content)
+        return json
 
 
 class ICMMove(Move):
@@ -355,6 +383,13 @@ class ICMMove(Move):
             return True
         else:
             return False
+
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        self._icm_to_string()
 
     def get_semantic_expression(self):
         string = "ICMMove(%s" % self._icm_to_string()

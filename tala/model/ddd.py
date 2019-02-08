@@ -1,3 +1,6 @@
+from tala.utils.as_json import convert_to_json
+
+
 class DDD(object):
     def __init__(self, name, ontology, domain, is_rasa_enabled, service_interface, grammars, language_codes, use_rgl):
         self._name = name
@@ -56,3 +59,18 @@ class DDD(object):
 
     def __ne__(self, other):
         return not (other == self)
+
+    @property
+    def can_convert_to_json(self):
+        return True
+
+    def as_json(self):
+        return {
+            "ontology": convert_to_json(self.ontology),
+            "domain": convert_to_json(self.domain),
+            "is_rasa_enabled": convert_to_json(self.is_rasa_enabled),
+            "service_interface": convert_to_json(self.service_interface),
+            "grammars": [convert_to_json(grammar) for grammar in self.grammars],
+            "language_codes": self.language_codes,
+            "use_rgl": self.use_rgl,
+        }

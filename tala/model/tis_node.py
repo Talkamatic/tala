@@ -1,7 +1,7 @@
-from tala.utils.as_json import can_convert_to_json
+from tala.utils.as_json import JSONLoggable
 
 
-class TISNode:
+class TISNode(JSONLoggable):
     def pretty_string_new(self, path):
         output = ""
         for attr in sorted(self.__dict__.keys()):
@@ -36,12 +36,3 @@ class TISNode:
 
     def indent(self, indentation_level):
         return "\t" * indentation_level
-
-    def as_json(self):
-        dict_ = {}
-        for key, value in self.__dict__.items():
-            if can_convert_to_json(value):
-                dict_[key] = value.as_json()
-            else:
-                dict_[key] = value
-        return dict_
