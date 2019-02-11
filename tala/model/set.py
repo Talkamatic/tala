@@ -1,8 +1,9 @@
-from tala.utils.as_json import convert_to_json
+from tala.utils.as_json import convert_to_json, JSONLoggable
 
 
-class Set:
+class Set(JSONLoggable):
     def __init__(self, content_or_contentclass=None):
+        super(Set, self).__init__()
         if content_or_contentclass is None:
             contentclass = None
             initial_content = []
@@ -31,15 +32,14 @@ class Set:
             "set": list(convert_to_json(object_) for object_ in self.content),
         }
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def __eq__(self, other):
         try:
             return self.is_subset_of(other) and other.is_subset_of(self)
         except AttributeError:
             return False
+
+    def __hash__(self):
+        return hash(self.__class__.__name__) + hash(self.content)
 
     def __ne__(self, other):
         return not (self == other)

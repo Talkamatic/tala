@@ -1,4 +1,4 @@
-from tala.utils.as_json import convert_to_json
+from tala.utils.as_json import convert_to_json, JSONLoggable
 from tala.utils.unicodify import unicodify
 
 
@@ -6,8 +6,9 @@ class StackError(Exception):
     pass
 
 
-class Stack:
+class Stack(JSONLoggable):
     def __init__(self, content=set(), contentclass=None):
+        super(Stack, self).__init__()
         self.contentclass = contentclass
         self.content = list()
         for x in content:
@@ -17,10 +18,6 @@ class Stack:
         return {
             "stack": list(convert_to_json(object_) for object_ in self.content),
         }
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def __repr__(self):
         return "{name}(content={content})".format(name=self.__class__.__name__, content=self.content)
@@ -37,6 +34,9 @@ class Stack:
             return self.content == other.content
         except AttributeError:
             return False
+
+    def __hash__(self):
+        return hash(self.__class__.__name__) + hash(self.content)
 
     def __ne__(self, other):
         return not (self == other)

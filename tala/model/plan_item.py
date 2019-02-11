@@ -136,10 +136,6 @@ class PlanItem(SemanticObject):
     def is_turn_yielding(self):
         return False
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def as_json(self):
         return {
             self.get_type(): None,
@@ -176,10 +172,6 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
 
     def getContent(self):
         return self.get_content()
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def as_json(self):
         return {self.get_type(): convert_to_json(self._content)}
@@ -300,10 +292,6 @@ class IfThenElse(PlanItem):
     def __str__(self):
         return "if_then_else(%s, %s, %s)" % (self.condition, self.consequent, self.alternative)
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def as_json(self):
         return {
             self.get_type(): {
@@ -370,10 +358,6 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         return super(PlanItemWithSemanticContent, self).__eq__(other) and other.get_min_results(
         ) == self.get_min_results() and other.get_max_results() == self.get_max_results()
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def as_json(self):
         return {
             self.get_type(): {
@@ -429,10 +413,6 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
             self._downdate_plan
         )
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def as_json(self):
         return {
             self.get_type(): {
@@ -467,10 +447,6 @@ class HandlePlanItem(PlanItem, OntologySpecificSemanticObject):
     @property
     def service_action(self):
         return self._service_action
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def as_json(self):
         return {

@@ -1,9 +1,3 @@
-def can_convert_to_json(object_):
-    if hasattr(object_, "can_convert_to_json"):
-        return object_.can_convert_to_json
-    return False
-
-
 def convert_to_json(object_):
     if object_ is None:
         return None
@@ -17,7 +11,7 @@ def convert_to_json(object_):
         }
     if isinstance(object_, dict):
         return {str(key): convert_to_json(value) for key, value in object_.items()}
-    if can_convert_to_json(object_):
+    if isinstance(object_, JSONLoggable):
         return object_.as_json()
     return unicode(object_)
 

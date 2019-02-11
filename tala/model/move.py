@@ -255,10 +255,6 @@ class Move(SemanticObject):
     def set_background(self, background):
         self._background = background
 
-    @property
-    def can_convert_to_json(self):
-        return True
-
     def as_json(self):
         return {
             self.get_type(): {
@@ -302,10 +298,6 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
 
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def as_json(self):
         json = Move.as_json(self)
@@ -383,10 +375,6 @@ class ICMMove(Move):
             return True
         else:
             return False
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def as_json(self):
         self._icm_to_string()

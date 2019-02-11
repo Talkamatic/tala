@@ -2,9 +2,10 @@ import warnings
 
 from tala.model.grammar.intent import Question, Request, Answer
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
+from tala.model.sort import STRING
 from tala.nl.gf import rgl_grammar_entry_types
 from tala.nl.gf.grammar_entry_types import Constants
-from tala.model.sort import STRING
+from tala.utils.as_json import JSONLoggable
 
 
 class NoIndividualsFoundException(Exception):
@@ -43,16 +44,12 @@ class UnexpectedStringsFoundException(Exception):
     pass
 
 
-class GrammarBase(object):
+class GrammarBase(JSONLoggable):
     def __init__(self, grammar_root, grammar_path):
         super(GrammarBase, self).__init__()
         self._grammar_root = grammar_root
         self._grammar_path = grammar_path
         self._local_individual_identifier = None
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def as_json(self):
         return {

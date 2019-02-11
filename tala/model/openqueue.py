@@ -1,6 +1,6 @@
 import copy
 
-from tala.utils.as_json import convert_to_json
+from tala.utils.as_json import convert_to_json, JSONLoggable
 from tala.utils.unicodify import unicodify
 
 
@@ -8,8 +8,9 @@ class OpenQueueError(Exception):
     pass
 
 
-class OpenQueue:
+class OpenQueue(JSONLoggable):
     def __init__(self, iterable=None):
+        super(OpenQueue, self).__init__()
         self.front_content = []
         self.back_content = []
         if iterable is not None:
@@ -21,10 +22,6 @@ class OpenQueue:
         return {
             "openqueue": list(convert_to_json(object_) for object_ in self),
         }
-
-    @property
-    def can_convert_to_json(self):
-        return True
 
     def enqueue(self, element):
         if element not in self:
@@ -142,14 +139,16 @@ class OpenQueue:
             if len(self) == 1:
                 return self._check_single_element_equality(other)
 
-            elif (self.front_content == other.front_content and self.back_content == other.back_content):
-                return True
+            return self.front_content == other.front_content and self.back_content == other.back_content
 
         except (AttributeError, TypeError):
             return False
 
     def _check_single_element_equality(self, other):
         return self.first() == other.first()
+
+    def __hash__(self):
+        return hash(self.front_content) + 17*hash(self.back_content)
 
     def __ne__(self, other):
         return not (self == other)
