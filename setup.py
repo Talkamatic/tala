@@ -7,11 +7,25 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py  # noqa: F401
 
+
+def readme():
+    with open("README.md") as f:
+        return f.read()
+
+
 if __name__ == "__main__":
     setup(
         use_scm_version={"write_to": "tala/installed_version.py"},
         setup_requires=["setuptools_scm"],
         name="tala",
+        description="Design dialogue domain descriptions (DDDs) for TDM",
+        long_description=readme(),
+        long_description_content_type="text/markdown",
+        classifiers=[
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+        ],
+        keywords="tala tdm ddd ddds dialogue conversation AI",
         packages=find_packages(exclude=["tala/ddds", "test", "*.test", "test.*", "*.test.*"]),
         package_dir={"tala": "tala"},
         package_data={
