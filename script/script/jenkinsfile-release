@@ -46,6 +46,7 @@ pipeline {
             steps {
                 sh 'virtualenv venv'
                 sh 'venv/bin/pip install twine'
+                sh 'venv/bin/pip install cmarkgfm'
                 withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'password', usernameVariable: 'user')]) {
                     sh 'venv/bin/twine upload --username talkamatic --password ${password} --skip-existing dist/*'
                 }
