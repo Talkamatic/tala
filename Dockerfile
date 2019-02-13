@@ -17,7 +17,7 @@ ENV LANG C.UTF-8
 
 RUN pip install --upgrade pip
 
-COPY ./artifacts/dist/*.whl ./
+COPY ./dist/*.whl ./
 
 RUN pip --no-cache-dir install *.whl
 

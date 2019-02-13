@@ -1,0 +1,74 @@
+pipeline {
+    agent { label 'docker && tala && linux' }
+
+    parameters {
+        string(
+            defaultValue: '<tag>',
+            description: 'Specify the tag to release, e.g. "1.0.0.rc1".',
+            name: 'GIT_TAG_TO_BUILD'
+        )
+    }
+
+    options {
+        timestamps()
+    }
+
+    stages {
+        stage('prepare') {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'refs/tags/$GIT_TAG_TO_BUILD']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'jenkinsatgerrit',
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                    ]]
+                ])
+            }
+        }
+
+        stage('build') {
+            steps {
+                sh 'python setup.py sdist bdist_wheel'
+            }
+        }
+
+        stage('upload to PyPI') {
+            steps {
+                sh 'virtualenv venv'
+                sh 'venv/bin/pip install twine'
+                withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'password', usernameVariable: 'user')]) {
+                    sh 'venv/bin/twine upload --username talkamatic --password ${password} --skip-existing dist/*'
+                }
+            }
+        }
+
+        stage('build docker') {
+            steps {
+                sh '''#!/bin/bash -ex
+                    docker build . -t talkamatic/tala:nightly
+                '''
+            }
+        }
+
+        stage('push to docker hub') {
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh '''#!/bin/bash -ex
+                        echo $pw | docker login -u zigit --password-stdin
+                        docker push talkamatic/tala:nightly
+                    '''
+                }
+            }
+        }
+    }
+}

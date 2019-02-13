@@ -22,8 +22,6 @@ pipeline {
         stage('prepare') {
             steps {
                 deleteDir()
-                sh 'mkdir artifacts'
-
                 step([
                     $class: 'CopyArtifact',
                     filter: 'dist/*.whl',
@@ -33,7 +31,7 @@ pipeline {
                         $class: 'StatusBuildSelector',
                         stable: false
                     ],
-                    target: 'artifacts'
+                    target: '.'
                 ])
             }
         }
