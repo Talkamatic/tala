@@ -1,34 +1,59 @@
-node("docker && tala && linux") {
-    timestamps {
-        stage('prepare') {
-            deleteDir()
-            sh 'mkdir artifacts'
+pipeline {
+    agent { label 'docker && tala && linux' }
 
-            step([
-                $class: 'CopyArtifact',
-                filter: 'dist/*.whl',
-                fingerprintArtifacts: true,
-                projectName: 'tala-latest',
-                selector: [
-                    $class: 'StatusBuildSelector',
-                    stable: false
-                ],
-                target: 'artifacts'
-            ])
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timestamps()
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    triggers {
+        upstream 'tala-latest'
+    }
+
+    stages {
+        stage('prepare') {
+            steps {
+                deleteDir()
+                sh 'mkdir artifacts'
+
+                step([
+                    $class: 'CopyArtifact',
+                    filter: 'dist/*.whl',
+                    fingerprintArtifacts: true,
+                    projectName: 'tala-latest',
+                    selector: [
+                        $class: 'StatusBuildSelector',
+                        stable: false
+                    ],
+                    target: 'artifacts'
+                ])
+            }
         }
 
         stage('build') {
-            sh '''#!/bin/bash -ex
-                docker build . -t talkamatic/tala:nightly
-            '''
+            steps {
+                sh '''#!/bin/bash -ex
+                    docker build . -t talkamatic/tala:nightly
+                '''
+            }
         }
 
         stage('push') {
-            withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
-                sh '''#!/bin/bash -ex
-                    echo $pw | docker login -u zigit --password-stdin
-                    docker push talkamatic/tala:nightly
-                '''
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh '''#!/bin/bash -ex
+                        echo $pw | docker login -u zigit --password-stdin
+                        docker push talkamatic/tala:nightly
+                    '''
+                }
             }
         }
     }
