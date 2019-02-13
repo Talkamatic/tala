@@ -36,12 +36,6 @@ pipeline {
             }
         }
 
-        stage('build') {
-            steps {
-                sh 'python setup.py sdist bdist_wheel'
-            }
-        }
-
         stage('upload to PyPI') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'password', usernameVariable: 'user')]) {
@@ -49,6 +43,7 @@ pipeline {
                         virtualenv venv
                         source venv/bin/activate
                         pip install twine cmarkgfm
+                        python setup.py sdist bdist_wheel
                         twine upload --username talkamatic --password ${password} --skip-existing dist/*
                     '''
                 }
