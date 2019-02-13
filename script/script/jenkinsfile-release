@@ -53,7 +53,7 @@ pipeline {
         stage('build docker') {
             steps {
                 sh '''#!/bin/bash -ex
-                    docker build . -t talkamatic/tala:nightly
+                    docker build . -t talkamatic/tala:${GIT_TAG_TO_BUILD}
                 '''
             }
         }
@@ -63,7 +63,7 @@ pipeline {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh '''#!/bin/bash -ex
                         echo $pw | docker login -u zigit --password-stdin
-                        docker push talkamatic/tala:nightly
+                        docker push talkamatic/tala:${GIT_TAG_TO_BUILD}
                     '''
                 }
             }
