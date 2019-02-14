@@ -6,7 +6,7 @@ from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.move import Move, ICMMove, MoveException, ReportMove, ICMMoveWithSemanticContent
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.testing.move_factory import MoveFactoryWithPredefinedBoilerplate
 

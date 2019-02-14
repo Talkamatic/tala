@@ -5,7 +5,7 @@ from tala.model.goal import PerformGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.proposition import PropositionSet, GoalProposition
 from tala.model.question import AltQuestion, WhQuestion
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class WhQuestionTests(LibTestCase):

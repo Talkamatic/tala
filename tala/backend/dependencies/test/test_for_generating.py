@@ -5,11 +5,11 @@ from mock import patch, call
 
 from tala.backend import dependencies
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
-from tala.backend.dependencies.test.base import BackendDependenciesBase
+from tala.testing.backend_dependencies_test_base import BackendDependenciesTestBase
 from tala.model.sort import DATETIME, INTEGER
 
 
-class BackendDependenciesForGeneratingTestCase(BackendDependenciesBase, unittest.TestCase):
+class BackendDependenciesForGeneratingTestCase(BackendDependenciesTestBase, unittest.TestCase):
     def setUp(self):
         super(BackendDependenciesForGeneratingTestCase, self).setUp()
         self._config = None

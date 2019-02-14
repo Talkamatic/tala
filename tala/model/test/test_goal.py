@@ -1,6 +1,6 @@
 from tala.model.goal import Goal, ResolveGoal, PerformGoal
 from tala.model.speaker import Speaker
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class GoalTests(LibTestCase):

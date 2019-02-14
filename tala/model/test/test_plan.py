@@ -4,7 +4,7 @@ from tala.model.plan import Plan, UnableToDetermineOntologyException
 from tala.model.plan_item import IfThenElse
 from tala.model.question_raising_plan_item import FindoutPlanItem, RaisePlanItem
 from tala.model.semantic_object import OntologySpecificSemanticObject
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class PlanTests(LibTestCase):

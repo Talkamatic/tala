@@ -4,7 +4,7 @@ from tala.config import BackendConfig, RasaConfig
 from tala.model.ontology import Ontology
 
 
-class BackendDependenciesBase(object):
+class BackendDependenciesTestBase(object):
     def setUp(self):
         self._mock_args = Mock()
         self._result = None

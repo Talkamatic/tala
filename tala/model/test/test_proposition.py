@@ -11,7 +11,7 @@ from tala.model.polarity import Polarity
 from tala.model.question import YesNoQuestion
 from tala.model.proposition import PreconfirmationProposition, ResolvednessProposition, PrereportProposition, ServiceActionTerminatedProposition, RejectedPropositions, PropositionSet, ServiceResultProposition, Proposition, QuitProposition, MuteProposition, UnderstandingProposition, UnmuteProposition, PredicateProposition, GoalProposition
 from tala.model.sort import StringSort, ImageSort
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 from tala.model.image import Image
 
 

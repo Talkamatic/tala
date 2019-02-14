@@ -1,7 +1,7 @@
 import copy
 
 from tala.model.action import Action
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class ActionTests(LibTestCase):

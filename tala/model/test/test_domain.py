@@ -13,7 +13,7 @@ from tala.model.proposition import PredicateProposition, GoalProposition, Propos
 from tala.model.question import WhQuestion, AltQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.sort import CustomSort, RealSort
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class DomainTests(LibTestCase):

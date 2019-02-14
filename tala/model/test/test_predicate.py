@@ -1,7 +1,7 @@
 from tala.model.error import OntologyError
 from tala.model.predicate import Predicate
 from tala.model.sort import CustomSort, IntegerSort, RealSort
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class PredicateTests(LibTestCase):

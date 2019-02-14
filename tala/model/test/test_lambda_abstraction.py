@@ -1,7 +1,7 @@
 import copy
 
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedPredicateProposition
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class LambdaAbstractedGoalPropositionTests(LibTestCase):

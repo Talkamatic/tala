@@ -4,7 +4,7 @@ from tala.model.sort import RealSort, IntegerSort, StringSort, CustomSort, Image
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class IndividualTestBase(LibTestCase):

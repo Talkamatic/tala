@@ -4,7 +4,7 @@ from tala.model.move import ICMMove, ICMMoveWithSemanticContent
 from tala.model.plan_item import RespondPlanItem, BindPlanItem, ConsultDBPlanItem, IfThenElse, ServiceReportPlanItem, DoPlanItem, PlanItem, QuitPlanItem, GreetPlanItem, EmitIcmPlanItem, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, JumpToPlanItem, AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, MinResultsNotSupportedException, MaxResultsNotSupportedException
 from tala.model.question_raising_plan_item import FindoutPlanItem, RaisePlanItem
 from tala.model.proposition import ServiceResultProposition
-from tala.model.test.utils import LibTestCase
+from tala.testing.lib_test_case import LibTestCase
 
 
 class PlanItemTests(LibTestCase):
