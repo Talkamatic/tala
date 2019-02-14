@@ -19,24 +19,46 @@ pipeline {
     }
 
     stages {
-        stage('prepare') {
+        stage('clean') {
             steps {
-                deleteDir()
-                step([
-                    $class: 'CopyArtifact',
-                    filter: 'dist/*.whl',
-                    fingerprintArtifacts: true,
-                    projectName: 'tala-latest',
-                    selector: [
-                        $class: 'StatusBuildSelector',
-                        stable: false
+                step([$class: 'WsCleanup'])
+            }
+        }
+
+        stage('checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [
+                            $class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            parentCredentials: true
+                        ]
                     ],
-                    target: '.'
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'jenkinsatgerrit',
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                    ]]
                 ])
             }
         }
 
-        stage('build') {
+        stage('build wheel') {
+            steps {
+                sh '''#!/bin/bash -ex
+                    virtualenv venv
+                    source venv/bin/activate
+
+                    pip wheel --wheel-dir dist --no-deps .
+                '''
+            }
+        }
+
+        stage('build docker') {
             steps {
                 sh '''#!/bin/bash -ex
                     docker build . -t talkamatic/tala:nightly
