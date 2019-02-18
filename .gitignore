@@ -4,4 +4,4 @@ tala/installed_version.py
 .cache
 dist
 build
-
+.tala

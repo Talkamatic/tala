@@ -53,6 +53,8 @@ if __name__ == "__main__":
             "lxml==4.2.5",
             "iso8601==0.1.12",
             "python-magic==0.4.15",
+            "prompt-toolkit==2.0.8",
+            "requests==2.21.0",
         ],
         dependency_links=[],
     )

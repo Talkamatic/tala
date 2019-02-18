@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Command `tala interact` has been added. Use it to chat with a deployed DDD.
+
 ## [1.0.0] - 2019-02-12
 ### Added
 - Command `tala version` has been added. It displays which version of Tala that's being used.

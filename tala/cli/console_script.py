@@ -8,6 +8,7 @@ import warnings
 
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.cli.argument_parser import add_common_backend_arguments
+from tala.cli.tdm.tdm_cli import TDMCLI
 from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
@@ -105,6 +106,15 @@ def version(args):
     print installed_version.version
 
 
+def interact(args):
+    tdm_cli = TDMCLI(args.url)
+
+    try:
+        tdm_cli.run()
+    except (KeyboardInterrupt, EOFError):
+        tdm_cli.stop()
+
+
 def add_verify_subparser(subparsers):
     parser = subparsers.add_parser(
         "verify", help="verify the format of all DDDs supported by the backend, across all supported languages"
@@ -181,6 +191,12 @@ def add_version_subparser(subparsers):
     parser.set_defaults(func=version)
 
 
+def add_interact_subparser(subparsers):
+    parser = subparsers.add_parser("interact", help="start an interactive chat with a deployed DDD")
+    parser.add_argument("url", help="the URL of the TDM endpoint, e.g. 'https://my_ddd.my_domain.com:9090/interact'")
+    parser.set_defaults(func=interact)
+
+
 def format_warnings():
     def warning_on_one_line(message, category, _filename, _lineno, _file=None, _line=None):
         string = "%s: %s\n" % (category.__name__, message)
@@ -204,6 +220,7 @@ def main(args=None):
     add_create_ddd_config_subparser(subparsers)
     add_create_rasa_config_subparser(subparsers)
     add_version_subparser(subparsers)
+    add_interact_subparser(subparsers)
 
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():
