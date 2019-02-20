@@ -29,6 +29,10 @@ class RasaConfigNotFoundException(ConfigNotFoundException):
     pass
 
 
+class DeploymentsConfigNotFoundException(ConfigNotFoundException):
+    pass
+
+
 class UnexpectedConfigEntriesException(Exception):
     pass
 
@@ -217,6 +221,25 @@ class RasaConfig(Config):
         raise RasaConfigNotFoundException(
             "Expected RASA config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
         )
+
+
+class DeploymentsConfig(Config):
+    @staticmethod
+    def default_name():
+        return "deployments.config.json"
+
+    @staticmethod
+    def default_config():
+        return {
+            "dev": "https://127.0.0.1:9090/interact",
+        }
+
+    def _raise_config_not_found_exception(self):
+        message = "Expected deployments config '{}' to exist but it was not found.".format(self._absolute_path)
+        raise DeploymentsConfigNotFoundException(message, self._absolute_path)
+
+    def _potentially_update_and_backup_config(self):
+        pass
 
 
 class OverriddenDddConfig(object):

@@ -9,7 +9,8 @@ import warnings
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.cli.argument_parser import add_common_backend_arguments
 from tala.cli.tdm.tdm_cli import TDMCLI
-from tala.config import BackendConfig, DddConfig, RasaConfig, BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException
+from tala.config import BackendConfig, DddConfig, RasaConfig, DeploymentsConfig, BackendConfigNotFoundException, \
+    DddConfigNotFoundException, RasaConfigNotFoundException, DeploymentsConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
 from tala.cli import console_formatting
@@ -27,6 +28,10 @@ class ConfigNotFoundException(Exception):
 
 
 class InvalidArgumentException(Exception):
+    pass
+
+
+class UnexpectedEnvironmentException(Exception):
     pass
 
 
@@ -65,6 +70,14 @@ def create_rasa_config(args):
     RasaConfig().write_default_config(args.filename)
 
 
+def create_deployments_config(args):
+    if os.path.exists(args.filename):
+        raise ConfigAlreadyExistsException(
+            "Expected to be able to create deployments config file '%s' but it already exists." % args.filename
+        )
+    DeploymentsConfig().write_default_config(args.filename)
+
+
 def verify(args):
     backend_dependencies = BackendDependenciesForGenerating(args)
 
@@ -85,9 +98,8 @@ def _check_ddds_for_word_lists(ddds):
 @contextlib.contextmanager
 def _config_exception_handling():
     def generate_message(name, command_name, config):
-        return "Expected {name} config '{config}' to exist but it was not found. To create it, " "run 'tala {command} --filename {config}'.".format(
-            name=name, command=command_name, config=config
-        )
+        return "Expected {name} config '{config}' to exist but it was not found. To create it, " \
+               "run 'tala {command} --filename {config}'.".format(name=name, command=command_name, config=config)
 
     try:
         yield
@@ -100,6 +112,9 @@ def _config_exception_handling():
     except RasaConfigNotFoundException as exception:
         message = generate_message("RASA", "create-rasa-config", exception.config_path)
         raise ConfigNotFoundException(message)
+    except DeploymentsConfigNotFoundException as exception:
+        message = generate_message("deployments", "create-deployments-config", exception.config_path)
+        raise ConfigNotFoundException(message)
 
 
 def version(args):
@@ -107,7 +122,15 @@ def version(args):
 
 
 def interact(args):
-    tdm_cli = TDMCLI(args.url)
+    def get_url():
+        config = DeploymentsConfig(args.deployments_config).read()
+        if args.environment not in config:
+            raise UnexpectedEnvironmentException(
+                "Expected one of the known environments {} but got '{}'".format(config.keys(), args.environment))
+        return config[args.environment]
+
+    url = get_url()
+    tdm_cli = TDMCLI(url)
 
     try:
         tdm_cli.run()
@@ -186,6 +209,17 @@ def add_create_rasa_config_subparser(subparsers):
     )
 
 
+def add_create_deployments_config_subparser(subparsers):
+    parser = subparsers.add_parser("create-deployments-config", help="create a deployments config")
+    parser.set_defaults(func=create_deployments_config)
+    parser.add_argument(
+        "--filename",
+        default=DeploymentsConfig.default_name(),
+        metavar="NAME",
+        help="filename of the deployments config, e.g. %s" % DeploymentsConfig.default_name()
+    )
+
+
 def add_version_subparser(subparsers):
     parser = subparsers.add_parser("version", help="print the Tala version")
     parser.set_defaults(func=version)
@@ -193,7 +227,16 @@ def add_version_subparser(subparsers):
 
 def add_interact_subparser(subparsers):
     parser = subparsers.add_parser("interact", help="start an interactive chat with a deployed DDD")
-    parser.add_argument("url", help="the URL of the TDM endpoint, e.g. 'https://my_ddd.my_domain.com:9090/interact'")
+    parser.add_argument(
+        "environment",
+        help="specify the environment to use, e.g. 'dev'; this maps to the keys of the deployments config"
+    )
+    parser.add_argument(
+        "--config",
+        dest="deployments_config",
+        default=None,
+        help="override the default deployments config %r" % DeploymentsConfig.default_name()
+    )
     parser.set_defaults(func=interact)
 
 
@@ -219,6 +262,7 @@ def main(args=None):
     add_create_backend_config_subparser(subparsers)
     add_create_ddd_config_subparser(subparsers)
     add_create_rasa_config_subparser(subparsers)
+    add_create_deployments_config_subparser(subparsers)
     add_version_subparser(subparsers)
     add_interact_subparser(subparsers)
 

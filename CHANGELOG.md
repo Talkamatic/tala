@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
-- Command `tala interact` has been added. Use it to chat with a deployed DDD.
+- Command `tala interact` has been added. Use it to chat with a deployed DDD. It uses the new deployments config.
+- Command `tala create-deployments-config` has been added. Run it to create a deployments config with default values.
 
 ## [1.0.0] - 2019-02-12
 ### Added

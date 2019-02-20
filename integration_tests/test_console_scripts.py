@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 import pytest
 
-from tala.config import BackendConfig, DddConfig, RasaConfig
+from tala.config import BackendConfig, DddConfig, RasaConfig, DeploymentsConfig
 from tala.cli.console_formatting import BOLD, ENDC
 from tala.cli import console_script
 from tala.utils.chdir import chdir
@@ -58,15 +58,13 @@ class ConsoleScriptTestCase(TempDirTestCase):
         return self._process.communicate()
 
     def _then_stderr_contains_constructive_error_message_for_missing_backend_config(self, config_path):
-        pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " "run 'tala create-backend-config --filename .*{config}'\.".format(
-            config=config_path
-        )
+        pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " \
+                  "run 'tala create-backend-config --filename .*{config}'\.".format(config=config_path)
         assert re.search(pattern, self._stderr) is not None
 
     def _then_stderr_contains_constructive_error_message_for_missing_ddd_config(self, config_path):
-        pattern = "Expected DDD config '.*{config}' to exist but it was not found. To create it, " "run 'tala create-ddd-config --filename .*{config}'\.".format(
-            config=config_path
-        )
+        pattern = "Expected DDD config '.*{config}' to exist but it was not found. To create it, " \
+                  "run 'tala create-ddd-config --filename .*{config}'\.".format(config=config_path)
         assert re.search(pattern, self._stderr) is not None
 
     def _given_config_overrides_missing_parent(self, path):
@@ -154,6 +152,7 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
             (BackendConfig, "create-backend-config"),
             (DddConfig, "create-ddd-config"),
             (RasaConfig, "create-rasa-config"),
+            (DeploymentsConfig, "create-deployments-config"),
         ]
     )
     def test_create_config_without_path(self, ConfigClass, command):
@@ -170,6 +169,7 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
             (BackendConfig, "create-backend-config"),
             (DddConfig, "create-ddd-config"),
             (RasaConfig, "create-rasa-config"),
+            (DeploymentsConfig, "create-deployments-config"),
         ]
     )
     def test_create_config_with_path(self, ConfigClass, command):
@@ -181,6 +181,7 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
             ("backend", "create-backend-config"),
             ("DDD", "create-ddd-config"),
             ("RASA", "create-rasa-config"),
+            ("deployments", "create-deployments-config"),
         ]
     )
     def test_exception_raised_if_config_file_already_exists(self, name, command):
@@ -193,11 +194,14 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     def _given_config_was_created_with(self, arguments):
         self._run_tala_with(arguments)
 
-    @pytest.mark.parametrize("command", [
-        "create-backend-config",
-        "create-ddd-config",
-        "create-rasa-config",
-    ])
+    @pytest.mark.parametrize(
+        "command", [
+            "create-backend-config",
+            "create-ddd-config",
+            "create-rasa-config",
+            "create-deployments-config",
+        ]
+    )
     def test_config_file_not_overwritten(self, command):
         self._given_file_contains("test.config.json", "unmodified_mock_content")
         self._when_running_command("tala {} --filename test.config.json".format(command))
@@ -365,3 +369,16 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             "Element 'hello': "
             "No matching global declaration available for the validation root., line 2"
         )
+
+
+class TestInteractIntegration(ConsoleScriptTestCase):
+    def test_stderr_when_interacting_with_unknown_environment(self):
+        self._given_created_deployments_config()
+        self._when_running_command("tala interact my-made-up-environment")
+        self._then_stderr_contains(
+            "UnexpectedEnvironmentException: "
+            "Expected one of the known environments [u'dev'] but got 'my-made-up-environment'"
+        )
+
+    def _given_created_deployments_config(self):
+        self._run_tala_with(["create-deployments-config"])

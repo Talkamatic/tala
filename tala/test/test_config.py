@@ -5,7 +5,9 @@ import tempfile
 
 from mock import patch
 
-from tala.config import Config, DddConfig, RasaConfig, BackendConfig, UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, RasaConfigNotFoundException, DEFAULT_INACTIVE_SECONDS_ALLOWED
+from tala.config import Config, DddConfig, RasaConfig, BackendConfig, DeploymentsConfig, \
+    UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, \
+    RasaConfigNotFoundException, DeploymentsConfigNotFoundException, DEFAULT_INACTIVE_SECONDS_ALLOWED
 
 
 class ConfigTester(object):
@@ -30,7 +32,7 @@ class ConfigTester(object):
         with open(name, 'w') as f:
             json.dump(config, f)
 
-    def given_created_config(self, ConfigClass, path=None):
+    def given_created_config_object(self, ConfigClass, path=None):
         self._config = ConfigClass(path)
 
     def given_default_config(self, mock_default_config, value):
@@ -79,7 +81,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {"mock_key": "mock_value"})
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_reading()
         self.then_read_config_was({"mock_key": "mock_value"})
 
@@ -89,7 +91,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {"mock_unexpected_key": ""})
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             UnexpectedConfigEntriesException,
             "Parameter mock_unexpected_key is unexpected while mock_key is missing from.*"
@@ -102,7 +104,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {"mock_key": "mock_value", "mock_unexpected_key": ""})
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             UnexpectedConfigEntriesException, "Parameter mock_unexpected_key is unexpected in.*"
             "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\."
@@ -114,7 +116,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.given_default_config(mock_default_config, {"mock_key_1": "mock_value", "mock_key_2": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {})
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             UnexpectedConfigEntriesException, "Parameter mock_key_1 and mock_key_2 is missing from.*"
             "The config was updated and the previous config was backed up in 'mock\.config\.json\.backup'\."
@@ -126,7 +128,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
         self.given_default_config(mock_default_config, {"mock_key": "mock_value"})
         self.given_default_name(mock_default_name, "mock.config.json")
         self.given_config_file_exists(Config, {"mock_unexpected_key": "mock_unexpected_value"})
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_trying_to_read()
         self.then_config_is(self._config.back_up_name(), {"mock_unexpected_key": "mock_unexpected_value"})
 
@@ -146,7 +148,7 @@ class TestConfig(unittest.TestCase, ConfigTester):
                 "mock_key_2": "mock_updated_value_2"
             }
         )
-        self.given_created_config(Config)
+        self.given_created_config_object(Config)
         self.when_trying_to_read()
         self.then_config_is(
             Config.default_name(), {
@@ -189,7 +191,7 @@ class TestInheritance(unittest.TestCase, ConfigTester):
                 "key_to_override": "child_value"
             }, name="child.config.json"
         )
-        self.given_created_config(Config, "child.config.json")
+        self.given_created_config_object(Config, "child.config.json")
         self.when_reading()
         self.then_read_config_was({"key_to_override": "child_value", "overrides": "parent.config.json"})
 
@@ -203,7 +205,7 @@ class TestInheritance(unittest.TestCase, ConfigTester):
             }, name="parent.config.json"
         )
         self.given_config_file_exists(Config, {"overrides": "parent.config.json"}, name="child.config.json")
-        self.given_created_config(Config, "child.config.json")
+        self.given_created_config_object(Config, "child.config.json")
         self.when_reading()
         self.then_read_config_was({"key_to_override": "parent_value", "overrides": "parent.config.json"})
 
@@ -211,7 +213,7 @@ class TestInheritance(unittest.TestCase, ConfigTester):
         self.given_config_file_exists(
             BackendConfig, {"overrides": "non_existing_parent.config.json"}, name="child.config.json"
         )
-        self.given_created_config(BackendConfig, "child.config.json")
+        self.given_created_config_object(BackendConfig, "child.config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             BackendConfigNotFoundException,
             "Expected backend config '.*non_existing_parent\.config\.json' to exist but it was not found\."
@@ -241,7 +243,7 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
         )
 
     def test_read_with_missing_config_file_raises_exception(self):
-        self.given_created_config(DddConfig, "non_existing_config.json")
+        self.given_created_config_object(DddConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             DddConfigNotFoundException,
             "Expected DDD config '.*non_existing_config\.json' to exist but it was not found\."
@@ -275,11 +277,51 @@ class TestRasaConfig(unittest.TestCase, ConfigTester):
         )
 
     def test_read_with_missing_config_file_raises_exception(self):
-        self.given_created_config(RasaConfig, "non_existing_config.json")
+        self.given_created_config_object(RasaConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             RasaConfigNotFoundException,
             "Expected RASA config '.*non_existing_config\.json' to exist but it was not found\."
         )
+
+
+class TestDeploymentsConfig(unittest.TestCase, ConfigTester):
+    def setUp(self):
+        self.setup_configs()
+
+    def tearDown(self):
+        self.teardown_configs()
+
+    def test_default_name(self):
+        self.assertEqual(DeploymentsConfig.default_name(), "deployments.config.json")
+
+    def test_default_config(self):
+        self.assertEqual(
+            DeploymentsConfig.default_config(), {
+                "dev": "https://127.0.0.1:9090/interact",
+            }
+        )
+
+    def test_read_with_missing_config_file_raises_exception(self):
+        self.given_created_config_object(DeploymentsConfig, "non_existing_config.json")
+        self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
+            DeploymentsConfigNotFoundException,
+            "Expected deployments config '.*non_existing_config\.json' to exist but it was not found\."
+        )
+
+    def test_several_environments_allowed(self):
+        self.given_created_config_object(DeploymentsConfig)
+        self.given_config_file_exists(
+            DeploymentsConfig, {
+                "dev": "dev-url",
+                "prod": "prod-url"
+            }
+        )
+        self.given_created_config_object(DeploymentsConfig)
+        self.when_reading()
+        self.then_read_config_was({
+            "dev": "dev-url",
+            "prod": "prod-url"
+        })
 
 
 class TestBackendConfig(unittest.TestCase, ConfigTester):
@@ -325,7 +367,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
         )
 
     def test_read_with_missing_config_file_raises_exception(self):
-        self.given_created_config(BackendConfig, "non_existing_config.json")
+        self.given_created_config_object(BackendConfig, "non_existing_config.json")
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             BackendConfigNotFoundException,
             "Expected backend config '.*non_existing_config\.json' to exist but it was not found\."
@@ -344,7 +386,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
             }
         )
-        self.given_created_config(BackendConfig)
+        self.given_created_config_object(BackendConfig)
         self.when_trying_to_read()
         self.then_config_is(
             BackendConfig.default_name(), {
@@ -374,7 +416,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
             }
         )
-        self.given_created_config(BackendConfig)
+        self.given_created_config_object(BackendConfig)
         self.when_trying_to_read()
         self.then_config_is(
             BackendConfig.default_name(), {
@@ -404,7 +446,7 @@ class TestBackendConfig(unittest.TestCase, ConfigTester):
                 "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
             }
         )
-        self.given_created_config(BackendConfig)
+        self.given_created_config_object(BackendConfig)
         self.when_trying_to_read()
         self.then_config_is(
             BackendConfig.default_name(), {
