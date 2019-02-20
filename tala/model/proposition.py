@@ -38,6 +38,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     PROPOSITION_SET = "PROPOSITION_SET"
     KNOWLEDGE_PRECONDITION = "KNOWLEDGE_PRECONDITION"
     ACTION_STATUS = "ACTION_STATUS"
+    IMPLICATION = "IMPLICATION"
 
     def __init__(self, type, polarity=None):
         SemanticObject.__init__(self)
@@ -110,6 +111,9 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
 
     def is_knowledge_precondition_proposition(self):
         return self._type == Proposition.KNOWLEDGE_PRECONDITION
+
+    def is_implication_proposition(self):
+        return self._type == Proposition.IMPLICATION
 
     def get_polarity(self):
         return self._polarity
@@ -702,10 +706,10 @@ class KnowledgePreconditionProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return (other.is_proposition() and
-                    other.is_knowledge_precondition_proposition() and
-                    other.embedded_question == self.embedded_question and
-                    other.get_polarity() == self.get_polarity())
+            return (
+                other.is_proposition() and other.is_knowledge_precondition_proposition()
+                and other.embedded_question == self.embedded_question and other.get_polarity() == self.get_polarity()
+            )
         except AttributeError:
             return False
 
@@ -738,3 +742,40 @@ class ActionStatusProposition(PropositionWithSemanticContent):
 
     def __hash__(self):
         return hash(self.content, self.status)
+
+
+class ImplicationProposition(PropositionWithSemanticContent):
+    def __init__(self, antecedent, consequent):
+        self._antecedent = antecedent
+        self._consequent = consequent
+        PropositionWithSemanticContent.__init__(self, Proposition.IMPLICATION, (antecedent, consequent))
+
+    @property
+    def antecedent(self):
+        return self._antecedent
+
+    @property
+    def consequent(self):
+        return self._consequent
+
+    def is_ontology_specific(self):
+        return True
+
+    @property
+    def ontology_name(self):
+        return self._antecedent.ontology_name
+
+    def __eq__(self, other):
+        try:
+            return (other.antecedent == self.antecedent and other.consequent == self.consequent)
+        except AttributeError:
+            return False
+
+    def __hash__(self):
+        return hash(self.__class__.__name__) + hash(tuple(self.__dict__.items()))
+
+    def __repr__(self):
+        return "implies(%s, %s)" % (self.antecedent, self.consequent)
+
+    def __str__(self):
+        return repr(self)

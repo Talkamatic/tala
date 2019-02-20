@@ -37,6 +37,8 @@
           <xs:attribute name="io_status" type="io_status_type"/>
           <xs:attribute name="reraise_on_resume" type="xs:boolean"/>
           <xs:attribute name="restart_on_completion" type="xs:boolean"/>
+          <xs:attribute name="max_answers" type="xs:integer"/>
+          <xs:attribute name="alternatives_predicate" type="xs:string"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>

@@ -599,7 +599,8 @@ class ImagePropositionTests(LibTestCase):
         map_to_show = self.ontology.get_predicate("map_to_show")
         individual = self.ontology.create_individual(Image("http://mymap.com/map.png"))
         image_proposition = PredicateProposition(map_to_show, individual)
-        self.assertEqual('map_to_show(image("http://mymap.com/map.png"))', str(image_proposition))
+        self.assertEquals(
+            'map_to_show(image("http://mymap.com/map.png"))', str(image_proposition))
 
 
 class KnowledgePreconditionPropositionTests(LibTestCase):

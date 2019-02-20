@@ -6,7 +6,7 @@ from tala.model.action_status import Done
 from tala.model.domain import Domain
 from tala.model.goal import PerformGoal, ResolveGoal, HandleGoal
 from tala.model.individual import Individual, Yes, No
-from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
+from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
 from tala.model.set import Set
@@ -15,8 +15,8 @@ from tala.model.ontology import Ontology
 from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, LogPlanItem
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
-from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition, KnowledgePreconditionProposition
-from tala.model.question import WhQuestion, KnowledgePreconditionQuestion
+from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition, KnowledgePreconditionProposition, ImplicationProposition
+from tala.model.question import WhQuestion, KnowledgePreconditionQuestion, ConsequentQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort, PersonNameSort, DateTimeSort
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -1181,3 +1181,20 @@ class ParserTests(unittest.TestCase):
         string = "ask(?know_answer(?X.dest_city(X)))"
         expected_object = AskMove(KnowledgePreconditionQuestion(self.dest_city_question))
         self.assertEqual(expected_object, self.parser.parse(string))
+
+    def test_implication_proposition(self):
+        string = "implies(dest_city(paris), price(1234.0))"
+        expected_object = ImplicationProposition(self.proposition_dest_city_paris, self.price_proposition)
+        self.assertEquals(expected_object, self.parser.parse(string))
+
+    def test_lambda_abstracted_implication_proposition(self):
+        string = "X.implies(dest_city(paris), price(X))"
+        expected_object = LambdaAbstractedImplicationPropositionForConsequent(
+            self.proposition_dest_city_paris, self.parser.parse("price"), self.ontology_name)
+        self.assertEquals(expected_object, self.parser.parse(string))
+
+    def test_consequent_question(self):
+        string = "?X.implies(dest_city(paris), price(X))"
+        expected_object = ConsequentQuestion(LambdaAbstractedImplicationPropositionForConsequent(
+            self.proposition_dest_city_paris, self.parser.parse("price"), self.ontology_name))
+        self.assertEquals(expected_object, self.parser.parse(string))

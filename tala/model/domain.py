@@ -317,6 +317,18 @@ class Domain(AsJSONMixin):
     def get_related_information(self, semantic_object):
         return self._get_parameter(semantic_object, "related_information")
 
+    def get_alternatives_predicate(self, goal):
+        return self._get_plan_attribute(goal, "alternatives_predicate")
+
+    def _get_plan_attribute(self, goal, attribute):
+        if goal in self.plans:
+            plan_info = self._get_plan_info(goal)
+            if attribute in plan_info:
+                return plan_info[attribute]
+
+    def get_max_answers(self, goal):
+        return self._get_plan_attribute(goal, "max_answers")
+
     def get_verbalize(self, semantic_object):
         if self._get_parameter(semantic_object, "verbalize") is False:
             return False

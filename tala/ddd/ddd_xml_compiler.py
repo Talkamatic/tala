@@ -77,6 +77,9 @@ class XmlCompiler(object):
     def _parse_boolean(self, string):
         return string == "true"
 
+    def _parse_integer(self, string):
+        return int(string)
+
     def _find_child_nodes(self, element, node_name):
         return [node for node in element.childNodes if node.localName == node_name]
 
@@ -276,6 +279,10 @@ class DomainCompiler(XmlCompiler):
         self._compile_plan_single_attribute(plan, element, "restart_on_completion", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "reraise_on_resume", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "io_status", self._parse_io_status)
+        self._compile_plan_single_attribute(
+            plan, element, "max_answers", self._parse_integer)
+        if element.hasAttribute("alternatives_predicate"):
+            plan["alternatives_predicate"] = element.getAttribute("alternatives_predicate")
         self._compile_plan(plan, element, "postplan")
         self._compile_plan_element_with_multiple_children(
             plan, element, "gui_context", "gui_context", self._compile_gui_context

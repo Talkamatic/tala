@@ -33,6 +33,36 @@ class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject, AsSem
         return hash((self.__class__.__name__, self.predicate))
 
 
+class LambdaAbstractedImplicationPropositionForConsequent(OntologySpecificSemanticObject):
+    def __init__(self, antecedent, consequent_predicate, ontology_name):
+        OntologySpecificSemanticObject.__init__(self, ontology_name)
+        self._antecedent = antecedent
+        self._consequent_predicate = consequent_predicate
+
+    @property
+    def antecedent(self):
+        return self._antecedent
+
+    @property
+    def consequent_predicate(self):
+        return self._consequent_predicate
+
+    def is_lambda_abstracted_implication_proposition_for_consequent(self):
+        return True
+
+    def __str__(self):
+        return "X.implies(%s, %s(X))" % (self._antecedent, self._consequent_predicate)
+
+    def __eq__(self, other):
+        try:
+            return other.antecedent == self.antecedent and other.consequent_predicate == self.consequent_predicate
+        except AttributeError:
+            return False
+
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.antecedent, self.consequent_predicate))
+
+
 class LambdaAbstractedGoalProposition(SemanticObject, AsSemanticExpressionMixin):
     def __init__(self):
         SemanticObject.__init__(self)

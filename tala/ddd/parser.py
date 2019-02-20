@@ -5,15 +5,15 @@ from tala.ddd.utils import CacheMethod
 from tala.model.action_status import Done
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.individual import Yes, No
-from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
+from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
 from tala.model.speaker import Speaker
 from tala.model.set import Set
 from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
 from tala.model.ontology import OntologyError
 from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
 from tala.model.polarity import Polarity
-from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition, KnowledgePreconditionProposition
-from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion, KnowledgePreconditionQuestion
+from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition, KnowledgePreconditionProposition, ImplicationProposition
+from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion, KnowledgePreconditionQuestion, ConsequentQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.model.person_name import PersonName
@@ -62,6 +62,7 @@ class Parser:
             self._parse_question,
             self._parse_lambda_abstracted_goal_proposition,
             self._parse_lambda_abstracted_predicate_proposition,
+            self._parse_lambda_abstracted_implication_proposition,
             self._parse_service_result_proposition,
             self._parse_successful_service_action,
             self._parse_failed_service_action,
@@ -241,6 +242,10 @@ class Parser:
         except ParseFailure:
             pass
         try:
+            return self._parse_implication_proposition(string)
+        except ParseFailure:
+            pass
+        try:
             return self._parse_predicate_proposition(string)
         except ParseFailure:
             pass
@@ -377,6 +382,11 @@ class Parser:
                     return YesNoQuestion(question_content)
             except AttributeError:
                 pass
+            try:
+                if question_content.is_lambda_abstracted_implication_proposition_for_consequent():
+                    return ConsequentQuestion(question_content)
+            except AttributeError:
+                pass
             if question_content.is_predicate():
                 predicate = question_content
                 if predicate.getSort().is_boolean_sort():
@@ -402,6 +412,17 @@ class Parser:
                 raise ParseError("'?X.action(X)' is not a valid question. Perhaps you mean '?X.goal(X)'.")
             predicate = self.ontology.get_predicate(predicate_name)
             return self.ontology.create_lambda_abstracted_predicate_proposition(predicate)
+        else:
+            raise ParseFailure()
+
+    def _parse_lambda_abstracted_implication_proposition(self, string):
+        m = re.search('^X\.implies\((.+), (.+)\(X\)\)$', string)
+        if m:
+            antecedent_string, consequent_predicate_name = m.groups()
+            antecedent = self._parse_proposition(antecedent_string)
+            consequent_predicate = self.ontology.get_predicate(consequent_predicate_name)
+            return LambdaAbstractedImplicationPropositionForConsequent(
+                antecedent, consequent_predicate, self.ontology_name)
         else:
             raise ParseFailure()
 
@@ -833,6 +854,15 @@ class Parser:
         if m:
             service_action = m.group(1)
             return ServiceActionStartedProposition(self.ontology_name, service_action)
+        raise ParseFailure()
+
+    def _parse_implication_proposition(self, string):
+        m = re.search('^implies\((.*), (.*)\)$', string)
+        if m:
+            antecedent_string, consequent_string = m.groups()
+            antecedent = self._parse_proposition(antecedent_string)
+            consequent = self._parse_proposition(consequent_string)
+            return ImplicationProposition(antecedent, consequent)
         raise ParseFailure()
 
     def _parse_predicate_proposition(self, string):

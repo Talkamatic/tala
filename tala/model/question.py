@@ -1,3 +1,4 @@
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.semantic_object import SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
@@ -8,6 +9,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     TYPE_YESNO = "YNQ"
     TYPE_ALT = "ALTQ"
     TYPE_KPQ = "KPQ"
+    TYPE_CONSEQUENT = "CONSEQUENT"
 
     def __init__(self, type, content):
         SemanticObjectWithContent.__init__(self, content)
@@ -41,6 +43,9 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     def is_knowledge_precondition_question(self):
         return self._type == self.TYPE_KPQ
+
+    def is_consequent_question(self):
+        return self._type == self.TYPE_CONSEQUENT
 
     def is_understanding_question(self):
         return (self._type == self.TYPE_YESNO and self._content.is_understanding_proposition())
@@ -102,3 +107,14 @@ class KnowledgePreconditionQuestion(Question):
 
     def __str__(self):
         return f"?know_answer({self.get_content()})"
+
+
+class ConsequentQuestion(Question):
+    def __init__(self, lambda_abstracted_implication_proposition):
+        Question.__init__(self, Question.TYPE_CONSEQUENT, lambda_abstracted_implication_proposition)
+
+    def get_embedded_consequent_question(self):
+        consequent_predicate = self.get_content().consequent_predicate
+        lambda_abstracted_consequent_proposition = LambdaAbstractedPredicateProposition(
+            consequent_predicate, consequent_predicate.ontology_name)
+        return WhQuestion(lambda_abstracted_consequent_proposition)
