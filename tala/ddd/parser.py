@@ -11,8 +11,8 @@ from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, R
 from tala.model.ontology import OntologyError
 from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
 from tala.model.polarity import Polarity
-from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition
-from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion
+from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition, KnowledgePreconditionProposition
+from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion, KnowledgePreconditionQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.model.person_name import PersonName
@@ -250,6 +250,10 @@ class Parser:
             return self._parse_resolvedness_proposition(string)
         except ParseFailure:
             pass
+        try:
+            return self._parse_knowledge_precondition_proposition(string)
+        except ParseFailure:
+            pass
         self._check_if_deprecated_action_proposition(string)
         self._check_if_deprecated_issue_proposition(string)
         raise ParseFailure()
@@ -340,6 +344,12 @@ class Parser:
         if m:
             question_content_string = m.group(1)
             question_content = self.parse(question_content_string)
+
+            try:
+                if question_content.is_knowledge_precondition_proposition():
+                    return KnowledgePreconditionQuestion(question_content.embedded_question)
+            except AttributeError:
+                pass
             try:
                 if question_content.is_lambda_abstracted_predicate_proposition():
                     return WhQuestion(question_content)
@@ -555,6 +565,16 @@ class Parser:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
             return ResolvednessProposition(issue)
+        else:
+            raise ParseFailure()
+
+    def _parse_knowledge_precondition_proposition(self, string):
+        m = re.search('^(~?)know_answer\((.+)\)$', string)
+        if m:
+            polarity_string, issue_string = m.group(1), m.group(2)
+            issue = self.parse(issue_string)
+            polarity = self._parse_polarity(polarity_string)
+            return KnowledgePreconditionProposition(issue, polarity)
         else:
             raise ParseFailure()
 

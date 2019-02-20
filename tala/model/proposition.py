@@ -36,6 +36,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     SERVICE_ACTION_STARTED = "SERVICE_ACTION_STARTED"
     SERVICE_ACTION_TERMINATED = "SERVICE_ACTION_TERMINATED"
     PROPOSITION_SET = "PROPOSITION_SET"
+    KNOWLEDGE_PRECONDITION = "KNOWLEDGE_PRECONDITION"
 
     def __init__(self, type, polarity=None):
         SemanticObject.__init__(self)
@@ -106,6 +107,9 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     def is_predicted_proposition(self):
         return self._type == Proposition.PREDICTED
 
+    def is_knowledge_precondition_proposition(self):
+        return self._type == Proposition.KNOWLEDGE_PRECONDITION
+
     def get_polarity(self):
         return self._polarity
 
@@ -145,9 +149,11 @@ class PropositionWithSemanticContent(Proposition, SemanticObjectWithContent):
 
     def __eq__(self, other):
         try:
-            return other.is_proposition() and other.has_semantic_content(
-            ) and self.content == other.content and self.get_type() == other.get_type() and self.get_polarity(
-            ) == other.get_polarity()
+            return other.is_proposition() and \
+                other.has_semantic_content() and \
+                self.content == other.content and \
+                self.get_type() == other.get_type() \
+                and self.get_polarity() == other.get_polarity()
         except AttributeError:
             return False
 
@@ -683,3 +689,27 @@ class ResolvednessProposition(PropositionWithSemanticContent):
 
     def __hash__(self):
         return hash(self.get_issue())
+
+
+class KnowledgePreconditionProposition(PropositionWithSemanticContent):
+    def __init__(self, question, polarity):
+        PropositionWithSemanticContent.__init__(self, Proposition.KNOWLEDGE_PRECONDITION, question, polarity)
+
+    @property
+    def embedded_question(self):
+        return self.content
+
+    def __eq__(self, other):
+        try:
+            return (other.is_proposition() and
+                    other.is_knowledge_precondition_proposition() and
+                    other.embedded_question == self.embedded_question and
+                    other.get_polarity() == self.get_polarity())
+        except AttributeError:
+            return False
+
+    def __str__(self):
+        return f"{self.get_polarity_prefix_string()}know_answer({self.embedded_question})"
+
+    def __hash__(self):
+        return hash(self.embedded_question)

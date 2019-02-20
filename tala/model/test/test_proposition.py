@@ -9,7 +9,7 @@ from tala.model.speaker import Speaker
 from tala.model.ontology import Ontology
 from tala.model.polarity import Polarity
 from tala.model.question import YesNoQuestion
-from tala.model.proposition import PreconfirmationProposition, ResolvednessProposition, PrereportProposition, ServiceActionTerminatedProposition, RejectedPropositions, PropositionSet, ServiceResultProposition, Proposition, QuitProposition, MuteProposition, UnderstandingProposition, UnmuteProposition, PredicateProposition, GoalProposition
+from tala.model.proposition import PreconfirmationProposition, ResolvednessProposition, PrereportProposition, ServiceActionTerminatedProposition, RejectedPropositions, PropositionSet, ServiceResultProposition, Proposition, QuitProposition, MuteProposition, UnderstandingProposition, UnmuteProposition, PredicateProposition, GoalProposition, KnowledgePreconditionProposition
 from tala.model.sort import StringSort, ImageSort
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.image import Image
@@ -600,3 +600,23 @@ class ImagePropositionTests(LibTestCase):
         individual = self.ontology.create_individual(Image("http://mymap.com/map.png"))
         image_proposition = PredicateProposition(map_to_show, individual)
         self.assertEqual('map_to_show(image("http://mymap.com/map.png"))', str(image_proposition))
+
+
+class KnowledgePreconditionPropositionTests(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+
+    def test_equality(self):
+        self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
+            KnowledgePreconditionProposition("mock_question", Polarity.POS),
+            KnowledgePreconditionProposition("mock_question", Polarity.POS))
+
+    def test_inequality_due_to_question(self):
+        self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
+            KnowledgePreconditionProposition("mock_question_1", Polarity.POS),
+            KnowledgePreconditionProposition("mock_question_2", Polarity.POS))
+
+    def test_inequality_due_to_polarity(self):
+        self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
+            KnowledgePreconditionProposition("mock_question", Polarity.POS),
+            KnowledgePreconditionProposition("mock_question", Polarity.NEG))

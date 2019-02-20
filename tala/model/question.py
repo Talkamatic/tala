@@ -7,6 +7,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     TYPE_WH = "WHQ"
     TYPE_YESNO = "YNQ"
     TYPE_ALT = "ALTQ"
+    TYPE_KPQ = "KPQ"
 
     def __init__(self, type, content):
         SemanticObjectWithContent.__init__(self, content)
@@ -15,7 +16,8 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            return self.get_type() == other.get_type() and self.get_content() == other.get_content()
+            equality = self.get_type() == other.get_type() and self.get_content() == other.get_content()
+            return equality
         except AttributeError:
             return False
 
@@ -36,6 +38,9 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     def is_alt_question(self):
         return self._type == self.TYPE_ALT
+
+    def is_knowledge_precondition_question(self):
+        return self._type == self.TYPE_KPQ
 
     def is_understanding_question(self):
         return (self._type == self.TYPE_YESNO and self._content.is_understanding_proposition())
@@ -64,6 +69,9 @@ class WhQuestion(Question):
     def __init__(self, lambda_abstraction):
         Question.__init__(self, Question.TYPE_WH, lambda_abstraction)
 
+    def __repr__(self):
+        return "WhQuestion(%r)" % self._content
+
 
 class AltQuestion(Question):
     def __init__(self, proposition_set):
@@ -86,3 +94,11 @@ class AltQuestion(Question):
 class YesNoQuestion(Question):
     def __init__(self, proposition):
         Question.__init__(self, Question.TYPE_YESNO, proposition)
+
+
+class KnowledgePreconditionQuestion(Question):
+    def __init__(self, question):
+        Question.__init__(self, Question.TYPE_KPQ, question)
+
+    def __str__(self):
+        return f"?know_answer({self.get_content()})"

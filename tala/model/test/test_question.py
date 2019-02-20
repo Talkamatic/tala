@@ -4,7 +4,7 @@ from tala.model.error import OntologyError
 from tala.model.goal import PerformGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.proposition import PropositionSet, GoalProposition
-from tala.model.question import AltQuestion, WhQuestion
+from tala.model.question import AltQuestion, WhQuestion, KnowledgePreconditionQuestion
 from tala.testing.lib_test_case import LibTestCase
 
 
@@ -104,3 +104,19 @@ class AltQuestionTests(LibTestCase):
 
     def test_string_format_for_predicate_alt_question(self):
         self.assertEqual("?X.dest_city(X), set([dest_city(paris), dest_city(london)])", str(self.question))
+
+
+class KnowledgePreconditionQuestionTestCase(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+        wh_question = self.ontology.create_wh_question("dest_city")
+        self.kpq = KnowledgePreconditionQuestion(wh_question)
+
+    def test_is_question(self):
+        self.assertTrue(self.kpq.is_question())
+
+    def test_is_kpq(self):
+        self.assertTrue(self.kpq.is_knowledge_precondition_question())
+
+    def test_string_format(self):
+        self.assertEqual("?know_answer(?X.dest_city(X))", str(self.kpq))

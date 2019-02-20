@@ -7,6 +7,7 @@ from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DddXmlCompilerException, V
 from tala.ddd.parser import Parser
 from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceEntityRecognizerInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
+from tala.model.ask_feature import AskFeature
 from tala.model.device import ParameterField
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
@@ -126,14 +127,14 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 <ontology name="Ontology">
   <sort name="city"/>
 </ontology>""")
-        self._then_result_has_field("sorts", {CustomSort(self._ontology.name, "city")})
+        self._then_result_has_field("sorts", {self._create_sort("city")})
 
     def test_dynamic_sort(self):
         self._when_compile_ontology("""
 <ontology name="Ontology">
   <sort name="city" dynamic="true"/>
 </ontology>""")
-        self._then_result_has_field("sorts", {CustomSort(self._ontology.name, "city", dynamic=True)})
+        self._then_result_has_field("sorts", {self._create_sort("city", dynamic=True)})
 
     def test_predicate_of_custom_sort(self):
         self._when_compile_ontology(
@@ -143,9 +144,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._then_result_has_field(
-            "predicates", {self._predicate("dest_city", CustomSort(self._ontology.name, "city"))}
-        )
+        self._then_result_has_field("predicates", {self._predicate("dest_city", self._create_sort("city"))})
 
     def test_predicate_of_builtin_sort(self):
         self._when_compile_ontology(
@@ -165,7 +164,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>"""
         )
         self._then_result_has_field(
-            "predicates", {self._predicate("dest_city", CustomSort(self._ontology.name, "city", dynamic=True))}
+            "predicates", {self._predicate("dest_city", self._create_sort("city", dynamic=True))}
         )
 
     def test_feature_of(self):
@@ -178,14 +177,14 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>"""
         )
         self._then_result_has_field(
-            "predicates",
-            {
-                self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city")),
-                self._predicate(
-                    "dest_city_type", sort=CustomSort(self._ontology.name, "city"), feature_of_name="dest_city"
-                )
+            "predicates", {
+                self._predicate("dest_city", sort=self._create_sort("city")),
+                self._predicate("dest_city_type", sort=self._create_sort("city"), feature_of_name="dest_city")
             }
         )
+
+    def _create_sort(self, *args, **kwargs):
+        return CustomSort(self._ontology.name, *args, **kwargs)
 
     def test_multiple_instances(self):
         self._when_compile_ontology(
@@ -196,8 +195,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>"""
         )
         self._then_result_has_field(
-            "predicates",
-            {self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city"), multiple_instances=True)}
+            "predicates", {self._predicate("dest_city", sort=self._create_sort("city"), multiple_instances=True)}
         )
 
     def test_individuals(self):
@@ -208,7 +206,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._then_result_has_field("individuals", {"paris": CustomSort(self._ontology.name, "city")})
+        self._then_result_has_field("individuals", {"paris": self._create_sort("city")})
 
     def test_actions(self):
         self._when_compile_ontology("""
@@ -412,9 +410,7 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._when_compile_goal_with_content(
-            '<postcond><proposition predicate="dest_city" value="paris"/></postcond>'
-        )
+        self._when_compile_goal_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
     def test_postcond_with_multiple_propositions(self):
@@ -459,7 +455,8 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
         )
 
     def _when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
-            self, goal_xml, expected_warning_message):
+        self, goal_xml, expected_warning_message
+    ):
         with self._mock_warnings() as mocked_warnings:
             self._when_compile_goal_with_content(goal_xml)
             self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
@@ -573,8 +570,7 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
   <has_value predicate="dest_city"/>
 </downdate_condition>"""
         )
-        self._then_result_has_plan_with_attribute("postconds",
-                                                  [condition.HasValue(self._parse("dest_city"))])
+        self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("dest_city"))])
 
     def test_downdate_condition_for_boolean_has_value(self):
         self._given_compiled_ontology(
@@ -589,8 +585,7 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
   <has_value predicate="need_visa"/>
 </downdate_condition>"""
         )
-        self._then_result_has_plan_with_attribute("postconds",
-                                                  [condition.HasValue(self._parse("need_visa"))])
+        self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("need_visa"))])
 
     def test_downdate_condition_with_is_shared_fact(self):
         self._given_compiled_ontology(
@@ -640,7 +635,8 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         self._then_result_has_plan_with_attribute(
             "postconds", [
                 condition.IsSharedFact(self._parse("dest_city(paris)")),
-                condition.IsSharedFact(self._parse("dept_city(gothenburg)"))]
+                condition.IsSharedFact(self._parse("dept_city(gothenburg)"))
+            ]
         )
 
     def test_schema_violation_yields_exception(self):
@@ -659,7 +655,8 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
     def test_malformed_log_element(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<log/>', ViolatesSchemaException, "The attribute 'message' is required but missing.")
+            '<log/>', ViolatesSchemaException, "The attribute 'message' is required but missing."
+        )
 
     def test_malformed_assume_shared_element(self):
         self._given_compiled_ontology()
@@ -676,7 +673,8 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         )
 
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
-            self, xml, expected_exception, expected_message):
+        self, xml, expected_exception, expected_message
+    ):
         with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_domain_with_plan(xml)
 
@@ -821,7 +819,7 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
             {self._parse("?goal(resolve(?X.price(X)))"): self._parser.parse_parameters("{background=[dest_city]}")}
         )
 
-    def test_ask_feature(self):
+    def test_ask_feature_minimal_case(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -842,7 +840,35 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
 
         self._then_result_has_field(
             "parameters",
-            {self._parse("?X.dest_city(X)"): self._parser.parse_parameters("{ask_features=[dest_city_type]}")}
+            {self._parse("?X.dest_city(X)"): {
+                 "ask_features": [AskFeature(predicate_name="dest_city_type")]
+             }}
+        )
+
+    def test_ask_feature_with_kpq(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+  <predicate name="dest_city_type" sort="city" feature_of="dest_city"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="dest_city">
+    <ask_feature predicate="dest_city_type" kpq="true"/>
+  </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters",
+            {self._parse("?X.dest_city(X)"): {
+                 "ask_features": [AskFeature(predicate_name="dest_city_type", kpq=True)]
+             }}
         )
 
     def test_predicate_alts_parameter(self):

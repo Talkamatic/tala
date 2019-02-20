@@ -602,7 +602,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         ask_features = self._domain.get_ask_features(question)
         if ask_features is not None:
             for feature_predicate in ask_features:
-                if feature_predicate.get_name() == feature_name:
+                if feature_predicate.name == feature_name:
                     return True
 
     def _get_warning_for_missing_system_question(self, key, predicate):

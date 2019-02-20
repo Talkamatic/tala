@@ -8,6 +8,7 @@ import xml.dom.minidom
 from lxml import etree
 
 from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceEntityRecognizerInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
+from tala.model.ask_feature import AskFeature
 from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
@@ -632,7 +633,7 @@ class DomainCompiler(XmlCompiler):
         self._compile_questions_valued_parameter(element, "related_information", "related_information", result)
         self._compile_alts_parameter(question, element, result)
         self._compile_predicates_parameter(element, "background", "background", result)
-        self._compile_predicates_parameter(element, "ask_feature", "ask_features", result)
+        self._compile_ask_feature_parameter(element, "ask_feature", "ask_features", result)
         return result
 
     def _compile_simple_parameters(self, element):
@@ -676,6 +677,21 @@ class DomainCompiler(XmlCompiler):
         child_nodes = self._find_child_nodes(parent, element_name)
         if len(child_nodes) > 0:
             result[parameter_name] = [self._compile_predicate(node) for node in child_nodes]
+
+    def _compile_ask_feature_parameter(self,
+                                       parent,
+                                       element_name,
+                                       parameter_name, result):
+        child_nodes = self._find_child_nodes(parent, element_name)
+        if len(child_nodes) > 0:
+            result[parameter_name] = [
+                self._compile_ask_feature_node(node)
+                for node in child_nodes]
+
+    def _compile_ask_feature_node(self, node):
+        predicate_name = self._get_mandatory_attribute(node, "predicate")
+        kpq = bool(self._get_optional_attribute(node, "kpq"))
+        return AskFeature(predicate_name, kpq)
 
     def _compile_predicate(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")

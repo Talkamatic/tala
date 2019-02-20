@@ -9,13 +9,13 @@ from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
 from tala.model.set import Set
-from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove, GreetMove, MuteMove, PrereportMove
+from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove, GreetMove, MuteMove, PrereportMove, AskMove
 from tala.model.ontology import Ontology
 from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, LogPlanItem
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
-from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
-from tala.model.question import WhQuestion
+from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition, KnowledgePreconditionProposition
+from tala.model.question import WhQuestion, KnowledgePreconditionQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort, PersonNameSort, DateTimeSort
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -1148,3 +1148,24 @@ class ParserTests(unittest.TestCase):
         string = "FailedServiceAction(mock_failure_reason)"
         expected_object = FailedServiceAction("mock_failure_reason")
         self.assertEqual(expected_object, self.parser.parse(string))
+
+    def test_knowledge_precondition_question(self):
+        string = "?know_answer(?X.dest_city(X))"
+        expected_object = KnowledgePreconditionQuestion(self.dest_city_question)
+        parsed_object = self.parser.parse(string)
+        self.assertEqual(expected_object, parsed_object)
+
+    def test_positive_knowledge_precondition_proposition(self):
+        string = "know_answer(?X.dest_city(X))"
+        expected_object = KnowledgePreconditionProposition(self.dest_city_question, Polarity.POS)
+        self.assertEqual(expected_object, self.parser.parse(string))
+
+    def test_negative_knowledge_precondition_proposition(self):
+        string = "~know_answer(?X.dest_city(X))"
+        expected_object = KnowledgePreconditionProposition(self.dest_city_question, Polarity.NEG)
+        self.assertEqual(expected_object, self.parser.parse(string))
+
+    def test_move_with_knowledge_precondition_question(self):
+        string = "ask(?know_answer(?X.dest_city(X)))"
+        expected_object = AskMove(KnowledgePreconditionQuestion(self.dest_city_question))
+        self.assertEquals(expected_object, self.parser.parse(string))
