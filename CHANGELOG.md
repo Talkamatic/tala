@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2019-02-22
 ### Added
 - Command `tala interact` has been added. Use it to chat with a deployed DDD. It uses the new deployments config.
 - Command `tala create-deployments-config` has been added. Run it to create a deployments config with default values.
