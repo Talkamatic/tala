@@ -337,7 +337,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             u"""## intent:rasa_test:action::call
 - make a call
 
-##"""
+"""
         )
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
@@ -488,7 +488,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             u"""## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
 
-##"""
+"""
         )
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
@@ -597,7 +597,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
 - [Andy](sort:contact)
 - [安迪](sort:contact)
 
-##"""
+"""
         )
 
     def _answers(self, sort=None, predicate=None):
@@ -623,6 +623,23 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_warning_is_issued(
             "Expected only sortal slots but got a propositional slot for predicate 'selected_contact'."
             " Skipping this training data example."
+        )
+
+    def test_synonyms(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
+        self.given_mocked_grammar_with_individuals(
+            answers=list(self._answers(sort="contact"))
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## synonyms:rasa_test:John
+- Johnny
+
+## synonyms:rasa_test:Lisa
+- Elizabeth
+"""
         )
 
 
@@ -686,7 +703,7 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
 
-##"""
+"""
         )
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
@@ -752,7 +769,7 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             u"""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
 
-##"""
+"""
         )
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
@@ -919,3 +936,22 @@ class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def then_result_does_not_match(self, contents):
         expected_pattern = re.escape(contents)
         assert re.search(expected_pattern, self._result, re.UNICODE) is None
+
+
+class NegativeIntentGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
+    def setUp(self):
+        GeneratorTestsBase.setup(self)
+
+    def test_negative_intent(self):
+        self.given_ddd_name("mocked_ddd")
+        self.given_ontology(sort="mocked_sort", predicate="mocked_predicate", individuals=[])
+        self.given_mocked_grammar()
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            """## intent:NEGATIVE
+- aboard
+- about
+- above
+"""
+        )

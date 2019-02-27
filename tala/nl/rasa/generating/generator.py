@@ -59,10 +59,19 @@ class RasaGenerator(object):
         add(examples, self._examples_of_sortal_answers_from_individuals(grammar))
         add(examples, self._examples_of_answers(grammar))
         add(examples, self._examples_of_sortal_answer_negations_from_individuals(grammar))
-        add(examples, self._examples_of_negative_intent())
 
         data_template = Template(
-            "{% for intent, examples in intent_examples.items() %}"
+            "{% for intent, examples in ddd_examples.items() %}"
+            "{% if examples %}"
+            "## intent:{{ ddd }}:{{ intent }}\n"
+            "{% for example in examples %}"
+            "- {{ example }}\n"
+            "{% endfor %}"
+            "\n"
+            "{% endif %}"
+            "{% endfor %}"
+            ""
+            "{% for intent, examples in general_examples.items() %}"
             "{% if examples %}"
             "## intent:{{ intent }}\n"
             "{% for example in examples %}"
@@ -73,16 +82,39 @@ class RasaGenerator(object):
             "{% endfor %}"
             ""
             "{% for synonym_object in synonym_objects %}"
-            "## synonyms:{{ synonym_object.value }}\n"
+            "## synonyms:{{ ddd }}:{{ synonym_object.value }}\n"
             "{% for synonym in synonym_object.synonyms %}"
             "- {{ synonym }}\n"
             "{% endfor %}"
             "\n"
             "{% endfor %}"
         )
-        rasa_data = data_template.render(intent_examples=examples, synonym_objects=[])
+        synonyms = self._entity_synonyms_from_custom_sorts(grammar)
+        rasa_data = data_template.render(
+            ddd_examples=examples,
+            general_examples=self._examples_of_negative_intent(),
+            synonym_objects=synonyms,
+            ddd=self._ddd.name
+        )
 
         return rasa_data
+
+    def _entity_synonyms_from_custom_sorts(self, grammar):
+        for sort in self._ddd.ontology.get_sorts().values():
+            if sort.is_builtin():
+                continue
+            entities = list(self._all_individual_grammar_entries_of_custom_sort(grammar, sort))
+            for individual_entities in entities:
+                if len(individual_entities) <= 1:
+                    continue
+                yield self._create_synonym_object(individual_entities[0], individual_entities[1:])
+
+    @staticmethod
+    def _create_synonym_object(value, synonyms):
+        return {
+            "value": value,
+            "synonyms": synonyms,
+        }
 
     @staticmethod
     def data_file_name():
@@ -104,7 +136,7 @@ class RasaGenerator(object):
     def _examples_of_requests(self, grammar):
         examples = {}
         for action in self._ddd.ontology.get_ddd_specific_actions():
-            intent = "%s:%s::%s" % (self._ddd.name, ACTION_INTENT, action)
+            intent = "%s::%s" % (ACTION_INTENT, action)
             examples[intent] = self._examples_of_request(grammar, action)
         return examples
 
@@ -145,8 +177,7 @@ class RasaGenerator(object):
                 else:
                     message = (
                         "Expected only sortal slots but got a propositional slot for predicate '{}'. "
-                        "Skipping this training data example."
-                        .format(predicate.get_name(), predicate.getSort())
+                        "Skipping this training data example.".format(predicate.get_name(), predicate.getSort())
                     )
                     warnings.warn(message, UserWarning)
                     raise UnexpectedPropositionalEntityEncounteredException(message)
@@ -174,9 +205,13 @@ class RasaGenerator(object):
         return self._individual_grammar_entries_samples_of_custom_sort(grammar, sort)
 
     def _individual_grammar_entries_samples_of_custom_sort(self, grammar, sort):
+        for individual_entries in self._all_individual_grammar_entries_of_custom_sort(grammar, sort):
+            yield individual_entries
+
+    def _all_individual_grammar_entries_of_custom_sort(self, grammar, sort):
         individuals = self._ddd.ontology.get_individuals_of_sort(sort.get_name())
-        grammar_entries = [grammar.entries_of_individual(individual) for individual in individuals]
-        return grammar_entries
+        for individual in individuals:
+            yield grammar.entries_of_individual(individual)
 
     def _examples_from_propositional_individual(self, grammar, required_propositional_entity, example_so_far, tail):
         predicate_name = required_propositional_entity.name
@@ -214,7 +249,7 @@ class RasaGenerator(object):
         for resolve_goal in self._ddd.domain.get_all_resolve_goals():
             question = resolve_goal.get_question()
             predicate = question.get_predicate().get_name()
-            intent = "%s:%s::%s" % (self._ddd.name, QUESTION_INTENT, predicate)
+            intent = "%s::%s" % (QUESTION_INTENT, predicate)
             result[intent] = list(examples(question))
         return result
 
@@ -231,8 +266,7 @@ class RasaGenerator(object):
                 for example in self._examples_of_intent(grammar, answer):
                     yield example
 
-        intent = "%s:%s" % (self._ddd.name, ANSWER_INTENT)
-        return {intent: list(examples())}
+        return {ANSWER_INTENT: list(examples())}
 
     def _examples_of_sortal_answers_from_individuals(self, grammar):
         def examples():
@@ -241,8 +275,7 @@ class RasaGenerator(object):
                 for example in examples:
                     yield example
 
-        intent = "%s:%s" % (self._ddd.name, ANSWER_INTENT)
-        return {intent: list(examples())}
+        return {ANSWER_INTENT: list(examples())}
 
     def _examples_of_sortal_answers_of_kind(self, grammar, sort, templates):
         for grammar_entries in self._individual_grammar_entries_samples(grammar, sort):
@@ -259,8 +292,7 @@ class RasaGenerator(object):
                 for example in examples:
                     yield example
 
-        intent = "%s:%s" % (self._ddd.name, ANSWER_NEGATION_INTENT)
-        return {intent: list(examples())}
+        return {ANSWER_NEGATION_INTENT: list(examples())}
 
     @property
     def _answer_templates(self):
