@@ -13,6 +13,10 @@ from tala.cli import console_script
 from tala.utils.chdir import chdir
 
 
+class UnexpectedContentsException(Exception):
+    pass
+
+
 class TempDirTestCase(object):
     def setup(self):
         self._temp_dir = tempfile.mkdtemp(prefix="TalaIntegrationTest")
@@ -73,6 +77,10 @@ class ConsoleScriptTestCase(TempDirTestCase):
     def _replace_in_file(self, path, old, new):
         with path.open() as f:
             old_contents = f.read()
+        if old not in old_contents:
+            raise UnexpectedContentsException(
+                "Expected to find string to be replaced '{}' in '{}' but got '{}'".format(old, str(path), old_contents)
+            )
         new_contents = old_contents.replace(old, new)
         with path.open("w") as f:
             f.write(new_contents)
@@ -93,6 +101,18 @@ class ConsoleScriptTestCase(TempDirTestCase):
         f = open(filename, "w")
         f.write(string)
         f.close()
+
+    def _then_stdout_matches(self, expected_pattern):
+        self._assert_matches(expected_pattern, self._stdout)
+
+    def _then_stderr_matches(self, expected_pattern):
+        self._assert_matches(expected_pattern, self._stderr)
+
+    @staticmethod
+    def _assert_matches(expected_pattern, string):
+        assert re.search(expected_pattern, string) is not None, "Expected string to match '{}' but got '{}'".format(
+            expected_pattern, string
+        )
 
 
 class TestCreateDDD(ConsoleScriptTestCase):
@@ -263,12 +283,6 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             "Finished verifying models for DDD 'test_ddd'.\n$"
         )
 
-    def _then_stdout_matches(self, expected_pattern):
-        assert re.match(expected_pattern,
-                        self._stdout) is not None, "Expected stdout to match '{}' but got '{}'".format(
-                            expected_pattern, self._stdout
-                        )
-
     def test_stdout_when_verifying_boilerplate_ddd_with_rasa_enabled(self):
         self._given_created_ddd_in_a_target_dir()
         with self._given_changed_directory_to_ddd_folder():
@@ -382,3 +396,75 @@ class TestInteractIntegration(ConsoleScriptTestCase):
 
     def _given_created_deployments_config(self):
         self._run_tala_with(["create-deployments-config"])
+
+
+class TestGenerateRASAIntegration(ConsoleScriptTestCase):
+    def setup(self):
+        super(TestGenerateRASAIntegration, self).setup()
+
+    def test_that_generating_boilerplate_ddd_succeeds(self):
+        self._given_created_ddd_in_a_target_dir()
+        with self._given_changed_directory_to_target_dir():
+            self._when_generating()
+        self._then_result_is_successful()
+
+    def _when_generating(self):
+        self._run_tala_with(["generate-rasa", "test_ddd", "eng"])
+
+    def test_stdout_when_generating_boilerplate_ddd(self):
+        self._given_created_ddd_in_a_target_dir()
+        with self._given_changed_directory_to_ddd_folder():
+            self._given_ontology_contains("""
+<ontology name="TestDddOntology">
+  <action name="call"/>
+</ontology>""")
+            self._given_grammar_contains(
+                """
+<grammar>
+  <action name="top">main menu</action>
+  <action name="up">go back</action>
+  <action name="call">call</action>
+  <request action="call"><utterance>make a call</utterance></request>
+</grammar>"""
+            )
+        with self._given_changed_directory_to_target_dir():
+            self._when_running_command("tala generate-rasa test_ddd eng")
+        self._then_stdout_matches(
+            'language: "en"\n'
+            '\n'
+            'pipeline: "spacy_sklearn"\n'
+            '\n'
+            'data: |\n'
+            '  ## intent:test_ddd:action::call\n'
+            '  - make a call\n'
+            '\n'
+            '  ## intent:test_ddd:NEGATIVE\n'
+            '- aboard\n'
+            '- about\n'
+        )
+
+    def _given_ontology_contains(self, new_content):
+        old_content = """
+<ontology name="TestDddOntology">
+</ontology>"""
+        self._replace_in_file(Path("ontology.xml"), old_content, new_content)
+
+    def _given_grammar_contains(self, new_content):
+        old_content = """
+<grammar>
+</grammar>"""
+        self._replace_in_file(Path("grammar") / "grammar_eng.xml", old_content, new_content)
+
+    def test_generating_for_unknown_ddd(self):
+        self._given_created_ddd_in_a_target_dir()
+        with self._given_changed_directory_to_target_dir():
+            self._when_running_command("tala generate-rasa unknown-ddd eng")
+        self._then_stderr_matches("UnexpectedDDDException: Expected DDD 'unknown-ddd' to exist but it didn't")
+
+    def test_generating_for_unknown_language(self):
+        self._given_created_ddd_in_a_target_dir()
+        with self._given_changed_directory_to_target_dir():
+            self._when_running_command("tala generate-rasa test_ddd unknown-language")
+        self._then_stderr_matches(
+            "tala generate-rasa\: error\: argument language\: invalid choice\: 'unknown-language'"
+        )

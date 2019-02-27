@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - `tala verify` now validates schema compliance for domain XML files.
+- Command `tala generate-rasa` has been added. Use it to generate training data for RASA NLU.
 
 ### Changed
 - Boolean attribute values in domain XML files, e.g. values for the attribute `downdate_plan`, are now only supported in lowercase, i.e. `"true"` or `"false"`.
