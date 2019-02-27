@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import copy
 import os
 import re
 import shutil
@@ -10,7 +9,6 @@ import unittest
 from mock import MagicMock, Mock, patch
 from pathlib import Path
 
-import tala.utils
 from tala.model.ddd import DDD
 from tala.model.grammar.grammar import GrammarBase
 from tala.model.grammar.intent import Request, Question, Answer
@@ -25,7 +23,7 @@ from tala.model.question import WhQuestion
 from tala.model.sort import Sort, CustomSort
 from tala.nl.rasa.generating import generator
 from tala.nl.rasa.generating.generator import RasaGenerator
-from tala.nl.rasa.generating.examples import Examples, EnglishExamples, SortNotSupportedException
+from tala.nl.rasa.generating.examples import Examples, SortNotSupportedException
 
 
 class GeneratorTestsBase(object):
@@ -36,7 +34,6 @@ class GeneratorTestsBase(object):
         self._mocked_ddd = self._create_mocked_ddd()
         self._generator = None
         self._mocked_grammar = None
-        self._expected_data = None
         self._grammar_reader_patcher = self._create_grammar_reader_patcher()
         self._result = None
 
@@ -116,10 +113,6 @@ class GeneratorTestsBase(object):
         self._mocked_grammar.entries_of_individual.side_effect = get_individual
         self._mocked_ddd.grammars["eng"] = self._mocked_grammar
 
-    def given_changed_to_temp_folder(self):
-        temp_dir = tempfile.mkdtemp(prefix="RasaGeneratorTestCase")
-        return tala.float_comparison.chdir(temp_dir)
-
     def given_generator(self):
         self._generator = RasaGenerator(self._mocked_ddd, ENGLISH)
 
@@ -156,95 +149,9 @@ class GeneratorTestsBase(object):
             question = WhQuestion(proposition)
             yield question
 
-    def _action_example(self, action, text, entities=None):
-        identifier = "rasa_test:action::%s" % action
-        return self._intent_example(identifier, text, entities)
-
-    def _question_example(self, predicate, text, entities=None):
-        identifier = "rasa_test:question::%s" % predicate
-        return self._intent_example(identifier, text, entities)
-
-    def _intent_example(self, identifier, text, entities=None):
-        entities = entities or []
-        return {
-            "text": text,
-            "intent": identifier,
-            "entities": entities,
-        }
-
-    def _action_examples_with_sortal_entities(self, action, texts, sort, entity_names):
-        identifier = "sort:%s" % sort
-        return self._action_examples_with_entities(action, texts, identifier, entity_names)
-
-    def _question_examples_with_sortal_entities(self, predicate_in_question, texts, sort, entity_names):
-        identifier = "sort:%s" % sort
-        return self._question_examples_with_entities(predicate_in_question, texts, identifier, entity_names)
-
-    def _action_examples_with_entities(self, action, texts, entity_identifier, entity_names):
-        intent_identifier = "rasa_test:action::%s" % action
-        return self._intent_examples_with_entities(intent_identifier, texts, entity_identifier, entity_names)
-
-    def _question_examples_with_entities(self, predicate, texts, entity_identifier, entity_names):
-        intent_identifier = "rasa_test:question::%s" % predicate
-        return self._intent_examples_with_entities(intent_identifier, texts, entity_identifier, entity_names)
-
-    def _answer_examples_with_sortal_entities(self, sort, entity_names):
-        intent_identifier = "rasa_test:answer"
-        entity_identifier = "sort:%s" % sort
-        return self._intent_examples_with_entities(intent_identifier, [""], entity_identifier, entity_names)
-
-    def _answer_examples_with_propositional_entities(self, predicate, texts, entity_names):
-        intent_identifier = "rasa_test:answer"
-        entity_identifier = "predicate:%s" % predicate
-        return self._intent_examples_with_entities(intent_identifier, texts, entity_identifier, entity_names)
-
-    def _answer_negation_examples_with_sortal_entities(self, sort, entity_names):
-        intent_identifier = "rasa_test:answer_negation"
-        entity_identifier = "sort:%s" % sort
-        return self._intent_examples_with_entities(intent_identifier, ["not "], entity_identifier, entity_names)
-
-    def _answer_negation_examples_with_propositional_entities(self, predicate, texts, entity_names):
-        intent_identifier = "rasa_test:answer_negation"
-        entity_identifier = "predicate:%s" % predicate
-        return self._intent_examples_with_entities(intent_identifier, texts, entity_identifier, entity_names)
-
-    def _intent_examples_with_entities(self, intent_identifier, original_texts, entity_identifier, entity_names):
-        start = len(original_texts[0])
-        for entity_name in entity_names:
-            entities = list(self._entity_examples(entity_identifier, [entity_name], start))
-            texts = copy.deepcopy(original_texts)
-            texts.insert(1, entity_name)
-            text = "".join(texts)
-            yield self._intent_example(intent_identifier, text, entities)
-
-    def _entity_examples(self, entity_identifier, entity_names, start):
-        for name in entity_names:
-            yield {"start": start, "end": start + len(name), "value": name, "entity": entity_identifier}
-
-    def _action_examples_with_propositional_entities(self, action, texts, predicate, entity_names):
-        identifier = "predicate:%s" % predicate
-        return self._action_examples_with_entities(action, texts, identifier, entity_names)
-
-    def _question_examples_with_propositional_entities(self, question_predicate, texts, answer_predicate, entity_names):
-        entity_identifier = "predicate:%s" % answer_predicate
-        return self._question_examples_with_entities(question_predicate, texts, entity_identifier, entity_names)
-
-    def _assert_common_examples_in_generated_data_is(self, expected_common_examples):
-        actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
-        for expected_common_example in expected_common_examples:
-            assert expected_common_example in actual_common_examples, "Expected to find %s in %s but didn't" % (
-                expected_common_example, actual_common_examples
-            )
-
-    def then_common_examples_have_been_generated(self, expected_common_examples):
-        self._assert_common_examples_in_generated_data_is(expected_common_examples)
-
-    def then_no_common_examples_have_been_generated_for_answer_negation(self):
-        actual_common_examples = self._result["rasa_nlu_data"]["common_examples"]
-        actual_negation_examples = [
-            example for example in actual_common_examples if example["intent"] == "rasa_test:answer_negation"
-        ]
-        assert len(actual_negation_examples) == 0, "Expected no answer negations but got %s" % actual_negation_examples
+    def then_result_matches(self, expected_contents):
+        expected_pattern = re.escape(expected_contents)
+        assert re.search(expected_pattern, self._result, re.UNICODE) is not None
 
 
 class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
@@ -257,9 +164,9 @@ class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
     def test_written_data_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
         self.given_mocked_file_writer(MockUTF8FileWriter)
         self.given_generator()
-        self.given_generate_returns({"data": "mock"})
+        self.given_generate_returns("mocked-data")
         self.when_calling_generate_and_write_to_file()
-        self.then_written_data_was('{\n    "data": "mock"\n}')
+        self.then_written_data_was('mocked-data')
 
     def given_mocked_file_writer(self, MockUTF8FileWriter):
         self._MockUTF8FileWriter = MockUTF8FileWriter
@@ -279,7 +186,7 @@ class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
     def test_path_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
         self.given_mocked_file_writer(MockUTF8FileWriter)
         self.given_generator()
-        self.given_generate_returns({"data": "mock"})
+        self.given_generate_returns("mocked-data")
         self.when_calling_generate_and_write_to_file()
         self.then_path_was(Path("build_rasa") / "eng" / "rasa_data.json")
 
@@ -290,7 +197,7 @@ class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
     def test_directories_created_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
         self.given_mocked_file_writer(MockUTF8FileWriter)
         self.given_generator()
-        self.given_generate_returns({"data": "mock"})
+        self.given_generate_returns("mocked-data")
         self.when_calling_generate_and_write_to_file()
         self.then_directories_was_created()
 
@@ -384,7 +291,27 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar_with_individuals(requests=self._requests_of_action)
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_action("call", "contact", "selected_contact_to_call")
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::call
+- make a call
+- call [John](sort:contact)
+- call [Johnny](sort:contact)
+- call [约翰](sort:contact)
+- call [Lisa](sort:contact)
+- call [Elizabeth](sort:contact)
+- call [Mary](sort:contact)
+- call [Andy](sort:contact)
+- call [安迪](sort:contact)
+- make a call to [John](predicate:selected_contact_to_call)
+- make a call to [Johnny](predicate:selected_contact_to_call)
+- make a call to [约翰](predicate:selected_contact_to_call)
+- make a call to [Lisa](predicate:selected_contact_to_call)
+- make a call to [Elizabeth](predicate:selected_contact_to_call)
+- make a call to [Mary](predicate:selected_contact_to_call)
+- make a call to [Andy](predicate:selected_contact_to_call)
+- make a call to [安迪](predicate:selected_contact_to_call)
+"""
+        )
 
     @property
     def _requests_of_action(self):
@@ -397,18 +324,6 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
                 RequiredPropositionalEntity("selected_contact_to_call"),
             ]),
         ]
-
-    def then_common_examples_have_been_generated_for_action(self, action, sort, predicate_of_propositional_answer):
-        def examples():
-            yield self._action_example(action, "make a call")
-            for example in self._action_examples_with_sortal_entities(action, ["call "], sort, self._contact_data):
-                yield example
-            for example in self._action_examples_with_propositional_entities(
-                action, ["make a call to "], predicate_of_propositional_answer, self._contact_data
-            ):
-                yield example
-
-        self._assert_common_examples_in_generated_data_is(examples())
 
     def test_generate_requests_with_two_answers(self):
         self.given_ddd_name("rasa_test")
@@ -426,144 +341,74 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated([
-            {
-                "text":
-                "call John and say hi from Lisa",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 9,
-                    "value": "John",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 26,
-                    "end": 30,
-                    "value": "Lisa",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Johnny and say hi from Lisa",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 11,
-                    "value": "Johnny",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 28,
-                    "end": 32,
-                    "value": "Lisa",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call John and say hi from Elizabeth",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 9,
-                    "value": "John",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 26,
-                    "end": 35,
-                    "value": "Elizabeth",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Johnny and say hi from Elizabeth",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 11,
-                    "value": "Johnny",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 28,
-                    "end": 37,
-                    "value": "Elizabeth",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Lisa and say hi from John",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 9,
-                    "value": "Lisa",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 26,
-                    "end": 30,
-                    "value": "John",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Lisa and say hi from Johnny",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 9,
-                    "value": "Lisa",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 26,
-                    "end": 32,
-                    "value": "Johnny",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Elizabeth and say hi from John",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 14,
-                    "value": "Elizabeth",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 31,
-                    "end": 35,
-                    "value": "John",
-                    "entity": "predicate:caller"
-                }]
-            },
-            {
-                "text":
-                "call Elizabeth and say hi from Johnny",
-                "intent":
-                "rasa_test:action::call",
-                "entities": [{
-                    "start": 5,
-                    "end": 14,
-                    "value": "Elizabeth",
-                    "entity": "sort:contact"
-                }, {
-                    "start": 31,
-                    "end": 37,
-                    "value": "Johnny",
-                    "entity": "predicate:caller"
-                }]
-            },
-        ])
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::call
+- call [John](sort:contact) and say hi from [John](predicate:caller)
+- call [John](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [John](sort:contact) and say hi from [约翰](predicate:caller)
+- call [John](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [John](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [John](sort:contact) and say hi from [Mary](predicate:caller)
+- call [John](sort:contact) and say hi from [Andy](predicate:caller)
+- call [John](sort:contact) and say hi from [安迪](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [John](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [约翰](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [Mary](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [Andy](predicate:caller)
+- call [Johnny](sort:contact) and say hi from [安迪](predicate:caller)
+- call [约翰](sort:contact) and say hi from [John](predicate:caller)
+- call [约翰](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [约翰](sort:contact) and say hi from [约翰](predicate:caller)
+- call [约翰](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [约翰](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [约翰](sort:contact) and say hi from [Mary](predicate:caller)
+- call [约翰](sort:contact) and say hi from [Andy](predicate:caller)
+- call [约翰](sort:contact) and say hi from [安迪](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [John](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [约翰](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [Mary](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [Andy](predicate:caller)
+- call [Lisa](sort:contact) and say hi from [安迪](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [John](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [约翰](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [Mary](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [Andy](predicate:caller)
+- call [Elizabeth](sort:contact) and say hi from [安迪](predicate:caller)
+- call [Mary](sort:contact) and say hi from [John](predicate:caller)
+- call [Mary](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [Mary](sort:contact) and say hi from [约翰](predicate:caller)
+- call [Mary](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [Mary](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [Mary](sort:contact) and say hi from [Mary](predicate:caller)
+- call [Mary](sort:contact) and say hi from [Andy](predicate:caller)
+- call [Mary](sort:contact) and say hi from [安迪](predicate:caller)
+- call [Andy](sort:contact) and say hi from [John](predicate:caller)
+- call [Andy](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [Andy](sort:contact) and say hi from [约翰](predicate:caller)
+- call [Andy](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [Andy](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [Andy](sort:contact) and say hi from [Mary](predicate:caller)
+- call [Andy](sort:contact) and say hi from [Andy](predicate:caller)
+- call [Andy](sort:contact) and say hi from [安迪](predicate:caller)
+- call [安迪](sort:contact) and say hi from [John](predicate:caller)
+- call [安迪](sort:contact) and say hi from [Johnny](predicate:caller)
+- call [安迪](sort:contact) and say hi from [约翰](predicate:caller)
+- call [安迪](sort:contact) and say hi from [Lisa](predicate:caller)
+- call [安迪](sort:contact) and say hi from [Elizabeth](predicate:caller)
+- call [安迪](sort:contact) and say hi from [Mary](predicate:caller)
+- call [安迪](sort:contact) and say hi from [Andy](predicate:caller)
+- call [安迪](sort:contact) and say hi from [安迪](predicate:caller)
+"""
+        )
 
     def test_generate_questions(self):
         self.given_ddd_name("rasa_test")
@@ -572,8 +417,26 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar_with_individuals(questions=self._questions_of_predicate)
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_question(
-            "phone_number_of_contact", "contact", "selected_contact_of_phone_number"
+        self.then_result_matches(
+            u"""## intent:rasa_test:question::phone_number_of_contact
+- tell me a phone number
+- what is [John](sort:contact)'s number
+- what is [Johnny](sort:contact)'s number
+- what is [约翰](sort:contact)'s number
+- what is [Lisa](sort:contact)'s number
+- what is [Elizabeth](sort:contact)'s number
+- what is [Mary](sort:contact)'s number
+- what is [Andy](sort:contact)'s number
+- what is [安迪](sort:contact)'s number
+- tell me [John](predicate:selected_contact_of_phone_number)'s number
+- tell me [Johnny](predicate:selected_contact_of_phone_number)'s number
+- tell me [约翰](predicate:selected_contact_of_phone_number)'s number
+- tell me [Lisa](predicate:selected_contact_of_phone_number)'s number
+- tell me [Elizabeth](predicate:selected_contact_of_phone_number)'s number
+- tell me [Mary](predicate:selected_contact_of_phone_number)'s number
+- tell me [Andy](predicate:selected_contact_of_phone_number)'s number
+- tell me [安迪](predicate:selected_contact_of_phone_number)'s number
+"""
         )
 
     @property
@@ -590,39 +453,24 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             ),
         ]
 
-    def then_common_examples_have_been_generated_for_question(
-        self, predicate_in_question, sort, predicate_of_propositional_answer
-    ):
-        def examples():
-            yield self._question_example(predicate_in_question, "tell me a phone number")
-            for example in self._question_examples_with_sortal_entities(
-                predicate_in_question, ["what is ", "'s number"], sort, self._contact_data
-            ):
-                yield example
-            for example in self._question_examples_with_propositional_entities(
-                predicate_in_question, ["tell me ", "'s number"], predicate_of_propositional_answer, self._contact_data
-            ):
-                yield example
-
-        self._assert_common_examples_in_generated_data_is(examples())
-
-    def then_common_examples_have_been_generated_for_questions_and_exected_data(self):
-        self.then_common_examples_have_been_generated_for_questions(self._expected_data)
-
     def test_generate_answer_intents(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
         self.given_mocked_grammar_with_individuals()
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_answer("contact")
-
-    def then_common_examples_have_been_generated_for_answer(self, sort):
-        def examples():
-            for example in self._answer_examples_with_sortal_entities(sort, self._contact_data):
-                yield example
-
-        self._assert_common_examples_in_generated_data_is(examples())
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [John](sort:contact)
+- [Johnny](sort:contact)
+- [约翰](sort:contact)
+- [Lisa](sort:contact)
+- [Elizabeth](sort:contact)
+- [Mary](sort:contact)
+- [Andy](sort:contact)
+- [安迪](sort:contact)
+"""
+        )
 
     def test_generate_answer_negation_intents(self):
         self.given_ddd_name("rasa_test")
@@ -630,14 +478,18 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar_with_individuals()
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_answer_negation("contact")
-
-    def then_common_examples_have_been_generated_for_answer_negation(self, sort):
-        def examples():
-            for example in self._answer_negation_examples_with_sortal_entities(sort, self._contact_data):
-                yield example
-
-        self._assert_common_examples_in_generated_data_is(examples())
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer_negation
+- not [John](sort:contact)
+- not [Johnny](sort:contact)
+- not [约翰](sort:contact)
+- not [Lisa](sort:contact)
+- not [Elizabeth](sort:contact)
+- not [Mary](sort:contact)
+- not [Andy](sort:contact)
+- not [安迪](sort:contact)
+"""
+        )
 
     @property
     def _contact_data(self):
@@ -649,7 +501,26 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar_with_individuals(answers=self._answers("selected_contact"))
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated_for_propositional_answer("selected_contact")
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [John](sort:contact)
+- [Johnny](sort:contact)
+- [约翰](sort:contact)
+- [Lisa](sort:contact)
+- [Elizabeth](sort:contact)
+- [Mary](sort:contact)
+- [Andy](sort:contact)
+- [安迪](sort:contact)
+- my friend [John](predicate:selected_contact)
+- my friend [Johnny](predicate:selected_contact)
+- my friend [约翰](predicate:selected_contact)
+- my friend [Lisa](predicate:selected_contact)
+- my friend [Elizabeth](predicate:selected_contact)
+- my friend [Mary](predicate:selected_contact)
+- my friend [Andy](predicate:selected_contact)
+- my friend [安迪](predicate:selected_contact)
+"""
+        )
 
     def _answers(self, answer_predicate):
         return [
@@ -657,15 +528,6 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
                 RequiredPropositionalEntity(answer_predicate),
             ]),
         ]
-
-    def then_common_examples_have_been_generated_for_propositional_answer(self, predicate):
-        def examples():
-            for example in self._answer_examples_with_propositional_entities(
-                predicate, ["my friend ", ""], self._contact_data
-            ):
-                yield example
-
-        self._assert_common_examples_in_generated_data_is(examples())
 
 
 class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
@@ -705,17 +567,14 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            [self._action_example("mock_action", "mock phrase without entities")] + list(
-                self._action_examples_with_sortal_entities(
-                    "mock_action", ["mock phrase with sortal entity "], "mock_sort", self._mock_builtin_sort_examples
-                )
-            ) + list(
-                self._action_examples_with_propositional_entities(
-                    "mock_action", ["mock phrase with propositional entity "], "mock_predicate", self.
-                    _mock_builtin_sort_examples
-                )
-            )
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::mock_action
+- mock phrase without entities
+- mock phrase with sortal entity [mock example 1](sort:mock_sort)
+- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
+- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
+"""
         )
 
     def test_generate_questions(self):
@@ -736,17 +595,14 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            [self._question_example("mock_predicate", "mock phrase without entities")] + list(
-                self._question_examples_with_sortal_entities(
-                    "mock_predicate", ["mock phrase with sortal entity "], "mock_sort", self._mock_builtin_sort_examples
-                )
-            ) + list(
-                self._question_examples_with_propositional_entities(
-                    "mock_predicate", ["mock phrase with propositional entity "], "mock_predicate", self.
-                    _mock_builtin_sort_examples
-                )
-            )
+        self.then_result_matches(
+            u"""## intent:rasa_test:question::mock_predicate
+- mock phrase without entities
+- mock phrase with sortal entity [mock example 1](sort:mock_sort)
+- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
+- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
+"""
         )
 
     def test_generate_answer_intents(self):
@@ -755,8 +611,11 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            self._answer_examples_with_sortal_entities("mock_sort", self._mock_builtin_sort_examples)
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [mock example 1](sort:mock_sort)
+- [mock example 2](sort:mock_sort)
+"""
         )
 
     def test_generate_answer_negation_intents(self):
@@ -765,8 +624,11 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            self._answer_negation_examples_with_sortal_entities("mock_sort", self._mock_builtin_sort_examples)
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer_negation
+- not [mock example 1](sort:mock_sort)
+- not [mock example 2](sort:mock_sort)
+"""
         )
 
     def test_answers(self):
@@ -779,10 +641,13 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            self._answer_examples_with_propositional_entities(
-                "mock_predicate", ["mock phrase with propositional entity ", ""], self._mock_builtin_sort_examples
-            )
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [mock example 1](sort:mock_sort)
+- [mock example 2](sort:mock_sort)
+- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
+- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
+"""
         )
 
 
@@ -809,22 +674,32 @@ class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_common_examples_have_been_generated(
-            [self._action_example("mock_action", "mock phrase without entities")] + list(
-                self._action_examples_with_string_entities(
-                    "mock_action", ["mock phrase with sortal entity "],
-                    EnglishExamples().string
-                )
-            ) + list(
-                self._action_examples_with_propositional_entities(
-                    "mock_action", ["mock phrase with propositional entity "], "mock_predicate",
-                    EnglishExamples().string + ["mock string of predicate"]
-                )
-            )
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::mock_action
+- mock phrase without entities
+- mock phrase with sortal entity [single](sort:string)
+- mock phrase with sortal entity [double word](sort:string)
+- mock phrase with sortal entity [three in one](sort:string)
+- mock phrase with sortal entity [hey make it four](sort:string)
+- mock phrase with sortal entity [the more the merrier five](sort:string)
+- mock phrase with sortal entity [calm down and count to six](sort:string)
+- mock phrase with sortal entity [bring them through to the jolly seven](sort:string)
+- mock phrase with sortal entity [noone counts toes like an eight toed guy](sort:string)
+- mock phrase with sortal entity [it matters to make sense for nine of us](sort:string)
+- mock phrase with sortal entity [would you bring ten or none to a desert island](sort:string)
+- mock phrase with propositional entity [single](predicate:mock_predicate)
+- mock phrase with propositional entity [double word](predicate:mock_predicate)
+- mock phrase with propositional entity [three in one](predicate:mock_predicate)
+- mock phrase with propositional entity [hey make it four](predicate:mock_predicate)
+- mock phrase with propositional entity [the more the merrier five](predicate:mock_predicate)
+- mock phrase with propositional entity [calm down and count to six](predicate:mock_predicate)
+- mock phrase with propositional entity [bring them through to the jolly seven](predicate:mock_predicate)
+- mock phrase with propositional entity [noone counts toes like an eight toed guy](predicate:mock_predicate)
+- mock phrase with propositional entity [it matters to make sense for nine of us](predicate:mock_predicate)
+- mock phrase with propositional entity [would you bring ten or none to a desert island](predicate:mock_predicate)
+- mock phrase with propositional entity [mock string of predicate](predicate:mock_predicate)
+"""
         )
-
-    def _action_examples_with_string_entities(self, action, texts, entity_names):
-        return self._action_examples_with_entities(action, texts, "string", entity_names)
 
     def test_do_not_generate_answer_negation_intents(self):
         self.given_ddd_name("rasa_test")
@@ -834,4 +709,8 @@ class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_no_common_examples_have_been_generated_for_answer_negation()
+        self.then_result_does_not_match(u"intent:rasa_test:answer_negation")
+
+    def then_result_does_not_match(self, contents):
+        expected_pattern = re.escape(contents)
+        assert re.search(expected_pattern, self._result, re.UNICODE) is None

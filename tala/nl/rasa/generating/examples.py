@@ -1,8 +1,6 @@
 # coding: utf-8
 
 from tala.nl.languages import ENGLISH, SWEDISH, SPANISH
-from tala.nl.rasa.constants import NEGATIVE_INTENT
-from tala.nl.rasa.generating.common_example import CommonExample
 
 
 class SortNotSupportedException(Exception):
@@ -68,13 +66,12 @@ class EnglishExamples(Examples):
             "do", "make", "tell", "start", "stop", "enable", "disable", "raise", "lower", "decrease", "increase", "act",
             "determine", "say", "ask", "go", "shoot", "wait", "hang on", "ok", "show", "help"
         ]
-        intent = NEGATIVE_INTENT
         for phrase in phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in question_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in action_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
 
     @property
     def integer(self):
@@ -114,13 +111,12 @@ class SwedishExamples(Examples):
             u"stäng av", u"höj", u"sänk", u"öka", "minska", "agera", u"bestäm", u"säg", u"fråga", u"gå", u"kör",
             u"vänta", "ok", "visa", u"hjälp"
         ]
-        intent = NEGATIVE_INTENT
         for phrase in phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in question_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in action_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
 
     @property
     def integer(self):
@@ -173,13 +169,12 @@ class SpanishExamples(Examples):
             "subir", "bajar", "disminuir", "aumentar", "actuar", "determinar", "preguntar", "ir", "disparar",
             "esperar", "esperar", "aceptar", "mostrar", u"enseñar", "ayudar"
         ]
-        intent = NEGATIVE_INTENT
         for phrase in phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in question_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
         for phrase in action_phrases:
-            yield CommonExample(intent, phrase)
+            yield phrase
 
     @property
     def integer(self):
