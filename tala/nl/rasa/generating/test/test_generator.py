@@ -36,6 +36,7 @@ class GeneratorTestsBase(object):
         self._mocked_grammar = None
         self._grammar_reader_patcher = self._create_grammar_reader_patcher()
         self._result = None
+        self._mocked_warnings = None
 
     def tearDown(self):
         os.chdir(self._cwd)
@@ -150,8 +151,15 @@ class GeneratorTestsBase(object):
             yield question
 
     def then_result_matches(self, expected_contents):
+        print self._result
         expected_pattern = re.escape(expected_contents)
         assert re.search(expected_pattern, self._result, re.UNICODE) is not None
+
+    def given_mocked_warnings(self, mock_warnings):
+        self._mocked_warnings = mock_warnings
+
+    def then_warning_is_issued(self, expected_message):
+        self._mocked_warnings.warn.assert_called_once_with(expected_message, UserWarning)
 
 
 class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
@@ -288,7 +296,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
         self.given_actions_in_ontology({"call"})
-        self.given_mocked_grammar_with_individuals(requests=self._requests_of_action)
+        self.given_mocked_grammar_with_individuals(requests=self._requests_of_action(sort="call"))
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
@@ -302,28 +310,51 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
 - call [Mary](sort:contact)
 - call [Andy](sort:contact)
 - call [安迪](sort:contact)
-- make a call to [John](predicate:selected_contact_to_call)
-- make a call to [Johnny](predicate:selected_contact_to_call)
-- make a call to [约翰](predicate:selected_contact_to_call)
-- make a call to [Lisa](predicate:selected_contact_to_call)
-- make a call to [Elizabeth](predicate:selected_contact_to_call)
-- make a call to [Mary](predicate:selected_contact_to_call)
-- make a call to [Andy](predicate:selected_contact_to_call)
-- make a call to [安迪](predicate:selected_contact_to_call)
 """
         )
 
-    @property
-    def _requests_of_action(self):
-        return [
-            Request("call", ["make a call"], []),
-            Request("call", ["call ", ""], [
+    def _requests_of_action(self, sort=None, predicate=None):
+        yield Request("call", ["make a call"], [])
+        if sort is not None:
+            yield Request("call", ["call ", ""], [
                 RequiredSortalEntity("contact"),
-            ]),
-            Request("call", ["make a call to ", ""], [
+            ])
+        if predicate is not None:
+            yield Request("call", ["make a call to ", ""], [
                 RequiredPropositionalEntity("selected_contact_to_call"),
-            ]),
-        ]
+            ])
+
+    def test_propositional_entities_excluded_from_requests(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
+        self.given_actions_in_ontology({"call"})
+        self.given_mocked_grammar_with_individuals(
+            requests=self._requests_of_action(predicate="selected_contact_to_call")
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::call
+- make a call
+
+##"""
+        )
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_requests_with_propositional_entities_issue_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
+        self.given_actions_in_ontology({"call"})
+        self.given_mocked_grammar_with_individuals(
+            requests=self._requests_of_action(predicate="selected_contact_to_call")
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate "
+            "'selected_contact_to_call'. Skipping this training data example."
+        )
 
     def test_generate_requests_with_two_answers(self):
         self.given_ddd_name("rasa_test")
@@ -334,7 +365,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
                 Request(
                     "call", ["call ", " and say hi from ", ""], [
                         RequiredSortalEntity("contact"),
-                        RequiredPropositionalEntity("caller"),
+                        RequiredSortalEntity("contact"),
                     ]
                 ),
             ]
@@ -343,70 +374,70 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:action::call
-- call [John](sort:contact) and say hi from [John](predicate:caller)
-- call [John](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [John](sort:contact) and say hi from [约翰](predicate:caller)
-- call [John](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [John](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [John](sort:contact) and say hi from [Mary](predicate:caller)
-- call [John](sort:contact) and say hi from [Andy](predicate:caller)
-- call [John](sort:contact) and say hi from [安迪](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [John](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [约翰](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [Mary](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [Andy](predicate:caller)
-- call [Johnny](sort:contact) and say hi from [安迪](predicate:caller)
-- call [约翰](sort:contact) and say hi from [John](predicate:caller)
-- call [约翰](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [约翰](sort:contact) and say hi from [约翰](predicate:caller)
-- call [约翰](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [约翰](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [约翰](sort:contact) and say hi from [Mary](predicate:caller)
-- call [约翰](sort:contact) and say hi from [Andy](predicate:caller)
-- call [约翰](sort:contact) and say hi from [安迪](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [John](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [约翰](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [Mary](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [Andy](predicate:caller)
-- call [Lisa](sort:contact) and say hi from [安迪](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [John](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [约翰](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [Mary](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [Andy](predicate:caller)
-- call [Elizabeth](sort:contact) and say hi from [安迪](predicate:caller)
-- call [Mary](sort:contact) and say hi from [John](predicate:caller)
-- call [Mary](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [Mary](sort:contact) and say hi from [约翰](predicate:caller)
-- call [Mary](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [Mary](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [Mary](sort:contact) and say hi from [Mary](predicate:caller)
-- call [Mary](sort:contact) and say hi from [Andy](predicate:caller)
-- call [Mary](sort:contact) and say hi from [安迪](predicate:caller)
-- call [Andy](sort:contact) and say hi from [John](predicate:caller)
-- call [Andy](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [Andy](sort:contact) and say hi from [约翰](predicate:caller)
-- call [Andy](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [Andy](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [Andy](sort:contact) and say hi from [Mary](predicate:caller)
-- call [Andy](sort:contact) and say hi from [Andy](predicate:caller)
-- call [Andy](sort:contact) and say hi from [安迪](predicate:caller)
-- call [安迪](sort:contact) and say hi from [John](predicate:caller)
-- call [安迪](sort:contact) and say hi from [Johnny](predicate:caller)
-- call [安迪](sort:contact) and say hi from [约翰](predicate:caller)
-- call [安迪](sort:contact) and say hi from [Lisa](predicate:caller)
-- call [安迪](sort:contact) and say hi from [Elizabeth](predicate:caller)
-- call [安迪](sort:contact) and say hi from [Mary](predicate:caller)
-- call [安迪](sort:contact) and say hi from [Andy](predicate:caller)
-- call [安迪](sort:contact) and say hi from [安迪](predicate:caller)
+- call [John](sort:contact) and say hi from [John](sort:contact)
+- call [John](sort:contact) and say hi from [Johnny](sort:contact)
+- call [John](sort:contact) and say hi from [约翰](sort:contact)
+- call [John](sort:contact) and say hi from [Lisa](sort:contact)
+- call [John](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [John](sort:contact) and say hi from [Mary](sort:contact)
+- call [John](sort:contact) and say hi from [Andy](sort:contact)
+- call [John](sort:contact) and say hi from [安迪](sort:contact)
+- call [Johnny](sort:contact) and say hi from [John](sort:contact)
+- call [Johnny](sort:contact) and say hi from [Johnny](sort:contact)
+- call [Johnny](sort:contact) and say hi from [约翰](sort:contact)
+- call [Johnny](sort:contact) and say hi from [Lisa](sort:contact)
+- call [Johnny](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [Johnny](sort:contact) and say hi from [Mary](sort:contact)
+- call [Johnny](sort:contact) and say hi from [Andy](sort:contact)
+- call [Johnny](sort:contact) and say hi from [安迪](sort:contact)
+- call [约翰](sort:contact) and say hi from [John](sort:contact)
+- call [约翰](sort:contact) and say hi from [Johnny](sort:contact)
+- call [约翰](sort:contact) and say hi from [约翰](sort:contact)
+- call [约翰](sort:contact) and say hi from [Lisa](sort:contact)
+- call [约翰](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [约翰](sort:contact) and say hi from [Mary](sort:contact)
+- call [约翰](sort:contact) and say hi from [Andy](sort:contact)
+- call [约翰](sort:contact) and say hi from [安迪](sort:contact)
+- call [Lisa](sort:contact) and say hi from [John](sort:contact)
+- call [Lisa](sort:contact) and say hi from [Johnny](sort:contact)
+- call [Lisa](sort:contact) and say hi from [约翰](sort:contact)
+- call [Lisa](sort:contact) and say hi from [Lisa](sort:contact)
+- call [Lisa](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [Lisa](sort:contact) and say hi from [Mary](sort:contact)
+- call [Lisa](sort:contact) and say hi from [Andy](sort:contact)
+- call [Lisa](sort:contact) and say hi from [安迪](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [John](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [Johnny](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [约翰](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [Lisa](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [Mary](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [Andy](sort:contact)
+- call [Elizabeth](sort:contact) and say hi from [安迪](sort:contact)
+- call [Mary](sort:contact) and say hi from [John](sort:contact)
+- call [Mary](sort:contact) and say hi from [Johnny](sort:contact)
+- call [Mary](sort:contact) and say hi from [约翰](sort:contact)
+- call [Mary](sort:contact) and say hi from [Lisa](sort:contact)
+- call [Mary](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [Mary](sort:contact) and say hi from [Mary](sort:contact)
+- call [Mary](sort:contact) and say hi from [Andy](sort:contact)
+- call [Mary](sort:contact) and say hi from [安迪](sort:contact)
+- call [Andy](sort:contact) and say hi from [John](sort:contact)
+- call [Andy](sort:contact) and say hi from [Johnny](sort:contact)
+- call [Andy](sort:contact) and say hi from [约翰](sort:contact)
+- call [Andy](sort:contact) and say hi from [Lisa](sort:contact)
+- call [Andy](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [Andy](sort:contact) and say hi from [Mary](sort:contact)
+- call [Andy](sort:contact) and say hi from [Andy](sort:contact)
+- call [Andy](sort:contact) and say hi from [安迪](sort:contact)
+- call [安迪](sort:contact) and say hi from [John](sort:contact)
+- call [安迪](sort:contact) and say hi from [Johnny](sort:contact)
+- call [安迪](sort:contact) and say hi from [约翰](sort:contact)
+- call [安迪](sort:contact) and say hi from [Lisa](sort:contact)
+- call [安迪](sort:contact) and say hi from [Elizabeth](sort:contact)
+- call [安迪](sort:contact) and say hi from [Mary](sort:contact)
+- call [安迪](sort:contact) and say hi from [Andy](sort:contact)
+- call [安迪](sort:contact) and say hi from [安迪](sort:contact)
 """
         )
 
@@ -414,7 +445,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
         self.given_expected_plan_questions_in_domain({"phone_number_of_contact": "contact"})
-        self.given_mocked_grammar_with_individuals(questions=self._questions_of_predicate)
+        self.given_mocked_grammar_with_individuals(questions=self._questions_of_predicate(sort="contact"))
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
@@ -428,30 +459,53 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
 - what is [Mary](sort:contact)'s number
 - what is [Andy](sort:contact)'s number
 - what is [安迪](sort:contact)'s number
-- tell me [John](predicate:selected_contact_of_phone_number)'s number
-- tell me [Johnny](predicate:selected_contact_of_phone_number)'s number
-- tell me [约翰](predicate:selected_contact_of_phone_number)'s number
-- tell me [Lisa](predicate:selected_contact_of_phone_number)'s number
-- tell me [Elizabeth](predicate:selected_contact_of_phone_number)'s number
-- tell me [Mary](predicate:selected_contact_of_phone_number)'s number
-- tell me [Andy](predicate:selected_contact_of_phone_number)'s number
-- tell me [安迪](predicate:selected_contact_of_phone_number)'s number
 """
         )
 
-    @property
-    def _questions_of_predicate(self):
-        return [
-            Question("phone_number_of_contact", ["tell me a phone number"], []),
-            Question("phone_number_of_contact", ["what is ", "'s number"], [
-                RequiredSortalEntity("contact"),
-            ]),
-            Question(
+    def _questions_of_predicate(self, sort=None, predicate=None):
+        yield Question("phone_number_of_contact", ["tell me a phone number"], [])
+        if sort is not None:
+            yield Question("phone_number_of_contact", ["what is ", "'s number"], [
+                RequiredSortalEntity(sort),
+            ])
+        if predicate is not None:
+            yield Question(
                 "phone_number_of_contact", ["tell me ", "'s number"], [
-                    RequiredPropositionalEntity("selected_contact_of_phone_number"),
+                    RequiredPropositionalEntity(predicate),
                 ]
-            ),
-        ]
+            )
+
+    def test_propositional_entities_excluded_from_questions(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
+        self.given_expected_plan_questions_in_domain({"phone_number_of_contact": "contact"})
+        self.given_mocked_grammar_with_individuals(
+            questions=self._questions_of_predicate(predicate="selected_contact_to_call")
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:question::phone_number_of_contact
+- tell me a phone number
+
+##"""
+        )
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_questions_with_propositional_entities_issue_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact_to_call")
+        self.given_expected_plan_questions_in_domain({"phone_number_of_contact": "contact"})
+        self.given_mocked_grammar_with_individuals(
+            questions=self._questions_of_predicate(predicate="selected_contact_to_call")
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate "
+            "'selected_contact_to_call'. Skipping this training data example."
+        )
 
     def test_generate_answer_intents(self):
         self.given_ddd_name("rasa_test")
@@ -498,7 +552,9 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def test_answers(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
-        self.given_mocked_grammar_with_individuals(answers=self._answers("selected_contact"))
+        self.given_mocked_grammar_with_individuals(
+            answers=list(self._answers(sort="contact"))
+        )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
@@ -511,23 +567,63 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
 - [Mary](sort:contact)
 - [Andy](sort:contact)
 - [安迪](sort:contact)
-- my friend [John](predicate:selected_contact)
-- my friend [Johnny](predicate:selected_contact)
-- my friend [约翰](predicate:selected_contact)
-- my friend [Lisa](predicate:selected_contact)
-- my friend [Elizabeth](predicate:selected_contact)
-- my friend [Mary](predicate:selected_contact)
-- my friend [Andy](predicate:selected_contact)
-- my friend [安迪](predicate:selected_contact)
+- my sortal friend [John](sort:contact)
+- my sortal friend [Johnny](sort:contact)
+- my sortal friend [约翰](sort:contact)
+- my sortal friend [Lisa](sort:contact)
+- my sortal friend [Elizabeth](sort:contact)
+- my sortal friend [Mary](sort:contact)
+- my sortal friend [Andy](sort:contact)
+- my sortal friend [安迪](sort:contact)
 """
         )
 
-    def _answers(self, answer_predicate):
-        return [
-            Answer(["my friend ", ""], [
-                RequiredPropositionalEntity(answer_predicate),
-            ]),
-        ]
+    def test_propositional_entities_excluded_from_answers(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
+        self.given_mocked_grammar_with_individuals(
+            answers=list(self._answers(predicate="selected_contact"))
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [John](sort:contact)
+- [Johnny](sort:contact)
+- [约翰](sort:contact)
+- [Lisa](sort:contact)
+- [Elizabeth](sort:contact)
+- [Mary](sort:contact)
+- [Andy](sort:contact)
+- [安迪](sort:contact)
+
+##"""
+        )
+
+    def _answers(self, sort=None, predicate=None):
+        if sort is not None:
+            yield Answer(["my sortal friend ", ""], [
+                RequiredSortalEntity(sort),
+            ])
+        if predicate is not None:
+            yield Answer(["my friend ", ""], [
+                RequiredPropositionalEntity(predicate),
+            ])
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_answers_with_propositional_entities_issues_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
+        self.given_mocked_grammar_with_individuals(
+            answers=list(self._answers(predicate="selected_contact"))
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate 'selected_contact'."
+            " Skipping this training data example."
+        )
 
 
 class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
@@ -559,6 +655,25 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             requests=[
                 Request("mock_action", ["mock phrase without entities"], []),
                 Request("mock_action", ["mock phrase with sortal entity ", ""], [RequiredSortalEntity("mock_sort")]),
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:action::mock_action
+- mock phrase without entities
+- mock phrase with sortal entity [mock example 1](sort:mock_sort)
+- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+"""
+        )
+
+    def test_propositional_entities_excluded_from_requests(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_actions_in_ontology({"mock_action"})
+        self.given_mocked_grammar(
+            requests=[
+                Request("mock_action", ["mock phrase without entities"], []),
                 Request(
                     "mock_action", ["mock phrase with propositional entity ", ""],
                     [RequiredPropositionalEntity("mock_predicate")]
@@ -570,11 +685,30 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort:mock_sort)
-- mock phrase with sortal entity [mock example 2](sort:mock_sort)
-- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
-- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
-"""
+
+##"""
+        )
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_requests_with_propositional_entities_issues_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_actions_in_ontology({"mock_action"})
+        self.given_mocked_grammar(
+            requests=[
+                Request("mock_action", ["mock phrase without entities"], []),
+                Request(
+                    "mock_action", ["mock phrase with propositional entity ", ""],
+                    [RequiredPropositionalEntity("mock_predicate")]
+                )
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
+            " Skipping this training data example."
         )
 
     def test_generate_questions(self):
@@ -587,6 +721,25 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
                 Question(
                     "mock_predicate", ["mock phrase with sortal entity ", ""], [RequiredSortalEntity("mock_sort")]
                 ),
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:question::mock_predicate
+- mock phrase without entities
+- mock phrase with sortal entity [mock example 1](sort:mock_sort)
+- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+"""
+        )
+
+    def test_propositional_entities_excluded_from_questions(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_expected_plan_questions_in_domain(predicates={"mock_predicate": "mock_sort"})
+        self.given_mocked_grammar(
+            questions=[
+                Question("mock_predicate", ["mock phrase without entities"], []),
                 Question(
                     "mock_predicate", ["mock phrase with propositional entity ", ""],
                     [RequiredPropositionalEntity("mock_predicate")]
@@ -598,11 +751,30 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort:mock_sort)
-- mock phrase with sortal entity [mock example 2](sort:mock_sort)
-- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
-- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
-"""
+
+##"""
+        )
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_questions_with_propositional_entities_issues_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_expected_plan_questions_in_domain(predicates={"mock_predicate": "mock_sort"})
+        self.given_mocked_grammar(
+            questions=[
+                Question("mock_predicate", ["mock phrase without entities"], []),
+                Question(
+                    "mock_predicate", ["mock phrase with propositional entity ", ""],
+                    [RequiredPropositionalEntity("mock_predicate")]
+                )
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
+            " Skipping this training data example."
         )
 
     def test_generate_answer_intents(self):
@@ -645,9 +817,42 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
             u"""## intent:rasa_test:answer
 - [mock example 1](sort:mock_sort)
 - [mock example 2](sort:mock_sort)
-- mock phrase with propositional entity [mock example 1](predicate:mock_predicate)
-- mock phrase with propositional entity [mock example 2](predicate:mock_predicate)
 """
+        )
+
+    def test_propositional_entities_excluded_from_answers(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_mocked_grammar(
+            answers=[
+                Answer(["mock phrase with propositional entity ", ""], [RequiredPropositionalEntity("mock_predicate")])
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:rasa_test:answer
+- [mock example 1](sort:mock_sort)
+- [mock example 2](sort:mock_sort)
+
+"""
+        )
+
+    @patch("{}.warnings".format(generator.__name__), autospec=True)
+    def test_answers_with_propositional_entities_issues_warning(self, mock_warnings):
+        self.given_mocked_warnings(mock_warnings)
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
+        self.given_mocked_grammar(
+            answers=[
+                Answer(["mock phrase with propositional entity ", ""], [RequiredPropositionalEntity("mock_predicate")])
+            ]
+        )
+        self.given_generator()
+        self.when_generate()
+        self.then_warning_is_issued(
+            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
+            " Skipping this training data example."
         )
 
 

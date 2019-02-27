@@ -1,4 +1,5 @@
 import os
+import warnings
 
 from jinja2 import Template
 from pathlib import Path
@@ -22,10 +23,12 @@ class RASADataNotGeneratedException(Exception):
     pass
 
 
+class UnexpectedPropositionalEntityEncounteredException(Exception):
+    pass
+
+
 SORTAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](sort:{{ value }})")
 PROPOSITIONAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](predicate:{{ value }})")
-
-ENTITY_TEMPLATE = Template("[{{ grammar_entry }}]({{ sort }})")
 
 
 class RasaGenerator(object):
@@ -114,7 +117,10 @@ class RasaGenerator(object):
     def _examples_of_intent(self, grammar, intent):
         head = intent.text_chunks[0]
         texts = intent.text_chunks[1:]
-        examples = self._examples_with_individuals(grammar, texts, intent.required_entities, [head])
+        try:
+            examples = self._examples_with_individuals(grammar, texts, intent.required_entities, [head])
+        except UnexpectedPropositionalEntityEncounteredException:
+            return
         for example in examples:
             yield example
 
@@ -127,16 +133,28 @@ class RasaGenerator(object):
         for example in examples_so_far:
             if required_entity.is_sortal:
                 new_examples = list(self._examples_from_sortal_individual(grammar, required_entity, example, tail))
+                all_new_examples.extend(new_examples)
             elif required_entity.is_propositional:
-                new_examples = list(
-                    self._examples_from_propositional_individual(grammar, required_entity, example, tail)
-                )
+                predicate = self._ddd.ontology.get_predicate(required_entity.name)
+                if predicate.getSort().is_string_sort():
+                    new_examples = list(
+                        self._examples_from_propositional_individual(grammar, required_entity, example, tail)
+                    )
+                    all_new_examples.extend(new_examples)
+
+                else:
+                    message = (
+                        "Expected only sortal slots but got a propositional slot for predicate '{}'. "
+                        "Skipping this training data example."
+                        .format(predicate.get_name(), predicate.getSort())
+                    )
+                    warnings.warn(message, UserWarning)
+                    raise UnexpectedPropositionalEntityEncounteredException(message)
             else:
                 raise UnexpectedRequiredEntityException(
                     "Expected either a sortal or propositional required entity but got a %s" %
                     required_entity.__class__.__name__
                 )
-            all_new_examples.extend(new_examples)
         return self._examples_with_individuals(grammar, text_chunks[1:], required_entities[1:], all_new_examples)
 
     def _examples_from_sortal_individual(self, grammar, required_sortal_entity, example_so_far, tail):
@@ -165,10 +183,8 @@ class RasaGenerator(object):
         predicate = self._ddd.ontology.get_predicate(predicate_name)
         sort = predicate.getSort()
         individuals = self._individual_grammar_entries_samples(grammar, sort)
-        if sort.is_string_sort():
-            predicate_specific_samples = self._string_examples_of_predicate(grammar, predicate)
-            individuals.extend([[predicate_specific_sample]
-                                for predicate_specific_sample in predicate_specific_samples])
+        predicate_specific_samples = self._string_examples_of_predicate(grammar, predicate)
+        individuals.extend([[predicate_specific_sample] for predicate_specific_sample in predicate_specific_samples])
         return self._examples_from_individuals(
             PROPOSITIONAL_ENTITY_TEMPLATE, predicate_name, individuals, example_so_far, tail
         )

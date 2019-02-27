@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Changed
 - Boolean attribute values in domain XML files, e.g. values for the attribute `downdate_plan`, are now only supported in lowercase, i.e. `"true"` or `"false"`.
+- `tala verify` now issues warnings when propositional slots are encountered in the grammar and RASA NLU is enabled.
 
 ### Removed
 - The attribute `type` for the domain XML element `<proposition>` has been removed.
