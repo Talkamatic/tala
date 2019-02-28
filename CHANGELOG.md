@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- `tala verify` now validates schema compliance for domain XML files.
+
+### Changed
+- Boolean attribute values in domain XML files, e.g. values for the attribute `downdate_plan`, are now only supported in lowercase, i.e. `"true"` or `"false"`.
+
+### Removed
+- The attribute `type` for the domain XML element `<proposition>` has been removed.
+
 ## [1.1.0] - 2019-02-22
 ### Added
 - Command `tala interact` has been added. Use it to chat with a deployed DDD. It uses the new deployments config.

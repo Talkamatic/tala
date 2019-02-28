@@ -73,7 +73,7 @@ class XmlCompiler(object):
         return elements[0]
 
     def _parse_boolean(self, string):
-        return string in ["true", "True"]
+        return string == "true"
 
     def _find_child_nodes(self, element, node_name):
         return [node for node in element.childNodes if node.localName == node_name]
@@ -221,7 +221,16 @@ class DomainCompiler(XmlCompiler):
     def _name(self):
         return "domain"
 
+    @property
+    def _schema_name(self):
+        return "domain.xsd"
+
+    @property
+    def _filename(self):
+        return "domain.xml"
+
     def compile(self, ddd_name, xml_string, ontology, parser, service_interface):
+        self._validate(xml_string)
         self._ddd_name = ddd_name
         self._ontology = ontology
         self._parser = parser
@@ -432,13 +441,6 @@ class DomainCompiler(XmlCompiler):
             )
             raise UnexpectedAttributeException(message)
 
-        def target_from_service_interface(action):
-            if self._service_interface.has_action(action):
-                action_interface = self._service_interface.get_action(action)
-                if action_interface and action_interface.target.is_device_module:
-                    return action_interface.target.device
-            return None
-
         def parse_downdate_plan():
             if element.hasAttribute("downdate_plan"):
                 return self._parse_boolean(element.getAttribute("downdate_plan"))
@@ -473,10 +475,7 @@ class DomainCompiler(XmlCompiler):
     def _compile_proposition(self, element):
         child = self._get_single_child_element(element, ["proposition", "resolve", "perform"])
         if child.localName == "proposition":
-            proposition = None
-            if self._has_attribute(child, "predicate"):
-                proposition = self._compile_predicate_proposition(child)
-            return proposition
+            return self._compile_predicate_proposition(child)
         elif child.localName == "perform":
             return self._compile_perform_proposition(child)
         elif child.localName == "resolve":

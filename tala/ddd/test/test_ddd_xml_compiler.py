@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import pytest
 from mock import Mock, patch
 
 import tala.ddd.ddd_xml_compiler
@@ -39,9 +39,8 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         return Predicate(self._ontology.name, *args, **kwargs)
 
     def _when_compile_ontology_then_exception_is_raised(self, ontolog_xml, expected_exception, expected_message):
-        with self.assertRaises(expected_exception) as context_manager:
+        with pytest.raises(expected_exception, match=expected_message):
             self._compile_ontology(ontolog_xml)
-        self.assertEquals(expected_message, str(context_manager.exception))
 
     def _when_compile_domain(self, domain_xml='<domain name="Domain" />'):
         self._result = DddXmlCompiler().compile_domain(
@@ -78,17 +77,17 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         self.assertItemsEqual(expected_keys, self._result.keys())
 
     def _then_result_has_field(self, expected_key, expected_value):
-        self.assertEquals(expected_value, self._result[expected_key])
+        assert expected_value == self._result[expected_key]
 
     def _then_result_has_plan(self, expected_plan):
         actual_plans = self._result["plans"]
         actual_plan = actual_plans[0]["plan"]
-        self.assertEquals(expected_plan, actual_plan)
+        assert expected_plan == actual_plan
 
     def _then_result_has_plan_with_attribute(self, expected_key, expected_value):
         actual_plans = self._result["plans"]
         actual_plan = actual_plans[0]
-        self.assertEquals(expected_value, actual_plan[expected_key])
+        assert expected_value == actual_plan[expected_key]
 
     def _parse(self, string):
         return self._parser.parse(string)
@@ -103,14 +102,11 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         self._result = DddXmlCompiler().compile_rgl_grammar(string, self._ontology, self._service_interface, "eng")
 
     def _then_result_is(self, expected_result):
-        self.assertEquals(expected_result, self._result)
+        assert expected_result == self._result
 
     def _then_grammar_is(self, expected_grammar_children):
         expected_grammar_node = Node(Constants.GRAMMAR, {}, expected_grammar_children)
-        self.assertEquals(
-            expected_grammar_node, self._result,
-            "\n%s\n!=\n%s\n\n(%r)" % (expected_grammar_node, self._result, self._result)
-        )
+        assert expected_grammar_node == self._result
 
     def _mock_warnings(self):
         return patch("%s.warnings" % tala.ddd.ddd_xml_compiler.__name__)
@@ -119,7 +115,7 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         mocked_warnings.warn.assert_called_once_with(expected_message)
 
 
-class OntologyCompilerTests(DddXmlCompilerTestCase):
+class TestOntologyCompiler(DddXmlCompilerTestCase):
     def test_name(self):
         self._when_compile_ontology('<ontology name="MockupOntology"/>')
         self._then_result_has_field("name", "MockupOntology")
@@ -229,7 +225,7 @@ class OntologyCompilerTests(DddXmlCompilerTestCase):
         )
 
 
-class PlanCompilationTests(DddXmlCompilerTestCase):
+class TestPlanCompilation(DddXmlCompilerTestCase):
     def test_plan_for_perform_goal(self):
         self._given_compiled_ontology()
 
@@ -291,7 +287,7 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
     def test_exception_raised_for_goal_without_type(self):
         self._given_compiled_ontology()
 
-        with self.assertRaises(DddXmlCompilerException):
+        with pytest.raises(DddXmlCompilerException):
             self._when_compile_domain("""
 <domain name="Domain">
   <goal />
@@ -419,7 +415,7 @@ class PlanCompilationTests(DddXmlCompilerTestCase):
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
 
-class DomainCompilerTests(DddXmlCompilerTestCase):
+class TestDomainCompiler(DddXmlCompilerTestCase):
     def test_name(self):
         self._given_compiled_ontology()
         self._when_compile_domain()
@@ -513,8 +509,21 @@ class DomainCompilerTests(DddXmlCompilerTestCase):
 
         self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {"graphical_type": "list"}})
 
+    def test_schema_violation_yields_exception(self):
+        self._given_compiled_ontology('<ontology name="Ontology"/>')
+        self._when_compile_domain_then_exception_is_raised_matching(
+            '<domain name="Domain">invalid_content</domain>',
+            ViolatesSchemaException,
+            "Expected domain.xml compliant with schema but it's in violation: "
+            "Element 'domain': Character content other than whitespace is not allowed because the content type is "
+            "'element-only'., line 1")
 
-class ParameterCompilationTestCase(DddXmlCompilerTestCase):
+    def _when_compile_domain_then_exception_is_raised_matching(self, xml, expected_exception, expected_message):
+        with pytest.raises(expected_exception, match=expected_message):
+            self._when_compile_domain(xml)
+
+
+class TestParameterCompilation(DddXmlCompilerTestCase):
     def test_choice_parameter(self):
         self._given_compiled_ontology()
         self._when_compile_parameter_for_question("graphical_type", "list")
@@ -604,7 +613,32 @@ class ParameterCompilationTestCase(DddXmlCompilerTestCase):
             {self._parse("?X.means_of_transport(X)"): self._parser.parse_parameters("{background=[dest_city]}")}
         )
 
-    def test_background_for_yn_question(self):
+    def test_background_for_yn_question_for_perform_goal(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="price" sort="real"/>
+  <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="yn_question">
+    <perform action="top"/>
+    <background predicate="dest_city"/>
+  </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters",
+            {self._parse("?goal(perform(top))"): self._parser.parse_parameters("{background=[dest_city]}")}
+        )
+
+    def test_background_for_yn_question_for_resolve_goal(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -690,7 +724,7 @@ class ParameterCompilationTestCase(DddXmlCompilerTestCase):
 </ontology>"""
         )
 
-        with self.assertRaises(DddXmlCompilerException):
+        with pytest.raises(DddXmlCompilerException):
             self._when_compile_domain(
                 """
 <domain name="Domain">
@@ -770,8 +804,11 @@ class ParameterCompilationTestCase(DddXmlCompilerTestCase):
         self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {expected_name: expected_value}})
 
 
-class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
-    def test_findout_for_wh_question(self):
+class TestPlanItemCompilation(DddXmlCompilerTestCase):
+    ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS = ["findout", "raise", "bind"]
+
+    @pytest.mark.parametrize("element_name", ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS)
+    def test_question_raising_plan_item_for_wh_question(self, element_name):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -780,11 +817,12 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
 </ontology>"""
         )
 
-        self._when_compile_domain_with_plan('<findout type="wh_question" predicate="means_of_transport" />')
+        self._when_compile_domain_with_plan('<%s type="wh_question" predicate="means_of_transport" />' % element_name)
 
-        self._then_result_has_plan(Plan([self._parse("findout(?X.means_of_transport(X))")]))
+        self._then_result_has_plan(Plan([self._parse("%s(?X.means_of_transport(X))" % element_name)]))
 
-    def test_findout_for_goal_alt_question(self):
+    @pytest.mark.parametrize("element_name", ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS)
+    def test_question_raising_plan_item_for_goal_alt_question(self, element_name):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -795,17 +833,18 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
 
         self._when_compile_domain_with_plan(
             """
-<findout type="alt_question">
+<{element_name} type="alt_question">
   <alt><perform action="action1"/></alt>
   <alt><perform action="action2"/></alt>
-</findout>"""
+</{element_name}>""".format(element_name=element_name)
         )
 
         self._then_result_has_plan(
-            Plan([self._parse("findout(?set([goal(perform(action1)), goal(perform(action2))]))")])
+            Plan([self._parse("%s(?set([goal(perform(action1)), goal(perform(action2))]))" % element_name)])
         )
 
-    def test_findout_for_yn_question_for_goal_proposition(self):
+    @pytest.mark.parametrize("element_name", ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS)
+    def test_question_raising_plan_item_for_yn_question_for_goal_proposition(self, element_name):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -815,14 +854,15 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
 
         self._when_compile_domain_with_plan(
             """
-<findout type="yn_question">
+<{element_name} type="yn_question">
   <resolve type="wh_question" predicate="price"/>
-</findout>"""
+</{element_name}>""".format(element_name=element_name)
         )
 
-        self._then_result_has_plan(Plan([self._parse("findout(?goal(resolve(?X.price(X))))")]))
+        self._then_result_has_plan(Plan([self._parse("%s(?goal(resolve(?X.price(X))))" % element_name)]))
 
-    def test_findout_for_yn_question_for_goal_proposition_perform(self):
+    @pytest.mark.parametrize("element_name", ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS)
+    def test_question_raising_plan_item_for_yn_question_for_goal_proposition_perform(self, element_name):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -832,12 +872,12 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
 
         self._when_compile_domain_with_plan(
             """
-<findout type="yn_question">
+<{element_name} type="yn_question">
   <perform action="apply_for_membership"/>
-</findout>"""
+</{element_name}>""".format(element_name=element_name)
         )
 
-        self._then_result_has_plan(Plan([self._parse("findout(?goal(perform(apply_for_membership)))")]))
+        self._then_result_has_plan(Plan([self._parse("%s(?goal(perform(apply_for_membership)))" % element_name)]))
 
     def test_if_then_else(self):
         self._given_compiled_ontology(
@@ -941,7 +981,7 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
         self, plan_xml, expected_exception, expected_message
     ):
-        with self.assertRaisesRegexp(expected_exception, expected_message):
+        with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_domain_with_plan(plan_xml)
 
     def test_dev_query_deprecation_warning(self):
@@ -1072,7 +1112,7 @@ class PlanItemCompilationTestCase(DddXmlCompilerTestCase):
         self._then_result_has_plan(Plan([self._parser.parse("assume_shared(price(123.0))")]))
 
 
-class GrammarCompilerTests(DddXmlCompilerTestCase):
+class TestGrammarCompiler(DddXmlCompilerTestCase):
     def test_multiple_variants(self):
         self._given_compiled_ontology("""
 <ontology name="Ontology">
@@ -1775,7 +1815,7 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
 
     def test_unexpected_element_yields_exception(self):
         self._given_compiled_ontology()
-        with self.assertRaises(ViolatesSchemaException):
+        with pytest.raises(ViolatesSchemaException):
             self._when_compile_grammar("""
 <grammar>
   <unexpected_element/>
@@ -1798,12 +1838,12 @@ class GrammarCompilerTests(DddXmlCompilerTestCase):
 
         self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
 
-    def setUp(self):
-        super(GrammarCompilerTests, self).setUp()
+    def setup(self):
+        super(TestGrammarCompiler, self).setup()
         self._device_handler = None
 
 
-class RglGrammarCompilerTests(DddXmlCompilerTestCase):
+class TestRglGrammarCompiler(DddXmlCompilerTestCase):
     def test_action_with_noun_phrase(self):
         self._given_compiled_ontology()
 
@@ -2046,7 +2086,7 @@ class RglGrammarCompilerTests(DddXmlCompilerTestCase):
         ])
 
 
-class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
+class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
     def test_action_without_parameters(self):
         self._when_compile_service_interface(
             """
@@ -2071,7 +2111,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         self._result = DddXmlCompiler().compile_service_interface(device_xml)
 
     def _then_service_interface_has_actions(self, expected_actions):
-        self.assertEqual(self._result.actions, expected_actions)
+        assert self._result.actions == expected_actions
 
     def test_action_with_parameters(self):
         self._when_compile_service_interface(
@@ -2214,8 +2254,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
     def _when_compile_service_interface_then_exception_is_raised_matching(
         self, xml, expected_exception, expected_message
     ):
-
-        with self.assertRaisesRegexp(expected_exception, expected_message):
+        with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_service_interface(xml)
 
     def test_query_with_device_module_target(self):
@@ -2244,7 +2283,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         ])
 
     def _then_service_interface_has_queries(self, expected_queries):
-        self.assertEqual(self._result.queries, expected_queries)
+        assert self._result.queries == expected_queries
 
     def test_entity_recognizer_with_device_module_target(self):
         self._when_compile_service_interface(
@@ -2263,7 +2302,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         ])
 
     def _then_service_interface_has_entity_recognizers(self, expected_entity_recognizers):
-        self.assertEqual(self._result.entity_recognizers, expected_entity_recognizers)
+        assert self._result.entity_recognizers == expected_entity_recognizers
 
     def test_validity_with_device_module_target(self):
         self._when_compile_service_interface(
@@ -2293,7 +2332,7 @@ class ServiceInterfaceCompilerTests(DddXmlCompilerTestCase):
         ])
 
     def _then_service_interface_has_validities(self, expected_validities):
-        self.assertEqual(self._result.validators, expected_validities)
+        assert self._result.validators == expected_validities
 
     def test_frontend_target_for_action(self):
         self._when_compile_service_interface(

@@ -2,6 +2,8 @@
 
 from collections import OrderedDict
 
+import pytest
+
 import tala.nl.gf.resource
 from tala.ddd.ddd_py_compiler import DddPyCompiler, DddPyCompilerException, GrammarCompiler
 from tala.ddd.parser import Parser
@@ -61,17 +63,17 @@ class DddPyCompilerTestCase(DddCompilerTestCase):
         self.assertItemsEqual(expected_keys, self._result.keys())
 
     def _then_result_has_field(self, expected_key, expected_value):
-        self.assertEquals(expected_value, self._result[expected_key])
+        assert expected_value == self._result[expected_key]
 
     def _then_result_has_plan(self, expected_plan):
         actual_plans = self._result["plans"]
         actual_plan = actual_plans[0]["plan"]
-        self.assertEquals(expected_plan, actual_plan)
+        assert expected_plan == actual_plan
 
     def _then_result_has_plan_with_attribute(self, expected_key, expected_value):
         actual_plans = self._result["plans"]
         actual_plan = actual_plans[0]
-        self.assertEquals(expected_value, actual_plan[expected_key])
+        assert expected_value == actual_plan[expected_key]
 
     def _parse(self, string):
         return self._parser.parse(string)
@@ -84,18 +86,14 @@ class DddPyCompilerTestCase(DddCompilerTestCase):
         self._result = self._grammar_compiler.compile(string, self._ontology, self._service_interface)
 
     def _then_result_is(self, expected_result):
-        self.assertEquals(expected_result, self._result)
+        assert expected_result == self._result
 
     def _then_grammar_is(self, expected_grammar_children):
         expected_grammar_node = Node(Constants.GRAMMAR, {}, expected_grammar_children)
-
-        self.assertEquals(
-            expected_grammar_node, self._result,
-            "\n%s\n!=\n%s\n\n(%r)" % (expected_grammar_node, self._result, self._result)
-        )
+        assert expected_grammar_node == self._result
 
     def _then_warning(self, expected_warning):
-        self.assertEquals(expected_warning, self._grammar_compiler.actual_warning)
+        assert expected_warning == self._grammar_compiler.actual_warning
 
     def _predicate(self, *args, **kwargs):
         return Predicate(self._ontology_name, *args, **kwargs)
@@ -104,7 +102,7 @@ class DddPyCompilerTestCase(DddCompilerTestCase):
         return Individual(self._ontology_name, *args, **kwargs)
 
 
-class OntologyCompilerTests(DddPyCompilerTestCase):
+class TestOntologyCompiler(DddPyCompilerTestCase):
     def test_name(self):
         self._when_compile_ontology(name="MockupOntology")
         self._then_result_has_field("name", "MockupOntology")
@@ -163,7 +161,7 @@ class OntologyCompilerTests(DddPyCompilerTestCase):
         self._then_result_has_field("actions", set(["buy"]))
 
 
-class PlanCompilationTests(DddPyCompilerTestCase):
+class TestPlanCompilation(DddPyCompilerTestCase):
     def test_plan_for_perform_goal(self):
         self._given_compiled_ontology()
 
@@ -180,32 +178,28 @@ class PlanCompilationTests(DddPyCompilerTestCase):
 
     def test_exception_yielded_if_plans_is_not_list(self):
         self._given_compiled_ontology()
-        with self.assertRaises(DddPyCompilerException):
+        with pytest.raises(DddPyCompilerException):
             self._when_compile_domain(plans={})
 
     def test_exception_yielded_if_plan_not_list(self):
         self._given_compiled_ontology()
-        with self.assertRaises(DddPyCompilerException):
+        with pytest.raises(DddPyCompilerException):
             self._when_compile_domain(plans=[{"goal": "perform(top)", "plan": None}])
 
     def test_plan_for_action_yields_helpful_exception(self):
         self._given_compiled_ontology()
 
-        with self.assertRaises(DddPyCompilerException) as cm:
+        with pytest.raises(
+                DddPyCompilerException, match='.*: "top" is not a goal\. Perhaps you mean "perform\(top\)"\?'):
             self._when_compile_domain(plans=[{"goal": "top", "plan": []}])
-
-        self.assertTrue('"top" is not a goal. Perhaps you mean "perform(top)"?' in unicode(cm.exception))
 
     def test_plan_for_issue_yields_helpful_exception(self):
         self._given_compiled_ontology(predicates={"price": "real"})
 
-        with self.assertRaises(DddPyCompilerException) as cm:
+        with pytest.raises(
+                DddPyCompilerException,
+                match='.*: "\?X.price\(X\)" is not a goal\. Perhaps you mean "resolve\(\?X.price\(X\)\)"\?'):
             self._when_compile_domain(plans=[{"goal": "?X.price(X)", "plan": []}])
-
-        self.assertTrue(
-            '"?X.price(X)" is not a goal. '
-            'Perhaps you mean "resolve(?X.price(X))"?' in unicode(cm.exception)
-        )
 
     def test_plan_stack_order(self):
         self._given_compiled_ontology(
@@ -271,7 +265,7 @@ class PlanCompilationTests(DddPyCompilerTestCase):
 
     def test_unsupported_key_in_plan_description_yields_exception(self):
         self._given_compiled_ontology()
-        with self.assertRaises(DddPyCompilerException):
+        with pytest.raises(DddPyCompilerException):
             self._when_compile_domain(plans=[{"goal": "perform(top)", "plan": [], "unsupported_key": True}])
 
 
@@ -348,7 +342,7 @@ class DomainCompilerTests(DddPyCompilerTestCase):
         self._then_result_has_field("parameters", {self._parse("price"): {"background": [self._parse("dest_city")]}})
 
 
-class GrammarCompilerTests(DddPyCompilerTestCase):
+class TestGrammarCompiler(DddPyCompilerTestCase):
     def test_multiple_variants(self):
         self._given_compiled_ontology(actions=set(["buy"]))
         self._when_compile_grammar('buy = ["buy", "purchase"]')
@@ -851,27 +845,20 @@ top = [NP("start view", "the start view"), "main menu"]
         self._then_warning("failed to parse grammar entry key 'invalid_key'")
 
     def test_decompile_key_with_single_arg(self):
-        self.assertEquals(
-            "price_user_question",
-            GrammarCompiler()._decompile_key(Node(Constants.USER_QUESTION, {"predicate": "price"}))
-        )
+        assert "price_user_question" == GrammarCompiler()._decompile_key(
+            Node(Constants.USER_QUESTION, {"predicate": "price"}))
 
     def test_decompile_key_with_multiple_args(self):
         parameters = OrderedDict()
         parameters["reason"] = "no_reservation_exists"
         parameters["action"] = "CancelReservation"
-        self.assertEquals(
-            "CancelReservation_failed_no_reservation_exists",
-            GrammarCompiler()._decompile_key(Node(Constants.REPORT_FAILED, parameters))
-        )
+        assert "CancelReservation_failed_no_reservation_exists" == GrammarCompiler()._decompile_key(
+            Node(Constants.REPORT_FAILED, parameters))
 
     def test_decompile_key_without_args(self):
-        self.assertEquals("ANSWER", GrammarCompiler()._decompile_key(Node(Constants.ANSWER_COMBINATION, {})))
+        assert "ANSWER" == GrammarCompiler()._decompile_key(Node(Constants.ANSWER_COMBINATION, {}))
 
     def test_decompile_node(self):
-        self.assertEquals(
-            u'make_reservation = "make reservation"\n',
-            GrammarCompiler().decompile_node(
+        assert u'make_reservation = "make reservation"\n' == GrammarCompiler().decompile_node(
                 Node(Constants.ACTION, {'name': 'make_reservation'}, [u'make reservation'])
             )
-        )

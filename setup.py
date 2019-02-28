@@ -36,6 +36,7 @@ if __name__ == "__main__":
                 "ddd/schemas/grammar_rgl.xsd",
                 "ddd/schemas/ontology.xsd",
                 "ddd/schemas/service_interface.xsd",
+                "ddd/schemas/domain.xsd",
             ]
         },
         scripts=[],

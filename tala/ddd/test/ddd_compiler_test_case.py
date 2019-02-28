@@ -1,14 +1,12 @@
-import unittest
-
 from mock import Mock
 
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, DeviceModuleTarget
 
 
-class DddCompilerTestCase(unittest.TestCase):
+class DddCompilerTestCase(object):
     DDD_NAME = "mockup_ddd_name"
 
-    def setUp(self):
+    def setup(self):
         self._service_interface = None
         self.mock_service_target = self._create_mock_service_target()
 
