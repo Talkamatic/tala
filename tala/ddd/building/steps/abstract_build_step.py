@@ -10,9 +10,6 @@ class AbstractBuildStep(object):
     def build(self):
         raise NotImplementedError()
 
-    def _directory_of_rasa_files(self, language_code):
-        return "%s/%s" % ("build_rasa", language_code)
-
     def _log_command(self, cmd):
         if self._verbose:
             print("calling %r" % cmd)

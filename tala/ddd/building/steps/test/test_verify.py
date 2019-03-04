@@ -21,7 +21,6 @@ class TestVerifyStepsForGFGeneration(object):
         self._ddd_name = None
         self._language_codes = []
         self._mocked_auto_generator = None
-        self._mocked_rasa_generator = None
 
     def teardown(self):
         os.chdir(self._cwd)
@@ -35,7 +34,7 @@ class TestVerifyStepsForGFGeneration(object):
         with self._patched_auto_generator(step) as MockAutoGenerator:
             self._given_mocked_auto_generator(MockAutoGenerator)
             self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=False)
+            self._given_mocked_ddd()
             self._given_language_codes(["eng"])
             self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
             self._given_step_created(step)
@@ -51,10 +50,9 @@ class TestVerifyStepsForGFGeneration(object):
     def _given_ddd_name(self, name):
         self._ddd_name = name
 
-    def _given_mocked_ddd(self, is_rasa_enabled):
+    def _given_mocked_ddd(self):
         mock_ddd = Mock(spec=DDD)
         mock_ddd.name = self._ddd_name
-        mock_ddd.is_rasa_enabled = is_rasa_enabled
         self._mock_ddd = mock_ddd
 
     def _given_language_codes(self, language_codes):
@@ -90,7 +88,7 @@ class TestVerifyStepsForGFGeneration(object):
         with self._patched_auto_generator(step) as MockAutoGenerator:
             self._given_mocked_auto_generator(MockAutoGenerator)
             self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=False)
+            self._given_mocked_ddd()
             self._given_language_codes(["eng", "sv"])
             self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
             self._given_step_created(step)
@@ -100,79 +98,3 @@ class TestVerifyStepsForGFGeneration(object):
     def _then_gf_grammars_have_been_generated_for(self, expected_languages):
         expected_calls = [call(language) for language in expected_languages]
         self._mocked_auto_generator.generate.assert_has_calls(expected_calls)
-
-    @pytest.mark.parametrize("step", [
-        VerifyStepForGFGeneration,
-        VerifyStepForGFRGLGeneration,
-    ])
-    @patch("{}.RasaGenerator".format(verify.__name__), autospec=True)
-    def test_verify_does_not_create_build_rasa_directories(self, MockRASAGenerator, step):
-        with self._patched_auto_generator(step):
-            self._given_mocked_rasa_generator(MockRASAGenerator)
-            self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=True)
-            self._given_language_codes(["eng"])
-            self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
-            self._given_step_created(step)
-            self._when_calling_build()
-            self._then_rasa_files_have_not_been_written_by_rasa_generator()
-
-    def _given_mocked_rasa_generator(self, MockRASAGenerator):
-        self._mocked_rasa_generator = MockRASAGenerator.return_value
-
-    def _then_rasa_files_have_not_been_written_by_rasa_generator(self):
-        self._mocked_rasa_generator.generate_and_write_to_file.assert_not_called()
-
-    @pytest.mark.parametrize("step", [
-        VerifyStepForGFGeneration,
-        VerifyStepForGFRGLGeneration,
-    ])
-    @patch("{}.RasaGenerator".format(verify.__name__), autospec=True)
-    def test_verify_with_rasa_disabled_does_not_create_build_rasa_directories(self, MockRASAGenerator, step):
-        with self._patched_auto_generator(step):
-            self._given_mocked_rasa_generator(MockRASAGenerator)
-            self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=False)
-            self._given_language_codes(["eng"])
-            self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
-            self._given_step_created(step)
-            self._when_calling_build()
-            self._then_rasa_files_have_not_been_written_by_rasa_generator()
-
-    @pytest.mark.parametrize("step", [
-        VerifyStepForGFGeneration,
-        VerifyStepForGFRGLGeneration,
-    ])
-    @patch("{}.RasaGenerator".format(verify.__name__), autospec=True)
-    def test_verify_generates_rasa_model(self, MockRASAGenerator, step):
-        with self._patched_auto_generator(step):
-            self._given_mocked_rasa_generator(MockRASAGenerator)
-            self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=True)
-            self._given_language_codes(["eng"])
-            self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
-            self._given_step_created(step)
-            self._when_calling_build()
-            self._then_rasa_model_has_been_generated()
-
-    def _then_rasa_model_has_been_generated(self):
-        self._mocked_rasa_generator.generate.assert_called_once_with()
-
-    @pytest.mark.parametrize("step", [
-        VerifyStepForGFGeneration,
-        VerifyStepForGFRGLGeneration,
-    ])
-    @patch("{}.RasaGenerator".format(verify.__name__), autospec=True)
-    def test_verify_with_rasa_disabled_does_not_generate_rasa_model(self, MockRASAGenerator, step):
-        with self._patched_auto_generator(step):
-            self._given_mocked_rasa_generator(MockRASAGenerator)
-            self._given_ddd_name("MockDDD")
-            self._given_mocked_ddd(is_rasa_enabled=False)
-            self._given_language_codes(["eng"])
-            self._given_file_exists("MockDDD/grammar/grammar_eng.xml")
-            self._given_step_created(step)
-            self._when_calling_build()
-            self._then_rasa_model_has_not_been_generated()
-
-    def _then_rasa_model_has_not_been_generated(self):
-        self._mocked_rasa_generator.generate.assert_not_called()

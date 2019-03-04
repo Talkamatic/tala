@@ -92,7 +92,3 @@ class AbstractBackendDependencies(object):
     @property
     def inactive_seconds_allowed(self):
         return self._inactive_seconds_allowed
-
-    @property
-    def ddds_with_rasa(self):
-        return [ddd for ddd in self.ddds if ddd.is_rasa_enabled]

@@ -31,10 +31,9 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
         os.chdir(self._cwd)
         shutil.rmtree(self._temp_dir)
 
-    def _given_mocked_ddd(self, is_rasa_enabled):
+    def _given_mocked_ddd(self):
         mock_ddd = Mock(spec=DDD)
         mock_ddd.name = self._ddd_name
-        mock_ddd.is_rasa_enabled = is_rasa_enabled
         self._mock_ddd = mock_ddd
 
     def _given_ddd_name(self, name):
@@ -75,7 +74,7 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
         self._given_step_factory_creates_mocked_step(MockVerifyStepFactory)
         self._given_ddd_name("app")
         self._given_asr("none")
-        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_ddd()
         self._given_mocked_backend_dependencies()
         self._given_file_exists("app/grammar/grammar_eng.py")
         self._given_language_codes(["eng"])
@@ -99,7 +98,7 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
         self._given_step_factory_creates_mocked_step(MockGenerateStepFactory)
         self._given_ddd_name("app")
         self._given_asr("none")
-        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_ddd()
         self._given_mocked_backend_dependencies()
         self._given_file_exists("app/grammar/grammar_eng.py")
         self._given_language_codes(["eng"])
@@ -113,7 +112,7 @@ class TestDDDBuilderForGenerating(unittest.TestCase):
         self._given_mocked_clean_step(MockCleanStepFactory)
         self._given_ddd_name("app")
         self._given_asr("none")
-        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_ddd()
         self._given_mocked_backend_dependencies()
         self._given_file_exists("app/grammar/grammar_eng.py")
         self._given_language_codes(["eng"])

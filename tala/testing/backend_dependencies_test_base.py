@@ -1,6 +1,6 @@
 from mock import Mock
 
-from tala.config import BackendConfig, RasaConfig
+from tala.config import BackendConfig
 from tala.model.ontology import Ontology
 
 
@@ -9,7 +9,6 @@ class BackendDependenciesTestBase(object):
         self._mock_args = Mock()
         self._result = None
         self._mock_ddds = []
-        self._mocked_rasa_component_builder = None
 
     def given_mock_backend_config(self, MockBackendConfig):
         self._config = BackendConfig.default_config()
@@ -35,20 +34,12 @@ class BackendDependenciesTestBase(object):
     def given_active_ddd_in_config(self, active_ddd):
         self._config["active_ddd"] = active_ddd
 
-    def given_mock_rasa_config(self, MockRasaConfig):
-        self._rasa_config = RasaConfig.default_config()
-        mock_rasa_config = MockRasaConfig.return_value
-        mock_rasa_config.read.return_value = self._rasa_config
-
-    def given_rasa_enabled_in(self, ddd):
-        self._get_ddd(ddd).is_rasa_enabled = True
-
     def given_mocked_ontology_in(self, ddd):
         self._get_ddd(ddd).ontology = Mock(spec=Ontology)
 
-    def given_mocked_ontology_has_predicates_of_sort(self, ddd, expected_sort):
+    def given_mocked_ontology_has_predicates_of_sort(self, ddd, expected_sorts):
         def return_true_for_expected_sort(actual_sort):
-            return actual_sort == expected_sort
+            return actual_sort in expected_sorts
 
         self._get_ddd(ddd).ontology.predicates_contain_sort.side_effect = return_true_for_expected_sort
 
@@ -61,12 +52,5 @@ class BackendDependenciesTestBase(object):
                 return ddd
         return self._create_mock_ddd(name)
 
-    def given_mock_rasa_loader(self, MockRasaLoader):
-        self._mock_rasa_interpreter = MockRasaLoader.create_interpreter.return_value
-        self._mock_rasa_loader = MockRasaLoader
-
     def when_creating_backend_dependencies(self):
         self._create_backend_dependencies()
-
-    def given_rasa_disabled_in(self, ddd):
-        self._get_ddd(ddd).is_rasa_enabled = False

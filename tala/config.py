@@ -2,6 +2,7 @@ import json
 import os
 import datetime
 
+from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
 from tala.utils.text_formatting import readable_list
 
 DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
@@ -25,15 +26,15 @@ class DddConfigNotFoundException(ConfigNotFoundException):
     pass
 
 
-class RasaConfigNotFoundException(ConfigNotFoundException):
-    pass
-
-
 class DeploymentsConfigNotFoundException(ConfigNotFoundException):
     pass
 
 
 class UnexpectedConfigEntriesException(Exception):
+    pass
+
+
+class UnexpectedRASALanguageException(Exception):
     pass
 
 
@@ -196,7 +197,7 @@ class DddConfig(Config):
             "device_module": None,
             "word_list": "word_list.txt",
             "overrides": None,
-            "enable_rasa_nlu": False,
+            "rasa_nlu": {},
         }
 
     def _raise_config_not_found_exception(self):
@@ -204,23 +205,38 @@ class DddConfig(Config):
             "Expected DDD config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
         )
 
+    def read(self):
+        config = super(DddConfig, self).read()
+        self._validate_rasa_nlu_language(config["rasa_nlu"])
+        self._validate_rasa_nlu(config["rasa_nlu"])
+        return config
 
-class RasaConfig(Config):
-    @staticmethod
-    def default_name():
-        return "rasa.config.json"
+    def _validate_rasa_nlu_language(self, config):
+        for language in config.keys():
+            if language not in SUPPORTED_RASA_LANGUAGES:
+                raise UnexpectedRASALanguageException(
+                    "Expected one of the supported RASA languages {} in DDD config '{}' but got '{}'.".format(
+                        SUPPORTED_RASA_LANGUAGES, self._absolute_path, language
+                    )
+                )
 
-    @staticmethod
-    def default_config():
-        return {
-            "enable_duckling": False,
-            "duckling_url": "http://127.0.0.1:10090",
-        }
+    def _validate_rasa_nlu(self, config):
+        def message_for_missing_entry(parameter, language):
+            return "Parameter '{parameter}' is missing from 'rasa_nlu.{language}' in DDD config '{file}'." \
+                .format(parameter=parameter, language=language, file=self._absolute_path)
 
-    def _raise_config_not_found_exception(self):
-        raise RasaConfigNotFoundException(
-            "Expected RASA config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
-        )
+        def message_for_unexpected_entries(parameters, language):
+            return "Parameters {parameters} are unexpected in 'rasa_nlu.{language}' of DDD config '{file}'." \
+                .format(parameters=parameters, language=language, file=self._absolute_path)
+
+        for language, rasa_nlu in config.items():
+            if "url" not in rasa_nlu:
+                raise UnexpectedConfigEntriesException(message_for_missing_entry("url", language))
+            if "config" not in rasa_nlu:
+                raise UnexpectedConfigEntriesException(message_for_missing_entry("config", language))
+            unexpecteds = set(rasa_nlu.keys()) - {"url", "config"}
+            if any(unexpecteds):
+                raise UnexpectedConfigEntriesException(message_for_unexpected_entries(list(unexpecteds), language))
 
 
 class DeploymentsConfig(Config):

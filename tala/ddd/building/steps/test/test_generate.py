@@ -25,7 +25,7 @@ class TestAbstractGenerateStep(object):
 
     def test_build_generates_grammars(self):
         self._given_ddd_name("MockDDD")
-        self._given_mocked_ddd(is_rasa_enabled=False)
+        self._given_mocked_ddd()
         self._given_language_codes(["eng"])
         self._given_file_exists("MockDDD/grammar/grammar_eng.py")
         self._given_generate_step_created()
@@ -36,10 +36,9 @@ class TestAbstractGenerateStep(object):
     def _given_ddd_name(self, name):
         self._ddd_name = name
 
-    def _given_mocked_ddd(self, is_rasa_enabled):
+    def _given_mocked_ddd(self):
         mock_ddd = Mock(spec=DDD)
         mock_ddd.name = self._ddd_name
-        mock_ddd.is_rasa_enabled = is_rasa_enabled
         self._mock_ddd = mock_ddd
 
     def _given_language_codes(self, language_codes):

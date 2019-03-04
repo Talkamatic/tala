@@ -36,9 +36,7 @@ class TestDDDs(object):
         return chdir(directory)
 
     def _when_verifying_with(self, backend_config):
-        console_script.main([
-            "verify", "--config", backend_config, "--rasa-config", "duckling_enabled.rasa.config.json"
-        ])
+        console_script.main(["verify", "--config", backend_config])
 
     def _then_no_errors_occured(self):
         pass

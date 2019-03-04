@@ -6,14 +6,30 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - `tala verify` now validates schema compliance for domain XML files.
-- Command `tala generate-rasa` has been added. Use it to generate training data for RASA NLU.
+- Command `tala generate-rasa` has been added. Use it to generate training data for Rasa NLU.
 
 ### Changed
 - Boolean attribute values in domain XML files, e.g. values for the attribute `downdate_plan`, are now only supported in lowercase, i.e. `"true"` or `"false"`.
 - `tala verify` now issues warnings when propositional slots are encountered in the grammar and RASA NLU is enabled.
+- The DDD config `ddd.config.json` has a new parameter `rasa_nlu`, replacing `enable_rasa_nlu`. Instead of the previous boolean value, it accepts a structure that specifies runtime parameters when TDM calls Rasa's `/parse` endpoints. For instance:
+```json
+"rasa_nlu": {
+    "eng": {
+        "url": "https://eng.my-rasa.tala.cloud/parse",
+        "config": {
+            "project": "my-project-eng",
+            "model": "my-model"
+        }
+    }
+}
+```
+- The way warnings are issued for predicate compatibility with Rasa NLU has changed when running `tala verify`. Now, warnings are issued for predicates that won't work, or has limitations, with the builtin NLU. Currently, this applies to sorts `datetime` and `integer`. Previously, when Rasa NLU was part of TDM, warnings were more detailed and based on how Rasa was configured.
+- `tala verify` now issues warnings when propositional slots are encountered in the grammar and Rasa NLU is enabled.
 
 ### Removed
 - The attribute `type` for the domain XML element `<proposition>` has been removed.
+- `tala verify` no longer verifies the DDD from a Rasa NLU perspective. The new command `tala generate-rasa` now does this instead.
+- Command `tala create-rasa-config` has been removed along with the `--rasa-config` parameter of `tala verify` since the Rasa config `rasa.config.json` is no longer used.
 
 ## [1.1.0] - 2019-02-22
 ### Added
@@ -26,5 +42,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Command `tala create-ddd` has been added. Run it to create boilerplate files for a new DDD.
 - Command `tala create-ddd-config` has been added. Run it to create a DDD config with default values.
 - Command `tala create-backend-config` has been added. Run it to create a backend config with default values.
-- Command `tala create-rasa-config` has been added. Run it to create a RASA config with default values.
+- Command `tala create-rasa-config` has been added. Run it to create a Rasa config with default values.
 - Command `tala verify` has been added. It verifies DDD files with XML schemas and additionally checks the sanity of the grammar.

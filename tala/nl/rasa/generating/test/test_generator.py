@@ -7,7 +7,6 @@ import tempfile
 import unittest
 
 from mock import MagicMock, Mock, patch
-from pathlib import Path
 
 from tala.model.ddd import DDD
 from tala.model.grammar.grammar import GrammarBase
@@ -162,57 +161,6 @@ class GeneratorTestsBase(object):
         self._mocked_warnings.warn.assert_called_once_with(expected_message, UserWarning)
 
 
-class GenerateAndWriteTests(GeneratorTestsBase, unittest.TestCase):
-    def setUp(self):
-        GeneratorTestsBase.setup(self)
-        self._MockUTF8FileWriter = None
-        self._mocked_file_writer = None
-
-    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
-    def test_written_data_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
-        self.given_mocked_file_writer(MockUTF8FileWriter)
-        self.given_generator()
-        self.given_generate_returns("mocked-data")
-        self.when_calling_generate_and_write_to_file()
-        self.then_written_data_was('mocked-data')
-
-    def given_mocked_file_writer(self, MockUTF8FileWriter):
-        self._MockUTF8FileWriter = MockUTF8FileWriter
-        self._mocked_file_writer = MockUTF8FileWriter.return_value
-
-    def given_generate_returns(self, data):
-        self._generator.generate = Mock()
-        self._generator.generate.return_value = data
-
-    def when_calling_generate_and_write_to_file(self):
-        self._generator.generate_and_write_to_file()
-
-    def then_written_data_was(self, expected_data):
-        self._mocked_file_writer.write.assert_called_once_with(expected_data)
-
-    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
-    def test_path_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
-        self.given_mocked_file_writer(MockUTF8FileWriter)
-        self.given_generator()
-        self.given_generate_returns("mocked-data")
-        self.when_calling_generate_and_write_to_file()
-        self.then_path_was(Path("build_rasa") / "eng" / "rasa_data.json")
-
-    def then_path_was(self, expected_path):
-        self._MockUTF8FileWriter.assert_called_once_with(expected_path)
-
-    @patch("{}.UTF8FileWriter".format(generator.__name__), autospec=True)
-    def test_directories_created_when_calling_generate_and_write_to_file(self, MockUTF8FileWriter):
-        self.given_mocked_file_writer(MockUTF8FileWriter)
-        self.given_generator()
-        self.given_generate_returns("mocked-data")
-        self.when_calling_generate_and_write_to_file()
-        self.then_directories_was_created()
-
-    def then_directories_was_created(self):
-        self._mocked_file_writer.create_directories.assert_called_once_with()
-
-
 class UnsupportedBuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def setUp(self):
         GeneratorTestsBase.setup(self)
@@ -333,12 +281,10 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:action::call
+        self.then_result_matches(u"""## intent:rasa_test:action::call
 - make a call
 
-"""
-        )
+""")
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
     def test_requests_with_propositional_entities_issue_warning(self, mock_warnings):
@@ -552,9 +498,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def test_answers(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
-        self.given_mocked_grammar_with_individuals(
-            answers=list(self._answers(sort="contact"))
-        )
+        self.given_mocked_grammar_with_individuals(answers=list(self._answers(sort="contact")))
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
@@ -581,9 +525,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def test_propositional_entities_excluded_from_answers(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
-        self.given_mocked_grammar_with_individuals(
-            answers=list(self._answers(predicate="selected_contact"))
-        )
+        self.given_mocked_grammar_with_individuals(answers=list(self._answers(predicate="selected_contact")))
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
@@ -615,9 +557,7 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_warnings(mock_warnings)
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
-        self.given_mocked_grammar_with_individuals(
-            answers=list(self._answers(predicate="selected_contact"))
-        )
+        self.given_mocked_grammar_with_individuals(answers=list(self._answers(predicate="selected_contact")))
         self.given_generator()
         self.when_generate()
         self.then_warning_is_issued(
@@ -628,19 +568,15 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
     def test_synonyms(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with_individuals(sort="contact", predicate="selected_contact")
-        self.given_mocked_grammar_with_individuals(
-            answers=list(self._answers(sort="contact"))
-        )
+        self.given_mocked_grammar_with_individuals(answers=list(self._answers(sort="contact")))
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## synonyms:rasa_test:John
+        self.then_result_matches(u"""## synonyms:rasa_test:John
 - Johnny
 
 ## synonyms:rasa_test:Lisa
 - Elizabeth
-"""
-        )
+""")
 
 
 class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
@@ -699,12 +635,10 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:action::mock_action
+        self.then_result_matches(u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
 
-"""
-        )
+""")
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
     def test_requests_with_propositional_entities_issues_warning(self, mock_warnings):
@@ -765,12 +699,10 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:question::mock_predicate
+        self.then_result_matches(u"""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
 
-"""
-        )
+""")
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
     def test_questions_with_propositional_entities_issues_warning(self, mock_warnings):

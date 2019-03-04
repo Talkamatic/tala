@@ -13,8 +13,8 @@ from pathlib import Path
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.cli.argument_parser import add_common_backend_arguments
 from tala.cli.tdm.tdm_cli import TDMCLI
-from tala.config import BackendConfig, DddConfig, RasaConfig, DeploymentsConfig, BackendConfigNotFoundException, \
-    DddConfigNotFoundException, RasaConfigNotFoundException, DeploymentsConfigNotFoundException
+from tala.config import BackendConfig, DddConfig, DeploymentsConfig, BackendConfigNotFoundException, \
+    DddConfigNotFoundException, DeploymentsConfigNotFoundException
 from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
 from tala.cli import console_formatting
@@ -70,14 +70,6 @@ def create_ddd_config(args):
             "Expected to be able to create DDD config file '%s' but it already exists." % args.filename
         )
     DddConfig().write_default_config(args.filename)
-
-
-def create_rasa_config(args):
-    if os.path.exists(args.filename):
-        raise ConfigAlreadyExistsException(
-            "Expected to be able to create RASA config file '%s' but it already exists." % args.filename
-        )
-    RasaConfig().write_default_config(args.filename)
 
 
 def create_deployments_config(args):
@@ -144,9 +136,6 @@ def _config_exception_handling():
     except DddConfigNotFoundException as exception:
         message = generate_message("DDD", "create-ddd-config", exception.config_path)
         raise ConfigNotFoundException(message)
-    except RasaConfigNotFoundException as exception:
-        message = generate_message("RASA", "create-rasa-config", exception.config_path)
-        raise ConfigNotFoundException(message)
     except DeploymentsConfigNotFoundException as exception:
         message = generate_message("deployments", "create-deployments-config", exception.config_path)
         raise ConfigNotFoundException(message)
@@ -194,12 +183,6 @@ def add_verify_subparser(subparsers):
         action="store_true",
         help="ignore warnings when compiling the grammar"
     )
-    parser.add_argument(
-        "--rasa-config",
-        dest="rasa_config",
-        default=None,
-        help="override the default RASA config %r" % RasaConfig.default_name()
-    )
 
 
 def add_generate_rasa_subparser(subparsers):
@@ -208,12 +191,6 @@ def add_generate_rasa_subparser(subparsers):
     add_common_backend_arguments(parser)
     parser.add_argument("ddd", help="generate for this DDD")
     parser.add_argument("language", choices=languages.SUPPORTED_RASA_LANGUAGES, help="use the grammar of this language")
-    parser.add_argument(
-        "--rasa-config",
-        dest="rasa_config",
-        default=None,
-        help="override the default RASA config %r" % RasaConfig.default_name()
-    )
 
 
 def add_create_ddd_subparser(subparsers):
@@ -245,17 +222,6 @@ def add_create_ddd_config_subparser(subparsers):
         default=DddConfig.default_name(),
         metavar="NAME",
         help="filename of the DDD config, e.g. %s" % DddConfig.default_name()
-    )
-
-
-def add_create_rasa_config_subparser(subparsers):
-    parser = subparsers.add_parser("create-rasa-config", help="create a TDM-specific RASA config")
-    parser.set_defaults(func=create_rasa_config)
-    parser.add_argument(
-        "--filename",
-        default=RasaConfig.default_name(),
-        metavar="NAME",
-        help="filename of the RASA config, e.g. %s" % RasaConfig.default_name()
     )
 
 
@@ -312,7 +278,6 @@ def main(args=None):
     add_create_ddd_subparser(subparsers)
     add_create_backend_config_subparser(subparsers)
     add_create_ddd_config_subparser(subparsers)
-    add_create_rasa_config_subparser(subparsers)
     add_create_deployments_config_subparser(subparsers)
     add_version_subparser(subparsers)
     add_interact_subparser(subparsers)

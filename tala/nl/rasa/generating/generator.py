@@ -2,24 +2,18 @@ import os
 import warnings
 
 from jinja2 import Template
-from pathlib import Path
 
 from tala.ddd.grammar.reader import GrammarReader
 from tala.nl.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT, \
     NEGATIVE_INTENT
 from tala.nl.rasa.generating.examples import Examples
-from tala.utils.file_writer import UTF8FileWriter
 
 
-class RASANotSupportedByGrammarFormatException(Exception):
+class RasaNotSupportedByGrammarFormatException(Exception):
     pass
 
 
 class UnexpectedRequiredEntityException(Exception):
-    pass
-
-
-class RASADataNotGeneratedException(Exception):
     pass
 
 
@@ -47,7 +41,7 @@ class RasaGenerator(object):
                     examples[key] = values
 
         if not GrammarReader.xml_grammar_exists_for_language(self._language_code):
-            raise RASANotSupportedByGrammarFormatException(
+            raise RasaNotSupportedByGrammarFormatException(
                 "Expected an XML-based grammar at '%s', but it does not exist" %
                 os.path.abspath(GrammarReader.path(self._language_code))
             )
@@ -115,20 +109,6 @@ class RasaGenerator(object):
             "value": value,
             "synonyms": synonyms,
         }
-
-    @staticmethod
-    def data_file_name():
-        return "rasa_data.json"
-
-    def generate_and_write_to_file(self):
-        def write(path, text):
-            writer = UTF8FileWriter(path)
-            writer.create_directories()
-            writer.write(text)
-
-        path = Path("build_rasa") / self._language_code / self.data_file_name()
-        data = self.generate()
-        write(path, data)
 
     def _examples_of_negative_intent(self):
         return {NEGATIVE_INTENT: list(self._language_examples.negative)}

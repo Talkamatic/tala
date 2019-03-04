@@ -7,8 +7,7 @@ import tempfile
 from pathlib import Path
 import pytest
 
-from tala.config import BackendConfig, DddConfig, RasaConfig, DeploymentsConfig
-from tala.cli.console_formatting import BOLD, ENDC
+from tala.config import BackendConfig, DddConfig, DeploymentsConfig
 from tala.cli import console_script
 from tala.utils.chdir import chdir
 
@@ -171,7 +170,6 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
         "ConfigClass,command", [
             (BackendConfig, "create-backend-config"),
             (DddConfig, "create-ddd-config"),
-            (RasaConfig, "create-rasa-config"),
             (DeploymentsConfig, "create-deployments-config"),
         ]
     )
@@ -188,7 +186,6 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
         "ConfigClass,command", [
             (BackendConfig, "create-backend-config"),
             (DddConfig, "create-ddd-config"),
-            (RasaConfig, "create-rasa-config"),
             (DeploymentsConfig, "create-deployments-config"),
         ]
     )
@@ -200,7 +197,6 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
         "name,command", [
             ("backend", "create-backend-config"),
             ("DDD", "create-ddd-config"),
-            ("RASA", "create-rasa-config"),
             ("deployments", "create-deployments-config"),
         ]
     )
@@ -214,14 +210,11 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     def _given_config_was_created_with(self, arguments):
         self._run_tala_with(arguments)
 
-    @pytest.mark.parametrize(
-        "command", [
-            "create-backend-config",
-            "create-ddd-config",
-            "create-rasa-config",
-            "create-deployments-config",
-        ]
-    )
+    @pytest.mark.parametrize("command", [
+        "create-backend-config",
+        "create-ddd-config",
+        "create-deployments-config",
+    ])
     def test_config_file_not_overwritten(self, command):
         self._given_file_contains("test.config.json", "unmodified_mock_content")
         self._when_running_command("tala {} --filename test.config.json".format(command))
@@ -279,7 +272,6 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             "^Verifying models for DDD 'test_ddd'.\n"
             "\[eng\] Verifying grammar.\n"
             "\[eng\] Finished verifying grammar.\n"
-            "\[eng\] RASA NLU is disabled, skipping its grammar verification.\n"
             "Finished verifying models for DDD 'test_ddd'.\n$"
         )
 
@@ -288,22 +280,18 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         with self._given_changed_directory_to_ddd_folder():
             self._given_enabled_rasa()
         with self._given_changed_directory_to_target_dir():
-            self._given_rasa_config_created()
             self._when_running_command("tala verify")
         self._then_stdout_matches(
             "^Verifying models for DDD 'test_ddd'.\n"
             "\[eng\] Verifying grammar.\n"
             "\[eng\] Finished verifying grammar.\n"
-            "\[eng\] Verifying grammar for RASA NLU.\n"
-            "\[eng\] Finished verifying grammar for RASA NLU.\n"
             "Finished verifying models for DDD 'test_ddd'.\n$"
         )
 
-    def _given_rasa_config_created(self):
-        self._run_tala_with(["create-rasa-config"])
-
     def _given_enabled_rasa(self):
-        self._replace_in_file(Path(DddConfig.default_name()), '"enable_rasa_nlu": false', '"enable_rasa_nlu": true')
+        self._replace_in_file(
+            Path(DddConfig.default_name()), '"rasa_nlu": {}', '"rasa_nlu": {"eng": {"url": "mock-url", "config": {}}}'
+        )
 
     def test_stderr_when_verifying_boilerplate_ddd(self):
         self._given_created_ddd_in_a_target_dir()
@@ -313,30 +301,6 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
 
     def _then_stderr_is_empty(self):
         assert self._stderr == ""
-
-    def test_stderr_when_verifying_boilerplate_ddd_with_rasa_enabled(self):
-        def format_regular_expression_as_warning(regular_expression):
-            return "{}{}{}".format(re.escape(BOLD), regular_expression, re.escape(ENDC))
-
-        self._given_created_ddd_in_a_target_dir()
-        with self._given_changed_directory_to_ddd_folder():
-            self._given_enabled_rasa()
-        with self._given_changed_directory_to_target_dir():
-            self._given_rasa_config_created()
-            self._when_running_command("tala verify")
-        self._then_stderr_matches_only(
-            format_regular_expression_as_warning(
-                "UserWarning: The support for RASA NLU is still in BETA. Talk gently. "
-                "It is currently enabled in DDD 'test_ddd'.\n"
-            )
-        )
-
-    def _then_stderr_matches_only(self, pattern):
-        expected_pattern = "^{}$".format(pattern)
-        match = re.match(expected_pattern, self._stderr)
-        assert match is not None, "Expected pattern {!r} to match stderr {!r} but it didn't".format(
-            expected_pattern, self._stderr
-        )
 
     def test_verify_creates_no_build_folders(self):
         self._given_created_ddd_in_a_target_dir()
@@ -354,7 +318,6 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         with self._given_changed_directory_to_ddd_folder():
             self._given_enabled_rasa()
         with self._given_changed_directory_to_target_dir():
-            self._given_rasa_config_created()
             self._when_running_command("tala verify")
         self._then_there_are_no_build_folders()
 

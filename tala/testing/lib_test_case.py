@@ -129,7 +129,7 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
             self.DDD_NAME,
             self.ontology,
             Domain(self.DDD_NAME, "mockup_domain", self.ontology),
-            is_rasa_enabled=False,
+            rasa_nlu={},
             service_interface=Mock(spec=ServiceInterface),
             grammars={language: None},
             language_codes=[language],

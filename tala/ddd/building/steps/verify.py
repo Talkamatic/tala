@@ -3,7 +3,6 @@ from __future__ import print_function
 from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
 from tala.nl.gf.auto_generator import AutoGenerator
 from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator
-from tala.nl.rasa.generating.generator import RasaGenerator
 from tala.utils import chdir
 
 
@@ -22,21 +21,7 @@ class AbstractVerifyStep(AbstractBuildStep):
             with chdir.chdir(self._grammar_directory):
                 for language_code in self._language_codes:
                     self._verify_grammars(language_code)
-                    self._potentially_verify_rasa_model(language_code)
             print("Finished verifying models for DDD '%s'." % self._name)
-
-    def _potentially_verify_rasa_model(self, language_code):
-        if not self._ddd.is_rasa_enabled:
-            print("[%s] RASA NLU is disabled, skipping its grammar verification." % (language_code))
-            return
-
-        self._verify_rasa_nlu_model(language_code)
-
-    def _verify_rasa_nlu_model(self, language_code):
-        print("[%s] Verifying grammar for RASA NLU." % (language_code))
-        generator = RasaGenerator(self._ddd, language_code)
-        generator.generate()
-        print("[%s] Finished verifying grammar for RASA NLU." % (language_code))
 
     def _verify_grammars(self, language_code):
         raise NotImplementedError()

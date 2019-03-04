@@ -5,9 +5,9 @@ import tempfile
 
 from mock import patch
 
-from tala.config import Config, DddConfig, RasaConfig, BackendConfig, DeploymentsConfig, \
+from tala.config import Config, DddConfig, BackendConfig, DeploymentsConfig, \
     UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, \
-    RasaConfigNotFoundException, DeploymentsConfigNotFoundException, DEFAULT_INACTIVE_SECONDS_ALLOWED
+    DeploymentsConfigNotFoundException, UnexpectedRASALanguageException, DEFAULT_INACTIVE_SECONDS_ALLOWED
 
 
 class ConfigTester(object):
@@ -237,7 +237,7 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
                 "use_third_party_parser": False,
                 "device_module": None,
                 "word_list": "word_list.txt",
-                "enable_rasa_nlu": False,
+                "rasa_nlu": {},
                 "overrides": None,
             }
         )
@@ -249,38 +249,142 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
             "Expected DDD config '.*non_existing_config\.json' to exist but it was not found\."
         )
 
-    def given_default_ddd_config_with_rasa_enabled_and_rgl_disabled(self):
-        self._json_config = DddConfig.default_config()
-        self._json_config["enable_rasa_nlu"] = True
-        self._json_config["use_rgl"] = False
-
-    def given_config_file_written(self):
-        self._create_config_file(DddConfig, self._json_config)
-
-
-class TestRasaConfig(unittest.TestCase, ConfigTester):
-    def setUp(self):
-        self.setup_configs()
-
-    def tearDown(self):
-        self.teardown_configs()
-
-    def test_default_name(self):
-        self.assertEqual(RasaConfig.default_name(), "rasa.config.json")
-
-    def test_default_config(self):
-        self.assertEqual(
-            RasaConfig.default_config(), {
-                "enable_duckling": False,
-                "duckling_url": "http://127.0.0.1:10090",
+    def test_invalid_rasa_nlu_language(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "unsupported-language": {},
+                },
+                "overrides": None,
             }
         )
-
-    def test_read_with_missing_config_file_raises_exception(self):
-        self.given_created_config_object(RasaConfig, "non_existing_config.json")
+        self.given_created_config_object(DddConfig)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
-            RasaConfigNotFoundException,
-            "Expected RASA config '.*non_existing_config\.json' to exist but it was not found\."
+            UnexpectedRASALanguageException,
+            "Expected one of the supported RASA languages \['eng'.+\] in DDD config '.+' but got 'unsupported-language'"
+        )
+
+    def test_expected_rasa_nlu(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "eng": {
+                        "url": "mock-url",
+                        "config": {
+                            "project": "my-project",
+                            "model": "my-model",
+                        }
+                    },
+                },
+                "overrides": None,
+            }
+        )
+        self.given_created_config_object(DddConfig)
+        self.when_reading()
+        self.then_read_config_was({
+            "use_rgl": True,
+            "use_third_party_parser": False,
+            "device_module": None,
+            "word_list": "word_list.txt",
+            "rasa_nlu": {
+                "eng": {
+                    "url": "mock-url",
+                    "config": {
+                        "project": "my-project",
+                        "model": "my-model",
+                    }
+                },
+            },
+            "overrides": None,
+        })
+
+    def test_unexpected_rasa_nlu_key(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "eng": {
+                        "url": "my-url",
+                        "config": {},
+                        "unexpected-key": "mock-value",
+                    },
+                },
+                "overrides": None,
+            }
+        )
+        self.given_created_config_object(DddConfig)
+        self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
+            UnexpectedConfigEntriesException,
+            "Parameters \[u'unexpected-key'\] are unexpected in 'rasa_nlu.eng' of DDD config '.+'\."
+        )
+
+    def test_missing_url_in_rasa_nlu(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "eng": {
+                        "config": {},
+                    },
+                },
+                "overrides": None,
+            }
+        )
+        self.given_created_config_object(DddConfig)
+        self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
+            UnexpectedConfigEntriesException, "Parameter 'url' is missing from 'rasa_nlu.eng' in DDD config '.+'\."
+        )
+
+    def test_missing_config_in_rasa_nlu(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "eng": {
+                        "url": "my-url",
+                    },
+                },
+                "overrides": None,
+            }
+        )
+        self.given_created_config_object(DddConfig)
+        self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
+            UnexpectedConfigEntriesException, "Parameter 'config' is missing from 'rasa_nlu.eng' in DDD config '.+'\."
+        )
+
+    def test_missing_keys_in_rasa_nlu(self):
+        self.given_config_file_exists(
+            DddConfig, {
+                "use_rgl": True,
+                "use_third_party_parser": False,
+                "device_module": None,
+                "word_list": "word_list.txt",
+                "rasa_nlu": {
+                    "eng": {},
+                },
+                "overrides": None,
+            }
+        )
+        self.given_created_config_object(DddConfig)
+        self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
+            UnexpectedConfigEntriesException, "Parameter 'url' is missing from 'rasa_nlu.eng' in DDD config '.+'\."
         )
 
 
@@ -295,11 +399,9 @@ class TestDeploymentsConfig(unittest.TestCase, ConfigTester):
         self.assertEqual(DeploymentsConfig.default_name(), "deployments.config.json")
 
     def test_default_config(self):
-        self.assertEqual(
-            DeploymentsConfig.default_config(), {
-                "dev": "https://127.0.0.1:9090/interact",
-            }
-        )
+        self.assertEqual(DeploymentsConfig.default_config(), {
+            "dev": "https://127.0.0.1:9090/interact",
+        })
 
     def test_read_with_missing_config_file_raises_exception(self):
         self.given_created_config_object(DeploymentsConfig, "non_existing_config.json")
@@ -309,19 +411,10 @@ class TestDeploymentsConfig(unittest.TestCase, ConfigTester):
         )
 
     def test_several_environments_allowed(self):
-        self.given_created_config_object(DeploymentsConfig)
-        self.given_config_file_exists(
-            DeploymentsConfig, {
-                "dev": "dev-url",
-                "prod": "prod-url"
-            }
-        )
+        self.given_config_file_exists(DeploymentsConfig, {"dev": "dev-url", "prod": "prod-url"})
         self.given_created_config_object(DeploymentsConfig)
         self.when_reading()
-        self.then_read_config_was({
-            "dev": "dev-url",
-            "prod": "prod-url"
-        })
+        self.then_read_config_was({"dev": "dev-url", "prod": "prod-url"})
 
 
 class TestBackendConfig(unittest.TestCase, ConfigTester):

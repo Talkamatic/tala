@@ -25,11 +25,6 @@ class DDDLoader(object):
         self._py_compiler = DddPyCompiler()
         self._xml_compiler = DddXmlCompiler()
 
-        if ddd_config["enable_rasa_nlu"]:
-            warnings.warn(
-                "The support for RASA NLU is still in BETA. Talk gently. It is currently enabled in DDD '%s'." % name
-            )
-
     def _load_grammar(self, language_code):
         if GrammarReader.xml_grammar_exists_for_language(language_code, path="grammar"):
             grammar_string = GrammarReader.read(language_code, path="grammar")
@@ -122,6 +117,6 @@ class DDDLoader(object):
 
     def _create_ddd(self, ontology, domain, service_interface, grammars):
         return DDD(
-            self._name, ontology, domain, self._ddd_config["enable_rasa_nlu"], service_interface, grammars,
+            self._name, ontology, domain, self._ddd_config["rasa_nlu"], service_interface, grammars,
             self._languages, self._ddd_config["use_rgl"]
         )
