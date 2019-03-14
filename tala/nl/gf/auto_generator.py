@@ -803,10 +803,10 @@ class AutoGenerator(object):
         sort = predicate.getSort()
         if sort.is_builtin():
             self._assert_sorts_of_background_predicates_are_valid(predicate.get_name(), sort.get_name(), form)
-            if sort.is_string_sort() or sort.is_datetime_sort():
-                self._generate_system_placeholder_answer_content(predicate.get_name(), form)
-            elif sort.is_integer_sort():
+            if sort.is_integer_sort():
                 self._generate_system_integer_answer_content(predicate.get_name(), form)
+            else:
+                self._generate_system_placeholder_answer_content(predicate.get_name(), form)
         else:
             self._generate_unary_propositional_system_answer_content_for_custom_sort(predicate, form)
 

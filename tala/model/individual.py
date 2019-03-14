@@ -60,12 +60,7 @@ class Individual(OntologySpecificSemanticObject):
             return string
 
     def value_as_json_object(self):
-        if self.sort.is_image_sort() or self.sort.is_webview_sort():
-            return {"value": self.value.url}
-        elif self.sort.is_datetime_sort():
-            return {"value": self.value.iso8601_string}
-        else:
-            return {"value": self.value}
+        return self.sort.value_as_json_object(self.value)
 
 
 class NegativeIndividual(Individual):
@@ -73,7 +68,7 @@ class NegativeIndividual(Individual):
         return Individual(self.ontology_name, self.value, self.sort)
 
     def __unicode__(self):
-        return "~%s" % self.getValue()
+        return "~%s" % unicode(self.getValue())
 
     def __eq__(self, other):
         try:

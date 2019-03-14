@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [unreleased]
 ### Added
 - A new optional attribute "selection" is supported for <one-of> elements in <report> in grammars with RGL disabled, with supported values "disabled" (default) or "cyclic".
+- A new builtin sort `person_name` has been added. Use it together with a `PERSON` or `PER` NER in Rasa NLU.
 
 ## [3.0.0] - 2019-05-10
 ### Added

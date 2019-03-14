@@ -1,20 +1,21 @@
-import unittest
-
 from mock import patch
 import pytest
 
 from tala.model.ontology import Ontology, SortDoesNotExistException
 from tala.model.predicate import Predicate
-from tala.model.sort import StringSort, ImageSort, WebviewSort, BooleanSort, RealSort, CustomSort, IntegerSort, DateTimeSort, InvalidValueException, BuiltinSortRepository, UndefinedSort, DomainSort, BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW
+from tala.model.sort import Sort, StringSort, ImageSort, WebviewSort, BooleanSort, RealSort, CustomSort, IntegerSort, \
+    DateTimeSort, InvalidValueException, BuiltinSortRepository, UndefinedSort, DomainSort, PersonNameSort, BOOLEAN, \
+    INTEGER, DATETIME, PERSON_NAME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW, UnsupportedValue
 import tala.model.sort
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
+from tala.model.person_name import PersonName
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
 
-class SortTestCase(unittest.TestCase):
-    def setUp(self):
+class SortTestCase(object):
+    def setup(self):
         self._sort = None
         self.ontology_name = None
 
@@ -29,11 +30,26 @@ class SortTestCase(unittest.TestCase):
             self._sort.normalize_value(value)
 
     def then_result_is(self, expected_result):
-        self.assertEqual(expected_result, self._actual_result)
+        assert expected_result == self._actual_result
+
+    def given_sort(self, sort):
+        self._sort = sort
+
+    def when_call_value_as_basic_type(self, value):
+        self._actual_result = self._sort.value_as_basic_type(value)
+
+    def when_call_value_from_basic_type(self, basic_value):
+        self._actual_result = self._sort.value_from_basic_type(basic_value)
+
+    def when_call_value_as_json_object(self, value):
+        self._actual_result = self._sort.value_as_json_object(value)
+
+    def when_call_grammar_entry(self, value, language_code):
+        self._actual_result = self._sort.grammar_entry(value, language_code)
 
 
-class SortTests(SortTestCase, EqualityAssertionTestCaseMixin):
-    def setUp(self):
+class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
+    def setup(self):
         self._create_ontology()
 
     def _create_ontology(self):
@@ -49,14 +65,14 @@ class SortTests(SortTestCase, EqualityAssertionTestCaseMixin):
 
     def test_createSort(self):
         sort = self.ontology.get_sort("city")
-        self.assertEquals("city", sort.get_name())
+        assert "city" == sort.get_name()
 
     def test_createSort_yields_exception_for_unknown_sort(self):
-        with self.assertRaises(SortDoesNotExistException):
+        with pytest.raises(SortDoesNotExistException):
             self.ontology.get_sort("sdkjfhskdjf")
 
     def test_sort_unicode(self):
-        self.assertEquals("Sort('city', dynamic=False)", unicode(CustomSort(self.ontology_name, "city")))
+        assert "Sort('city', dynamic=False)" == unicode(CustomSort(self.ontology_name, "city"))
 
     def test_sort_equality(self):
         sort1 = self.ontology.get_sort("city")
@@ -71,9 +87,44 @@ class SortTests(SortTestCase, EqualityAssertionTestCaseMixin):
     def test_sorts_hashable(self):
         {self.ontology.get_sort("city"), RealSort()}
 
+    def test_value_as_basic_type_returns_value_by_default(self):
+        self.given_sort(CustomSort(self.ontology_name, "city", dynamic=False))
+        self.when_call_value_as_basic_type("mock_value")
+        self.then_result_is("mock_value")
 
-class StringSortTests(SortTestCase):
-    def setUp(self):
+    def test_value_from_basic_type_returns_basic_value_by_default(self):
+        self.given_sort(CustomSort(self.ontology_name, "city", dynamic=False))
+        self.when_call_value_from_basic_type("mock_value")
+        self.then_result_is("mock_value")
+
+    @pytest.mark.parametrize("value,expected_sort",
+                             [(123.50, RealSort()),
+                              (123, IntegerSort()),
+                              (Image("http://www.internet.org/image.png"), ImageSort()),
+                              (Webview("http://maps.com/map.html"), WebviewSort())])
+    def test_from_value_returns_expected_sort(self, value, expected_sort):
+        self.when_call_from_value(value)
+        self.then_result_is(expected_sort)
+
+    def when_call_from_value(self, value):
+        self._actual_result = Sort.from_value(value)
+
+    def test_from_value_raises_exception_for_unsupported_value(self):
+        with pytest.raises(UnsupportedValue, match="Expected a supported value but got 'None'"):
+            self.when_call_from_value(None)
+
+    @patch("{}.Sort.value_as_basic_type".format(tala.model.sort.__name__))
+    def test_value_as_json_object_uses_value_as_basic_type(self, mock_value_as_basic_type):
+        self.given_a_sort()
+        self.when_call_value_as_json_object("mock_value")
+        self.then_result_is({"value": mock_value_as_basic_type.return_value})
+
+    def given_a_sort(self, name="mock_name"):
+        self._sort = Sort(name)
+
+
+class TestStringSort(SortTestCase):
+    def setup(self):
         self._create_ontology()
         self._sort = StringSort()
 
@@ -87,17 +138,17 @@ class StringSortTests(SortTestCase):
 
     def test_string_individual(self):
         individual = self.ontology.create_individual('"a string"')
-        self.assertEquals("a string", individual.getValue())
-        self.assertEquals(StringSort(), individual.getSort())
+        assert "a string" == individual.getValue()
+        assert StringSort() == individual.getSort()
 
     def test_string_individual_unicode(self):
         individual = self.ontology.create_individual(u'"a unicode string"')
-        self.assertEquals(u"a unicode string", individual.getValue())
-        self.assertEquals(StringSort(), individual.getSort())
+        assert u"a unicode string" == individual.getValue()
+        assert StringSort() == individual.getSort()
 
     def test_string_individual_unicode_method(self):
         individual = self.ontology.create_individual('"a string"')
-        self.assertEquals('"a string"', unicode(individual))
+        assert '"a string"' == unicode(individual)
 
     def test_normalize_base_case(self):
         self.when_normalize_value("a string")
@@ -109,8 +160,8 @@ class StringSortTests(SortTestCase):
         )
 
 
-class ImageSortTests(SortTestCase):
-    def setUp(self):
+class TestImageSort(SortTestCase):
+    def setup(self):
         self._create_ontology()
         self._sort = ImageSort()
 
@@ -124,12 +175,12 @@ class ImageSortTests(SortTestCase):
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Image("http://image.com/image.png"))
-        self.assertEquals(Image("http://image.com/image.png"), individual.getValue())
-        self.assertTrue(individual.getSort().is_image_sort())
+        assert Image("http://image.com/image.png") == individual.getValue()
+        assert individual.getSort().is_image_sort()
 
     def test_is_not_dynamic(self):
         image_sort = ImageSort()
-        self.assertFalse(image_sort.is_dynamic())
+        assert not image_sort.is_dynamic()
 
     def test_normalize_static_url_of_image_mime_type(self):
         self.when_normalize_value(Image("http://image.com/image.png"))
@@ -171,9 +222,17 @@ class ImageSortTests(SortTestCase):
             "Expected an image URL but got 'http://mock.domain/generate_html'."
         )
 
+    def test_value_as_basic_type(self):
+        self.when_call_value_as_basic_type(Image("http://image.com/image.png"))
+        self.then_result_is("http://image.com/image.png")
 
-class WebviewSortTests(SortTestCase):
-    def setUp(self):
+    def test_value_from_basic_type(self):
+        self.when_call_value_from_basic_type("http://image.com/image.png")
+        self.then_result_is(Image("http://image.com/image.png"))
+
+
+class TestWebviewSort(SortTestCase):
+    def setup(self):
         self._create_ontology()
         self._sort = WebviewSort()
 
@@ -187,12 +246,12 @@ class WebviewSortTests(SortTestCase):
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Webview("http://maps.com/map.html"))
-        self.assertEquals(Webview("http://maps.com/map.html"), individual.getValue())
-        self.assertEquals(WebviewSort(), individual.getSort())
+        assert Webview("http://maps.com/map.html") == individual.getValue()
+        assert WebviewSort() == individual.getSort()
 
     def test_is_not_dynamic(self):
         image_sort = WebviewSort()
-        self.assertFalse(image_sort.is_dynamic())
+        assert not image_sort.is_dynamic()
 
     def test_normalize_base_case(self):
         self.when_normalize_value(Webview("http://maps.com/map.html"))
@@ -208,9 +267,17 @@ class WebviewSortTests(SortTestCase):
             Webview("non_url"), InvalidValueException, "Expected a webview URL but got 'non_url'."
         )
 
+    def test_value_as_basic_type(self):
+        self.when_call_value_as_basic_type(Webview("http://maps.com/map.html"))
+        self.then_result_is("http://maps.com/map.html")
 
-class BooleanSortTestCase(SortTestCase):
-    def setUp(self):
+    def test_value_from_basic_type(self):
+        self.when_call_value_from_basic_type("http://maps.com/map.html")
+        self.then_result_is(Webview("http://maps.com/map.html"))
+
+
+class TestBooleanSort(SortTestCase):
+    def setup(self):
         self._create_ontology()
         self._sort = BooleanSort()
 
@@ -222,10 +289,24 @@ class BooleanSortTestCase(SortTestCase):
         actions = set()
         self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
-    def test_create_individual(self):
-        individual = self.ontology.create_individual(True)
-        self.assertEqual(True, individual.getValue())
-        self.assertEqual(BooleanSort(), individual.getSort())
+    def test_created_individual_has_expected_value(self):
+        self.given_created_individual_with_argument(True)
+        self.when_call_getValue_of_individual()
+        self.then_result_is(True)
+
+    def given_created_individual_with_argument(self, value):
+        self._individual = self.ontology.create_individual(value)
+
+    def when_call_getValue_of_individual(self):
+        self._actual_result = self._individual.getValue()
+
+    def test_created_individual_has_expected_sort(self):
+        self.given_created_individual_with_argument(True)
+        self.when_call_getSort_of_individual()
+        self.then_result_is(BooleanSort())
+
+    def when_call_getSort_of_individual(self):
+        self._actual_result = self._individual.getSort()
 
     def test_normalize_true(self):
         self.when_normalize_value(True)
@@ -241,8 +322,8 @@ class BooleanSortTestCase(SortTestCase):
         )
 
 
-class IntegerSortTestCase(SortTestCase):
-    def setUp(self):
+class TestIntegerSort(SortTestCase):
+    def setup(self):
         self._sort = IntegerSort()
 
     def test_normalize_base_case(self):
@@ -255,8 +336,8 @@ class IntegerSortTestCase(SortTestCase):
         )
 
 
-class RealSortTestCase(SortTestCase):
-    def setUp(self):
+class TestRealSort(SortTestCase):
+    def setup(self):
         self._sort = RealSort()
 
     def test_normalize_base_case(self):
@@ -269,8 +350,8 @@ class RealSortTestCase(SortTestCase):
         )
 
 
-class DateTimeSortTestCase(SortTestCase):
-    def setUp(self):
+class TestDateTimeSort(SortTestCase):
+    def setup(self):
         self._sort = DateTimeSort()
 
     def test_normalize_base_case(self):
@@ -288,9 +369,39 @@ class DateTimeSortTestCase(SortTestCase):
             "non_datetime_value", InvalidValueException, "Expected a datetime object but got 'non_datetime_value'."
         )
 
+    def test_value_as_basic_type(self):
+        self.when_call_value_as_basic_type(DateTime("2018-03-20T22:00:00.000Z"))
+        self.then_result_is("2018-03-20T22:00:00.000Z")
+
+    def test_value_from_basic_type(self):
+        self.when_call_value_from_basic_type("2018-03-20T22:00:00.000Z")
+        self.then_result_is(DateTime("2018-03-20T22:00:00.000Z"))
+
+
+class TestPersonName(SortTestCase):
+    def setup(self):
+        self._sort = PersonNameSort()
+
+    def test_normalize_base_case(self):
+        self.when_normalize_value(PersonName("John"))
+        self.then_result_is(PersonName("John"))
+
+    def test_exception_when_normalize_non_person_name_value(self):
+        self.when_normalize_value_then_exception_is_raised(
+            "non_person_name", InvalidValueException,
+            "Expected a person name object but got non_person_name of type str.")
+
+    def test_value_as_basic_type(self):
+        self.when_call_value_as_basic_type(PersonName("John"))
+        self.then_result_is("John")
+
+    def test_value_from_basic_type(self):
+        self.when_call_value_from_basic_type("John")
+        self.then_result_is(PersonName("John"))
+
 
 class TestBuiltinSortRepository(object):
-    @pytest.mark.parametrize("name", [BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW])
+    @pytest.mark.parametrize("name", [BOOLEAN, INTEGER, DATETIME, PERSON_NAME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW])
     def test_has_sort_true(self, name):
         self.when_invoking_has_sort(name)
         self.then_result_is(True)
@@ -308,7 +419,7 @@ class TestBuiltinSortRepository(object):
     @pytest.mark.parametrize(
         "name,expected_class", [(BOOLEAN, BooleanSort), (INTEGER, IntegerSort), (DATETIME, DateTimeSort),
                                 (REAL, RealSort), (STRING, StringSort), (IMAGE, ImageSort), (DOMAIN, DomainSort),
-                                (WEBVIEW, WebviewSort)]
+                                (WEBVIEW, WebviewSort), (PERSON_NAME, PersonNameSort)]
     )
     def test_get_sort_successful(self, name, expected_class):
         self.when_invoking_get_sort(name)

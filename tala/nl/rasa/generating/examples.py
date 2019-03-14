@@ -24,6 +24,10 @@ class Examples(object):
     def datetime(self):
         raise NotImplementedError
 
+    @property
+    def person_name(self):
+        raise NotImplementedError
+
     def get_builtin_sort_examples(self, sort):
         if sort.is_domain_sort():
             return []
@@ -33,6 +37,8 @@ class Examples(object):
             return self.string
         if sort.is_datetime_sort():
             return self.datetime
+        if sort.is_person_name_sort():
+            return self.person_name
         raise SortNotSupportedException("Builtin sort '%s' is not yet supported together with RASA" % sort.get_name())
 
     @staticmethod
@@ -93,6 +99,15 @@ class EnglishExamples(Examples):
             "March 20th at 22:00", "March twentieth at 10 pm"
         ]
 
+    @property
+    def person_name(self):
+        return ["John", "Mary", "James", "Jack", "Harry", "Tom", "William", "George", "Charlie", "Josh", "Lewis",
+                "Michael", "Ben", "Chris", "Robert", "Mark", "Scott", "Beth", "Alice", "Jessica", "Grace", "Rachel",
+                "Anna", "Kathrine", "Emily", "Megan", "Olivia", "Rebecca", "Smith", "Brown", "Wilson", "Stewart",
+                "Thompson", "Anderson", "Murray", "Morrison", "Walker", "Watson", "Miller", "Campbell", "Hunter",
+                "Gray", "Cameron", "Mitchell", "Black", "Allan", "Marshall", "Harris Duncan", "Max Mackenzie",
+                "Ethan Hamilton", "Sophie Simpson", "Lucy Wright", "Emma Murphy", "Charlotte Jones", "Thomas Gordon"]
+
 
 class SwedishExamples(Examples):
     @property
@@ -137,6 +152,15 @@ class SwedishExamples(Examples):
             "idag", u"måndag 18 mars", "1:a mars", "klockan 11.45", u"följande tre veckor", "om tio minuter",
             u"20:e mars vid 22.00", u"tjugonde mars vid tio på kvällen"
         ]
+
+    @property
+    def person_name(self):
+        return ["Astrid", "Nils", "Lisa", "Mats", "Alexander", "Annika", "Erika", "Claes", "Marcus", "Katarina", "Leif",
+                "Sara", "Oskar", "Andreas", "Per", "Roger", "Niklas", "Christer", "Johan", "Danielsson", u"Nordström",
+                "Svensson", "Jonasson", "Karlsson", "Holm", "Olofsson", u"Sandström", "Holmberg", "Olsson", "Persson",
+                "Bergman", "Lindholm", "Axelsson", "Emelie Pettersson", "Johannes Henriksson", "Martin Magnusson",
+                "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", u"Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
+                "Anette Samuelsson", "Annika Lundberg", u"Eva Löfgren", "Linda Hassan", "Robert Norberg"]
 
 
 class SpanishExamples(Examples):
@@ -197,3 +221,14 @@ class SpanishExamples(Examples):
             "11:45 de la noche", "a las tres y quince", "la semana que viene", "en cinco minutos",
             u"próximos tres meses", "este fin de semana", u"el 12 de marzo a las 8 de la mañana"
         ]
+
+    @property
+    def person_name(self):
+        return ["Antonio", u"José", "Manuel", "Francisco", "David", "Juan", "Javier", "Daniel", u"Jesús", "Carlos",
+                "Alejandro", "Miguel", "Pedro", "Pablo", u"Ángel", "Sergio", "Alberto", u"María", u"Cármen", "Ana",
+                "Isabel", "Laura", "Cristina", "Marta", "Dolores", u"Lucía", "Paula", "Mercedes", "Rosario", "Teresa",
+                "Sara", "Reyes", "Caballero", "Nieto", "Pascual", "Ferrer", u"Giménez", "Lorenzo", "Pastor", "Soto",
+                "Soler", "Parra", u"García", u"González", u"López", u"Pérez", u"Gómez", u"Díaz", "Alonso", "Moreno",
+                "Navarro", u"Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", u"Pedro Sánchez Álvarez",
+                "Sonia Reina Sanz", "Cristina Claret Iglesias", u"Manuel Núñez Santos", "Rafael Rubio Molina",
+                u"Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"]

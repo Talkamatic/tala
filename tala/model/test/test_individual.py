@@ -1,6 +1,10 @@
+from mock import Mock
+
+from tala.model.individual import Individual
 from tala.model.ontology import Ontology, OntologyError
 from tala.model.predicate import Predicate
-from tala.model.sort import RealSort, IntegerSort, StringSort, CustomSort, ImageSort, WebviewSort, DateTimeSort
+from tala.model.sort import RealSort, IntegerSort, StringSort, CustomSort, ImageSort, WebviewSort, DateTimeSort, \
+    PersonNameSort, Sort
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
@@ -26,6 +30,7 @@ class IndividualTestBase(LibTestCase):
             self._create_predicate("departure_time", DateTimeSort()),
             self._create_predicate("comment", StringSort()),
             self._create_predicate("selected_city", self._city_sort),
+            self._create_predicate("contact_to_call", PersonNameSort()),
         }
         individuals = {
             "paris": CustomSort(self.ontology_name, "city"),
@@ -153,30 +158,24 @@ class IndividualTest(IndividualTestBase):
     def test_negate_negative_individual(self):
         self.assertTrue(self.individual_not_paris.negate().is_positive())
 
+    def test_value_as_json_object(self):
+        self.given_an_individual_of_mock_sort("mock_value")
+        self.given_value_as_json_object_in_mock_sort_returns("mock_value", "mock_value_as_json_object")
+        self.when_call_value_as_json_object_for_individual()
+        self.then_result_is("mock_value_as_json_object")
 
-class ValueAsJsonObjectTestCase(IndividualTestBase):
-    def test_custom_sort(self):
-        self.when_get_value_as_json_object(self.individual_paris)
-        self.then_result_is({"value": "paris"})
+    def given_an_individual_of_mock_sort(self, value):
+        self._mock_sort = Mock(spec=Sort)
+        self._individual = Individual("mock_ontology", value, self._mock_sort)
 
-    def when_get_value_as_json_object(self, proposition):
-        self._actual_result = proposition.value_as_json_object()
+    def given_value_as_json_object_in_mock_sort_returns(self, expected_value, value_as_json_object):
+        def mock_value_as_json_object(value):
+            self.assertEquals(expected_value, value)
+            return value_as_json_object
+        self._mock_sort.value_as_json_object.side_effect = mock_value_as_json_object
 
-    def test_string(self):
-        self.when_get_value_as_json_object(self.string_individual)
-        self.then_result_is({"value": "a string"})
-
-    def test_image(self):
-        self.when_get_value_as_json_object(self.image_individual)
-        self.then_result_is({"value": "http://mymap.com/map.png"})
-
-    def test_webview(self):
-        self.when_get_value_as_json_object(self.webview_individual)
-        self.then_result_is({"value": "http://mymap.com/map.html"})
-
-    def test_datetime(self):
-        self.when_get_value_as_json_object(self.datetime_individual)
-        self.then_result_is({"value": "2018-04-11T22:00:00.000Z"})
+    def when_call_value_as_json_object_for_individual(self):
+        self._actual_result = self._individual.value_as_json_object()
 
 
 class IsIndividualTests(LibTestCase):

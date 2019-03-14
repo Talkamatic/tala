@@ -7,10 +7,7 @@ from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
-from tala.model.sort import DomainSort, RealSort, IntegerSort, StringSort, BooleanSort, ImageSort, WebviewSort, DateTimeSort, InvalidValueException
-from tala.model.image import Image
-from tala.model.webview import Webview
-from tala.model.date_time import DateTime
+from tala.model.sort import DomainSort, Sort
 from tala.utils.as_json import JSONLoggable
 
 
@@ -197,23 +194,7 @@ class Ontology(JSONLoggable):
         def sort_of(value):
             if self._individual_is_of_enumerated_sort(value):
                 return self._get_enumerated_individual_sort(value)
-            if self._is_float_value(value):
-                return RealSort()
-            if self._is_boolean_value(value):
-                return BooleanSort()
-            if self._is_integer_value(value):
-                return IntegerSort()
-            if isinstance(value, Image):
-                return ImageSort()
-            if isinstance(value, Webview):
-                return WebviewSort()
-            if self._is_string_value(value):
-                return StringSort()
-            if isinstance(value, DateTime):
-                return DateTimeSort()
-            raise OntologyError(
-                "Expected a value of an individual, or matching one of the builtin sorts, but got '{}'".format(value)
-            )
+            return Sort.from_value(value)
 
         sort = sort_of(value)
         if not self.predicates_contain_sort(sort.name):
@@ -239,26 +220,6 @@ class Ontology(JSONLoggable):
     @property
     def _predicate_sorts(self):
         return {predicate.getSort().get_name() for predicate in self._predicates.values()}
-
-    def _is_float_value(self, value):
-        return isinstance(value, float)
-
-    def _is_integer_value(self, value):
-        return isinstance(value, int)
-
-    def _is_boolean_value(self, value):
-        try:
-            BooleanSort().normalize_value(value)
-        except InvalidValueException:
-            return False
-        return True
-
-    def _is_string_value(self, value):
-        try:
-            StringSort().normalize_value(value)
-        except InvalidValueException:
-            return False
-        return True
 
     def is_action(self, value):
         return value in self._actions

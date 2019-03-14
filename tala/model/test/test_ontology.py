@@ -132,35 +132,15 @@ class TestOntologyBasic(TestOntology):
     def _then_result_is(self, expected_result):
         assert expected_result == self._result
 
-    def test_individual_sort_for_real_value(self):
+    def test_individual_sort_for_builtin_sort(self):
         self._given_ontology(predicates=set([self._create_predicate("price", RealSort())]))
         self._when_individual_sort_is_called(123.50)
         self._then_result_is(RealSort())
-
-    def test_individual_sort_for_integer_value(self):
-        self._given_ontology(predicates=set([self._create_predicate("price", IntegerSort())]))
-        self._when_individual_sort_is_called(123)
-        self._then_result_is(IntegerSort())
 
     def test_individual_sort_for_undefined_sort_raises_exception(self):
         self._given_ontology()
         with pytest.raises(OntologyError):
             self._when_individual_sort_is_called("kalle")
-
-    def test_individual_sort_for_image_value(self):
-        self._given_ontology(predicates=set([self._create_predicate("display_image", ImageSort())]))
-        self._when_individual_sort_is_called(Image("http://www.internet.org/image.png"))
-        self._then_result_is(ImageSort())
-
-    def test_individual_sort_for_image_value_with_query(self):
-        self._given_ontology(predicates=set([self._create_predicate("display_image", ImageSort())]))
-        self._when_individual_sort_is_called(Image("http://www.internet.org/image.png?variable=value"))
-        self._then_result_is(ImageSort())
-
-    def test_individual_sort_for_webview_value(self):
-        self._given_ontology(predicates=set([self._create_predicate("interactive_map", WebviewSort())]))
-        self._when_individual_sort_is_called(Webview("http://maps.com/map.html"))
-        self._then_result_is(WebviewSort())
 
     def test_individual_sort_for_boolean_supported_by_ontology(self):
         self._given_ontology(predicates=set([self._create_predicate("needs_visa", BooleanSort())]))

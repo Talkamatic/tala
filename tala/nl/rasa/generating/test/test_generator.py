@@ -67,15 +67,16 @@ class GeneratorTestsBase(object):
         self._mocked_ddd.name = name
 
     def given_ontology(
-        self,
-        sort,
-        individuals,
-        predicate,
-        is_builtin=False,
-        is_integer_sort=False,
-        is_string_sort=False,
-        is_real_sort=False,
-        is_datetime_sort=False
+            self,
+            sort,
+            individuals,
+            predicate,
+            is_builtin=False,
+            is_integer_sort=False,
+            is_string_sort=False,
+            is_real_sort=False,
+            is_datetime_sort=False,
+            is_person_name_sort=False
     ):
         mocked_sort = Mock(spec=Sort)
         mocked_sort.get_name.return_value = sort
@@ -85,6 +86,7 @@ class GeneratorTestsBase(object):
         mocked_sort.is_real_sort.return_value = is_real_sort
         mocked_sort.is_domain_sort.return_value = False
         mocked_sort.is_datetime_sort.return_value = is_datetime_sort
+        mocked_sort.is_person_name_sort.return_value = is_person_name_sort
         self._mocked_ddd.ontology.individual_sort.return_value = mocked_sort
         self._mocked_ddd.ontology.get_individuals_of_sort.return_value = individuals
         self._mocked_ddd.ontology.get_sorts.return_value = {sort: mocked_sort}

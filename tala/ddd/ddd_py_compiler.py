@@ -10,7 +10,7 @@ from tala.model.action import Action
 from tala.nl.gf.grammar_entry_types import Constants, Node
 from tala.nl.gf.resource import NP as NpClass
 from tala.nl.gf.resource import VP as VpClass
-from tala.model.sort import CustomSort, BuiltinSort
+from tala.model.sort import CustomSort, BuiltinSortRepository
 
 
 class DddPyCompilerException(Exception):
@@ -76,10 +76,7 @@ class OntologyCompiler:
         if name in self._sorts_dict:
             return self._sorts_dict[name]
         else:
-            return self._get_builtin_sort(name)
-
-    def _get_builtin_sort(self, name):
-        return BuiltinSort(name)
+            return BuiltinSortRepository.get_sort(name)
 
     def _compile_individuals(self, individuals_description):
         individuals = {}

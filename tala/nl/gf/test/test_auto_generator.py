@@ -38,8 +38,7 @@ MK_UNKNOWN_LINEARIZATION = "mkUnknown string = ss string.s;\n"
 UNKNOWN_NL_LINEARIZATION = """unknown_string unknown = unknown;\n"""
 MK_UNKNOWN_NL_LINEARIZATION = """mkUnknown string = string;\n"""
 
-STRING_PREDICATE = "location"
-DATETIME_PREDICATE = "flight_departure"
+BUILTIN_NON_INTEGER_PREDICATE = "location"
 INTEGER_PREDICATE = "frequent_flyer_points"
 
 
@@ -97,7 +96,6 @@ class AutoGeneratorTestCase(object):
                 "comment": "string",
                 "attraction_information": "string",
                 "attraction": "string",
-                "flight_departure": "datetime",
             }
 
         if actions is None:
@@ -1784,28 +1782,33 @@ class TestSysAnswer(AutoGeneratorTestCase):
             self.get_predicate(predicate_name).getSort()
         )
 
-    @pytest.mark.parametrize("predicate", [STRING_PREDICATE, DATETIME_PREDICATE])
-    def test_default_system_placeholder_answer(self, predicate):
+    def test_default_system_answer_for_builtin_non_integer_predicate(self):
         self.given_generator()
-        self.when_generating_system_answer_content(predicate)
-        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % predicate)
-        self.assert_semantic_contains('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
-        self.assert_natural_language_contains('%s_sys_answer individual = answer individual.s;\n' % predicate)
+        self.when_generating_system_answer_content(BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_abstract_contains(
+            "%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_semantic_contains(
+            '%s_sys_answer individual = pp "%s" individual;\n' % (
+                BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE))
+        self.assert_natural_language_contains(
+            '%s_sys_answer individual = answer individual.s;\n' % BUILTIN_NON_INTEGER_PREDICATE)
 
-    @pytest.mark.parametrize("predicate", [STRING_PREDICATE, DATETIME_PREDICATE])
-    def test_overridden_system_placeholder_answer(self, predicate):
+    def test_overridden_system_answer_for_builtin_non_integer_predicate(self):
         self.given_grammar([
             Node(
-                Constants.SYS_ANSWER, {"predicate": predicate},
+                Constants.SYS_ANSWER, {"predicate": BUILTIN_NON_INTEGER_PREDICATE},
                 [Node(Constants.ITEM, {}, [u"svaret är ", Node(Constants.SLOT, {})])]
             )
         ])
         self.given_generator()
-        self.when_generating_system_answer_content(predicate)
-        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % predicate)
-        self.assert_semantic_contains('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
+        self.when_generating_system_answer_content(BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_abstract_contains(
+            "%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_semantic_contains(
+            '%s_sys_answer individual = pp "%s" individual;\n' % (
+                BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE))
         self.assert_natural_language_contains(
-            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % predicate)
+            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % BUILTIN_NON_INTEGER_PREDICATE)
 
 
 class TestUserAnswer(AutoGeneratorTestCase):

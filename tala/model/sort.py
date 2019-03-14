@@ -4,6 +4,7 @@ import mimetypes
 import magic
 import urllib
 
+from tala.model.person_name import PersonName
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
 from tala.model.image import Image
 from tala.model.webview import Webview
@@ -17,6 +18,7 @@ STRING = "string"
 IMAGE = "image"
 DOMAIN = "domain"
 WEBVIEW = "webview"
+PERSON_NAME = "person_name"
 
 
 class Sort(SemanticObject):
@@ -42,6 +44,9 @@ class Sort(SemanticObject):
 
     def is_datetime_sort(self):
         return self._name == DATETIME
+
+    def is_person_name_sort(self):
+        return self._name == PERSON_NAME
 
     def is_real_sort(self):
         return self._name == REAL
@@ -78,6 +83,63 @@ class Sort(SemanticObject):
 
     def __hash__(self):
         return hash((self.get_name(), self.is_dynamic()))
+
+    def value_as_basic_type(self, value):
+        return value
+
+    def value_as_json_object(self, value):
+        return {"value": self.value_as_basic_type(value)}
+
+    def value_from_basic_type(self, basic_value):
+        return basic_value
+
+    @classmethod
+    def from_value(cls, value):
+        if cls._is_float_value(value):
+            return RealSort()
+        if cls._is_boolean_value(value):
+            return BooleanSort()
+        if cls._is_integer_value(value):
+            return IntegerSort()
+        if isinstance(value, Image):
+            return ImageSort()
+        if isinstance(value, Webview):
+            return WebviewSort()
+        if cls._is_string_value(value):
+            return StringSort()
+        if isinstance(value, DateTime):
+            return DateTimeSort()
+        if isinstance(value, PersonName):
+            return PersonNameSort()
+        raise UnsupportedValue("Expected a supported value but got '%s'" % value)
+
+    @classmethod
+    def _is_float_value(cls, value):
+        return isinstance(value, float)
+
+    @classmethod
+    def _is_integer_value(cls, value):
+        return isinstance(value, int)
+
+    @classmethod
+    def _is_boolean_value(cls, value):
+        try:
+            BooleanSort().normalize_value(value)
+        except InvalidValueException:
+            return False
+        return True
+
+    @classmethod
+    def _is_string_value(cls, value):
+        try:
+            StringSort().normalize_value(value)
+        except InvalidValueException:
+            return False
+        return True
+
+
+class UnsupportedValue(Exception):
+    pass
 
 
 class BuiltinSort(Sort):
@@ -156,9 +218,14 @@ class ImageSort(BuiltinSort):
                 filepath, _ = urllib.urlretrieve(url)
             except IOError:
                 return None
-            print "filepath=", filepath
             mime_type = magic.from_file(filepath, mime=True)
         return mime_type
+
+    def value_as_basic_type(self, value):
+        return value.url
+
+    def value_from_basic_type(self, url):
+        return Image(url)
 
 
 class WebviewSort(BuiltinSort):
@@ -173,6 +240,12 @@ class WebviewSort(BuiltinSort):
                 raise InvalidValueException("Expected a webview URL but got '%s'." % value.url)
         else:
             raise InvalidValueException("Expected a webview object but got '%s'." % value)
+
+    def value_as_basic_type(self, value):
+        return value.url
+
+    def value_from_basic_type(self, url):
+        return Webview(url)
 
 
 class BooleanSort(BuiltinSort):
@@ -207,6 +280,31 @@ class DateTimeSort(BuiltinSort):
         else:
             raise InvalidValueException("Expected a datetime object but got '%s'." % value)
 
+    def value_as_basic_type(self, value):
+        return value.iso8601_string
+
+    def value_from_basic_type(self, iso8601_string):
+        return DateTime(iso8601_string)
+
+
+class PersonNameSort(BuiltinSort):
+    def __init__(self):
+        super(PersonNameSort, self).__init__(PERSON_NAME)
+
+    def normalize_value(self, value):
+        if isinstance(value, PersonName):
+            return value
+        else:
+            raise InvalidValueException("Expected a person name object but got %s of type %s." % (
+                value, value.__class__.__name__)
+            )
+
+    def value_as_basic_type(self, value):
+        return value.string
+
+    def value_from_basic_type(self, string):
+        return PersonName(string)
+
 
 class CustomSort(Sort, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, name, dynamic=False):
@@ -232,7 +330,8 @@ class BuiltinSortRepository(object):
         STRING: StringSort(),
         IMAGE: ImageSort(),
         DOMAIN: DomainSort(),
-        WEBVIEW: WebviewSort()
+        WEBVIEW: WebviewSort(),
+        PERSON_NAME: PersonNameSort(),
     }
 
     @classmethod
