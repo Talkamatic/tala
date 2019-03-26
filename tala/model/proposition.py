@@ -39,6 +39,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     KNOWLEDGE_PRECONDITION = "KNOWLEDGE_PRECONDITION"
     ACTION_STATUS = "ACTION_STATUS"
     IMPLICATION = "IMPLICATION"
+    NUMBER_OF_ALTERNATIVES = "NUMBER_OF_ALTERNATIVES"
 
     def __init__(self, type, polarity=None):
         SemanticObject.__init__(self)
@@ -114,6 +115,9 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
 
     def is_implication_proposition(self):
         return self._type == Proposition.IMPLICATION
+
+    def is_number_of_alternatives_proposition(self):
+        return self._type == Proposition.NUMBER_OF_ALTERNATIVES
 
     def get_polarity(self):
         return self._polarity
@@ -776,6 +780,17 @@ class ImplicationProposition(PropositionWithSemanticContent):
 
     def __repr__(self):
         return "implies(%s, %s)" % (self.antecedent, self.consequent)
+
+    def __str__(self):
+        return repr(self)
+
+
+class NumberOfAlternativesProposition(PropositionWithSemanticContent):
+    def __init__(self, content):
+        PropositionWithSemanticContent.__init__(self, Proposition.NUMBER_OF_ALTERNATIVES, content)
+
+    def __repr__(self):
+        return f"{self.get_polarity_prefix_string()}number_of_alternatives({self._content})"
 
     def __str__(self):
         return repr(self)

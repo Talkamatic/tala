@@ -662,6 +662,7 @@ class DomainCompiler(XmlCompiler):
             "sort_order",
             "allow_goal_accommodation",
             "max_spoken_alts",
+            "max_reported_hit_count",
         ]
         for name in supported_parameters:
             value_as_string = element.getAttribute(name)

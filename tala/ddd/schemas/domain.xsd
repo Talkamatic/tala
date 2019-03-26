@@ -309,6 +309,13 @@
                </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
+          <xs:attribute name="max_reported_hit_count">
+            <xs:simpleType>
+               <xs:restriction base="xs:integer">
+                 <xs:minInclusive value="1"/>
+               </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
 
           <xs:attribute name="graphical_type">
             <xs:simpleType>

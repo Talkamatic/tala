@@ -1108,6 +1108,8 @@ class Parser:
                 return self._parse_boolean(string)
             elif key == "max_spoken_alts":
                 return self._parse_integer(string)
+            elif key == "max_reported_hit_count":
+                return self._parse_integer(string)
             else:
                 raise ParseError("unsupported question parameter '%s'" % key)
         except ParseFailure:

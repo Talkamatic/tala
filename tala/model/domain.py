@@ -317,6 +317,9 @@ class Domain(AsJSONMixin):
     def get_related_information(self, semantic_object):
         return self._get_parameter(semantic_object, "related_information")
 
+    def get_max_reported_hit_count(self, semantic_object):
+        return self._get_parameter(semantic_object, "max_reported_hit_count")
+
     def get_alternatives_predicate(self, goal):
         return self._get_plan_attribute(goal, "alternatives_predicate")
 
