@@ -250,14 +250,14 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:action::call
 - make a call
-- call [John](sort:contact)
-- call [Johnny](sort:contact)
-- call [约翰](sort:contact)
-- call [Lisa](sort:contact)
-- call [Elizabeth](sort:contact)
-- call [Mary](sort:contact)
-- call [Andy](sort:contact)
-- call [安迪](sort:contact)
+- call [John](sort.contact)
+- call [Johnny](sort.contact)
+- call [约翰](sort.contact)
+- call [Lisa](sort.contact)
+- call [Elizabeth](sort.contact)
+- call [Mary](sort.contact)
+- call [Andy](sort.contact)
+- call [安迪](sort.contact)
 """
         )
 
@@ -320,70 +320,70 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:action::call
-- call [John](sort:contact) and say hi from [John](sort:contact)
-- call [John](sort:contact) and say hi from [Johnny](sort:contact)
-- call [John](sort:contact) and say hi from [约翰](sort:contact)
-- call [John](sort:contact) and say hi from [Lisa](sort:contact)
-- call [John](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [John](sort:contact) and say hi from [Mary](sort:contact)
-- call [John](sort:contact) and say hi from [Andy](sort:contact)
-- call [John](sort:contact) and say hi from [安迪](sort:contact)
-- call [Johnny](sort:contact) and say hi from [John](sort:contact)
-- call [Johnny](sort:contact) and say hi from [Johnny](sort:contact)
-- call [Johnny](sort:contact) and say hi from [约翰](sort:contact)
-- call [Johnny](sort:contact) and say hi from [Lisa](sort:contact)
-- call [Johnny](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [Johnny](sort:contact) and say hi from [Mary](sort:contact)
-- call [Johnny](sort:contact) and say hi from [Andy](sort:contact)
-- call [Johnny](sort:contact) and say hi from [安迪](sort:contact)
-- call [约翰](sort:contact) and say hi from [John](sort:contact)
-- call [约翰](sort:contact) and say hi from [Johnny](sort:contact)
-- call [约翰](sort:contact) and say hi from [约翰](sort:contact)
-- call [约翰](sort:contact) and say hi from [Lisa](sort:contact)
-- call [约翰](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [约翰](sort:contact) and say hi from [Mary](sort:contact)
-- call [约翰](sort:contact) and say hi from [Andy](sort:contact)
-- call [约翰](sort:contact) and say hi from [安迪](sort:contact)
-- call [Lisa](sort:contact) and say hi from [John](sort:contact)
-- call [Lisa](sort:contact) and say hi from [Johnny](sort:contact)
-- call [Lisa](sort:contact) and say hi from [约翰](sort:contact)
-- call [Lisa](sort:contact) and say hi from [Lisa](sort:contact)
-- call [Lisa](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [Lisa](sort:contact) and say hi from [Mary](sort:contact)
-- call [Lisa](sort:contact) and say hi from [Andy](sort:contact)
-- call [Lisa](sort:contact) and say hi from [安迪](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [John](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [Johnny](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [约翰](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [Lisa](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [Mary](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [Andy](sort:contact)
-- call [Elizabeth](sort:contact) and say hi from [安迪](sort:contact)
-- call [Mary](sort:contact) and say hi from [John](sort:contact)
-- call [Mary](sort:contact) and say hi from [Johnny](sort:contact)
-- call [Mary](sort:contact) and say hi from [约翰](sort:contact)
-- call [Mary](sort:contact) and say hi from [Lisa](sort:contact)
-- call [Mary](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [Mary](sort:contact) and say hi from [Mary](sort:contact)
-- call [Mary](sort:contact) and say hi from [Andy](sort:contact)
-- call [Mary](sort:contact) and say hi from [安迪](sort:contact)
-- call [Andy](sort:contact) and say hi from [John](sort:contact)
-- call [Andy](sort:contact) and say hi from [Johnny](sort:contact)
-- call [Andy](sort:contact) and say hi from [约翰](sort:contact)
-- call [Andy](sort:contact) and say hi from [Lisa](sort:contact)
-- call [Andy](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [Andy](sort:contact) and say hi from [Mary](sort:contact)
-- call [Andy](sort:contact) and say hi from [Andy](sort:contact)
-- call [Andy](sort:contact) and say hi from [安迪](sort:contact)
-- call [安迪](sort:contact) and say hi from [John](sort:contact)
-- call [安迪](sort:contact) and say hi from [Johnny](sort:contact)
-- call [安迪](sort:contact) and say hi from [约翰](sort:contact)
-- call [安迪](sort:contact) and say hi from [Lisa](sort:contact)
-- call [安迪](sort:contact) and say hi from [Elizabeth](sort:contact)
-- call [安迪](sort:contact) and say hi from [Mary](sort:contact)
-- call [安迪](sort:contact) and say hi from [Andy](sort:contact)
-- call [安迪](sort:contact) and say hi from [安迪](sort:contact)
+- call [John](sort.contact) and say hi from [John](sort.contact)
+- call [John](sort.contact) and say hi from [Johnny](sort.contact)
+- call [John](sort.contact) and say hi from [约翰](sort.contact)
+- call [John](sort.contact) and say hi from [Lisa](sort.contact)
+- call [John](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [John](sort.contact) and say hi from [Mary](sort.contact)
+- call [John](sort.contact) and say hi from [Andy](sort.contact)
+- call [John](sort.contact) and say hi from [安迪](sort.contact)
+- call [Johnny](sort.contact) and say hi from [John](sort.contact)
+- call [Johnny](sort.contact) and say hi from [Johnny](sort.contact)
+- call [Johnny](sort.contact) and say hi from [约翰](sort.contact)
+- call [Johnny](sort.contact) and say hi from [Lisa](sort.contact)
+- call [Johnny](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [Johnny](sort.contact) and say hi from [Mary](sort.contact)
+- call [Johnny](sort.contact) and say hi from [Andy](sort.contact)
+- call [Johnny](sort.contact) and say hi from [安迪](sort.contact)
+- call [约翰](sort.contact) and say hi from [John](sort.contact)
+- call [约翰](sort.contact) and say hi from [Johnny](sort.contact)
+- call [约翰](sort.contact) and say hi from [约翰](sort.contact)
+- call [约翰](sort.contact) and say hi from [Lisa](sort.contact)
+- call [约翰](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [约翰](sort.contact) and say hi from [Mary](sort.contact)
+- call [约翰](sort.contact) and say hi from [Andy](sort.contact)
+- call [约翰](sort.contact) and say hi from [安迪](sort.contact)
+- call [Lisa](sort.contact) and say hi from [John](sort.contact)
+- call [Lisa](sort.contact) and say hi from [Johnny](sort.contact)
+- call [Lisa](sort.contact) and say hi from [约翰](sort.contact)
+- call [Lisa](sort.contact) and say hi from [Lisa](sort.contact)
+- call [Lisa](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [Lisa](sort.contact) and say hi from [Mary](sort.contact)
+- call [Lisa](sort.contact) and say hi from [Andy](sort.contact)
+- call [Lisa](sort.contact) and say hi from [安迪](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [John](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [Johnny](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [约翰](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [Lisa](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [Mary](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [Andy](sort.contact)
+- call [Elizabeth](sort.contact) and say hi from [安迪](sort.contact)
+- call [Mary](sort.contact) and say hi from [John](sort.contact)
+- call [Mary](sort.contact) and say hi from [Johnny](sort.contact)
+- call [Mary](sort.contact) and say hi from [约翰](sort.contact)
+- call [Mary](sort.contact) and say hi from [Lisa](sort.contact)
+- call [Mary](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [Mary](sort.contact) and say hi from [Mary](sort.contact)
+- call [Mary](sort.contact) and say hi from [Andy](sort.contact)
+- call [Mary](sort.contact) and say hi from [安迪](sort.contact)
+- call [Andy](sort.contact) and say hi from [John](sort.contact)
+- call [Andy](sort.contact) and say hi from [Johnny](sort.contact)
+- call [Andy](sort.contact) and say hi from [约翰](sort.contact)
+- call [Andy](sort.contact) and say hi from [Lisa](sort.contact)
+- call [Andy](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [Andy](sort.contact) and say hi from [Mary](sort.contact)
+- call [Andy](sort.contact) and say hi from [Andy](sort.contact)
+- call [Andy](sort.contact) and say hi from [安迪](sort.contact)
+- call [安迪](sort.contact) and say hi from [John](sort.contact)
+- call [安迪](sort.contact) and say hi from [Johnny](sort.contact)
+- call [安迪](sort.contact) and say hi from [约翰](sort.contact)
+- call [安迪](sort.contact) and say hi from [Lisa](sort.contact)
+- call [安迪](sort.contact) and say hi from [Elizabeth](sort.contact)
+- call [安迪](sort.contact) and say hi from [Mary](sort.contact)
+- call [安迪](sort.contact) and say hi from [Andy](sort.contact)
+- call [安迪](sort.contact) and say hi from [安迪](sort.contact)
 """
         )
 
@@ -397,14 +397,14 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
-- what is [John](sort:contact)'s number
-- what is [Johnny](sort:contact)'s number
-- what is [约翰](sort:contact)'s number
-- what is [Lisa](sort:contact)'s number
-- what is [Elizabeth](sort:contact)'s number
-- what is [Mary](sort:contact)'s number
-- what is [Andy](sort:contact)'s number
-- what is [安迪](sort:contact)'s number
+- what is [John](sort.contact)'s number
+- what is [Johnny](sort.contact)'s number
+- what is [约翰](sort.contact)'s number
+- what is [Lisa](sort.contact)'s number
+- what is [Elizabeth](sort.contact)'s number
+- what is [Mary](sort.contact)'s number
+- what is [Andy](sort.contact)'s number
+- what is [安迪](sort.contact)'s number
 """
         )
 
@@ -461,14 +461,14 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [John](sort:contact)
-- [Johnny](sort:contact)
-- [约翰](sort:contact)
-- [Lisa](sort:contact)
-- [Elizabeth](sort:contact)
-- [Mary](sort:contact)
-- [Andy](sort:contact)
-- [安迪](sort:contact)
+- [John](sort.contact)
+- [Johnny](sort.contact)
+- [约翰](sort.contact)
+- [Lisa](sort.contact)
+- [Elizabeth](sort.contact)
+- [Mary](sort.contact)
+- [Andy](sort.contact)
+- [安迪](sort.contact)
 """
         )
 
@@ -480,14 +480,14 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer_negation
-- not [John](sort:contact)
-- not [Johnny](sort:contact)
-- not [约翰](sort:contact)
-- not [Lisa](sort:contact)
-- not [Elizabeth](sort:contact)
-- not [Mary](sort:contact)
-- not [Andy](sort:contact)
-- not [安迪](sort:contact)
+- not [John](sort.contact)
+- not [Johnny](sort.contact)
+- not [约翰](sort.contact)
+- not [Lisa](sort.contact)
+- not [Elizabeth](sort.contact)
+- not [Mary](sort.contact)
+- not [Andy](sort.contact)
+- not [安迪](sort.contact)
 """
         )
 
@@ -503,22 +503,22 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [John](sort:contact)
-- [Johnny](sort:contact)
-- [约翰](sort:contact)
-- [Lisa](sort:contact)
-- [Elizabeth](sort:contact)
-- [Mary](sort:contact)
-- [Andy](sort:contact)
-- [安迪](sort:contact)
-- my sortal friend [John](sort:contact)
-- my sortal friend [Johnny](sort:contact)
-- my sortal friend [约翰](sort:contact)
-- my sortal friend [Lisa](sort:contact)
-- my sortal friend [Elizabeth](sort:contact)
-- my sortal friend [Mary](sort:contact)
-- my sortal friend [Andy](sort:contact)
-- my sortal friend [安迪](sort:contact)
+- [John](sort.contact)
+- [Johnny](sort.contact)
+- [约翰](sort.contact)
+- [Lisa](sort.contact)
+- [Elizabeth](sort.contact)
+- [Mary](sort.contact)
+- [Andy](sort.contact)
+- [安迪](sort.contact)
+- my sortal friend [John](sort.contact)
+- my sortal friend [Johnny](sort.contact)
+- my sortal friend [约翰](sort.contact)
+- my sortal friend [Lisa](sort.contact)
+- my sortal friend [Elizabeth](sort.contact)
+- my sortal friend [Mary](sort.contact)
+- my sortal friend [Andy](sort.contact)
+- my sortal friend [安迪](sort.contact)
 """
         )
 
@@ -530,14 +530,14 @@ class CustomSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [John](sort:contact)
-- [Johnny](sort:contact)
-- [约翰](sort:contact)
-- [Lisa](sort:contact)
-- [Elizabeth](sort:contact)
-- [Mary](sort:contact)
-- [Andy](sort:contact)
-- [安迪](sort:contact)
+- [John](sort.contact)
+- [Johnny](sort.contact)
+- [约翰](sort.contact)
+- [Lisa](sort.contact)
+- [Elizabeth](sort.contact)
+- [Mary](sort.contact)
+- [Andy](sort.contact)
+- [安迪](sort.contact)
 
 """
         )
@@ -615,8 +615,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort:mock_sort)
-- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+- mock phrase with sortal entity [mock example 1](sort.mock_sort)
+- mock phrase with sortal entity [mock example 2](sort.mock_sort)
 """
         )
 
@@ -679,8 +679,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort:mock_sort)
-- mock phrase with sortal entity [mock example 2](sort:mock_sort)
+- mock phrase with sortal entity [mock example 1](sort.mock_sort)
+- mock phrase with sortal entity [mock example 2](sort.mock_sort)
 """
         )
 
@@ -734,8 +734,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [mock example 1](sort:mock_sort)
-- [mock example 2](sort:mock_sort)
+- [mock example 1](sort.mock_sort)
+- [mock example 2](sort.mock_sort)
 """
         )
 
@@ -747,8 +747,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer_negation
-- not [mock example 1](sort:mock_sort)
-- not [mock example 2](sort:mock_sort)
+- not [mock example 1](sort.mock_sort)
+- not [mock example 2](sort.mock_sort)
 """
         )
 
@@ -764,8 +764,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [mock example 1](sort:mock_sort)
-- [mock example 2](sort:mock_sort)
+- [mock example 1](sort.mock_sort)
+- [mock example 2](sort.mock_sort)
 """
         )
 
@@ -781,8 +781,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [mock example 1](sort:mock_sort)
-- [mock example 2](sort:mock_sort)
+- [mock example 1](sort.mock_sort)
+- [mock example 2](sort.mock_sort)
 
 """
         )
@@ -831,27 +831,27 @@ class StringSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
-- mock phrase with sortal entity [single](sort:string)
-- mock phrase with sortal entity [double word](sort:string)
-- mock phrase with sortal entity [three in one](sort:string)
-- mock phrase with sortal entity [hey make it four](sort:string)
-- mock phrase with sortal entity [the more the merrier five](sort:string)
-- mock phrase with sortal entity [calm down and count to six](sort:string)
-- mock phrase with sortal entity [bring them through to the jolly seven](sort:string)
-- mock phrase with sortal entity [noone counts toes like an eight toed guy](sort:string)
-- mock phrase with sortal entity [it matters to make sense for nine of us](sort:string)
-- mock phrase with sortal entity [would you bring ten or none to a desert island](sort:string)
-- mock phrase with propositional entity [single](predicate:mock_predicate)
-- mock phrase with propositional entity [double word](predicate:mock_predicate)
-- mock phrase with propositional entity [three in one](predicate:mock_predicate)
-- mock phrase with propositional entity [hey make it four](predicate:mock_predicate)
-- mock phrase with propositional entity [the more the merrier five](predicate:mock_predicate)
-- mock phrase with propositional entity [calm down and count to six](predicate:mock_predicate)
-- mock phrase with propositional entity [bring them through to the jolly seven](predicate:mock_predicate)
-- mock phrase with propositional entity [noone counts toes like an eight toed guy](predicate:mock_predicate)
-- mock phrase with propositional entity [it matters to make sense for nine of us](predicate:mock_predicate)
-- mock phrase with propositional entity [would you bring ten or none to a desert island](predicate:mock_predicate)
-- mock phrase with propositional entity [mock string of predicate](predicate:mock_predicate)
+- mock phrase with sortal entity [single](sort.string)
+- mock phrase with sortal entity [double word](sort.string)
+- mock phrase with sortal entity [three in one](sort.string)
+- mock phrase with sortal entity [hey make it four](sort.string)
+- mock phrase with sortal entity [the more the merrier five](sort.string)
+- mock phrase with sortal entity [calm down and count to six](sort.string)
+- mock phrase with sortal entity [bring them through to the jolly seven](sort.string)
+- mock phrase with sortal entity [noone counts toes like an eight toed guy](sort.string)
+- mock phrase with sortal entity [it matters to make sense for nine of us](sort.string)
+- mock phrase with sortal entity [would you bring ten or none to a desert island](sort.string)
+- mock phrase with propositional entity [single](predicate.mock_predicate)
+- mock phrase with propositional entity [double word](predicate.mock_predicate)
+- mock phrase with propositional entity [three in one](predicate.mock_predicate)
+- mock phrase with propositional entity [hey make it four](predicate.mock_predicate)
+- mock phrase with propositional entity [the more the merrier five](predicate.mock_predicate)
+- mock phrase with propositional entity [calm down and count to six](predicate.mock_predicate)
+- mock phrase with propositional entity [bring them through to the jolly seven](predicate.mock_predicate)
+- mock phrase with propositional entity [noone counts toes like an eight toed guy](predicate.mock_predicate)
+- mock phrase with propositional entity [it matters to make sense for nine of us](predicate.mock_predicate)
+- mock phrase with propositional entity [would you bring ten or none to a desert island](predicate.mock_predicate)
+- mock phrase with propositional entity [mock string of predicate](predicate.mock_predicate)
 """
         )
 

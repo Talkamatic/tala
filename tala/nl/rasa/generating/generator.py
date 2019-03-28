@@ -21,8 +21,8 @@ class UnexpectedPropositionalEntityEncounteredException(Exception):
     pass
 
 
-SORTAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](sort:{{ value }})")
-PROPOSITIONAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](predicate:{{ value }})")
+SORTAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](sort.{{ value }})")
+PROPOSITIONAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](predicate.{{ value }})")
 
 
 class RasaGenerator(object):
