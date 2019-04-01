@@ -615,8 +615,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:action::mock_action
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort.mock_sort)
-- mock phrase with sortal entity [mock example 2](sort.mock_sort)
+- mock phrase with sortal entity mock example 1
+- mock phrase with sortal entity mock example 2
 """
         )
 
@@ -679,8 +679,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.then_result_matches(
             u"""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
-- mock phrase with sortal entity [mock example 1](sort.mock_sort)
-- mock phrase with sortal entity [mock example 2](sort.mock_sort)
+- mock phrase with sortal entity mock example 1
+- mock phrase with sortal entity mock example 2
 """
         )
 
@@ -734,8 +734,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [mock example 1](sort.mock_sort)
-- [mock example 2](sort.mock_sort)
+- mock example 1
+- mock example 2
 """
         )
 
@@ -747,25 +747,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer_negation
-- not [mock example 1](sort.mock_sort)
-- not [mock example 2](sort.mock_sort)
-"""
-        )
-
-    def test_answers(self):
-        self.given_ddd_name("rasa_test")
-        self.given_ontology(sort="mock_sort", individuals=[], predicate="mock_predicate", is_builtin=True)
-        self.given_mocked_grammar(
-            answers=[
-                Answer(["mock phrase with propositional entity ", ""], [RequiredPropositionalEntity("mock_predicate")])
-            ]
-        )
-        self.given_generator()
-        self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:answer
-- [mock example 1](sort.mock_sort)
-- [mock example 2](sort.mock_sort)
+- not mock example 1
+- not mock example 2
 """
         )
 
@@ -781,8 +764,8 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.when_generate()
         self.then_result_matches(
             u"""## intent:rasa_test:answer
-- [mock example 1](sort.mock_sort)
-- [mock example 2](sort.mock_sort)
+- mock example 1
+- mock example 2
 
 """
         )

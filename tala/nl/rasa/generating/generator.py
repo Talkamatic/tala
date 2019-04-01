@@ -21,6 +21,7 @@ class UnexpectedPropositionalEntityEncounteredException(Exception):
     pass
 
 
+BUILTIN_ENTITY_TEMPLATE = Template("{{ grammar_entry }}")
 SORTAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](sort.{{ value }})")
 PROPOSITIONAL_ENTITY_TEMPLATE = Template("[{{ grammar_entry }}](predicate.{{ value }})")
 
@@ -171,8 +172,10 @@ class RasaGenerator(object):
     def _examples_from_sortal_individual(self, grammar, required_sortal_entity, example_so_far, tail):
         sort = self._ddd.ontology.get_sort(required_sortal_entity.name)
         individuals = self._individual_grammar_entries_samples(grammar, sort)
+        sort_should_be_generated_as_entity = sort.is_string_sort() or not sort.is_builtin()
+        template = SORTAL_ENTITY_TEMPLATE if sort_should_be_generated_as_entity else BUILTIN_ENTITY_TEMPLATE
         return self._examples_from_individuals(
-            SORTAL_ENTITY_TEMPLATE, sort.get_name(), individuals, example_so_far, tail
+            template, sort.get_name(), individuals, example_so_far, tail
         )
 
     def _sample_individuals_of_builtin_sort(self, sort):
@@ -257,9 +260,11 @@ class RasaGenerator(object):
 
         return {ANSWER_INTENT: list(examples())}
 
-    def _examples_of_sortal_answers_of_kind(self, grammar, sort, templates):
+    def _examples_of_sortal_answers_of_kind(self, grammar, sort, intent_templates):
+        sort_should_be_generated_as_entity = sort.is_string_sort() or not sort.is_builtin()
+        entity_template = SORTAL_ENTITY_TEMPLATE if sort_should_be_generated_as_entity else BUILTIN_ENTITY_TEMPLATE
         for grammar_entries in self._individual_grammar_entries_samples(grammar, sort):
-            examples = self._examples_of_individual(grammar_entries, sort.get_name(), templates)
+            examples = self._examples_of_individual(grammar_entries, sort.get_name(), intent_templates, entity_template)
             for example in examples:
                 yield example
 
@@ -284,13 +289,13 @@ class RasaGenerator(object):
         template = Template('not {{ name }}')
         return [template]
 
-    def _examples_of_individual(self, grammar_entries, identifier, templates):
+    def _examples_of_individual(self, grammar_entries, identifier, intent_templates, entity_template):
         for grammar_entry in grammar_entries:
-            examples = self._examples_from_templates(grammar_entry, identifier, templates)
+            examples = self._examples_from_templates(grammar_entry, identifier, intent_templates, entity_template)
             for example in examples:
                 yield example
 
-    def _examples_from_templates(self, grammar_entry, identifier, templates):
-        for template in templates:
-            entity = SORTAL_ENTITY_TEMPLATE.render(grammar_entry=grammar_entry, value=identifier)
-            yield template.render(name=entity)
+    def _examples_from_templates(self, grammar_entry, identifier, intent_templates, entity_template):
+        for intent_template in intent_templates:
+            entity = entity_template.render(grammar_entry=grammar_entry, value=identifier)
+            yield intent_template.render(name=entity)
