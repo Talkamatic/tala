@@ -152,6 +152,21 @@ pipeline {
             }
         }
 
+        stage('build docker') {
+            sh "docker build . -t talkamatic/tala:latest"
+        }
+
+        stage('push docker') {
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh '''#!/bin/bash -ex
+                        echo $pw | docker login -u zigit --password-stdin
+                        docker push talkamatic/tala:latest
+                    '''
+                }
+            }
+        }
+
         stage('archive artifacts') {
             steps {
                 archiveArtifacts 'dist/tala*.whl'
