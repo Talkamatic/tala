@@ -93,7 +93,9 @@ pipeline {
         }
 
         stage('build master') {
-            sh "docker build . -t talkamatic/tala:master"
+            steps {
+                sh "docker build . -t talkamatic/tala:master"
+            }
         }
 
         stage('push master') {
@@ -173,7 +175,9 @@ pipeline {
         }
 
         stage('build candidate') {
-            sh "docker build . -t talkamatic/tala:candidate"
+            steps {
+                sh "docker build . -t talkamatic/tala:candidate"
+            }
         }
 
         stage('push candidate') {
