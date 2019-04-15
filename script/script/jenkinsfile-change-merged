@@ -75,7 +75,7 @@ pipeline {
             }
         }
 
-        stage('build') {
+        stage('build wheel') {
             steps {
                 sh '''#!/bin/bash -ex
                     virtualenv venv
@@ -86,6 +86,26 @@ pipeline {
             }
         }
 
+        stage('archive artifacts') {
+            steps {
+                archiveArtifacts 'dist/tala*.whl'
+            }
+        }
+
+        stage('build master') {
+            sh "docker build . -t talkamatic/tala:master"
+        }
+
+        stage('push master') {
+            steps {
+                withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
+                    sh '''#!/bin/bash -ex
+                        echo $pw | docker login -u zigit --password-stdin
+                        docker push talkamatic/tala:master
+                    '''
+                }
+            }
+        }
 
         stage('install') {
             steps {
@@ -103,10 +123,10 @@ pipeline {
             }
         }
 
-        stage('tests') {
+        stage('test') {
             failFast true
             parallel {
-                stage('code checks') {
+                stage('check code') {
                     steps {
                         sh '''#!/bin/bash -ex
                             source venv/bin/activate
@@ -152,24 +172,18 @@ pipeline {
             }
         }
 
-        stage('build docker') {
-            sh "docker build . -t talkamatic/tala:latest"
+        stage('build candidate') {
+            sh "docker build . -t talkamatic/tala:candidate"
         }
 
-        stage('push docker') {
+        stage('push candidate') {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh '''#!/bin/bash -ex
                         echo $pw | docker login -u zigit --password-stdin
-                        docker push talkamatic/tala:latest
+                        docker push talkamatic/tala:candidate
                     '''
                 }
-            }
-        }
-
-        stage('archive artifacts') {
-            steps {
-                archiveArtifacts 'dist/tala*.whl'
             }
         }
     }
