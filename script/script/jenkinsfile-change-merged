@@ -81,20 +81,20 @@ pipeline {
                     virtualenv venv
                     source venv/bin/activate
 
-                    pip wheel --wheel-dir dist --no-deps ./tala
+                    pip wheel --wheel-dir tala/dist --no-deps ./tala
                 '''
             }
         }
 
         stage('archive artifacts') {
             steps {
-                archiveArtifacts 'dist/tala*.whl'
+                archiveArtifacts 'tala/dist/tala*.whl'
             }
         }
 
         stage('build master') {
             steps {
-                sh "docker build . -t talkamatic/tala:master"
+                sh "docker build tala -t talkamatic/tala:master"
             }
         }
 
@@ -176,7 +176,7 @@ pipeline {
 
         stage('build candidate') {
             steps {
-                sh "docker build . -t talkamatic/tala:candidate"
+                sh "docker build tala -t talkamatic/tala:candidate"
             }
         }
 
