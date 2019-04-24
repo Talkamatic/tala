@@ -105,17 +105,9 @@ pipeline {
 
         stage('install') {
             steps {
-                sh '''#!/bin/bash -ex
-                    virtualenv venv
-                    source venv/bin/activate
-
-                    pip install --editable ./tala
-                '''
-                sh '''#!/bin/bash -ex
-                    source venv/bin/activate
-
-                    pip install -r tala/dev-requirements.txt
-                '''
+                sh "virtualenv venv"
+                sh ". venv/bin/activate; pip install --editable ./tala"
+                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
             }
         }
 
@@ -124,45 +116,25 @@ pipeline {
             parallel {
                 stage('code checks') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            flake8 .
-                        '''
+                        sh ". venv/bin/activate; cd tala; flake8 ."
                     }
                 }
 
                 stage('lint') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            pylint tala
-                        '''
+                        sh ". venv/bin/activate; cd tala; pylint tala"
                     }
                 }
 
                 stage('unit test') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            py.test tala
-                        '''
+                        sh ". venv/bin/activate; cd tala; py.test tala"
                     }
                 }
 
                 stage('integration test') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            py.test integration_tests
-                        '''
+                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
                     }
                 }
             }

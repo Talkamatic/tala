@@ -72,17 +72,13 @@ pipeline {
                         url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                     ]]
                 ])
+                sh "virtualenv venv"
             }
         }
 
         stage('build wheel') {
             steps {
-                sh '''#!/bin/bash -ex
-                    virtualenv venv
-                    source venv/bin/activate
-
-                    pip wheel --wheel-dir tala/dist --no-deps ./tala
-                '''
+                sh ". venv/bin/activate; pip wheel --wheel-dir tala/dist --no-deps ./tala"
             }
         }
 
@@ -101,27 +97,16 @@ pipeline {
         stage('push master') {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
-                    sh '''#!/bin/bash -ex
-                        echo $pw | docker login -u zigit --password-stdin
-                        docker push talkamatic/tala:master
-                    '''
+                    sh "echo ${pw} | docker login -u zigit --password-stdin; docker push talkamatic/tala:master"
                 }
             }
         }
 
         stage('install') {
             steps {
-                sh '''#!/bin/bash -ex
-                    source venv/bin/activate
+                sh ". venv/bin/activate; pip install --editable ./tala"
 
-                    pip install --editable ./tala
-                '''
-
-                sh '''#!/bin/bash -ex
-                    source venv/bin/activate
-
-                    pip install -r tala/dev-requirements.txt
-                '''
+                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
             }
         }
 
@@ -130,45 +115,25 @@ pipeline {
             parallel {
                 stage('check code') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            flake8 .
-                        '''
+                        sh ". venv/bin/activate; cd tala; flake8 ."
                     }
                 }
 
                 stage('lint') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            pylint tala
-                        '''
+                        sh ". venv/bin/activate; cd tala; pylint tala"
                     }
                 }
 
                 stage('unit test') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            py.test tala
-                        '''
+                        sh ". venv/bin/activate; cd tala; py.test tala"
                     }
                 }
 
                 stage('integration test') {
                     steps {
-                        sh '''#!/bin/bash -ex
-                            source venv/bin/activate
-
-                            cd tala
-                            py.test integration_tests
-                        '''
+                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
                     }
                 }
             }
@@ -183,10 +148,7 @@ pipeline {
         stage('push candidate') {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
-                    sh '''#!/bin/bash -ex
-                        echo $pw | docker login -u zigit --password-stdin
-                        docker push talkamatic/tala:candidate
-                    '''
+                    sh "echo ${pw} | docker login -u zigit --password-stdin; docker push talkamatic/tala:candidate"
                 }
             }
         }
