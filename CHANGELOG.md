@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- A new method `request_speech_input(session, hypotheses)` has been added to `tala.utils.tdm_client.TDMClient`.
+
+### Changed
+- `tala.utils.tdm_client.TDMClient` no longer manages a single session internally. The caller needs to manage sessions instead, injecting them into the `TDMClient` instead, enabling the client to be reused for several sessions.
+- In `tala.utils.tdm_client.TDMClient`, the method `say` has been renamed to `request_text_input`.
+- The signature has changed for the methods `request_text_input`, `request_passivity` and `start_session`. A new required argument `session` has been added.
+
 ## [2.0.0] - 2019-04-12
 ### Added
 - Command `tala generate-rasa` has been added. Use it to generate training data for Rasa NLU.

@@ -12,6 +12,7 @@ from tala.utils.observable import Observer
 class TDMCLI(object):
     def __init__(self, url):
         self._client = TDMClient(url)
+        self._session = None
         self._passivity_timer = PassivityTimer()
         self._passivity_timer.add_observer(PassivityTimerObserver(self))
         history = self._create_file_history()
@@ -23,6 +24,7 @@ class TDMCLI(object):
             if text:
                 self._passivity_timer.stop()
             return True
+
         return Validator.from_callable(on_active)
 
     def stop(self):
@@ -38,10 +40,12 @@ class TDMCLI(object):
         while True:
             message = self._session.prompt(u"U> ").rstrip()
             self._passivity_timer.stop()
-            yield self._request(self._client.say, message)
+            yield self._request(self._client.request_text_input, self._session, message)
 
     def _request(self, callable, *args, **kwargs):
         response = callable(*args, **kwargs)
+        if not self._session:
+            self._session = response["session"]["session_id"]
         expected_passivity = response["output"]["expected_passivity"]
         if expected_passivity is not None:
             self._passivity_timer.start(expected_passivity)
@@ -49,7 +53,7 @@ class TDMCLI(object):
         return u"S> {}".format(system_utterance)
 
     def request_passivity(self):
-        system_utterance = self._request(self._client.request_passivity)
+        system_utterance = self._request(self._client.request_passivity, self._session)
 
         def print_passivity_turn():
             print u"U>"

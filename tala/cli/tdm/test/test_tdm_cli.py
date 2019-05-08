@@ -35,11 +35,12 @@ class TestTDMCLI(object):
     def _given_mocked_tdm_client(self, MockTDMClient):
         self._mocked_tdm_client = MockTDMClient.return_value
         self._mocked_tdm_client.start_session.return_value = self._create_tdm_client_response()
-        self._mocked_tdm_client.say.return_value = self._create_tdm_client_response()
+        self._mocked_tdm_client.request_text_input.return_value = self._create_tdm_client_response()
         self._mocked_tdm_client.request_passivity.return_value = self._create_tdm_client_response()
 
     def _create_tdm_client_response(self, system_utterance="mock-system-utterance", expected_passivity="null"):
-        return json.loads('''{{
+        return json.loads(
+            '''{{
   "version": {version},
   "session": {{
     "session_id": "mock-session-id"
@@ -58,7 +59,8 @@ class TestTDMCLI(object):
     "facts": {{}},
     "language": "eng"
   }}
-}}'''.format(version=PROTOCOL_VERSION, system_utterance=system_utterance, expected_passivity=expected_passivity))
+}}'''.format(version=PROTOCOL_VERSION, system_utterance=system_utterance, expected_passivity=expected_passivity)
+        )
 
     def _given_mocked_prompt_session(self, MockPromptSession):
         self._MockPromptSession = MockPromptSession
@@ -116,7 +118,8 @@ class TestTDMCLI(object):
 
     def _then_file_history_is_used(self):
         self._MockPromptSession.assert_called_once_with(
-            history=self._mocked_file_history, mouse_support=True, validator=ANY)
+            history=self._mocked_file_history, mouse_support=True, validator=ANY
+        )
 
     @patch("{}.PromptSession".format(tdm_cli.__name__), autospec=True)
     @patch("{}.TDMClient".format(tdm_cli.__name__), autospec=True)
@@ -197,7 +200,8 @@ class TestTDMCLI(object):
     @patch("{}.prompt_toolkit.application".format(tdm_cli.__name__), autospec=True)
     @patch("{}.PassivityTimer".format(tdm_cli.__name__), autospec=True)
     def test_system_utterance_from_passivity_call_to_tdm_client_is_used_as_system_utterance(
-            self, MockPassivityTimer, mock_application, MockTDMClient, MockPromptSession, capsys):
+        self, MockPassivityTimer, mock_application, MockTDMClient, MockPromptSession, capsys
+    ):
         self._given_mocked_passivity_timer(MockPassivityTimer)
         self._given_mocked_application(mock_application)
         self._given_mocked_tdm_client(MockTDMClient)
@@ -240,7 +244,8 @@ class TestTDMCLI(object):
     @patch("{}.Validator".format(tdm_cli.__name__), autospec=True)
     @patch("{}.PassivityTimer".format(tdm_cli.__name__), autospec=True)
     def test_passivity_timer_stopped_when_user_becomes_active(
-            self, MockPassivityTimer, MockValidator, MockTDMClient, MockPromptSession):
+        self, MockPassivityTimer, MockValidator, MockTDMClient, MockPromptSession
+    ):
         self._given_mocked_passivity_timer(MockPassivityTimer)
         self._given_mocked_user_activity_detector(MockValidator)
         self._given_mocked_tdm_client(MockTDMClient)
@@ -268,7 +273,7 @@ class TestTDMCLI(object):
     @patch("{}.TDMClient".format(tdm_cli.__name__), autospec=True)
     def test_endurance(self, MockTDMClient, MockPromptSession):
         self._given_mocked_tdm_client(MockTDMClient)
-        self._given_mocked_tdm_client_returns_utterance_on_say("system-utterance")
+        self._given_mocked_tdm_client_returns_utterance_on_request_text_input("system-utterance")
         self._given_mocked_prompt_session(MockPromptSession)
         self._given_created_tdm_cli()
         self._given_initiated_system_turns()
@@ -276,8 +281,10 @@ class TestTDMCLI(object):
         self._when_user_and_system_are_taking_turns_for_a_long_while()
         self._then_system_turn_is("S> system-utterance")
 
-    def _given_mocked_tdm_client_returns_utterance_on_say(self, utterance):
-        self._mocked_tdm_client.say.return_value = self._create_tdm_client_response(system_utterance=utterance)
+    def _given_mocked_tdm_client_returns_utterance_on_request_text_input(self, utterance):
+        self._mocked_tdm_client.request_text_input.return_value = self._create_tdm_client_response(
+            system_utterance=utterance
+        )
 
     def _when_user_and_system_are_taking_turns_for_a_long_while(self):
         for i in range(100):
