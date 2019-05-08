@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import unittest
 
+import pytest
 from mock import Mock
 
 import tala.nl.gf.resource
@@ -35,9 +36,13 @@ MK_UNKNOWN_LINEARIZATION = "mkUnknown string = ss string.s;\n"
 UNKNOWN_NL_LINEARIZATION = """unknown_string unknown = unknown;\n"""
 MK_UNKNOWN_NL_LINEARIZATION = """mkUnknown string = string;\n"""
 
+STRING_PREDICATE = "location"
+DATETIME_PREDICATE = "flight_departure"
+INTEGER_PREDICATE = "frequent_flyer_points"
 
-class AutoGeneratorTestCase(unittest.TestCase):
-    def setUp(self):
+
+class AutoGeneratorTestCase(object):
+    def setup(self):
         class MockupDevice:
             actions = {}
             validities = []
@@ -216,31 +221,31 @@ class AutoGeneratorTestCase(unittest.TestCase):
         self._grammar_compiler = DddXmlCompiler()
 
     def expect_warning(self, expected_warning):
-        self.assertEquals(expected_warning, self.generator.warning.strip())
+        assert expected_warning == self.generator.warning.strip()
 
     def expect_no_warning(self):
-        self.assertEquals("", self.generator.warning)
+        assert "" == self.generator.warning
 
     def assert_abstract(self, expected):
-        self.assertEquals(expected, self.generator._abstract_gf_content.getvalue())
+        assert expected == self.generator._abstract_gf_content.getvalue()
 
     def assert_abstract_contains(self, expected):
-        self.assertIn(expected, self.generator._abstract_gf_content.getvalue())
+        assert expected in self.generator._abstract_gf_content.getvalue()
 
     def assert_abstract_contains_function(self, expected):
         actual_functions_section = self._get_section(self.generator._abstract_gf_content.getvalue(), "fun")
-        self.assertIn(expected, actual_functions_section)
+        assert expected in actual_functions_section
 
     def assert_abstract_not_contains_function(self, expected):
         actual_functions_section = self._get_section(self.generator._abstract_gf_content.getvalue(), "fun")
-        self.assertNotIn(expected, actual_functions_section)
+        assert expected not in actual_functions_section
 
     def _get_section(self, gf_content, start_line, end_line="}\n"):
         match = re.search("%s\n(.*)%s" % (start_line, end_line), gf_content, re.DOTALL)
         if match:
             return match.group(1)
         else:
-            self.fail(
+            pytest.fail(
                 "failed to find section with start_line=%r, end_line=%r in %r" % (start_line, end_line, gf_content)
             )
 
@@ -248,53 +253,53 @@ class AutoGeneratorTestCase(unittest.TestCase):
         actual_categories_section = self._get_section(
             self.generator._abstract_gf_content.getvalue(), start_line="cat", end_line="fun"
         )
-        self.assertIn(expected, actual_categories_section)
+        assert expected in actual_categories_section
 
     def assert_abstract_not_contains_category(self, expected):
         actual_categories_section = self._get_section(
             self.generator._abstract_gf_content.getvalue(), start_line="cat", end_line="fun"
         )
-        self.assertNotIn(expected, actual_categories_section)
+        assert expected not in actual_categories_section
 
     def assert_semantic_contains_lincat(self, expected):
         actual_lincat_section = self._get_section(
             self.generator._semantic_gf_content.getvalue(), start_line="lincat", end_line="lin"
         )
-        self.assertIn(expected, actual_lincat_section)
+        assert expected in actual_lincat_section
 
     def assert_semantic_not_contains_lincat(self, expected):
         actual_lincat_section = self._get_section(
             self.generator._semantic_gf_content.getvalue(), start_line="lincat", end_line="lin"
         )
-        self.assertNotIn(expected, actual_lincat_section)
+        assert expected not in actual_lincat_section
 
     def assert_semantic(self, expected):
-        self.assertEquals(expected, self.generator._semantic_gf_content.getvalue())
+        assert expected == self.generator._semantic_gf_content.getvalue()
 
     def assert_semantic_contains(self, expected):
-        self.assertIn(expected, self.generator._semantic_gf_content.getvalue())
+        assert expected in self.generator._semantic_gf_content.getvalue()
 
     def assert_semantic_contains_linearization(self, expected):
         actual_linearizations_section = self._get_section(self.generator._semantic_gf_content.getvalue(), "lin")
-        self.assertIn(expected, actual_linearizations_section)
+        assert expected in actual_linearizations_section
 
     def assert_semantic_not_contains_linearization(self, expected):
         actual_linearizations_section = self._get_section(self.generator._semantic_gf_content.getvalue(), "lin")
-        self.assertNotIn(expected, actual_linearizations_section)
+        assert expected not in actual_linearizations_section
 
     def assert_natural_language(self, expected):
-        self.assertEquals(expected, self.generator._natural_language_gf_content.getvalue())
+        assert expected == self.generator._natural_language_gf_content.getvalue()
 
     def assert_natural_language_contains(self, expected):
-        self.assertIn(expected, self.generator._natural_language_gf_content.getvalue())
+        assert expected in self.generator._natural_language_gf_content.getvalue()
 
     def assert_natural_language_contains_linearization(self, expected):
         actual_linearizations_section = self._get_section(self.generator._natural_language_gf_content.getvalue(), "lin")
-        self.assertIn(expected, actual_linearizations_section)
+        assert expected in actual_linearizations_section
 
     def assert_natural_language_not_contains_linearization(self, expected):
         actual_linearizations_section = self._get_section(self.generator._natural_language_gf_content.getvalue(), "lin")
-        self.assertNotIn(expected, actual_linearizations_section)
+        assert expected not in actual_linearizations_section
 
     def get_predicate(self, predicate_name):
         return self.generator._ontology.get_predicate(predicate_name)
@@ -324,13 +329,11 @@ class AutoGeneratorTestCase(unittest.TestCase):
         self._assert_begins_with(expected_beginning, self.generator._natural_language_gf_content.getvalue())
 
     def _assert_begins_with(self, expected_beginning, actual_string):
-        self.assertTrue(
-            actual_string.startswith(expected_beginning),
-            "expected %r to begin with %r" % (actual_string, expected_beginning)
-        )
+        assert actual_string.startswith(expected_beginning), "expected %r to begin with %r" % (
+            actual_string, expected_beginning)
 
 
-class HeaderTestCase(AutoGeneratorTestCase):
+class TestHeader(AutoGeneratorTestCase):
     def test_header(self):
         self.given_grammar([])
         self.when_generating()
@@ -343,7 +346,7 @@ class HeaderTestCase(AutoGeneratorTestCase):
         )
 
 
-class CategoriesTestCase(AutoGeneratorTestCase):
+class TestCategories(AutoGeneratorTestCase):
     def test_sortal_category(self):
         self.given_ontology(sorts={"city": {}}, predicates={}, actions=set([]), individuals={})
         self.given_grammar([])
@@ -357,7 +360,7 @@ class CategoriesTestCase(AutoGeneratorTestCase):
         self.assert_abstract_contains_category("Predicate_dest_city;\n")
 
 
-class ActionTestCase(AutoGeneratorTestCase):
+class TestAction(AutoGeneratorTestCase):
     def test_action_base_case(self):
         self.given_grammar([
             Node(Constants.ACTION, {"name": "settings"}, [Node(Constants.ITEM, {}, [u"inställningar"])])
@@ -539,7 +542,7 @@ class ActionTestCase(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization('settings_request = ss (("options"));')
 
 
-class PredicateTestCase(AutoGeneratorTestCase):
+class TestPredicate(AutoGeneratorTestCase):
     def test_predicate_base_case(self):
         self.given_grammar([
             Node(Constants.PREDICATE, {"name": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
@@ -550,7 +553,7 @@ class PredicateTestCase(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization('price = ss (("price information"));')
 
 
-class TitleTestCase(AutoGeneratorTestCase):
+class TestTitle(AutoGeneratorTestCase):
     def test_issue_title(self):
         self.given_grammar([
             Node(Constants.ISSUE_TITLE, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["Price Information"])])
@@ -646,7 +649,7 @@ class test_parameterized_sys_form_answer(AutoGeneratorTestCase):
         self.assertEquals(expected_gf_content, self._actual_result)
 
 
-class UsrRequestTest(AutoGeneratorTestCase):
+class TestUsrRequest(AutoGeneratorTestCase):
     def _create_mock_ddd(self):
         self._ensure_ontology_exists()
         self._ensure_domain_exists()
@@ -748,7 +751,7 @@ class UsrRequestTest(AutoGeneratorTestCase):
         )
 
 
-class ValidityTest(AutoGeneratorTestCase):
+class TestValidity(AutoGeneratorTestCase):
     def test_all_parameters_in_grammar(self):
         self.given_service_interface_has_validity(
             ServiceValidatorInterface(
@@ -951,7 +954,7 @@ class MockAutoGenerator(AutoGenerator):
         self.warning += '\n'
 
 
-class ReportTestCase(AutoGeneratorTestCase):
+class TestReport(AutoGeneratorTestCase):
     def test_multiple_parameters_base(self):
         self.given_grammar([
             Node(
@@ -1286,7 +1289,7 @@ class ReportTestCase(AutoGeneratorTestCase):
         )
 
 
-class VerbPhraseTest(AutoGeneratorTestCase):
+class TestVerbPhrase(AutoGeneratorTestCase):
     def test_verb_phrase(self):
         self.given_form(
             Node(
@@ -1305,7 +1308,7 @@ class VerbPhraseTest(AutoGeneratorTestCase):
         self.assert_natural_language_contains('set_time = (mkverb "set" "set" "setting" "the time")')
 
 
-class WarningsAndErrorsTest(AutoGeneratorTestCase):
+class TestWarningsAndErrors(AutoGeneratorTestCase):
     def test_warn_about_missing_entry_for_postconfirmed_action(self):
         self.given_service_interface_has_action(
             ServiceActionInterface("SetAlarm", self.mock_service_target, parameters=[], failure_reasons=[])
@@ -1391,9 +1394,8 @@ class WarningsAndErrorsTest(AutoGeneratorTestCase):
                 ]
             )
         ])
-        with self.assertRaises(UnexpectedParameter) as cm:
+        with pytest.raises(UnexpectedParameter, match="unexpected parameter name dest_city "):
             self.when_generating()
-        self.assertIn("unexpected parameter name dest_city ", unicode(cm.exception))
 
     def test_warn_about_missing_entry_for_action_py_grammar(self):
         self.given_py_grammar()
@@ -1533,21 +1535,19 @@ class WarningsAndErrorsTest(AutoGeneratorTestCase):
                 ]
             )
         ])
-        with self.assertRaises(InvalidSortOfBackgroundPredicateException) as e:
+        with pytest.raises(InvalidSortOfBackgroundPredicateException,
+                           match="Background is not allowed for predicate 'location' of sort 'string'. "
+                                 "Perhaps you can create a new sort for it?"):
             self.when_generating()
-        self.assertIn(
-            "Background is not allowed for predicate 'location' of sort 'string'. Perhaps you can create a new sort for it?",
-            e.exception
-        )
 
     def test_background_with_integer_answer_raises_exception(self):
         self.given_compulsory_grammar_for_app()
         self.given_grammar([
             Node(
-                Constants.SYS_ANSWER, {"predicate": "frequent_flyer_points"}, [
+                Constants.SYS_ANSWER, {"predicate": INTEGER_PREDICATE}, [
                     Node(
                         Constants.ITEM, {}, [
-                            Node(Constants.SLOT, {"predicate": "frequent_flyer_points"}),
+                            Node(Constants.SLOT, {"predicate": INTEGER_PREDICATE}),
                             " blablabla ",
                             Node(Constants.SLOT, {"predicate": "location"}),
                         ]
@@ -1555,27 +1555,25 @@ class WarningsAndErrorsTest(AutoGeneratorTestCase):
                 ]
             )
         ])
-        with self.assertRaises(InvalidSortOfBackgroundPredicateException) as e:
+        with pytest.raises(InvalidSortOfBackgroundPredicateException,
+                           match="Background is not allowed for predicate '%s' of sort 'integer'. "
+                                 "Perhaps you can create a new sort for it?" % INTEGER_PREDICATE):
             self.when_generating()
-        self.assertIn(
-            "Background is not allowed for predicate 'frequent_flyer_points' of sort 'integer'. Perhaps you can create a new sort for it?",
-            e.exception
-        )
 
     def test_can_be_asked_by_system_true(self):
         self.given_some_plan_contains("findout(?X.dest_city(X))")
         self.given_generator()
-        self.assertEquals(True, self.generator._can_be_asked_by_system("dest_city"))
+        assert self.generator._can_be_asked_by_system("dest_city")
 
     def test_can_be_asked_by_system_false(self):
         self.given_some_plan_contains("findout(?X.goal(X))")
         self.given_generator()
-        self.assertEquals(False, self.generator._can_be_asked_by_system("dest_city"))
+        assert not self.generator._can_be_asked_by_system("dest_city")
 
     def test_can_be_asked_by_system_false_for_features(self):
         self.given_some_plan_contains("findout(?X.dest_city(X))")
         self.given_generator()
-        self.assertEquals(False, self.generator._can_be_asked_by_system("dest_city_type"))
+        assert not self.generator._can_be_asked_by_system("dest_city_type")
 
     def given_device_has_mockup_actions(self, action_names):
         for action_name in action_names:
@@ -1610,18 +1608,18 @@ class WarningsAndErrorsTest(AutoGeneratorTestCase):
         self._domain.plans[any_goal]["plan"].push(plan_item)
 
     def expect_warning(self, expected_warning):
-        self.assertEquals(expected_warning, self.generator.warning.strip())
+        assert expected_warning == self.generator.warning.strip()
 
     def expect_no_warning(self):
-        self.assertEquals("", self.generator.warning)
+        assert "" == self.generator.warning
 
     def expect_report_ended_was_generated_for_action(self, action_name):
         self.assert_abstract_contains_function('report_ended_AlarmRings_1 : SysReportEnded;\n')
 
 
-class SysAnswerTest(AutoGeneratorTestCase):
-    def setUp(self):
-        AutoGeneratorTestCase.setUp(self)
+class TestSysAnswer(AutoGeneratorTestCase):
+    def setup(self):
+        AutoGeneratorTestCase.setup(self)
         self._form = None
 
     def test_default_unary_propositional_system_answer_of_custom_sort(self):
@@ -1697,9 +1695,15 @@ class SysAnswerTest(AutoGeneratorTestCase):
     def test_default_integer_system_answer(self):
         self.given_generator()
         self.when_generating_system_answer_content("distance")
-        self.assert_abstract("distance_sys_answer : Integer -> SysAnswer;\n")
-        self.assert_semantic('distance_sys_answer individual = pp "distance" individual;\n')
-        self.assert_natural_language("distance_sys_answer individual = individual;\n")
+        self.assert_abstract(
+            "distance_sys_answer_small : Integer -> SysAnswer;\n"
+            "distance_sys_answer_large : Placeholder -> SysAnswer;\n")
+        self.assert_semantic(
+            'distance_sys_answer_small individual = pp "distance" individual;\n'
+            'distance_sys_answer_large individual = pp "distance" individual;\n')
+        self.assert_natural_language(
+            "distance_sys_answer_small individual = individual;\n"
+            "distance_sys_answer_large individual = answer individual.s;\n")
 
     def test_overridden_integer_system_answer(self):
         self.given_grammar([
@@ -1710,10 +1714,17 @@ class SysAnswerTest(AutoGeneratorTestCase):
         ])
         self.given_generator()
         self.when_generating_system_answer_content("distance")
-        self.assert_abstract("distance_sys_answer : Integer -> SysAnswer;\n")
-        self.assert_semantic('distance_sys_answer individual = pp "distance" individual;\n')
+        self.assert_abstract(
+            "distance_sys_answer_small : Integer -> SysAnswer;\n"
+            "distance_sys_answer_large : Placeholder -> SysAnswer;\n")
+        self.assert_semantic(
+            'distance_sys_answer_small individual = pp "distance" individual;\n'
+            'distance_sys_answer_large individual = pp "distance" individual;\n')
         self.assert_natural_language(
-            'distance_sys_answer individual = answer ("the distance is" ++ individual.s ++ "meters") individual.s;\n'
+            'distance_sys_answer_small individual = '
+            'answer ("the distance is" ++ individual.s ++ "meters") individual.s;\n'
+            'distance_sys_answer_large individual = '
+            'answer ("the distance is" ++ individual.s ++ "meters") individual.s;\n'
         )
 
     def when_generating_system_answer_content(self, predicate_name):
@@ -1727,50 +1738,31 @@ class SysAnswerTest(AutoGeneratorTestCase):
             self.get_predicate(predicate_name).getSort()
         )
 
-    def test_default_string_system_answer(self):
+    @pytest.mark.parametrize("predicate", [STRING_PREDICATE, DATETIME_PREDICATE])
+    def test_default_system_placeholder_answer(self, predicate):
         self.given_generator()
-        self.when_generating_system_answer_content("location")
-        self.assert_abstract_contains("location_sys_answer_0 : SysAnswer;\n")
-        self.assert_semantic_contains('location_sys_answer_0 = pp "location" string_placeholder_0;\n')
-        self.assert_natural_language_contains('location_sys_answer_0 = answer ("_STR0_");\n')
+        self.when_generating_system_answer_content(predicate)
+        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % predicate)
+        self.assert_semantic_contains('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
+        self.assert_natural_language_contains('%s_sys_answer individual = answer individual.s;\n' % predicate)
 
-    def test_overridden_string_system_answer(self):
+    @pytest.mark.parametrize("predicate", [STRING_PREDICATE, DATETIME_PREDICATE])
+    def test_overridden_system_placeholder_answer(self, predicate):
         self.given_grammar([
             Node(
-                Constants.SYS_ANSWER, {"predicate": "location"},
-                [Node(Constants.ITEM, {}, [u"du är på ", Node(Constants.SLOT, {})])]
+                Constants.SYS_ANSWER, {"predicate": predicate},
+                [Node(Constants.ITEM, {}, [u"svaret är ", Node(Constants.SLOT, {})])]
             )
         ])
         self.given_generator()
-        self.when_generating_system_answer_content("location")
-        self.assert_abstract_contains("location_sys_answer_0 : SysAnswer;\n")
-        self.assert_semantic_contains('location_sys_answer_0 = pp "location" string_placeholder_0;\n')
-        self.assert_natural_language_contains(u'location_sys_answer_0 = answer ("du är på _STR0_");\n')
-
-    def test_default_datetime_system_answer(self):
-        self.given_generator()
-        self.when_generating_system_answer_content("flight_departure")
-        self.assert_abstract_contains("flight_departure_sys_answer_0 : SysAnswer;\n")
-        self.assert_semantic_contains('flight_departure_sys_answer_0 = pp "flight_departure" datetime_placeholder_0;\n')
-        self.assert_natural_language_contains('flight_departure_sys_answer_0 = answer ("_datetime_placeholder_0_");\n')
-
-    def test_overridden_datetime_system_answer(self):
-        self.given_grammar([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "flight_departure"},
-                [Node(Constants.ITEM, {}, [u"The flight departs at", Node(Constants.SLOT, {})])]
-            )
-        ])
-        self.given_generator()
-        self.when_generating_system_answer_content("flight_departure")
-        self.assert_abstract_contains("flight_departure_sys_answer_0 : SysAnswer;\n")
-        self.assert_semantic_contains('flight_departure_sys_answer_0 = pp "flight_departure" datetime_placeholder_0;\n')
+        self.when_generating_system_answer_content(predicate)
+        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % predicate)
+        self.assert_semantic_contains('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
         self.assert_natural_language_contains(
-            u'flight_departure_sys_answer_0 = answer ("The flight departs at" ++ "_datetime_placeholder_0_");\n'
-        )
+            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % predicate)
 
 
-class UserAnswerTest(AutoGeneratorTestCase):
+class TestUserAnswer(AutoGeneratorTestCase):
     def test_default_short_answer_content(self):
         self.given_grammar([])
         self.when_generating()
@@ -1875,7 +1867,7 @@ class UserAnswerTest(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization(MK_UNKNOWN_NL_LINEARIZATION)
 
 
-class UserQuestionTest(AutoGeneratorTestCase):
+class TestUserQuestion(AutoGeneratorTestCase):
     def test_without_answers(self):
         self.given_grammar([
             Node(Constants.USER_QUESTION, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
@@ -1934,7 +1926,7 @@ class UserQuestionTest(AutoGeneratorTestCase):
         )
 
 
-class SysQuestionTest(AutoGeneratorTestCase):
+class TestSysQuestion(AutoGeneratorTestCase):
     def test_base_case(self):
         self.given_form(Node(Constants.ITEM, {}, ["where do you want to go"]))
         self.given_generator()
@@ -1945,7 +1937,7 @@ class SysQuestionTest(AutoGeneratorTestCase):
         self.generator._generate_system_question(self.get_predicate(predicate_name), self._form)
 
 
-class BackgroundEmbeddingTest(AutoGeneratorTestCase):
+class TestBackgroundEmbedding(AutoGeneratorTestCase):
     def test_single_background_for_wh_question(self):
         self.given_form(Node(Constants.ITEM, {}, ["which hour ", Node(Constants.SLOT, {"predicate": "day_to_set"})]))
         self.given_generator()
@@ -2063,7 +2055,7 @@ class BackgroundEmbeddingTest(AutoGeneratorTestCase):
         )
 
 
-class SysResolveYnqTest(AutoGeneratorTestCase):
+class TestSysResolveYnq(AutoGeneratorTestCase):
     def test_base_case_no_background(self):
         self.given_form(Node(Constants.ITEM, {}, ["the price"]))
         self.given_generator()
@@ -2085,7 +2077,7 @@ class SysResolveYnqTest(AutoGeneratorTestCase):
         )
 
 
-class DevicelessDddTest(AutoGeneratorTestCase):
+class TestDevicelessDdd(AutoGeneratorTestCase):
     def test_deviceless_ddd(self):
         self._given_generator_created_for_deviceless_ddd()
         self._when_generating()
@@ -2106,7 +2098,7 @@ class DevicelessDddTest(AutoGeneratorTestCase):
         self.generator.generate("eng")
 
 
-class GreetingTest(AutoGeneratorTestCase):
+class TestGreeting(AutoGeneratorTestCase):
     def test_greeting(self):
         self.given_grammar([Node(Constants.GREETING, {}, [Node(Constants.ITEM, {}, ["Welcome to the Service!"])])])
         self.given_generator()
@@ -2126,7 +2118,7 @@ class GreetingTest(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization(u'sysGreet = ss "Hallå!";')
 
 
-class IndividualTest(AutoGeneratorTestCase):
+class TestIndividual(AutoGeneratorTestCase):
     def test_base_case(self):
         self.given_grammar([Node(Constants.INDIVIDUAL, {"name": "new_york"}, [Node(Constants.ITEM, {}, ["New York"])])])
         self.given_generator()
@@ -2144,35 +2136,15 @@ class IndividualTest(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization('placeholder_keyword0 = ss "_nl_placeholder_keyword0_";\n')
 
 
-class PlaceholdersForBuiltinSortsTestCase(AutoGeneratorTestCase):
-    def test_integer(self):
-        self.given_grammar([])
-        self.given_generator()
-        self.when_generating()
-        self.assert_abstract_contains_function('integer_placeholder_0 : Integer;\n')
-        self.assert_semantic_contains_linearization('integer_placeholder_0 = pp "_integer_placeholder_0_";\n')
-        self.assert_natural_language_contains_linearization(
-            'integer_placeholder_0 = integer "_integer_placeholder_0_" "_integer_placeholder_0_";\n'
-        )
-
-    def test_datetime(self):
-        self.given_grammar([])
-        self.given_generator()
-        self.when_generating()
-        self.assert_abstract_contains_function('datetime_placeholder_0 : DateTime;\n')
-        self.assert_semantic_contains_linearization('datetime_placeholder_0 = pp "_datetime_placeholder_0_";\n')
-        self.assert_natural_language_contains_linearization('datetime_placeholder_0 = ss "_datetime_placeholder_0_";\n')
-
-
-class LoadingAndCompilationTestCase(AutoGeneratorTestCase):
-    def setUp(self):
+class TestLoadingAndCompilation(AutoGeneratorTestCase):
+    def setup(self):
         self._temp_dir = tempfile.mkdtemp(prefix="AutoGeneratorTestCase")
         self._cwd = os.getcwd()
         self._schema_absolute_path = os.path.abspath(tala.ddd.schemas.__path__[0])
         os.chdir(self._temp_dir)
-        AutoGeneratorTestCase.setUp(self)
+        AutoGeneratorTestCase.setup(self)
 
-    def tearDown(self):
+    def teardown(self):
         os.chdir(self._cwd)
         shutil.rmtree(self._temp_dir)
 
@@ -2200,7 +2172,7 @@ class LoadingAndCompilationTestCase(AutoGeneratorTestCase):
         self._result = generator._load_and_compile_grammar_entries(language_code)
 
     def _then_result_is(self, expected_result):
-        self.assertEquals(expected_result, self._result)
+        assert expected_result == self._result
 
     def test_load_and_compile_grammar_entries_from_xml(self):
         self._given_grammar_source_file("grammar_eng.xml", '<grammar><action name="top">start view</action></grammar>')
@@ -2218,12 +2190,10 @@ class LoadingAndCompilationTestCase(AutoGeneratorTestCase):
         self._then_no_exception_is_raised()
 
     def test_validate_invalid_xml_grammar(self):
-        with self.assertRaises(ViolatesSchemaException) as context:
+        with pytest.raises(ViolatesSchemaException,
+                           match="Expected grammar_eng.xml compliant with schema but it's in violation: "
+                                 "Element 'invalid_element': This element is not expected., line 1"):
             self._given_grammar_source_file(
                 "grammar_eng.xml", '<grammar><invalid_element name="top">start view</invalid_element></grammar>'
             )
             self._when_load_and_compile_grammar_entries("eng")
-        self.assertIn(
-            "Expected grammar_eng.xml compliant with schema but it's in violation: "
-            "Element 'invalid_element': This element is not expected., line 1", context.exception
-        )

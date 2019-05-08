@@ -58,93 +58,90 @@ class BindTokensTestCase(unittest.TestCase):
         self.assertEquals(expected_result, self._result)
 
 
-class StringReplacementTestCase(unittest.TestCase):
+class PlaceholderPreprocessingTestCase(unittest.TestCase):
     def test_preprocess_strings_double_quotes(self):
-        self.when_preprocess_string(
+        self.when_preprocess_placeholders(
             'answer(comment("a comment"))')
         self.then_expect(
-            preprocessed_string="answer(comment(_STR0_))",
-            table={"_STR0_": "a comment"})
+            preprocessed_string="answer(comment(_placeholder_0_))",
+            table={"_placeholder_0_": "a comment"})
 
-    def when_preprocess_string(self, string):
+    def when_preprocess_placeholders(self, string):
         self._string_to_preprocess = string
         self._actual_table = {}
-        self._actual_preprocessed_string = utils.preprocess_strings(string, self._actual_table)
+        self._actual_preprocessed_string = utils.preprocess_placeholders(string, self._actual_table)
 
     def then_expect(self, preprocessed_string, table):
         self.assertEquals(preprocessed_string, self._actual_preprocessed_string)
         self.assertEquals(table, self._actual_table)
 
     def test_preprocess_strings_single_quotes(self):
-        self.when_preprocess_string(
+        self.when_preprocess_placeholders(
             "answer(comment('a comment'))")
         self.then_expect(
-            preprocessed_string="answer(comment(_STR0_))",
-            table={"_STR0_": "a comment"})
+            preprocessed_string="answer(comment(_placeholder_0_))",
+            table={"_placeholder_0_": "a comment"})
 
     def test_preprocess_strings_mixed_quotes_no_action(self):
-        self.when_preprocess_string(
+        self.when_preprocess_placeholders(
             "answer(comment('10:05\"))")
         self.then_expect_unchanged_string()
 
     def then_expect_unchanged_string(self):
         self.assertEquals(self._string_to_preprocess, self._actual_preprocessed_string)
 
-    def test_preprocess_multiple_strings(self):
-        self.when_preprocess_string(
-            'report(ServiceResultProposition(RegisterComment, [comment_message("mock comment"), comment_name("mock name")], SuccessfulServiceAction()))')
+    def test_preprocess_datetime(self):
+        self.when_preprocess_placeholders(
+            'report(ServiceResultProposition(BookFlight, [desired_time(datetime(2018-04-11T22:00:00.000Z))], '
+            'SuccessfulServiceAction()))')
         self.then_expect(
-            preprocessed_string='report(ServiceResultProposition(RegisterComment, [comment_message(_STR0_), comment_name(_STR1_)], SuccessfulServiceAction()))',
-            table={"_STR0_": "mock comment",
-                   "_STR1_": "mock name"})
+            preprocessed_string='report(ServiceResultProposition(BookFlight, [desired_time(_placeholder_0_)], '
+                                'SuccessfulServiceAction()))',
+            table={"_placeholder_0_": "04/11/2018 10:00 PM"})
 
-
-class DateTimeReplacementTestCase(unittest.TestCase):
-    def test_preprocess_base_case(self):
-        self._when_string_is_preprocessed('report(ServiceResultProposition(BookFlight, [desired_time(datetime(2018-04-11T22:00:00.000Z))], SuccessfulServiceAction()), ddd_name=u\'rasa_time\')')
-        self._then_string_and_table_are(
-            'report(ServiceResultProposition(BookFlight, [desired_time(_datetime_placeholder_0_)], SuccessfulServiceAction()), ddd_name=u\'rasa_time\')',
-            {"_datetime_placeholder_0_": "04/11/2018 10:00 PM"})
-
-    def _when_string_is_preprocessed(self, string):
-        self._actual_table = {}
-        self._result = utils.preprocess_datetimes(string, self._actual_table)
-
-    def _then_string_and_table_are(self, expected_string, expected_table):
-        self.assertEquals(expected_string, self._result)
-        self.assertEquals(expected_table, self._actual_table)
-
-
-class IntegerReplacementTestCase(unittest.TestCase):
     def test_preprocess_integers_doesnt_touch_plain_digits(self):
-        self._when_string_is_preprocessed("222")
-        self._then_string_and_table_are("222", {})
+        self.when_preprocess_placeholders("222")
+        self.then_expect_unchanged_string()
 
     def test_preprocess_integers_processes_more_than_2_digits_in_parens(self):
-        self._when_string_is_preprocessed("(222)")
-        self._then_string_and_table_are("(_integer_placeholder_0_)", {"_integer_placeholder_0_": "222"})
+        self.when_preprocess_placeholders("(222)")
+        self.then_expect(preprocessed_string="(_placeholder_0_)", table={"_placeholder_0_": "222"})
 
     def test_preprocess_integers_skips_2_or_less_digits_in_parens(self):
-        self._when_string_is_preprocessed("(22)")
-        self._then_string_and_table_are("(22)", {})
+        self.when_preprocess_placeholders("(22)")
+        self.then_expect(preprocessed_string="(22)", table={})
 
-    def _when_string_is_preprocessed(self, string):
-        self._actual_table = {}
-        self._result = utils.preprocess_integers(string, self._actual_table)
-
-    def _then_string_and_table_are(self, expected_string, expected_table):
-        self.assertEquals(expected_string, self._result)
-        self.assertEquals(expected_table, self._actual_table)
-
-    def _then_result_is(self, tokens):
-        self.assertEquals(tokens, self._result)
+    def test_preprocess_multiple_sorts_in_mixed_order(self):
+        self.when_preprocess_placeholders(
+            'mock_move('
+            'integer_predicate_1(123),'
+            'datetime_predicate_1(datetime(2001-01-01T01:01:00.000Z)),'
+            'string_predicate_1("string 1"),'
+            'integer_predicate_2(456),'
+            'datetime_predicate_2(datetime(2002-02-02T02:02:00.000Z)),'
+            'string_predicate_2("string 2")'
+            ')')
+        self.then_expect(
+            preprocessed_string='mock_move('
+                                'integer_predicate_1(_placeholder_2_),'
+                                'datetime_predicate_1(_placeholder_4_),'
+                                'string_predicate_1(_placeholder_0_),'
+                                'integer_predicate_2(_placeholder_3_),'
+                                'datetime_predicate_2(_placeholder_5_),'
+                                'string_predicate_2(_placeholder_1_)'
+                                ')',
+            table={"_placeholder_2_": "123",
+                   "_placeholder_4_": "01/01/2001 01:01 AM",
+                   "_placeholder_0_": "string 1",
+                   "_placeholder_3_": "456",
+                   "_placeholder_5_": "02/02/2002 02:02 AM",
+                   "_placeholder_1_": "string 2"})
 
 
 class GenericPlaceholderReplacementTestCase(unittest.TestCase):
     def test_base_case(self):
         self._when_replace_placeholders_is_invoked(
-            "the comment has _integer_placeholder_0_ likes",
-            {"_integer_placeholder_0_": "222"})
+            "the comment has _placeholder_0_ likes", {"_placeholder_0_": "222"})
         self._then_result_is("the comment has 222 likes")
 
     def _when_replace_placeholders_is_invoked(self, string, table):
@@ -155,8 +152,8 @@ class GenericPlaceholderReplacementTestCase(unittest.TestCase):
 
     def test_placeholder_not_as_its_own_token(self):
         self._when_replace_placeholders_is_invoked(
-            "_integer_placeholder_0_: this is not a valid temperature",
-            {"_integer_placeholder_0_": "222"})
+            "_placeholder_0_: this is not a valid temperature",
+            {"_placeholder_0_": "222"})
         self._then_result_is("222: this is not a valid temperature")
 
 
@@ -202,8 +199,8 @@ class GFTests(unittest.TestCase):
                           utils.tokenise('pred(arg)'))
 
     def test_tokenise_with_string_constant(self):
-        self.assertEquals(['you', 'said', '_STR0_', '.'],
-                          utils.tokenise('you said _STR0_.'))
+        self.assertEquals(['you', 'said', '_placeholder_0_', '.'],
+                          utils.tokenise('you said _placeholder_0_.'))
 
     def test_tokenise_genitive(self):
         self.assertEquals(["Alex's"],

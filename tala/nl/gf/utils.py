@@ -33,10 +33,10 @@ def tokenise(s):
     return tokenised
 
 
-def preprocess_strings(unprocessed_string, table):
+def _preprocess_strings(unprocessed_string, table):
     def replace_and_store(matchobj):
         count = len(table)
-        key = '_STR%s_' % count
+        key = '_placeholder_%s_' % count
         table[key] = matchobj.group(1)
         return key
 
@@ -45,26 +45,33 @@ def preprocess_strings(unprocessed_string, table):
     return preprocessed_string
 
 
-def preprocess_integers(unprocessed_string, table):
+def _preprocess_integers(unprocessed_string, table):
     def replace_and_store(matchobj):
         count = len(table)
-        key = '_integer_placeholder_%s_' % count
+        key = '_placeholder_%s_' % count
         table[key] = matchobj.group(1)
         return "(%s)" % key
 
     return re.sub("\((\d{3,})\)", replace_and_store, unprocessed_string)
 
 
-def preprocess_datetimes(unprocessed_string, table):
+def _preprocess_datetimes(unprocessed_string, table):
     def replace_and_store(matchobj):
         count = len(table)
-        key = '_datetime_placeholder_%s_' % count
+        key = '_placeholder_%s_' % count
         iso8601_string = matchobj.group(1)
         date_time = DateTime(iso8601_string)
         table[key] = date_time.human_standard()
         return "(%s)" % key
 
     return re.sub("\(datetime\(([^()]+)\)\)", replace_and_store, unprocessed_string)
+
+
+def preprocess_placeholders(unprocessed_string, table):
+    result = _preprocess_strings(unprocessed_string, table)
+    result = _preprocess_integers(result, table)
+    result = _preprocess_datetimes(result, table)
+    return result
 
 
 def replace_placeholders(string, table):

@@ -65,7 +65,7 @@ class LowerCaseGfFileWriter(object):
 
 
 class AutoGenerator(object):
-    INTEGER_CATEGORY = "Integer"
+    CATEGORY_FOR_SMALL_INTEGERS = "Integer"
 
     def __init__(self, ddd, ignore_warnings=False, cwd=None):
         self._ddd = ddd
@@ -215,7 +215,6 @@ class AutoGenerator(object):
     def _add_content_based_on_ontology(self):
         self._generate_actions()
         self._generate_features()
-        self._generate_placeholders_for_builtin_sorts()
         self._generate_placeholders_for_dynamic_custom_sorts()
         self._generate_individuals()
         self._generate_potential_user_answer_sequences()
@@ -274,26 +273,6 @@ class AutoGenerator(object):
     def _generate_individuals(self):
         for (individual, sort) in self._ontology.get_individuals().iteritems():
             self._generate_individual(individual, sort)
-
-    def _generate_placeholders_for_builtin_sorts(self):
-        self._generate_placeholders_for_integers()
-        self._generate_placeholders_for_datetime()
-
-    def _generate_placeholders_for_integers(self):
-        for index in range(0, utils.MAX_NUM_PLACEHOLDERS):
-            function_name = "integer_placeholder_%d" % index
-            self._abstract_gf_content.write('%s : Integer;\n' % function_name)
-            self._semantic_gf_content.write('%s = pp "_integer_placeholder_%d_";\n' % (function_name, index))
-            self._natural_language_gf_content.write(
-                '%s = integer "_integer_placeholder_%d_" "_integer_placeholder_%d_";\n' % (function_name, index, index)
-            )
-
-    def _generate_placeholders_for_datetime(self):
-        for index in range(0, utils.MAX_NUM_PLACEHOLDERS):
-            function_name = "datetime_placeholder_%d" % index
-            self._abstract_gf_content.write('%s : DateTime;\n' % function_name)
-            self._semantic_gf_content.write('%s = pp "_datetime_placeholder_%d_";\n' % (function_name, index))
-            self._natural_language_gf_content.write('%s = ss "_datetime_placeholder_%d_";\n' % (function_name, index))
 
     def _generate_placeholders_for_dynamic_custom_sorts(self):
         for sort in self._ontology.get_sorts().values():
@@ -788,12 +767,10 @@ class AutoGenerator(object):
         sort = predicate.getSort()
         if sort.is_builtin():
             self._assert_sorts_of_background_predicates_are_valid(predicate.get_name(), sort.get_name(), form)
-            if sort.is_string_sort():
-                self._generate_system_string_answer_content(predicate.get_name(), form)
+            if sort.is_string_sort() or sort.is_datetime_sort():
+                self._generate_system_placeholder_answer_content(predicate.get_name(), form)
             elif sort.is_integer_sort():
                 self._generate_system_integer_answer_content(predicate.get_name(), form)
-            elif sort.is_datetime_sort():
-                self._generate_system_datetime_answer_content(predicate.get_name(), form)
         else:
             self._generate_unary_propositional_system_answer_content_for_custom_sort(predicate, form)
 
@@ -1016,46 +993,61 @@ class AutoGenerator(object):
         self._semantic_gf_content.write("%s_individual individual = individual;\n" % sort.get_name())
         self._natural_language_gf_content.write("%s_individual individual = individual;\n" % sort.get_name())
 
-    def _generate_system_string_answer_content(self, predicate, form):
-        for placeholder_id in range(utils.MAX_NUM_PLACEHOLDERS):
-            self._generate_system_string_answer_content_for_placeholder_id(predicate, form, placeholder_id)
-
-    def _generate_system_string_answer_content_for_placeholder_id(self, predicate, form, placeholder_id):
-        function_name = "%s_sys_answer_%s" % (predicate, placeholder_id)
-        self._abstract_gf_content.write("%s : SysAnswer;\n" % function_name)
+    def _generate_system_placeholder_answer_content(self, predicate, form):
+        function_name = "%s_sys_answer" % predicate
+        self._abstract_gf_content.write("%s : Placeholder -> SysAnswer;\n" % function_name)
         self._semantic_gf_content.write(
-            '%s = pp "%s" string_placeholder_%s;\n' % (function_name, predicate, placeholder_id)
+            '%s individual = pp "%s" individual;\n' % (function_name, predicate)
         )
 
-        if form is None:
-            natural_language_form = self._generate_system_string_answer_part(Node(Constants.SLOT), placeholder_id)
-            natural_language_gf = 'answer ("%s")' % natural_language_form
+        if form:
+            gf_parts = [self._generate_system_placeholder_answer_part(part) for part in form.children]
+            natural_language_gf = 'answer (%s)' % " ++ ".join(gf_parts)
         else:
-            gf_parts = [self._generate_system_string_answer_part(part, placeholder_id) for part in form.children]
-            natural_language_gf = 'answer ("%s")' % "".join(gf_parts)
-        self._natural_language_gf_content.write('%s = %s;\n' % (function_name, natural_language_gf))
+            natural_language_gf = "answer individual.s"
+        self._natural_language_gf_content.write('%s individual = %s;\n' % (function_name, natural_language_gf))
 
-    def _generate_system_string_answer_part(self, part, placeholder_id):
+    def _generate_system_placeholder_answer_part(self, part):
         if self._is_individual_slot(part):
-            return "_STR%s_" % placeholder_id
+            return "individual.s"
         else:
-            return self._form_to_gf_string(part)
+            return '"%s"' % self._form_to_gf_string(part.strip())
 
     def _generate_system_integer_answer_content(self, predicate, form):
-        self._abstract_gf_content.write("%s_sys_answer : %s -> SysAnswer;\n" % (predicate, self.INTEGER_CATEGORY))
-        self._semantic_gf_content.write('%s_sys_answer individual = pp "%s" individual;\n' % (predicate, predicate))
+        def generate_for_small_integers():
+            self._abstract_gf_content.write("%s_sys_answer_small : %s -> SysAnswer;\n" % (
+                predicate, self.CATEGORY_FOR_SMALL_INTEGERS))
+            self._semantic_gf_content.write('%s_sys_answer_small individual = pp "%s" individual;\n' % (
+                predicate, predicate))
 
-        if form:
-            parts = [self._generate_system_answer_part(part) for part in form.children]
-            natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
-        else:
-            natural_language_gf = "individual"
-        self._natural_language_gf_content.write("%s_sys_answer individual = %s;\n" % (predicate, natural_language_gf))
+            if form:
+                parts = [self._generate_system_answer_part(part) for part in form.children]
+                natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
+            else:
+                natural_language_gf = "individual"
+            self._natural_language_gf_content.write("%s_sys_answer_small individual = %s;\n" % (
+                predicate, natural_language_gf))
+
+        def generate_for_large_integers():
+            self._abstract_gf_content.write("%s_sys_answer_large : Placeholder -> SysAnswer;\n" % predicate)
+            self._semantic_gf_content.write('%s_sys_answer_large individual = pp "%s" individual;\n' % (
+                predicate, predicate))
+
+            if form:
+                parts = [self._generate_system_answer_part(part) for part in form.children]
+                natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
+            else:
+                natural_language_gf = "answer individual.s"
+            self._natural_language_gf_content.write("%s_sys_answer_large individual = %s;\n" % (
+                predicate, natural_language_gf))
+
+        generate_for_small_integers()
+        generate_for_large_integers()
 
     def _generate_user_integer_answer_content(self, predicate):
         self._abstract_gf_content.write(
             "%s_propositional_usr_answer : %s -> %s;\n" %
-            (predicate, self.INTEGER_CATEGORY, self._categories[predicate.get_name()])
+            (predicate, self.CATEGORY_FOR_SMALL_INTEGERS, self._categories[predicate.get_name()])
         )
         self._semantic_gf_content.write(
             "%s_propositional_usr_answer answer = pp %s.s answer;\n" % (predicate, predicate)
@@ -1063,34 +1055,10 @@ class AutoGenerator(object):
         self._natural_language_gf_content.write("%s_propositional_usr_answer answer = answer;\n" % predicate)
 
         self._abstract_gf_content.write(
-            "%s_sortal_usr_answer : %s -> UsrAnswer;\n" % (predicate, self.INTEGER_CATEGORY)
+            "%s_sortal_usr_answer : %s -> UsrAnswer;\n" % (predicate, self.CATEGORY_FOR_SMALL_INTEGERS)
         )
         self._semantic_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
         self._natural_language_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
-
-    def _generate_system_datetime_answer_content(self, predicate, form):
-        for placeholder_id in range(utils.MAX_NUM_PLACEHOLDERS):
-            self._generate_system_datetime_answer_content_for_placeholder_id(predicate, form, placeholder_id)
-
-    def _generate_system_datetime_answer_content_for_placeholder_id(self, predicate, form, placeholder_id):
-        function_name = "%s_sys_answer_%s" % (predicate, placeholder_id)
-        self._abstract_gf_content.write("%s : SysAnswer;\n" % function_name)
-        self._semantic_gf_content.write(
-            '%s = pp "%s" datetime_placeholder_%s;\n' % (function_name, predicate, placeholder_id)
-        )
-
-        if form:
-            parts = [self._generate_system_datetime_answer_part(part, placeholder_id) for part in form.children]
-            natural_language_gf = "answer (%s)" % " ++ ".join(parts)
-        else:
-            natural_language_gf = 'answer ("_datetime_placeholder_%s_")' % placeholder_id
-        self._natural_language_gf_content.write('%s = %s;\n' % (function_name, natural_language_gf))
-
-    def _generate_system_datetime_answer_part(self, part, placeholder_id):
-        if self._is_individual_slot(part):
-            return '"_datetime_placeholder_%s_"' % placeholder_id
-        else:
-            return '"%s"' % self._form_to_gf_string(part.strip())
 
     def _generate_user_question(self, predicate, forms):
         self._abstract_gf_content.write("ask_%s : UsrWHQ;\n" % predicate)
