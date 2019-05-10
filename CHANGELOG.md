@@ -5,12 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [3.0.0] - 2019-05-10
 ### Added
-- A new method `request_speech_input(session, hypotheses)` has been added to `tala.utils.tdm_client.TDMClient`.
+- A new method `request_speech_input` has been added to `tala.utils.tdm_client.TDMClient`.
 
 ### Changed
-- `tala.utils.tdm_client.TDMClient` no longer manages a single session internally. The caller needs to manage sessions instead, injecting them into the `TDMClient` instead, enabling the client to be reused for several sessions.
+- `tala.utils.tdm_client.TDMClient` no longer manages a single session internally. The caller needs to manage sessions instead, injecting them into the `TDMClient`. This enables the client to be reused for several sessions.
 - In `tala.utils.tdm_client.TDMClient`, the method `say` has been renamed to `request_text_input`.
-- The signature has changed for the methods `request_text_input`, `request_passivity` and `start_session`. A new required argument `session` has been added.
 
 ## [2.0.0] - 2019-04-12
 ### Added
