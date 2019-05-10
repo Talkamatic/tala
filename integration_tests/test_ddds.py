@@ -20,7 +20,7 @@ class TestDDDs(object):
             "rasa_for_static_entities.config.json",
             "rasa_numbers.config.json",
             "rasa_strings.config.json",
-            "rasa_time.config.json",
+            "datetime.config.json",
             "send_to_frontend.config.json",
             "small_grammar.json",
             "tidePooler.json",
