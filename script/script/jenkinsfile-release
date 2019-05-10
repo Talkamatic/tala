@@ -23,7 +23,7 @@ pipeline {
         stage('checkout') {
             steps {
                 script {
-                    def scm = checkout([
+                    checkout([
                         $class: 'GitSCM',
                         branches: [[name: 'refs/tags/$GIT_TAG_TO_BUILD']],
                         doGenerateSubmoduleConfigurations: false,
@@ -34,9 +34,8 @@ pipeline {
                             url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                         ]]
                     ])
-                    env.GIT_COMMIT = scm.GIT_COMMIT
+                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                 }
-                echo "${env.GIT_COMMIT}"
                 sh "virtualenv venv"
             }
         }
@@ -61,8 +60,8 @@ pipeline {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"
                 }
-                sh "docker pull talkamatic/tala:${GIT_COMMIT}"
-                sh "docker tag talkamatic/tala:${GIT_COMMIT} talkamatic/tala:${GIT_TAG_TO_BUILD}"
+                sh "docker pull talkamatic/tala:${env.COMMIT_TO_RELEASE}"
+                sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:${GIT_TAG_TO_BUILD}"
                 sh "docker push talkamatic/tala:${GIT_TAG_TO_BUILD}"
             }
         }
