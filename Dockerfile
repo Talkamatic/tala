@@ -17,8 +17,8 @@ ENV LANG C.UTF-8
 
 RUN pip install --upgrade pip
 
+COPY ./requirements.txt ./
+RUN pip --no-cache-dir install -r requirements.txt && rm -f requirements.txt
+
 COPY ./dist/*.whl ./
-
-RUN pip --no-cache-dir install *.whl
-
-RUN rm -f *.whl
+RUN pip --no-cache-dir install *.whl && rm -f *.whl

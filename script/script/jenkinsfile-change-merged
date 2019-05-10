@@ -52,26 +52,30 @@ pipeline {
 
         stage('checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/master']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [
-                            $class: 'RelativeTargetDirectory',
-                            relativeTargetDir: 'tala'
-                        ],[
-                            $class: 'SubmoduleOption',
-                            disableSubmodules: false,
-                            parentCredentials: true
-                        ]
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[
-                        credentialsId: 'jenkinsatgerrit',
-                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
-                    ]]
-                ])
+                script {
+                    def scm = checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [
+                                $class: 'RelativeTargetDirectory',
+                                relativeTargetDir: 'tala'
+                            ],[
+                                $class: 'SubmoduleOption',
+                                disableSubmodules: false,
+                                parentCredentials: true
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                            credentialsId: 'jenkinsatgerrit',
+                            url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                        ]]
+                    ])
+                    env.GIT_COMMIT = scm.GIT_COMMIT
+                }
+                echo "${env.GIT_COMMIT}"
                 sh "virtualenv venv"
             }
         }
@@ -88,17 +92,28 @@ pipeline {
             }
         }
 
+        stage ('freeze requirements') {
+            steps {
+                sh ". venv/bin/activate; pip install tala/dist/tala*.whl"
+                sh ". venv/bin/activate; pip uninstall -y tala"
+                sh ". venv/bin/activate; pip freeze --local > tala/requirements.txt"
+            }
+        }
+
         stage('build master') {
             steps {
-                sh "docker build tala -t talkamatic/tala:master"
+                sh "docker build tala -t talkamatic/tala:${env.GIT_COMMIT}"
+                sh "docker tag talkamatic/tala:${env.GIT_COMMIT} talkamatic/tala:master"
             }
         }
 
         stage('push master') {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
-                    sh "echo ${pw} | docker login -u zigit --password-stdin; docker push talkamatic/tala:master"
+                    sh "echo ${pw} | docker login -u zigit --password-stdin"
                 }
+                sh "docker push talkamatic/tala:${env.GIT_COMMIT}"
+                sh "docker push talkamatic/tala:master"
             }
         }
 
@@ -139,17 +154,13 @@ pipeline {
             }
         }
 
-        stage('build candidate') {
-            steps {
-                sh "docker build tala -t talkamatic/tala:candidate"
-            }
-        }
-
         stage('push candidate') {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
-                    sh "echo ${pw} | docker login -u zigit --password-stdin; docker push talkamatic/tala:candidate"
+                    sh "echo ${pw} | docker login -u zigit --password-stdin"
                 }
+                sh "docker tag talkamatic/tala:${env.GIT_COMMIT} talkamatic/tala:candidate"
+                sh "docker push talkamatic/tala:candidate""
             }
         }
     }
