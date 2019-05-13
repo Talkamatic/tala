@@ -12,7 +12,7 @@ from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan
-from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem
+from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem
 from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet
 from tala.model.proposition import PredicateProposition
@@ -363,6 +363,8 @@ class DomainCompiler(XmlCompiler):
             return self._compile_jumpto_element(element)
         elif element.localName == "assume_shared":
             return self._compile_assume_shared_element(element)
+        elif element.localName == "assume_issue":
+            return self._compile_assume_issue_element(element)
         else:
             raise DddXmlCompilerException("unknown plan item element %s" % element.toxml())
 
@@ -465,6 +467,11 @@ class DomainCompiler(XmlCompiler):
     def _compile_assume_shared_element(self, element):
         proposition = self._compile_proposition(element)
         return AssumeSharedPlanItem(proposition)
+
+    def _compile_assume_issue_element(self, element):
+        question_type = self._get_mandatory_attribute(element, "type")
+        question = self._compile_question(element)
+        return AssumeIssuePlanItem(question)
 
     def _parse_preconfirm_value(self, string):
         if string == "":

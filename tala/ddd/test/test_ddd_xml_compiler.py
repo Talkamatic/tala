@@ -1111,6 +1111,20 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         )
         self._then_result_has_plan(Plan([self._parser.parse("assume_shared(price(123.0))")]))
 
+    def test_assume_issue(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<assume_issue type="wh_question" predicate="price"/>
+            """
+        )
+        self._then_result_has_plan(Plan([self._parser.parse("assume_issue(?X.price(X))")]))
+
 
 class TestGrammarCompiler(DddXmlCompilerTestCase):
     def test_multiple_variants(self):

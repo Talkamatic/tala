@@ -70,6 +70,7 @@
       <xs:element ref="dev_perform" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="dev_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_shared" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="assume_issue" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="if" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="jumpto" type="has_goal" minOccurs="0" maxOccurs="unbounded"/>
     </xs:choice>

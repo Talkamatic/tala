@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - Persian has been added as a new language. It is currently supported when `use_rgl` is set to `false` in the DDD config.
+- The format for domain XML files now supports the "assume_issue" plan item, for assumming an issue for the system to resolve.
 
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
