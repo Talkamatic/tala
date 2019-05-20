@@ -371,7 +371,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
         self._then_result_is_successful()
 
     def _when_generating(self):
-        self._run_tala_with(["generate-rasa", "test_ddd", "eng"])
+        self._run_tala_with(["generate", "rasa", "test_ddd", "eng"])
 
     def test_stdout_when_generating_boilerplate_ddd(self):
         self._given_created_ddd_in_a_target_dir()
@@ -390,7 +390,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
 </grammar>"""
             )
         with self._given_changed_directory_to_target_dir():
-            self._when_running_command("tala generate-rasa test_ddd eng")
+            self._when_running_command("tala generate rasa test_ddd eng")
         self._then_stdout_matches(
             'language: "en"\n'
             '\n'
@@ -420,13 +420,11 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
     def test_generating_for_unknown_ddd(self):
         self._given_created_ddd_in_a_target_dir()
         with self._given_changed_directory_to_target_dir():
-            self._when_running_command("tala generate-rasa unknown-ddd eng")
+            self._when_running_command("tala generate rasa unknown-ddd eng")
         self._then_stderr_matches("UnexpectedDDDException: Expected DDD 'unknown-ddd' to exist but it didn't")
 
     def test_generating_for_unknown_language(self):
         self._given_created_ddd_in_a_target_dir()
         with self._given_changed_directory_to_target_dir():
-            self._when_running_command("tala generate-rasa test_ddd unknown-language")
-        self._then_stderr_matches(
-            "tala generate-rasa\: error\: argument language\: invalid choice\: 'unknown-language'"
-        )
+            self._when_running_command("tala generate rasa test_ddd unknown-language")
+        self._then_stderr_matches("tala generate\: error\: argument language\: invalid choice\: 'unknown-language'")

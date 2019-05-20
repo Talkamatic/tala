@@ -122,7 +122,7 @@ class GeneratorTestsBase(object):
         self._result = self._generate()
 
     def _generate(self):
-        return self._generator.generate()
+        return self._generator.generate_examples()
 
     def when_generating_data_with_mocked_grammar_then_exception_is_raised_matching(
         self, expected_exception, expected_pattern
@@ -734,12 +734,10 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:answer
+        self.then_result_matches(u"""## intent:rasa_test:answer
 - mock example 1
 - mock example 2
-"""
-        )
+""")
 
     def test_generate_answer_negation_intents(self):
         self.given_ddd_name("rasa_test")
@@ -747,12 +745,10 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:answer_negation
+        self.then_result_matches(u"""## intent:rasa_test:answer_negation
 - not mock example 1
 - not mock example 2
-"""
-        )
+""")
 
     def test_propositional_entities_excluded_from_answers(self):
         self.given_ddd_name("rasa_test")
@@ -764,13 +760,11 @@ class BuiltinSortGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:answer
+        self.then_result_matches(u"""## intent:rasa_test:answer
 - mock example 1
 - mock example 2
 
-"""
-        )
+""")
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
     def test_answers_with_propositional_entities_issues_warning(self, mock_warnings):
@@ -865,10 +859,8 @@ class NegativeIntentGeneratorTestCase(GeneratorTestsBase, unittest.TestCase):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            """## intent:NEGATIVE
+        self.then_result_matches("""## intent:NEGATIVE
 - aboard
 - about
 - above
-"""
-        )
+""")

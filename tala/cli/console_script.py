@@ -4,10 +4,8 @@ import argparse
 import contextlib
 import os
 import re
-import sys
 import warnings
 
-from jinja2 import Template
 from pathlib import Path
 from requests.exceptions import MissingSchema
 
@@ -25,6 +23,18 @@ from tala.ddd.maker import utils as ddd_maker_utils
 from tala.ddd.maker.ddd_maker import DddMaker
 from tala.utils.chdir import chdir
 
+RASA = "rasa"
+
+GENERATE_PLATFORMS = [RASA]
+
+
+class UnexpectedDDDException(Exception):
+    pass
+
+
+class UnexpectedPlatformException(Exception):
+    pass
+
 
 class ConfigAlreadyExistsException(Exception):
     pass
@@ -35,10 +45,6 @@ class ConfigNotFoundException(Exception):
 
 
 class InvalidArgumentException(Exception):
-    pass
-
-
-class UnexpectedDDDException(Exception):
     pass
 
 
@@ -89,29 +95,22 @@ def verify(args):
     ddds_builder.verify()
 
 
-def generate_rasa(args):
+def generate(args):
+    def generate(ddd):
+        if args.platform == RASA:
+            generator = RasaGenerator(ddd, args.language)
+            generator.generate()
+        else:
+            raise UnexpectedPlatformException(
+                "Expected one of the known platforms {} but got '{}'".format(GENERATE_PLATFORMS, args.platform)
+            )
+
     backend_dependencies = BackendDependenciesForGenerating(args)
     ddd_path = Path(args.ddd)
     if not ddd_path.exists():
         raise UnexpectedDDDException("Expected DDD '{}' to exist but it didn't".format(args.ddd))
-
     with chdir(ddd_path / "grammar"):
-        generator = RasaGenerator(backend_dependencies.ddds[0], args.language)
-        data = generator.generate()
-        language = languages.RASA_LANGUAGE[args.language]
-
-        rasa_config_template = Template(
-            "language: \"{{ language }}\"\n"
-            "\n"
-            "pipeline: \"spacy_sklearn\"\n"
-            "\n"
-            "data: |\n"
-            "{% for line in data.splitlines() %}"
-            "  {{ line }}\n"
-            "{% endfor %}"
-        )
-
-        rasa_config_template.stream(language=language, data=data).dump(sys.stdout, encoding="utf-8")
+        generate(backend_dependencies.ddds[0])
 
 
 def _check_ddds_for_word_lists(ddds):
@@ -178,10 +177,11 @@ def add_verify_subparser(subparsers):
     )
 
 
-def add_generate_rasa_subparser(subparsers):
-    parser = subparsers.add_parser("generate-rasa", help="generate training data for Rasa NLU 0.14")
-    parser.set_defaults(func=generate_rasa)
+def add_generate_subparser(subparsers):
+    parser = subparsers.add_parser("generate", help="generate training data for Rasa NLU 0.14")
+    parser.set_defaults(func=generate)
     add_common_backend_arguments(parser)
+    parser.add_argument("platform", help="generate for this platform", choices=GENERATE_PLATFORMS)
     parser.add_argument("ddd", help="generate for this DDD")
     parser.add_argument("language", choices=languages.SUPPORTED_RASA_LANGUAGES, help="use the grammar of this language")
 
@@ -269,7 +269,7 @@ def main(args=None):
     root_parser = argparse.ArgumentParser(description="Use the Tala SDK for the Talkamatic Dialogue Manager (TDM).")
     subparsers = root_parser.add_subparsers()
     add_verify_subparser(subparsers)
-    add_generate_rasa_subparser(subparsers)
+    add_generate_subparser(subparsers)
     add_create_ddd_subparser(subparsers)
     add_create_backend_config_subparser(subparsers)
     add_create_ddd_config_subparser(subparsers)

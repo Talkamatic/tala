@@ -1,9 +1,11 @@
 import os
+import sys
 import warnings
 
 from jinja2 import Template
 
 from tala.ddd.grammar.reader import GrammarReader
+from tala.nl import languages
 from tala.nl.rasa.constants import ACTION_INTENT, QUESTION_INTENT, ANSWER_INTENT, ANSWER_NEGATION_INTENT, \
     NEGATIVE_INTENT
 from tala.nl.rasa.generating.examples import Examples
@@ -34,6 +36,23 @@ class RasaGenerator(object):
         self._language_examples = Examples.from_language(language_code)
 
     def generate(self):
+        data = self.generate_examples()
+        language = languages.RASA_LANGUAGE[self._language_code]
+
+        rasa_config_template = Template(
+            "language: \"{{ language }}\"\n"
+            "\n"
+            "pipeline: \"spacy_sklearn\"\n"
+            "\n"
+            "data: |\n"
+            "{% for line in data.splitlines() %}"
+            "  {{ line }}\n"
+            "{% endfor %}"
+        )
+
+        rasa_config_template.stream(language=language, data=data).dump(sys.stdout, encoding="utf-8")
+
+    def generate_examples(self):
         def add(examples, new_examples):
             for key, values in new_examples.items():
                 if key in examples:
@@ -174,9 +193,7 @@ class RasaGenerator(object):
         individuals = self._individual_grammar_entries_samples(grammar, sort)
         sort_should_be_generated_as_entity = sort.is_string_sort() or not sort.is_builtin()
         template = SORTAL_ENTITY_TEMPLATE if sort_should_be_generated_as_entity else BUILTIN_ENTITY_TEMPLATE
-        return self._examples_from_individuals(
-            template, sort.get_name(), individuals, example_so_far, tail
-        )
+        return self._examples_from_individuals(template, sort.get_name(), individuals, example_so_far, tail)
 
     def _sample_individuals_of_builtin_sort(self, sort):
         examples = self._language_examples.get_builtin_sort_examples(sort)
