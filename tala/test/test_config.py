@@ -1,9 +1,9 @@
 import json
 import os
-import unittest
 import tempfile
 
 from mock import patch
+import pytest
 
 from tala.config import Config, DddConfig, BackendConfig, DeploymentsConfig, \
     UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, \
@@ -48,31 +48,31 @@ class ConfigTester(object):
             pass
 
     def when_reading_then_exception_is_raised_with_message_that_matches_regex(self, exception_class, expected_regex):
-        with self.assertRaisesRegexp(exception_class, expected_regex):
+        with pytest.raises(exception_class, match=expected_regex):
             self.when_reading()
 
     def when_reading(self):
         self._read_config = self._config.read()
 
     def then_read_config_was(self, config):
-        self.assertDictEqual(self._read_config, config)
+        assert self._read_config == config
 
     def then_config_is(self, filename, expected_config):
         with open(filename) as f:
             actual_config = json.load(f)
-        self.assertDictEqual(actual_config, expected_config)
+        assert actual_config == expected_config
 
     def then_wrote(self, filename, expected_config):
         with open(filename) as f:
             actual_config = json.load(f)
-        self.assertDictEqual(expected_config, actual_config)
+        assert expected_config == actual_config
 
 
-class TestConfig(unittest.TestCase, ConfigTester):
-    def setUp(self):
+class TestConfig(ConfigTester):
+    def setup(self):
         self.setup_configs()
 
-    def tearDown(self):
+    def teardown(self):
         self.teardown_configs()
 
     @patch.object(Config, "default_config")
@@ -169,11 +169,11 @@ class TestConfig(unittest.TestCase, ConfigTester):
         Config.write_default_config()
 
 
-class TestInheritance(unittest.TestCase, ConfigTester):
-    def setUp(self):
+class TestInheritance(ConfigTester):
+    def setup(self):
         self.setup_configs()
 
-    def tearDown(self):
+    def teardown(self):
         self.teardown_configs()
 
     @patch.object(Config, "default_config")
@@ -220,27 +220,25 @@ class TestInheritance(unittest.TestCase, ConfigTester):
         )
 
 
-class TestDddConfig(unittest.TestCase, ConfigTester):
-    def setUp(self):
+class TestDddConfig(ConfigTester):
+    def setup(self):
         self.setup_configs()
 
-    def tearDown(self):
+    def teardown(self):
         self.teardown_configs()
 
     def test_default_name(self):
-        self.assertEqual(DddConfig.default_name(), "ddd.config.json")
+        assert DddConfig.default_name() == "ddd.config.json"
 
     def test_default_config(self):
-        self.assertEqual(
-            DddConfig.default_config(), {
-                "use_rgl": True,
-                "use_third_party_parser": False,
-                "device_module": None,
-                "word_list": "word_list.txt",
-                "rasa_nlu": {},
-                "overrides": None,
-            }
-        )
+        assert DddConfig.default_config() == {
+            "use_rgl": True,
+            "use_third_party_parser": False,
+            "device_module": None,
+            "word_list": "word_list.txt",
+            "rasa_nlu": {},
+            "overrides": None,
+        }
 
     def test_read_with_missing_config_file_raises_exception(self):
         self.given_created_config_object(DddConfig, "non_existing_config.json")
@@ -388,20 +386,18 @@ class TestDddConfig(unittest.TestCase, ConfigTester):
         )
 
 
-class TestDeploymentsConfig(unittest.TestCase, ConfigTester):
-    def setUp(self):
+class TestDeploymentsConfig(ConfigTester):
+    def setup(self):
         self.setup_configs()
 
-    def tearDown(self):
+    def teardown(self):
         self.teardown_configs()
 
     def test_default_name(self):
-        self.assertEqual(DeploymentsConfig.default_name(), "deployments.config.json")
+        assert DeploymentsConfig.default_name() == "deployments.config.json"
 
     def test_default_config(self):
-        self.assertEqual(DeploymentsConfig.default_config(), {
-            "dev": "https://127.0.0.1:9090/interact",
-        })
+        assert DeploymentsConfig.default_config() == {"dev": "https://127.0.0.1:9090/interact"}
 
     def test_read_with_missing_config_file_raises_exception(self):
         self.given_created_config_object(DeploymentsConfig, "non_existing_config.json")
@@ -416,48 +412,67 @@ class TestDeploymentsConfig(unittest.TestCase, ConfigTester):
         self.when_reading()
         self.then_read_config_was({"dev": "dev-url", "prod": "prod-url"})
 
+    def test_get_url_when_deployment_exists_in_deployment_config(self):
+        self.given_config_file_exists(DeploymentsConfig, {"dev": "dev-url", "prod": "prod-url"})
+        self.given_created_config_object(DeploymentsConfig)
+        self.when_getting_url_for("dev")
+        self.then_url_was("dev-url")
 
-class TestBackendConfig(unittest.TestCase, ConfigTester):
-    def setUp(self):
+    def when_getting_url_for(self, deployment):
+        self._url = self._config.get_url(deployment)
+
+    def then_url_was(self, expected_url):
+        assert self._url == expected_url
+
+    def test_get_url_when_deployment_is_missing_in_deployment_config(self):
+        self.given_config_file_exists(DeploymentsConfig, {"dev": "dev-url", "prod": "prod-url"})
+        self.given_created_config_object(DeploymentsConfig)
+        self.when_getting_url_for("my.ddd.tala.cloud")
+        self.then_url_was("my.ddd.tala.cloud")
+
+    def test_get_url_when_deployment_config_is_missing(self):
+        self.given_created_config_object(DeploymentsConfig)
+        self.when_getting_url_for("my.ddd.tala.cloud")
+        self.then_url_was("my.ddd.tala.cloud")
+
+
+class TestBackendConfig(ConfigTester):
+    def setup(self):
         self.setup_configs()
 
-    def tearDown(self):
+    def teardown(self):
         self.teardown_configs()
 
     def test_default_name(self):
-        self.assertEqual(BackendConfig.default_name(), "backend.config.json")
+        assert BackendConfig.default_name() == "backend.config.json"
 
     def test_default_config(self):
-        self.assertEqual(
-            BackendConfig.default_config(), {
-                "asr": "none",
-                "supported_languages": ["eng"],
-                "ddds": [""],
-                "active_ddd": "",
-                "use_recognition_profile": False,
-                "repeat_questions": True,
-                "use_word_list_correction": False,
-                "overrides": None,
-                "rerank_amount": 0.2,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            }
-        )
+        assert BackendConfig.default_config() == {
+            "asr": "none",
+            "supported_languages": ["eng"],
+            "ddds": [""],
+            "active_ddd": "",
+            "use_recognition_profile": False,
+            "repeat_questions": True,
+            "use_word_list_correction": False,
+            "overrides": None,
+            "rerank_amount": 0.2,
+            "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+        }
 
     def test_default_config_with_ddd_name(self):
-        self.assertEqual(
-            BackendConfig.default_config(ddd_name="my-ddd"), {
-                "asr": "none",
-                "supported_languages": ["eng"],
-                "ddds": ["my-ddd"],
-                "active_ddd": "my-ddd",
-                "use_recognition_profile": False,
-                "repeat_questions": True,
-                "use_word_list_correction": False,
-                "overrides": None,
-                "rerank_amount": 0.2,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            }
-        )
+        assert BackendConfig.default_config(ddd_name="my-ddd") == {
+            "asr": "none",
+            "supported_languages": ["eng"],
+            "ddds": ["my-ddd"],
+            "active_ddd": "my-ddd",
+            "use_recognition_profile": False,
+            "repeat_questions": True,
+            "use_word_list_correction": False,
+            "overrides": None,
+            "rerank_amount": 0.2,
+            "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+        }
 
     def test_read_with_missing_config_file_raises_exception(self):
         self.given_created_config_object(BackendConfig, "non_existing_config.json")

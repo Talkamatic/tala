@@ -1,6 +1,7 @@
 import json
-import os
 import datetime
+
+from pathlib import Path
 
 from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
 from tala.utils.text_formatting import readable_list
@@ -40,16 +41,15 @@ class UnexpectedRASALanguageException(Exception):
 
 class Config(object):
     def __init__(self, path=None):
-        self._path = path
-        if self._path is None:
-            self._path = self.default_name()
+        path = path or self.default_name()
+        self._path = Path(path)
 
     @property
     def _absolute_path(self):
-        return os.path.join(os.getcwd(), self._path)
+        return Path.cwd() / self._path
 
     def read(self):
-        if not os.path.exists(self._path):
+        if not self._path.exists():
             self._handle_non_existing_config_file()
         self._potentially_update_and_backup_config()
         config = self._config_from_file()
@@ -65,18 +65,20 @@ class Config(object):
     @classmethod
     def write_default_config(cls, path=None):
         path = path or cls.default_name()
-        cls._write_to_file(cls.default_config(), path)
+        cls._write_to_file(cls.default_config(), Path(path))
 
     def _write_backup(self, config):
-        self._write_to_file(config, self.back_up_name())
+        path = Path(self.back_up_name())
+        self._write_to_file(config, path)
 
     @staticmethod
     def _write_to_file(config, path):
-        with open(path, mode="w") as f:
-            json.dump(config, f, sort_keys=True, indent=4, separators=(',', ': '))
+        with path.open(mode="w") as f:
+            string = json.dumps(config, sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
+            f.write(unicode(string))
 
     def _config_from_file(self):
-        with open(self._path, mode="r") as f:
+        with self._path.open(mode="r") as f:
             return json.load(f)
 
     def _potentially_update_and_backup_config(self):
@@ -106,15 +108,17 @@ class Config(object):
     def _format_unexpected_entries_message(self, expected, actual):
         unexpected = list(set(actual).difference(expected))
         missing = list(set(expected).difference(actual))
-        ending = "The config was updated and the previous config was backed up in %r." % self.back_up_name()
+        ending = "The config was updated and the previous config was backed up in {!r}.".format(self.back_up_name())
         if unexpected and missing:
-            return "Parameter %s is unexpected while %s is missing from %r. %s" % (
+            return "Parameter {} is unexpected while {} is missing from {!r}. {}".format(
                 readable_list(unexpected), readable_list(missing), self._absolute_path, ending
             )
         if unexpected:
-            return "Parameter %s is unexpected in %r. %s" % (readable_list(unexpected), self._absolute_path, ending)
+            return "Parameter {} is unexpected in {!r}. {}"\
+                .format(readable_list(unexpected), self._absolute_path, ending)
         if missing:
-            return "Parameter %s is missing from %r. %s" % (readable_list(missing), self._absolute_path, ending)
+            return "Parameter {} is missing from {!r}. {}"\
+                .format(readable_list(missing), self._absolute_path, ending)
 
     @classmethod
     def _update_config_keys(cls, defaults, config):
@@ -127,7 +131,7 @@ class Config(object):
         return updated_config
 
     def back_up_name(self):
-        return "%s.backup" % self._path
+        return "{}.backup".format(self._path)
 
     @staticmethod
     def default_name():
@@ -176,11 +180,12 @@ class BackendConfig(Config):
     def write_default_config(cls, path=None, ddd_name=None):
         path = path or cls.default_name()
         ddd_name = ddd_name or ""
-        cls._write_to_file(cls.default_config(ddd_name), path)
+        cls._write_to_file(cls.default_config(ddd_name), Path(path))
 
     def _raise_config_not_found_exception(self):
         raise BackendConfigNotFoundException(
-            "Expected backend config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
+            "Expected backend config '{}' to exist but it was not found.".format(self._absolute_path),
+            self._absolute_path
         )
 
 
@@ -202,7 +207,7 @@ class DddConfig(Config):
 
     def _raise_config_not_found_exception(self):
         raise DddConfigNotFoundException(
-            "Expected DDD config '%s' to exist but it was not found." % self._absolute_path, self._absolute_path
+            "Expected DDD config '{}' to exist but it was not found.".format(self._absolute_path), self._absolute_path
         )
 
     def read(self):
@@ -256,6 +261,14 @@ class DeploymentsConfig(Config):
 
     def _potentially_update_and_backup_config(self):
         pass
+
+    def get_url(self, candidate_deployment):
+        if not self._path.exists():
+            return candidate_deployment
+        config = self.read()
+        if candidate_deployment in config:
+            return config[candidate_deployment]
+        return candidate_deployment
 
 
 class OverriddenDddConfig(object):

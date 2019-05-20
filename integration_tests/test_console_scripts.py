@@ -349,12 +349,11 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
 
 
 class TestInteractIntegration(ConsoleScriptTestCase):
-    def test_stderr_when_interacting_with_unknown_environment(self):
+    def test_interacting_with_unknown_environment(self):
         self._given_created_deployments_config()
         self._when_running_command("tala interact my-made-up-environment")
-        self._then_stderr_contains(
-            "UnexpectedEnvironmentException: "
-            "Expected one of the known environments [u'dev'] but got 'my-made-up-environment'"
+        self._then_stdout_matches(
+            "Expected a URL or one of the known environments \[u'dev'\] but got 'my-made-up-environment'"
         )
 
     def _given_created_deployments_config(self):

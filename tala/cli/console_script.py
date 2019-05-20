@@ -9,6 +9,7 @@ import warnings
 
 from jinja2 import Template
 from pathlib import Path
+from requests.exceptions import MissingSchema
 
 from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
 from tala.cli.argument_parser import add_common_backend_arguments
@@ -38,10 +39,6 @@ class InvalidArgumentException(Exception):
 
 
 class UnexpectedDDDException(Exception):
-    pass
-
-
-class UnexpectedEnvironmentException(Exception):
     pass
 
 
@@ -146,21 +143,17 @@ def version(args):
 
 
 def interact(args):
-    def get_url():
-        config = DeploymentsConfig(args.deployments_config).read()
-        if args.environment not in config:
-            raise UnexpectedEnvironmentException(
-                "Expected one of the known environments {} but got '{}'".format(config.keys(), args.environment)
-            )
-        return config[args.environment]
-
-    url = get_url()
+    config = DeploymentsConfig(args.deployments_config)
+    url = config.get_url(args.environment_or_url)
     tdm_cli = TDMCLI(url)
 
     try:
         tdm_cli.run()
     except (KeyboardInterrupt, EOFError):
         tdm_cli.stop()
+    except MissingSchema:
+        environments = config.read().keys()
+        print "Expected a URL or one of the known environments {} but got '{}'".format(environments, url)
 
 
 def add_verify_subparser(subparsers):
@@ -244,8 +237,10 @@ def add_version_subparser(subparsers):
 def add_interact_subparser(subparsers):
     parser = subparsers.add_parser("interact", help="start an interactive chat with a deployed DDD")
     parser.add_argument(
-        "environment",
-        help="specify the environment to use, e.g. 'dev'; this maps to the keys of the deployments config"
+        "environment_or_url",
+        help="this is either an environment, e.g. 'dev', pointing to a url in the deployments config; "
+        "alternatively, if not an environment, this is considered a url in itself; "
+        "the url should point to a TDM deployment, e.g. 'https://my-deployment.ddd.tala.cloud:9090/interact'"
     )
     parser.add_argument(
         "--config",
