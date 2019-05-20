@@ -32,11 +32,12 @@ class ConsoleScriptTestCase(TempDirTestCase):
         super(ConsoleScriptTestCase, self).setup()
         self._process = None
 
-    def _given_created_ddd_in_a_target_dir(self):
-        self._create_ddd()
+    def _given_created_ddd_in_a_target_dir(self, name=None):
+        self._create_ddd(name)
 
-    def _create_ddd(self):
-        self._run_tala_with(["create-ddd", "--target-dir", "test_root", "test_ddd"])
+    def _create_ddd(self, name=None):
+        name = name or "test_ddd"
+        self._run_tala_with(["create-ddd", "--target-dir", "test_root", name])
 
     def _given_changed_directory_to_target_dir(self):
         return chdir("test_root")

@@ -110,7 +110,9 @@ def generate(args):
     if not ddd_path.exists():
         raise UnexpectedDDDException("Expected DDD '{}' to exist but it didn't".format(args.ddd))
     with chdir(ddd_path / "grammar"):
-        generate(backend_dependencies.ddds[0])
+        ddds = {ddd.name: ddd for ddd in backend_dependencies.ddds}
+        ddd = ddds[args.ddd]
+        generate(ddd)
 
 
 def _check_ddds_for_word_lists(ddds):

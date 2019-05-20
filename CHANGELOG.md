@@ -13,6 +13,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Changed
 - Command `tala generate-rasa` has been changed to `tala generate rasa`.
 
+### Fixed
+- `tala generate my-ddd ...` now properly selects the provided DDD `my-ddd` when more than one DDD is supported by the backend config.
+
 ## [3.0.0] - 2019-05-10
 ### Added
 - A new method `request_speech_input` has been added to `tala.utils.tdm_client.TDMClient`.
