@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import os
 import re
+import sys
 import warnings
 
 from pathlib import Path
@@ -18,14 +19,16 @@ from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
 from tala import installed_version
 from tala.cli import console_formatting
 from tala.nl import languages
-from tala.nl.rasa.generating.generator import RasaGenerator
+from tala.nl.rasa.generator import RasaGenerator
+from tala.nl.alexa.generator import AlexaGenerator
 from tala.ddd.maker import utils as ddd_maker_utils
 from tala.ddd.maker.ddd_maker import DddMaker
 from tala.utils.chdir import chdir
 
 RASA = "rasa"
+ALEXA = "alexa"
 
-GENERATE_PLATFORMS = [RASA]
+GENERATE_PLATFORMS = [RASA, ALEXA]
 
 
 class UnexpectedDDDException(Exception):
@@ -96,10 +99,11 @@ def verify(args):
 
 
 def generate(args):
-    def generate(ddd):
+    def create_generator(ddd):
         if args.platform == RASA:
-            generator = RasaGenerator(ddd, args.language)
-            generator.generate()
+            return RasaGenerator(ddd, args.language)
+        elif args.platform == ALEXA:
+            return AlexaGenerator(ddd, args.language)
         else:
             raise UnexpectedPlatformException(
                 "Expected one of the known platforms {} but got '{}'".format(GENERATE_PLATFORMS, args.platform)
@@ -112,7 +116,8 @@ def generate(args):
     with chdir(ddd_path / "grammar"):
         ddds = {ddd.name: ddd for ddd in backend_dependencies.ddds}
         ddd = ddds[args.ddd]
-        generate(ddd)
+        generator = create_generator(ddd)
+        generator.stream(sys.stdout)
 
 
 def _check_ddds_for_word_lists(ddds):

@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from jinja2 import Template
+
 from tala.nl.languages import ENGLISH, SWEDISH, SPANISH
 
 
@@ -28,6 +30,14 @@ class Examples(object):
     def person_name(self):
         raise NotImplementedError
 
+    @property
+    def answer_templates(self):
+        yield Template('{{ name }}')
+
+    @property
+    def answer_negation_templates(self):
+        raise NotImplementedError()
+
     def get_builtin_sort_examples(self, sort):
         if sort.is_domain_sort():
             return []
@@ -43,11 +53,7 @@ class Examples(object):
 
     @staticmethod
     def from_language(language_code):
-        examples = {
-            ENGLISH: EnglishExamples(),
-            SWEDISH: SwedishExamples(),
-            SPANISH: SpanishExamples()
-        }
+        examples = {ENGLISH: EnglishExamples(), SWEDISH: SwedishExamples(), SPANISH: SpanishExamples()}
         return examples[language_code]
 
 
@@ -108,6 +114,10 @@ class EnglishExamples(Examples):
                 "Gray", "Cameron", "Mitchell", "Black", "Allan", "Marshall", "Harris Duncan", "Max Mackenzie",
                 "Ethan Hamilton", "Sophie Simpson", "Lucy Wright", "Emma Murphy", "Charlotte Jones", "Thomas Gordon"]
 
+    @property
+    def answer_negation_templates(self):
+        yield Template('not {{ name }}')
+
 
 class SwedishExamples(Examples):
     @property
@@ -162,6 +172,10 @@ class SwedishExamples(Examples):
                 "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", u"Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
                 "Anette Samuelsson", "Annika Lundberg", u"Eva Löfgren", "Linda Hassan", "Robert Norberg"]
 
+    @property
+    def answer_negation_templates(self):
+        yield Template('inte {{ name }}')
+
 
 class SpanishExamples(Examples):
     @property
@@ -172,26 +186,27 @@ class SpanishExamples(Examples):
             "pero", "por", "abajo", "durante", "excepto", "para", "desde", "en", "dentro", "en", "menos", "como",
             "cerca", "de", "encima de", "sobre", "opuesto", "fuera", "fuera de", "corto", "desde", "que", "entonces",
             "a lo largo de", "hasta", "hacia", "debajo de", "a diferencia de", "hasta", "arriba", "con", "dentro de",
-            "sin", "vale", "es" "se", "el", "la" "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", u"él",
-            "ella", "ellos", "ellas", "su", "sus", "mi", "tu", u"tú", "nosotros", "nosotras", "vosotros", "vosotras",
-            "nuestro", "nuestra", "vuestro", "vuestra", "vuestros", "vuestras", u"mío", u"mía", u"míos", u"mías",
-            "tuyo", "tuyos", "tuya", "tuyas", "suyo", "suya", "suyos", "suyas"
+            "sin", "vale", "es"
+            "se", "el", "la"
+            "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", u"él", "ella", "ellos", "ellas", "su", "sus",
+            "mi", "tu", u"tú", "nosotros", "nosotras", "vosotros", "vosotras", "nuestro", "nuestra", "vuestro",
+            "vuestra", "vuestros", "vuestras", u"mío", u"mía", u"míos", u"mías", "tuyo", "tuyos", "tuya", "tuyas",
+            "suyo", "suya", "suyos", "suyas"
         ]
         question_phrases = [
             u"cómo", u"cómo está", u"cómo es", u"cómo está el", u"cómo es el", u"cómo está la", u"cómo es la",
             u"cómo están los", u"cómo están las"
             u"cuándo", u"cuándo es", u"cuándo está", u"cuándo es el", u"cuándo es la", u"cuándo son los",
-            u"cuándo son las", u"cuándo está el", u"cuándo está la", u"cuándo están los",
-            u"cuándo están las", u"qué", u"qué es", u"qué es la", u"qué es el", u"qué son los", u"qué son las",
-            u"cuál", u"cuál es", u"cuál es la", u"cuál es el", u"cuáles son los", u"cuáles son las",
-            u"por qué", u"por qué es", u"por qué está", u"por qué es el", u"por qué es la", u"por qué son",
-            u"por qué son los", u"por qué son las", u"por qué está el", u"por qué está la",
-            u"por qué están los", u"por qué están las"
+            u"cuándo son las", u"cuándo está el", u"cuándo está la", u"cuándo están los", u"cuándo están las", u"qué",
+            u"qué es", u"qué es la", u"qué es el", u"qué son los", u"qué son las", u"cuál", u"cuál es", u"cuál es la",
+            u"cuál es el", u"cuáles son los", u"cuáles son las", u"por qué", u"por qué es", u"por qué está",
+            u"por qué es el", u"por qué es la", u"por qué son", u"por qué son los", u"por qué son las",
+            u"por qué está el", u"por qué está la", u"por qué están los", u"por qué están las"
         ]
         action_phrases = [
             "hacer", "decir", "iniciar", "detener", "habilitar", "deshabilitar", "querer", "dar", "haber"
-            "subir", "bajar", "disminuir", "aumentar", "actuar", "determinar", "preguntar", "ir", "disparar",
-            "esperar", "esperar", "aceptar", "mostrar", u"enseñar", "ayudar"
+            "subir", "bajar", "disminuir", "aumentar", "actuar", "determinar", "preguntar", "ir", "disparar", "esperar",
+            "esperar", "aceptar", "mostrar", u"enseñar", "ayudar"
         ]
         for phrase in phrases:
             yield phrase
@@ -202,8 +217,10 @@ class SpanishExamples(Examples):
 
     @property
     def integer(self):
-        return ["0", "99", "1224", "100000", "100.000", "una", "uno", u"dieciséis", "veintiuno", "veintiuno",
-                "veinte y uno", "tres", "dos mil quince", "mil cincuenta y siete"]
+        return [
+            "0", "99", "1224", "100000", "100.000", "una", "uno", u"dieciséis", "veintiuno", "veintiuno",
+            "veinte y uno", "tres", "dos mil quince", "mil cincuenta y siete"
+        ]
 
     @property
     def string(self):
@@ -232,3 +249,7 @@ class SpanishExamples(Examples):
                 "Navarro", u"Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", u"Pedro Sánchez Álvarez",
                 "Sonia Reina Sanz", "Cristina Claret Iglesias", u"Manuel Núñez Santos", "Rafael Rubio Molina",
                 u"Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"]
+
+    @property
+    def answer_negation_templates(self):
+        yield Template('no {{ name }}')

@@ -20,6 +20,9 @@ class RequiredEntity(object):
     def __eq__(self, other):
         return bool(isinstance(other, self.__class__) and self._name == other.name)
 
+    def __hash__(self):
+        return 19 * hash(self._name) * hash(self.__class__)
+
 
 class RequiredSortalEntity(RequiredEntity):
     @property

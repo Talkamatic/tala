@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - A new builtin sort `person_name` has been added. Use it together with a `PERSON` or `PER` NER in Rasa NLU.
 - `tala interact` now accepts deployment URLs directly, for instance `tala interact https://my-deployment.ddd.tala.cloud:9090/interact`.
 - `tala generate` has been added. It generates training data for NLUs.
+- `tala generate` now supports the `alexa` format. It generates training data for Alexa Skills.
 
 ### Changed
 - Command `tala generate-rasa` has been changed to `tala generate rasa`.

@@ -66,3 +66,13 @@ class Question(Intent):
 class Answer(Intent):
     def __init__(self, text_chunks, required_entities):
         super(Answer, self).__init__("answer", text_chunks, required_entities)
+
+
+class AnswerNegation(Intent):
+    def __init__(self, text_chunks, required_entities):
+        super(AnswerNegation, self).__init__("answer_negation", text_chunks, required_entities)
+
+
+class Negative(Intent):
+    def __init__(self):
+        super(Negative, self).__init__("negative", [""], [])

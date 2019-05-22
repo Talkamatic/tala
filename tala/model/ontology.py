@@ -196,11 +196,15 @@ class Ontology(JSONLoggable):
                 return self._get_enumerated_individual_sort(value)
             return Sort.from_value(value)
 
+        def names_of(sorts):
+            return {sort.name for sort in sorts}
+
         sort = sort_of(value)
         if not self.predicates_contain_sort(sort.name):
+            predicate_sorts = names_of(self.predicate_sorts)
             raise OntologyError(
                 "Expected one of the predicate sorts {} in ontology '{}', but got value '{}' of sort '{}'".format(
-                    self._predicate_sorts, self.name, value, sort.name
+                    predicate_sorts, self.name, value, sort.name
                 )
             )
         return sort
@@ -214,12 +218,12 @@ class Ontology(JSONLoggable):
         except KeyError:
             raise OntologyError("failed to get sort of unknown individual: " + unicode(value))
 
-    def predicates_contain_sort(self, sort):
-        return sort in self._predicate_sorts
+    def predicates_contain_sort(self, name):
+        return name in [sort.get_name() for sort in self.predicate_sorts]
 
     @property
-    def _predicate_sorts(self):
-        return {predicate.getSort().get_name() for predicate in self._predicates.values()}
+    def predicate_sorts(self):
+        return {predicate.getSort() for predicate in self._predicates.values()}
 
     def is_action(self, value):
         return value in self._actions
