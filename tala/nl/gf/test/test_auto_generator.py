@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 import pytest
-from mock import Mock
+from mock import Mock, patch
 
 import tala.nl.gf.resource
 import tala.ddd.schemas
@@ -24,6 +24,8 @@ from tala.model.ontology import Ontology
 from tala.model.plan import Plan
 from tala.nl.gf.auto_generator import AutoGenerator, UnexpectedParameter, InvalidSortOfBackgroundPredicateException
 from tala.nl.gf.grammar_entry_types import Node, Constants
+from tala.nl.gf.naming import abstract_gf_filename, semantic_gf_filename, natural_language_gf_filename, \
+    probabilities_filename
 
 UNKNOWN_CATEGORY = "Unknown;\n"
 UNKNOWN_FUNCTION = "unknown_string : Unknown -> Sort_string;\n"
@@ -165,8 +167,17 @@ class AutoGeneratorTestCase(object):
         self._create_generator(language_code)
 
     def when_generating(self, language_code="eng"):
+        self._generate(language_code)
+
+    def given_generated(self, language_code="eng"):
+        self._generate(language_code)
+
+    def _generate(self, language_code):
         self._create_generator(language_code)
         self.generator.generate(language_code)
+
+    def when_write_to_file(self, language_code="eng"):
+        self.generator.write_to_file(language_code)
 
     def _then_no_exception_is_raised(self):
         pass
@@ -197,7 +208,7 @@ class AutoGeneratorTestCase(object):
         self._ddd = Mock(spec=DDD)
         self._ddd.domain = self._domain
         self._ddd.service_interface = create_mocked_service_interface()
-        self._ddd.name = "MockupDdd"
+        self._ddd.name = self._ddd_name
         self._ddd.ontology = self._ontology
 
     def given_service_interface_has_action(self, action):
@@ -301,6 +312,9 @@ class AutoGeneratorTestCase(object):
         actual_linearizations_section = self._get_section(self.generator._natural_language_gf_content.getvalue(), "lin")
         assert expected not in actual_linearizations_section
 
+    def assert_probabilities_file_contains(self, expected):
+        assert expected in self.generator._probabilities_file_content.getvalue()
+
     def get_predicate(self, predicate_name):
         return self.generator._ontology.get_predicate(predicate_name)
 
@@ -337,12 +351,12 @@ class TestHeader(AutoGeneratorTestCase):
     def test_header(self):
         self.given_grammar([])
         self.when_generating()
-        self.assert_abstract_begins_with("abstract MockupDdd = TDM, Integers ** {")
+        self.assert_abstract_begins_with("abstract mockup_ddd = TDM, Integers ** {")
         self.assert_semantic_begins_with(
-            "concrete MockupDdd_sem of MockupDdd = TDM_sem, Integers_sem ** open Utils_sem in {"
+            "concrete mockup_ddd_sem of mockup_ddd = TDM_sem, Integers_sem ** open Utils_sem in {"
         )
         self.assert_natural_language_begins_with(
-            "concrete MockupDdd_eng of MockupDdd = TDM_eng, Integers_eng ** open Utils_eng, Prelude in {"
+            "concrete mockup_ddd_eng of mockup_ddd = TDM_eng, Integers_eng ** open Utils_eng, Prelude in {"
         )
 
 
@@ -656,7 +670,7 @@ class TestUsrRequest(AutoGeneratorTestCase):
 
         self._ddd = Mock(spec=DDD)
         self._ddd.domain = self._domain
-        self._ddd.name = "MockupDdd"
+        self._ddd.name = "mockup_ddd"
         self._ddd.ontology = self._ontology
 
     def test_two_parameters(self):
@@ -1123,6 +1137,38 @@ class TestReport(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization(
             u'report_ended_SetTime_1 = ss ("klockan har ställts in.");\n'
         )
+
+    def test_multiple_variants_with_same_parameters(self):
+        self.given_grammar([
+            Node(
+                Constants.REPORT_ENDED, {"action": "SetTime"}, [
+                    Node(
+                        Constants.ONE_OF, {}, [
+                            Node(Constants.ITEM, {}, ["the clock was set"]),
+                            Node(Constants.ITEM, {}, ["I have set the clock"]),
+                            Node(Constants.ITEM, {}, ["the time was set"]),
+                        ]
+                    )
+                ]
+            )
+        ])
+        self.given_service_interface_has_action(
+            ServiceActionInterface("SetTime", self.mock_service_target, parameters=[], failure_reasons=[])
+        )
+        self.given_generator()
+        self.when_generating()
+        self.assert_abstract_contains_function('report_ended_SetTime_1 : SysReportEnded;\n')
+        self.assert_abstract_contains_function('report_ended_SetTime_2 : SysReportEnded;\n')
+        self.assert_abstract_contains_function('report_ended_SetTime_3 : SysReportEnded;\n')
+        self.assert_semantic_contains_linearization('report_ended_SetTime_1 = report_ended "SetTime" (empty_list);\n')
+        self.assert_semantic_contains_linearization('report_ended_SetTime_2 = report_ended "SetTime" (empty_list);\n')
+        self.assert_semantic_contains_linearization('report_ended_SetTime_3 = report_ended "SetTime" (empty_list);\n')
+        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_1 = ss ("the clock was set");\n')
+        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_2 = ss ("I have set the clock");\n')
+        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_3 = ss ("the time was set");\n')
+        self.assert_probabilities_file_contains('report_ended_SetTime_1 0.00000100')
+        self.assert_probabilities_file_contains('report_ended_SetTime_2 0.00000067')
+        self.assert_probabilities_file_contains('report_ended_SetTime_3 0.00000033')
 
     def test_reason_and_no_parameters(self):
         self.given_grammar([
@@ -2134,6 +2180,60 @@ class TestIndividual(AutoGeneratorTestCase):
         self.assert_abstract_contains_function('placeholder_keyword0 : Sort_keyword;\n')
         self.assert_semantic_contains_linearization('placeholder_keyword0 = pp "_sem_placeholder_keyword0_";\n')
         self.assert_natural_language_contains_linearization('placeholder_keyword0 = ss "_nl_placeholder_keyword0_";\n')
+
+
+class TestFileWriting(AutoGeneratorTestCase):
+    @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
+    def test_abstract_file(self, mock_open, mock_codecs):
+        self.given_grammar([])
+        self.given_generator()
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_abstract_file_is_created(mock_codecs)
+
+    def then_abstract_file_is_created(self, mock_codecs, language_code="eng"):
+        mock_codecs.open.assert_any_call(
+            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
+    def test_semantic_file(self, mock_open, mock_codecs):
+        self.given_grammar([])
+        self.given_generator()
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_semantic_file_is_created(mock_codecs)
+
+    def then_semantic_file_is_created(self, mock_codecs, language_code="eng"):
+        mock_codecs.open.assert_any_call(
+            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
+    def test_natural_language_file(self, mock_open, mock_codecs):
+        self.given_grammar([])
+        self.given_generator()
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_natural_language_file_is_created(mock_codecs)
+
+    def then_natural_language_file_is_created(self, mock_codecs, language_code="eng"):
+        mock_codecs.open.assert_any_call(
+            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)), "w",
+            encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
+    def test_probabilities_file(self, mock_open, mock_codecs):
+        self.given_grammar([])
+        self.given_generator()
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_probabilities_file_is_created(mock_open)
+
+    def then_probabilities_file_is_created(self, mock_open, language_code="eng"):
+        mock_open.assert_any_call("build/%s/%s" % (language_code, probabilities_filename(self._ddd_name)), "w")
 
 
 class TestLoadingAndCompilation(AutoGeneratorTestCase):

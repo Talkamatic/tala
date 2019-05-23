@@ -12,7 +12,8 @@ from tala.ddd.grammar.reader import GrammarReader
 from tala.nl.gf import rgl_grammar_entry_types as rgl_types, utils
 from tala.nl.gf.auto_generator import LowerCaseGfFileWriter
 from tala.nl.gf.grammar_entry_types import Constants, Node
-from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
+from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename, \
+    probabilities_filename
 
 
 class MissingEntry(Exception):
@@ -265,6 +266,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._abstract_gf_content = StringIO()
         self._semantic_gf_content = StringIO()
         self._natural_language_gf_content = StringIO()
+        self._probabilities_file_content = StringIO()
 
     def _get_sort_categories(self):
         return dict([(sort, self.get_sort_category(sort)) for sort in self._ontology.get_sorts()])
@@ -325,11 +327,15 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         self._abstract_gf_content = StringIO()
         self._semantic_gf_content = StringIO()
         self._natural_language_gf_content = StringIO()
+        self._probabilities_file_content = StringIO()
 
     def _name_of_natural_language_gf_file(self):
         return "build/%s/%s" % (
             self._tdm_language_code, natural_language_gf_filename(self._ddd_name, self._tdm_language_code)
         )
+
+    def _name_of_probabilities_file(self):
+        return "build/%s/%s" % (self._tdm_language_code, probabilities_filename(self._ddd_name))
 
     def _add_header_in_generated_gf_files(self):
         self._abstract_gf_content.write(self._generate_abstract_header())
@@ -415,6 +421,12 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
                 for line in self._natural_language_gf_content:
                     natural_language_file.write(line)
 
+        def write_probabilities_file():
+            with open(self._name_of_probabilities_file(), "w") as probabilities_file:
+                self._probabilities_file_content.seek(0)
+                for line in self._probabilities_file_content:
+                    probabilities_file.write(line)
+
         write_abstract_file()
         self._abstract_gf_content.close()
 
@@ -423,6 +435,9 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
         write_natural_language_file()
         self._natural_language_gf_content.close()
+
+        write_probabilities_file()
+        self._probabilities_file_content.close()
 
     def _name_of_abstract_gf_file(self):
         return "build/%s/%s" % (self._tdm_language_code, abstract_gf_filename(self._ddd_name))

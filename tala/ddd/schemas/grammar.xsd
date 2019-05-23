@@ -6,7 +6,7 @@
       <xs:element type="slotType" name="slot"/>
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="action" use="optional"/>
     <xs:attribute type="xs:string" name="type" use="optional"/>
@@ -29,7 +29,7 @@
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
       <xs:element type="slotType" name="slot"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="name" use="optional"/>
     <xs:attribute type="xs:string" name="speaker" use="optional"/>
@@ -42,7 +42,7 @@
   </xs:complexType>
   <xs:complexType name="stringType" mixed="true">
     <xs:choice maxOccurs="1" minOccurs="0">
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="predicate"/>
   </xs:complexType>
@@ -62,7 +62,7 @@
             <xs:element type="slotType" name="slot"/>
             <xs:element type="vpType" name="vp"/>
             <xs:element type="npType" name="np"/>
-            <xs:element type="one-ofType" name="one-of"/>
+            <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
           </xs:choice>
           <xs:attribute type="xs:string" name="name" use="optional"/>
           <xs:attribute type="xs:string" name="action" use="optional"/>
@@ -86,7 +86,7 @@
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
-  <xs:complexType name="one-ofType">
+  <xs:complexType name="oneOfWithoutSelectionAttribute">
     <xs:sequence>
       <xs:element name="item" maxOccurs="unbounded" minOccurs="0">
         <xs:complexType mixed="true">
@@ -99,12 +99,19 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="oneOfWithSelectionAttribute">
+    <xs:complexContent>
+      <xs:extension base="oneOfWithoutSelectionAttribute">
+        <xs:attribute type="selectionAttribute" name="selection" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="answerType" mixed="true">
     <xs:choice maxOccurs="unbounded" minOccurs="0">
       <xs:element type="slotType" name="slot"/>
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="speaker" use="optional"/>
     <xs:attribute type="xs:string" name="predicate" use="optional"/>
@@ -120,7 +127,7 @@
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
       <xs:element type="slotType" name="slot"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="action" use="optional"/>
     <xs:attribute type="xs:string" name="name" use="optional"/>
@@ -136,7 +143,7 @@
       <xs:element type="slotType" name="slot"/>
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="action" use="optional"/>
     <xs:attribute type="xs:string" name="status" use="optional"/>
@@ -153,7 +160,7 @@
       <xs:element type="slotType" name="slot"/>
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="name" use="optional"/>
     <xs:attribute type="xs:string" name="action" use="optional"/>
@@ -169,7 +176,7 @@
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
       <xs:element type="slotType" name="slot"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="name" use="optional"/>
     <xs:attribute type="xs:string" name="speaker" use="optional"/>
@@ -199,7 +206,7 @@
       <xs:element type="vpType" name="vp"/>
       <xs:element type="npType" name="np"/>
       <xs:element type="slotType" name="slot"/>
-      <xs:element type="one-ofType" name="one-of"/>
+      <xs:element type="oneOfWithoutSelectionAttribute" name="one-of"/>
     </xs:choice>
     <xs:attribute type="xs:string" name="speaker" use="optional"/>
     <xs:attribute type="xs:string" name="predicate" use="optional"/>
@@ -220,6 +227,12 @@
   <xs:simpleType name="slotTypeFormat">
     <xs:restriction base="xs:string">
       <xs:enumeration value="individual"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="selectionAttribute">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="disabled"/>
+      <xs:enumeration value="cyclic"/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

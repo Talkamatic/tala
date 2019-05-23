@@ -15,6 +15,7 @@ from tala.model.grammar.intent import Question, Request, Answer
 from tala.model.grammar.required_entity import RequiredPropositionalEntity, RequiredSortalEntity
 from tala.model.ontology import Ontology
 from tala.model.sort import Sort
+from tala.nl import selection_policy_names
 
 
 class TestGrammar(object):
@@ -22,6 +23,7 @@ class TestGrammar(object):
         self._mocked_ddd = self._create_mocked_ddd()
         self._grammar = None
         self._grammar_path = None
+        self._grammar_contents = None
         self._result = None
 
     def _create_mocked_ddd(self):
@@ -71,13 +73,12 @@ class TestGrammar(object):
         self._mocked_ddd.ontology.get_individuals_of_sort.return_value = individuals
 
     def given_grammar_file(self, path):
-        absolute_path = os.path.abspath(path)
-        self._grammar_path = absolute_path
+        self._grammar_path = os.path.abspath(path)
+        with open(self._grammar_path, 'r') as grammar_file:
+            self._grammar_contents = grammar_file.read()
 
     def given_grammar_from_class(self, GrammarClass):
-        with open(self._grammar_path, 'r') as grammar_file:
-            grammar_string = grammar_file.read()
-        grammar_root = GrammarParser.parse(grammar_string)
+        grammar_root = GrammarParser.parse(self._grammar_contents)
         self._grammar = GrammarClass(grammar_root, self._grammar_path)
 
     def when_fetching_requests_of_action(self, action):
@@ -369,3 +370,65 @@ class TestGrammar(object):
         with patch("%s.warnings" % grammar.__name__) as mocked_warnings:
             self.when_fetching_strings_of_predicate(predicate)
             mocked_warnings.warn.assert_called_once_with(expected_warning)
+
+    def test_selection_policy_of_report_returns_disabled_if_action_has_no_report(self):
+        self.given_ddd_name("rasa_test")
+        self.given_grammar_contents("<grammar/>")
+        self.given_grammar_from_class(Grammar)
+        self.when_invoke_selection_policy_of_report("action_without_report", "ended")
+        self.then_result_is(selection_policy_names.DISABLED)
+
+    def given_grammar_contents(self, contents):
+        self._grammar_contents = contents
+        self._grammar_path = "mock_grammar_path"
+
+    def when_invoke_selection_policy_of_report(self, action, status):
+        self._result = self._grammar.selection_policy_of_report(action, status)
+
+    def test_selection_policy_of_report_returns_disabled_if_action_has_no_report_with_specified_status(self):
+        self.given_ddd_name("rasa_test")
+        self.given_grammar_contents(
+            '<grammar><report action="mock_action" status="started">mock utterance</report></grammar>')
+        self.given_grammar_from_class(Grammar)
+        self.when_invoke_selection_policy_of_report("action_without_report", "ended")
+        self.then_result_is(selection_policy_names.DISABLED)
+
+    def test_selection_policy_of_report_returns_disabled_if_report_has_no_one_of(self):
+        self.given_ddd_name("rasa_test")
+        self.given_grammar_contents(
+            '<grammar><report action="mock_action" status="ended">mock utterance</report></grammar>')
+        self.given_grammar_from_class(Grammar)
+        self.when_invoke_selection_policy_of_report("mock_action", "ended")
+        self.then_result_is(selection_policy_names.DISABLED)
+
+    def test_selection_policy_of_report_returns_disabled_if_report_has_one_of_without_selection_attribute(self):
+        self.given_ddd_name("rasa_test")
+        self.given_grammar_contents("""
+<grammar>
+  <report action="mock_action" status="ended">
+    <one-of>
+      <item>mock utterance</item>
+    </one-of>
+  </report>
+</grammar>
+""")
+        self.given_grammar_from_class(Grammar)
+        self.when_invoke_selection_policy_of_report("mock_action", "ended")
+        self.then_result_is(selection_policy_names.DISABLED)
+
+    @pytest.mark.parametrize("selection_policy", [selection_policy_names.DISABLED,
+                                                  selection_policy_names.CYCLIC])
+    def test_selection_policy_of_report_returns_selection_attribute_value(self, selection_policy):
+        self.given_ddd_name("rasa_test")
+        self.given_grammar_contents("""
+<grammar>
+  <report action="mock_action" status="ended">
+    <one-of selection="{}">
+      <item>mock utterance</item>
+    </one-of>
+  </report>
+</grammar>
+""".format(selection_policy))
+        self.given_grammar_from_class(Grammar)
+        self.when_invoke_selection_policy_of_report("mock_action", "ended")
+        self.then_result_is(selection_policy)

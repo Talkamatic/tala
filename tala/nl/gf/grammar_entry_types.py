@@ -30,6 +30,7 @@ class Constants:
     IMPERATIVE = "imperative"
     ING_FORM = "ing-form"
     OBJECT = "object"
+    SELECTION = "selection"
 
 
 class Node:

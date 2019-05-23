@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [unreleased]
+### Added
+- A new optional attribute "selection" is supported for <one-of> elements in <report> in grammars with RGL disabled, with supported values "disabled" (default) or "cyclic".
+
 ## [3.0.0] - 2019-05-10
 ### Added
 - A new method `request_speech_input` has been added to `tala.utils.tdm_client.TDMClient`.

@@ -16,7 +16,9 @@ from tala.ddd.services.constants import UNDEFINED_SERVICE_ACTION_FAILURE
 from tala.model.goal import ResolveGoal
 from tala.nl.gf import utils
 from tala.nl.gf.grammar_entry_types import Constants, Node
-from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename
+from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename, \
+    probabilities_filename
+
 
 UNKNOWN_CATEGORY = "Unknown"
 
@@ -79,6 +81,7 @@ class AutoGenerator(object):
         self._abstract_gf_content = StringIO()
         self._semantic_gf_content = StringIO()
         self._natural_language_gf_content = StringIO()
+        self._probabilities_file_content = StringIO()
 
     @property
     def _schema_absolute_path(self):
@@ -132,6 +135,9 @@ class AutoGenerator(object):
     def _name_of_natural_language_gf_file(self, language_code):
         return "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code))
 
+    def _name_of_probabilities_file(self, language_code):
+        return "build/%s/%s" % (language_code, probabilities_filename(self._ddd_name))
+
     def _add_header_in_auto_generated_gf_files(self, language_code):
         self._abstract_gf_content.write("abstract %s = TDM, Integers ** {\n\n" "cat\n\n" % self._ddd_name)
         for category in self._categories.values():
@@ -183,6 +189,12 @@ class AutoGenerator(object):
                 for line in self._natural_language_gf_content:
                     natural_language_file.write(line)
 
+        def write_probabilities_file():
+            with open(self._name_of_probabilities_file(language_code), "w") as probabilities_file:
+                self._probabilities_file_content.seek(0)
+                for line in self._probabilities_file_content:
+                    probabilities_file.write(line)
+
         write_abstract_file()
         self._abstract_gf_content.close()
 
@@ -191,6 +203,9 @@ class AutoGenerator(object):
 
         write_natural_language_file()
         self._natural_language_gf_content.close()
+
+        write_probabilities_file()
+        self._probabilities_file_content.close()
 
     def _name_of_abstract_gf_file(self, language_code):
         return "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name))
@@ -492,12 +507,26 @@ class AutoGenerator(object):
             self._generate_failed_content_for_reason(action_interface, failure_reason)
 
     def _generate_failed_content_for_unknown_failure_reason(self, action_interface):
-        for combination in self._service_action_parameter_combinations(action_interface):
+        for probability, combination in self._enumerate_with_decreasing_probabilities(
+                self._service_action_parameter_combinations(action_interface)):
             natural_language_gf = 'undefined_service_action_failure'
             self._generate_parameterized_service_action_content(
                 "SysReportFailed", "report_failed", action_interface.name, UNDEFINED_SERVICE_ACTION_FAILURE,
-                natural_language_gf, combination
+                natural_language_gf, combination, probability
             )
+
+    def _enumerate_with_decreasing_probabilities(self, iterable):
+        def rescale_probability_so_that_sum_of_all_explicit_probabilities_is_less_then_1(
+                unit_scaled_probability, large_constant=1000000):
+            return unit_scaled_probability / large_constant
+
+        items = list(iterable)
+        num_items = len(items)
+        for index, item in enumerate(items):
+            unit_scaled_probability = 1 - float(index) / num_items
+            safely_rescaled_probability = rescale_probability_so_that_sum_of_all_explicit_probabilities_is_less_then_1(
+                unit_scaled_probability)
+            yield safely_rescaled_probability, item
 
     def _generate_failed_content_for_reason(self, action_interface, failure_reason):
         key = Node(Constants.REPORT_FAILED, {"action": action_interface.name, "reason": failure_reason.name})
@@ -509,14 +538,16 @@ class AutoGenerator(object):
             pass
 
     def _generate_parameterized_service_action_entry(self, gf_category, sem_util, key, action_interface, reason=None):
-        forms = self._get_form_as_options(key)
+        forms_for_all_combinations = self._get_form_as_options(key)
         for combination in self._service_action_parameter_combinations(action_interface):
-            form = self._pick_service_action_form(forms, combination, action_interface)
-            if form is not None and len(form.children) > 0:
-                natural_language_gf = 'ss (%s)' % self._parameterized_sys_form(form)
-                self._generate_parameterized_service_action_content(
-                    gf_category, sem_util, action_interface.name, reason, natural_language_gf, combination
-                )
+            forms_for_combination = self._pick_service_action_forms(
+                forms_for_all_combinations, combination, action_interface)
+            for probability, form in self._enumerate_with_decreasing_probabilities(forms_for_combination):
+                if len(form.children) > 0:
+                    natural_language_gf = 'ss (%s)' % self._parameterized_sys_form(form)
+                    self._generate_parameterized_service_action_content(
+                        gf_category, sem_util, action_interface.name, reason, natural_language_gf, combination,
+                        probability)
 
     def _service_action_parameter_combinations(self, action_interface):
         parameters = action_interface.parameters
@@ -530,13 +561,12 @@ class AutoGenerator(object):
             if not parameter.is_optional and parameter not in combination:
                 return True
 
-    def _pick_service_action_form(self, forms, combination, action_interface):
+    def _pick_service_action_forms(self, forms, combination, action_interface):
         relevant_forms = self._relevant_service_action_forms(forms, combination, action_interface)
-
         if len(relevant_forms) == 0:
-            return None
+            return []
         else:
-            return self._select_most_relevant_service_action_form(relevant_forms, combination, action_interface)
+            return self._select_most_relevant_service_action_forms(relevant_forms, combination, action_interface)
 
     def _relevant_service_action_forms(self, forms, combination, action_interface):
         return [form for form in forms if self._combination_matches_form(combination, form, action_interface)]
@@ -549,15 +579,19 @@ class AutoGenerator(object):
                 return False
         return True
 
-    def _select_most_relevant_service_action_form(self, forms, combination, action_interface):
-        return max(forms, key=lambda form: self._num_referenced_parameters(form, combination, action_interface))
+    def _select_most_relevant_service_action_forms(self, forms, combination, action_interface):
+        max_num_referenced_parameters = max([self._num_referenced_parameters(form, combination, action_interface)
+                                             for form in forms])
+        for form in forms:
+            if self._num_referenced_parameters(form, combination, action_interface) == max_num_referenced_parameters:
+                yield form
 
     def _num_referenced_parameters(self, form, combination, action_interface):
         parameter_names_in_form = self._parameters_in_form(form, action_interface)
         return len([parameter for parameter in combination if parameter.name in parameter_names_in_form])
 
     def _generate_parameterized_service_action_content(
-        self, gf_category, sem_util, action_name, reason, natural_language_gf, combination
+        self, gf_category, sem_util, action_name, reason, natural_language_gf, combination, probability
     ):
 
         function_name_prefix = "%s_%s" % (sem_util, action_name)
@@ -583,6 +617,8 @@ class AutoGenerator(object):
         for parameter_name in parameter_names:
             self._natural_language_gf_content.write(" %s" % parameter_name)
         self._natural_language_gf_content.write(' = %s;\n' % natural_language_gf)
+
+        self._probabilities_file_content.write('%s %.8f\n' % (function_name, probability))
 
     def _gf_list(self, strings):
         if len(strings) == 0:

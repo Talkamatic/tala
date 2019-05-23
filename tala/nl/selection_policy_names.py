@@ -1,0 +1,2 @@
+DISABLED = "disabled"
+CYCLIC = "cyclic"

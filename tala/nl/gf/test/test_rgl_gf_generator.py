@@ -3,8 +3,9 @@
 import re
 import unittest
 
-from mock import Mock
+from mock import Mock, patch
 
+import tala
 from tala.model.ddd import DDD
 from tala.ddd.ddd_py_compiler import DddPyCompiler
 from tala.ddd.ddd_xml_compiler import DddXmlCompiler
@@ -16,6 +17,8 @@ from tala.model.ontology import Ontology
 from tala.model.plan import Plan
 from tala.nl.gf import rgl_grammar_entry_types as rgl_types, utils
 from tala.nl.gf.grammar_entry_types import Constants, Node
+from tala.nl.gf.naming import abstract_gf_filename, semantic_gf_filename, natural_language_gf_filename, \
+    probabilities_filename
 from tala.nl.gf.rgl_gf_generator import GrammarProcessingException
 from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator, Directives, MAX_NUM_ENTITIES_PER_PARSE
 
@@ -94,8 +97,17 @@ class RglGfGeneratorTestCase(unittest.TestCase):
         self._add_to_any_plan("invoke_service_action(%s, {postconfirm=False})" % action_name)
 
     def when_generating(self, language_code="eng"):
+        self._generate(language_code)
+
+    def given_generated(self, language_code="eng"):
+        self._generate(language_code)
+
+    def _generate(self, language_code):
         self._create_generator(language_code)
         self.generator.generate(language_code)
+
+    def when_write_to_file(self, language_code="eng"):
+        self.generator.write_to_file(language_code)
 
     def _create_generator(self, language_code):
         self._create_mock_ddd()
@@ -122,7 +134,7 @@ class RglGfGeneratorTestCase(unittest.TestCase):
 
         mocked_ddd = Mock(spec=DDD)
         mocked_ddd.domain = self._domain
-        mocked_ddd.name = "MockupDdd"
+        mocked_ddd.name = self._ddd_name
         mocked_ddd.ontology = self._ontology
         mocked_ddd.service_interface = create_mocked_service_interface()
         self._ddd = mocked_ddd
@@ -210,14 +222,14 @@ class HeaderTestCase(RglGfGeneratorTestCase):
     def test_header(self):
         self.given_grammar([])
         self.when_generating()
-        self.then_abstract_begins_with("--# -coding=utf8\n" "abstract MockupDdd = TDM, Integers ** {")
+        self.then_abstract_begins_with("--# -coding=utf8\n" "abstract mockup_ddd = TDM, Integers ** {")
         self.then_semantic_begins_with(
             "--# -coding=utf8\n"
-            "concrete MockupDdd_sem of MockupDdd = TDM_sem, Integers_sem ** open Utils_sem in {"
+            "concrete mockup_ddd_sem of mockup_ddd = TDM_sem, Integers_sem ** open Utils_sem in {"
         )
         self.then_natural_language_begins_with(
             "--# -coding=utf8\n"
-            "concrete MockupDdd_eng of MockupDdd =\n"
+            "concrete mockup_ddd_eng of mockup_ddd =\n"
             "  TDMEng - [sysGreet],\n"
             "  IntegersEng\n"
             "** open\n"
@@ -1072,6 +1084,56 @@ Example:
         self.given_empty_grammar()
         self.when_generating()
         self.then_no_warning_is_yielded()
+
+
+class TestFileWriting(RglGfGeneratorTestCase):
+    @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.LowerCaseGfFileWriter".format(tala.nl.gf.rgl_gf_generator.__name__))
+    def test_abstract_file(self, mock_LowerCaseGfFileWriter, mock_open, mock_codecs):
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_abstract_file_is_created(mock_codecs)
+
+    def then_abstract_file_is_created(self, mock_codecs, language_code="eng"):
+        mock_codecs.open.assert_any_call(
+            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.LowerCaseGfFileWriter".format(tala.nl.gf.rgl_gf_generator.__name__))
+    def test_semantic_file(self, mock_LowerCaseGfFileWriter, mock_open, mock_codecs):
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_semantic_file_is_created(mock_codecs)
+
+    def then_semantic_file_is_created(self, mock_codecs, language_code="eng"):
+        mock_codecs.open.assert_any_call(
+            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.LowerCaseGfFileWriter".format(tala.nl.gf.rgl_gf_generator.__name__))
+    def test_natural_language_file(self, mock_LowerCaseGfFileWriter, mock_open, mock_codecs):
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_natural_language_file_is_created(mock_LowerCaseGfFileWriter)
+
+    def then_natural_language_file_is_created(self, mock_LowerCaseGfFileWriter, language_code="eng"):
+        mock_LowerCaseGfFileWriter.open.assert_any_call(
+            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)), "w",
+            encoding="utf-8")
+
+    @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
+    @patch("{}.LowerCaseGfFileWriter".format(tala.nl.gf.rgl_gf_generator.__name__))
+    def test_probabilities_file(self, mock_LowerCaseGfFileWriter, mock_open, mock_codecs):
+        self.given_generated()
+        self.when_write_to_file()
+        self.then_probabilities_file_is_created(mock_open)
+
+    def then_probabilities_file_is_created(self, mock_open, language_code="eng"):
+        mock_open.assert_any_call("build/%s/%s" % (language_code, probabilities_filename(self._ddd_name)), "w")
 
 
 class MockRglGfFilesGenerator(RglGfFilesGenerator):

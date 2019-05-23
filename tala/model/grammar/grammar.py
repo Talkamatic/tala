@@ -5,6 +5,7 @@ from tala.model.grammar.required_entity import RequiredPropositionalEntity, Requ
 from tala.model.sort import STRING
 from tala.nl.gf import rgl_grammar_entry_types
 from tala.nl.gf.grammar_entry_types import Constants
+from tala.nl import selection_policy_names
 from tala.utils.as_json import JSONLoggable
 
 
@@ -194,6 +195,9 @@ class GrammarBase(JSONLoggable):
     def _plain_text_items_of(self, item):
         raise NotImplementedError("%s._plain_text_items_of(...) need to be implemented." % self.__class__.__name__)
 
+    def selection_policy_of_report(self, action, status):
+        return selection_policy_names.DISABLED
+
 
 class Grammar(GrammarBase):
     def __init__(self, language_code, grammar_path):
@@ -245,6 +249,15 @@ class Grammar(GrammarBase):
 
     def _find_individuals_of(self, name):
         return self._grammar_root.findall("%s[@name='%s']" % (Constants.INDIVIDUAL, name))
+
+    def selection_policy_of_report(self, action, status):
+        report_element = self._grammar_root.find("report[@action='{action}'][@status='{status}']".format(
+            action=action, status=status))
+        if report_element is not None:
+            one_of_element = report_element.find(Constants.ONE_OF)
+            if one_of_element is not None and Constants.SELECTION in one_of_element.attrib:
+                return one_of_element.attrib[Constants.SELECTION]
+        return super(Grammar, self).selection_policy_of_report(action, status)
 
 
 class GrammarForRGL(GrammarBase):
