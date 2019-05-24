@@ -1,5 +1,8 @@
 from tala.model.semantic_object import OntologySpecificSemanticObject
 
+TOP = "top"
+UP = "up"
+
 
 class Action(OntologySpecificSemanticObject):
     def __init__(self, value, ontology_name):
@@ -16,10 +19,10 @@ class Action(OntologySpecificSemanticObject):
         return self.value
 
     def is_top_action(self):
-        return self.value == "top"
+        return self.value == TOP
 
     def is_up_action(self):
-        return self.value == "up"
+        return self.value == UP
 
     def __unicode__(self):
         return self.value
@@ -40,9 +43,9 @@ class Action(OntologySpecificSemanticObject):
 
 class TopAction(Action):
     def __init__(self, ontology_name):
-        Action.__init__(self, "top", ontology_name)
+        Action.__init__(self, TOP, ontology_name)
 
 
 class UpAction(Action):
     def __init__(self, ontology_name):
-        Action.__init__(self, "up", ontology_name)
+        Action.__init__(self, UP, ontology_name)
