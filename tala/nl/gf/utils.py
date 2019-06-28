@@ -1,8 +1,6 @@
 import os
 import re
 
-from tala.model.date_time import DateTime
-
 
 class GrammarSanityException(Exception):
     pass
@@ -13,8 +11,6 @@ META = "#?#"
 
 TOKENISE_RE = re.compile(r"\s*(p\.m\.|a\.m\.|\d{1,2}\:\d{2}|[\w0-9_\\\-']+|\S)\s*", flags=re.UNICODE)
 
-PREPROCESS_RE_SINGLE_QUOTES = re.compile(r'\'([^\']*)\'')
-PREPROCESS_RE_DOUBLE_QUOTES = re.compile(r'"([^"]*)"')
 PUNCTUATION_RE = re.compile(r"\s+([!,.?])")
 
 NL_PLACEHOLDER_PREFIX = "nl_placeholder"
@@ -31,54 +27,6 @@ MAX_NUM_PLACEHOLDERS = 10
 def tokenise(s):
     tokenised = filter(None, TOKENISE_RE.split(s))
     return tokenised
-
-
-def _preprocess_strings(unprocessed_string, table):
-    def replace_and_store(matchobj):
-        count = len(table)
-        key = '_placeholder_%s_' % count
-        table[key] = matchobj.group(1)
-        return key
-
-    preprocessed_string = PREPROCESS_RE_SINGLE_QUOTES.sub(replace_and_store, unprocessed_string)
-    preprocessed_string = PREPROCESS_RE_DOUBLE_QUOTES.sub(replace_and_store, preprocessed_string)
-    return preprocessed_string
-
-
-def _preprocess_integers(unprocessed_string, table):
-    def replace_and_store(matchobj):
-        count = len(table)
-        key = '_placeholder_%s_' % count
-        table[key] = matchobj.group(1)
-        return "(%s)" % key
-
-    return re.sub("\((\d{3,})\)", replace_and_store, unprocessed_string)
-
-
-def _preprocess_datetimes(unprocessed_string, table):
-    def replace_and_store(matchobj):
-        count = len(table)
-        key = '_placeholder_%s_' % count
-        iso8601_string = matchobj.group(1)
-        date_time = DateTime(iso8601_string)
-        table[key] = date_time.human_standard()
-        return "(%s)" % key
-
-    return re.sub("\(datetime\(([^()]+)\)\)", replace_and_store, unprocessed_string)
-
-
-def preprocess_placeholders(unprocessed_string, table):
-    result = _preprocess_strings(unprocessed_string, table)
-    result = _preprocess_integers(result, table)
-    result = _preprocess_datetimes(result, table)
-    return result
-
-
-def replace_placeholders(string, table):
-    result = string
-    for placeholder, replacement in table.iteritems():
-        result = result.replace(placeholder, replacement)
-    return result
 
 
 def str_lin(lin, marked=None):
