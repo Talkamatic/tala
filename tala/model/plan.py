@@ -78,8 +78,11 @@ class Plan(Stack, SemanticObject):
                 question = plan_item.getContent()
                 yield question
 
-    def __str__(self):
+    def __unicode__(self):
         return "Plan(%s)" % self.content
+
+    def __str__(self):
+        return unicode(self).encode("utf-8")
 
     def __repr__(self):
         return "%s%s" % (self.__class__.__name__, (self.content or self.contentclass, ))

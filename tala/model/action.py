@@ -1,10 +1,11 @@
 from tala.model.semantic_object import OntologySpecificSemanticObject
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 TOP = "top"
 UP = "up"
 
 
-class Action(OntologySpecificSemanticObject):
+class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __init__(self, value, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         self.value = value

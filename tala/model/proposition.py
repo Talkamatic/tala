@@ -3,6 +3,7 @@ import copy
 from tala.model.error import OntologyError
 from tala.model.polarity import Polarity
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 
 
@@ -10,7 +11,7 @@ class PropositionsFromDifferentOntologiesException(Exception):
     pass
 
 
-class Proposition(SemanticObject):
+class Proposition(SemanticObject, AsSemanticExpressionMixin):
     UNDERSTANDING = "UNDERSTANDING"
     GOAL = "GOAL"
     PREDICATE = "PREDICATE"

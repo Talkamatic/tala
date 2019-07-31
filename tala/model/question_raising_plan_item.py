@@ -33,6 +33,9 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
         return clone
 
     def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
         if self._content is None:
             content_string = ""
         else:

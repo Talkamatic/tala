@@ -1,7 +1,8 @@
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject):
+class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __init__(self, predicate, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         self.predicate = predicate
@@ -32,7 +33,7 @@ class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject):
         return hash((self.__class__.__name__, self.predicate))
 
 
-class LambdaAbstractedGoalProposition(SemanticObject):
+class LambdaAbstractedGoalProposition(SemanticObject, AsSemanticExpressionMixin):
     def __init__(self):
         SemanticObject.__init__(self)
 

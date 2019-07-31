@@ -8,7 +8,7 @@ from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
 from tala.model.sort import DomainSort, Sort
-from tala.utils.as_json import JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 
 
 class IndividualExistsException(Exception):
@@ -42,7 +42,7 @@ class DddOntology:
     pass
 
 
-class Ontology(JSONLoggable):
+class Ontology(AsJSONMixin):
     DEFAULT_ACTIONS = {"top", "up"}
 
     def __init__(self, name, sorts, predicates, individuals, actions):
@@ -59,8 +59,8 @@ class Ontology(JSONLoggable):
         self._validate_predicates()
         self._check_predicate_action_integrity()
 
-    def as_json(self):
-        json = super(Ontology, self).as_json()
+    def as_dict(self):
+        json = super(Ontology, self).as_dict()
         json["_original_individuals"] = "<skipped>"
         return json
 

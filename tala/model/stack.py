@@ -1,4 +1,4 @@
-from tala.utils.as_json import convert_to_json, JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 from tala.utils.unicodify import unicodify
 
 
@@ -6,7 +6,7 @@ class StackError(Exception):
     pass
 
 
-class Stack(JSONLoggable):
+class Stack(AsJSONMixin):
     def __init__(self, content=set(), contentclass=None):
         super(Stack, self).__init__()
         self.contentclass = contentclass
@@ -14,9 +14,9 @@ class Stack(JSONLoggable):
         for x in content:
             self.push(x)
 
-    def as_json(self):
+    def as_dict(self):
         return {
-            "stack": list(convert_to_json(object_) for object_ in self.content),
+            "stack": self.content,
         }
 
     def __repr__(self):
@@ -92,6 +92,11 @@ class Stack(JSONLoggable):
 
 
 class StackSet(Stack):
+    def as_dict(self):
+        return {
+            "stackset": self.content,
+        }
+
     def __unicode__(self):
         string = "stackset(" + unicodify(self.content) + ")"
         return string

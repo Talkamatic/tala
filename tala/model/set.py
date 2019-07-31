@@ -1,7 +1,8 @@
-from tala.utils.as_json import convert_to_json, JSONLoggable
+from tala.utils.as_json import AsJSONMixin
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class Set(JSONLoggable):
+class Set(AsSemanticExpressionMixin, AsJSONMixin):
     def __init__(self, content_or_contentclass=None):
         super(Set, self).__init__()
         if content_or_contentclass is None:
@@ -27,9 +28,9 @@ class Set(JSONLoggable):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.content or self.contentclass or [])
 
-    def as_json(self):
+    def as_dict(self):
         return {
-            "set": list(convert_to_json(object_) for object_ in self.content),
+            "set": self.content,
         }
 
     def __eq__(self, other):

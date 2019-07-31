@@ -1,6 +1,6 @@
 import copy
 
-from tala.utils.as_json import convert_to_json, JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 from tala.utils.unicodify import unicodify
 
 
@@ -8,7 +8,7 @@ class OpenQueueError(Exception):
     pass
 
 
-class OpenQueue(JSONLoggable):
+class OpenQueue(AsJSONMixin):
     def __init__(self, iterable=None):
         super(OpenQueue, self).__init__()
         self.front_content = []
@@ -18,9 +18,9 @@ class OpenQueue(JSONLoggable):
                 self.front_content.append(item)
         self._unshifted_content = None
 
-    def as_json(self):
+    def as_dict(self):
         return {
-            "openqueue": list(convert_to_json(object_) for object_ in self),
+            "openqueue": list(object_ for object_ in self),
         }
 
     def enqueue(self, element):
@@ -148,7 +148,7 @@ class OpenQueue(JSONLoggable):
         return self.first() == other.first()
 
     def __hash__(self):
-        return hash(self.front_content) + 17*hash(self.back_content)
+        return hash(self.front_content) + 17 * hash(self.back_content)
 
     def __ne__(self, other):
         return not (self == other)

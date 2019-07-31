@@ -1,97 +1,174 @@
+# encoding: utf-8
+
 import pytest
-from mock import patch
+from mock import patch, Mock
 
 import tala.utils.as_json
-from tala.utils.as_json import JSONLoggable, convert_to_json
+from tala.utils.as_json import AsJSONMixin, convert_to_json
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
 class TestConvertToJson(object):
     def test_none_is_returned_as_is(self):
-        self.when_convert_to_json(None)
+        self.given_object(None)
+        self.when_convert_to_json()
         self.then_result_is(None)
 
-    def when_convert_to_json(self, object_):
-        self._result = convert_to_json(object_)
+    def given_object(self, object_):
+        self._object = object_
+
+    def when_convert_to_json(self, verbose=True):
+        self._result = convert_to_json(self._object, verbose=verbose)
 
     def then_result_is(self, expected):
         assert expected == self._result
 
     @pytest.mark.parametrize("value", [True, False])
     def test_boolean_is_returned_as_is(self, value):
-        self.when_convert_to_json(value)
+        self.given_object(value)
+        self.when_convert_to_json()
         self.then_result_is(value)
 
-    @patch("{}.JSONLoggable.as_json".format(format(tala.utils.as_json.__name__)))
-    def test_json_loggable_is_processed_with_its_as_json_method(self, mock_as_json):
-        self.given_mock_as_json(mock_as_json)
-        self.given_a_json_loggable()
-        self.when_convert_to_json(self._object)
-        self.then_result_is(mock_as_json(self._object))
+    def test_as_json_mixin_is_processed_with_its_as_dict_method(self):
+        self.given_a_mocked_as_json_mixin(as_dict_return_value={"key": "value"})
+        self.when_convert_to_json()
+        self.then_result_is({"key": "value"})
 
-    def given_mock_as_json(self, mock_as_json):
-        def mock_convert(object_):
-            return "mock_conversion:%s" % object_
-            mock_as_json.side_effect = mock_convert
+    def given_a_mocked_as_json_mixin(self, *args, **kwargs):
+        self._object = self._create_mocked_as_json_mixin(*args, **kwargs)
 
-    def given_a_json_loggable(self):
-        class JSONLoggableSubClass(JSONLoggable):
-            def __init__(self):
-                super(JSONLoggableSubClass, self).__init__()
-                self.an_attribute = "a_value"
-        self._object = JSONLoggableSubClass()
+    def _create_mocked_as_json_mixin(self, as_dict_return_value=None):
+        mock = Mock(spec=AsJSONMixin)
+        mock.as_dict.return_value = as_dict_return_value or {}
+        return mock
 
-    @patch("{}.JSONLoggable.as_json".format(format(tala.utils.as_json.__name__)))
-    def test_list_is_processed_recursively_and_returned_as_list(self, mock_as_json):
-        self.given_mock_as_json(mock_as_json)
-        self.given_a_json_loggable()
-        self.when_convert_to_json([self._object])
-        self.then_result_is([mock_as_json(self._object)])
+    def test_list_is_processed_recursively_and_returned_as_list(self):
+        self.given_a_mocked_as_json_mixin_as_a_list(as_dict_return_value={"key": "value"})
+        self.when_convert_to_json()
+        self.then_result_is([{"key": "value"}])
 
-    @patch("{}.JSONLoggable.as_json".format(format(tala.utils.as_json.__name__)))
-    def test_set_is_processed_recursively_and_returned_as_dict(self, mock_as_json):
-        self.given_mock_as_json(mock_as_json)
-        self.given_a_json_loggable()
-        self.when_convert_to_json(set([self._object]))
-        self.then_result_is({"set": [mock_as_json(self._object)]})
+    def given_a_mocked_as_json_mixin_as_a_list(self, *args, **kwargs):
+        self._object = [self._create_mocked_as_json_mixin(*args, **kwargs)]
 
-    @patch("{}.JSONLoggable.as_json".format(format(tala.utils.as_json.__name__)))
-    def test_dict_is_processed_recursively_and_returned_as_dict(self, mock_as_json):
-        self.given_mock_as_json(mock_as_json)
-        self.given_a_json_loggable()
-        self.when_convert_to_json({"mock_key": self._object})
-        self.then_result_is({"mock_key": mock_as_json(self._object)})
+    def test_set_is_processed_recursively_and_returned_as_dict(self):
+        self.given_a_mocked_as_json_mixin_as_a_set(as_dict_return_value={"key": "value"})
+        self.when_convert_to_json()
+        self.then_result_is({"set": [{"key": "value"}]})
+
+    def given_a_mocked_as_json_mixin_as_a_set(self, *args, **kwargs):
+        self._object = {self._create_mocked_as_json_mixin(*args, **kwargs)}
+
+    def test_dict_is_processed_recursively_and_returned_as_dict(self):
+        self.given_object({"key": self._create_mocked_as_json_mixin(as_dict_return_value={"inner_key": "inner_value"})})
+        self.when_convert_to_json()
+        self.then_result_is({"key": {"inner_key": "inner_value"}})
+
+    def test_that_non_verbose_call_with_as_json_is_processed_with_its_as_dict_method(self):
+        self.given_a_mocked_as_json_mixin(as_dict_return_value={"key": "value"})
+        self.when_convert_to_json(verbose=False)
+        self.then_result_is({"key": "value"})
+
+    def test_non_verbose_call_with_as_semantic_expression_mixin(self):
+        self.given_a_mocked_as_semantic_expression_mixin(as_semantic_expression_return_value="expression")
+        self.when_convert_to_json(verbose=False)
+        self.then_result_is({"semantic_expression": "expression"})
+
+    def given_a_mocked_as_semantic_expression_mixin(self, as_semantic_expression_return_value):
+        mock = Mock(spec=AsSemanticExpressionMixin)
+        mock.as_semantic_expression.return_value = as_semantic_expression_return_value
+        self._object = mock
+
+    def test_non_verbose_call_with_object_mixed_in_with_json_and_semantic_expression(self):
+        self.given_a_mocked_object_mixed_in_with_both_json_and_semantic_expression(
+            as_semantic_expression_return_value="expression", as_dict_return_value={"key": "value"}
+        )
+        self.when_convert_to_json(verbose=False)
+        self.then_result_is({
+            "semantic_expression": "expression",
+        })
+
+    def given_a_mocked_object_mixed_in_with_both_json_and_semantic_expression(
+        self, as_semantic_expression_return_value, as_dict_return_value
+    ):
+        class JSONAndSemanticExpressionMixin(AsJSONMixin, AsSemanticExpressionMixin):
+            pass
+
+        mock = Mock(spec=JSONAndSemanticExpressionMixin)
+        mock.as_semantic_expression.return_value = as_semantic_expression_return_value
+        mock.as_dict.return_value = as_dict_return_value
+        self._object = mock
+
+    def test_verbose_call_with_object_mixed_in_with_json_and_semantic_expression(self):
+        self.given_a_mocked_object_mixed_in_with_both_json_and_semantic_expression(
+            as_semantic_expression_return_value="expression", as_dict_return_value={"key": "value"}
+        )
+        self.when_convert_to_json(verbose=True)
+        self.then_result_is({
+            "key": "value",
+            "semantic_expression": "expression",
+        })
 
     def test_unicode_of_object_is_returned_as_fallback(self):
-        self.given_an_object_that_should_be_treated_with_a_fallback_strategy()
-        self.when_convert_to_json(self._object)
-        self.then_result_is(unicode(self._object))
+        self.given_an_object_that_should_be_treated_with_a_fallback_strategy(unicode_return_value=u"åäö unicode_string")
+        self.when_convert_to_json()
+        self.then_result_is(u"åäö unicode_string")
 
-    def given_an_object_that_should_be_treated_with_a_fallback_strategy(self):
+    def given_an_object_that_should_be_treated_with_a_fallback_strategy(self, unicode_return_value):
         class MockCustomClass(object):
             def __unicode__(self):
-                return u"mock_unicode_return_value"
+                return unicode_return_value
+
         self._object = MockCustomClass()
 
 
-class TestJSONLoggable(object):
-    @patch("{}.convert_to_json".format(tala.utils.as_json.__name__))
-    def test_as_json_returns_dict_with_values_converted_json(self, mock_convert_to_json):
+class TestAsJSONMixin(object):
+    def setup(self):
+        self._mock_convert_to_json = None
+        self._as_json_mixin = None
+        self._result = None
+
+    @patch("{}.convert_to_json".format(tala.utils.as_json.__name__), autospec=True)
+    def test_as_json_returns_convert_to_json_result(self, mock_convert_to_json):
         self.given_mock_convert_to_json(mock_convert_to_json)
-        self.given_json_loggable_has_attribute("mock_attribute_name", "mock_attribute_value")
+        self.given_as_json_mixin()
         self.when_call_as_json()
-        self.then_result_is({"mock_attribute_name": mock_convert_to_json("mock_attribute_value")})
+        self.then_result_is_from_mocked_convert_to_json()
 
     def given_mock_convert_to_json(self, mock_convert_to_json):
-        def mock_convert(object_):
-            return "mock_conversion:%s" % object_
-        mock_convert_to_json.side_effect = mock_convert
+        self._mock_convert_to_json = mock_convert_to_json
 
-    def given_json_loggable_has_attribute(self, attribute_name, attribute_value):
-        self._json_loggable = JSONLoggable()
-        setattr(self._json_loggable, attribute_name, attribute_value)
+    def given_as_json_mixin(self):
+        self._as_json_mixin = AsJSONMixin()
 
     def when_call_as_json(self):
-        self._result = self._json_loggable.as_json()
+        self._result = self._as_json_mixin.as_json()
 
-    def then_result_is(self, expected):
-        assert expected == self._result
+    def then_result_is_from_mocked_convert_to_json(self):
+        assert self._result == self._mock_convert_to_json.return_value
+
+    @patch("{}.convert_to_json".format(tala.utils.as_json.__name__), autospec=True)
+    def test_as_json_calls_convert_to_json_with_verbose(self, mock_convert_to_json):
+        self.given_mock_convert_to_json(mock_convert_to_json)
+        self.given_as_json_mixin()
+        self.when_call_as_json()
+        self.then_convert_to_json_is_called_with_as_json_mixin_object(verbose=True)
+
+    def then_convert_to_json_is_called_with_as_json_mixin_object(self, verbose):
+        self._mock_convert_to_json.assert_called_once_with(self._as_json_mixin, verbose=verbose)
+
+    @patch("{}.convert_to_json".format(tala.utils.as_json.__name__), autospec=True)
+    def test_as_compact_json_returns_dict_with_values_converted_to_json(self, mock_convert_to_json):
+        self.given_mock_convert_to_json(mock_convert_to_json)
+        self.given_as_json_mixin()
+        self.when_call_as_compact_json()
+        self.then_result_is_from_mocked_convert_to_json()
+
+    def when_call_as_compact_json(self):
+        self._result = self._as_json_mixin.as_compact_json()
+
+    @patch("{}.convert_to_json".format(tala.utils.as_json.__name__), autospec=True)
+    def test_as_compact_json_calls_convert_to_json_without_verbose(self, mock_convert_to_json):
+        self.given_mock_convert_to_json(mock_convert_to_json)
+        self.given_as_json_mixin()
+        self.when_call_as_compact_json()
+        self.then_convert_to_json_is_called_with_as_json_mixin_object(verbose=False)

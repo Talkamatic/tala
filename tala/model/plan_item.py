@@ -1,10 +1,11 @@
 from tala.model.move import ICMMove
 from tala.model.proposition import Proposition
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
-from tala.utils.as_json import convert_to_json
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
+from tala.utils.unicodify import unicodify
 
 
-class PlanItem(SemanticObject):
+class PlanItem(SemanticObject, AsSemanticExpressionMixin):
     TYPE_RESPOND = "respond"
     TYPE_GREET = "greet"
     TYPE_QUIT = "quit"
@@ -38,6 +39,9 @@ class PlanItem(SemanticObject):
         return "%s%s" % (PlanItem.__class__.__name__, (self._type, ))
 
     def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
         return unicode(self._type)
 
     def __eq__(self, other):
@@ -136,7 +140,7 @@ class PlanItem(SemanticObject):
     def is_turn_yielding(self):
         return False
 
-    def as_json(self):
+    def as_dict(self):
         return {
             self.get_type(): None,
         }
@@ -152,6 +156,9 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return "%s%s" % (PlanItemWithSemanticContent.__name__, (self._type, self._content))
 
     def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
         return "%s(%s)" % (unicode(self._type), unicode(self._content))
 
     def __eq__(self, other):
@@ -173,8 +180,8 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
     def getContent(self):
         return self.get_content()
 
-    def as_json(self):
-        return {self.get_type(): convert_to_json(self._content)}
+    def as_dict(self):
+        return {self.get_type(): self._content}
 
 
 class AssumePlanItem(PlanItemWithSemanticContent):
@@ -290,14 +297,17 @@ class IfThenElse(PlanItem):
         self.alternative = None
 
     def __str__(self):
-        return "if_then_else(%s, %s, %s)" % (self.condition, self.consequent, self.alternative)
+        return unicode(self).encode("utf-8")
 
-    def as_json(self):
+    def __unicode__(self):
+        return "if_then_else{}".format(unicodify((self.condition, self.consequent, self.alternative)))
+
+    def as_dict(self):
         return {
             self.get_type(): {
-                "condition": convert_to_json(self.condition),
-                "consequent": convert_to_json(self.consequent),
-                "alternative": convert_to_json(self.alternative),
+                "condition": self.condition,
+                "consequent": self.consequent,
+                "alternative": self.alternative,
             }
         }
 
@@ -345,8 +355,11 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         return self._max_results
 
     def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
         return "invoke_service_query(%s, min_results=%s, max_results=%s)" % (
-            self._content, self._min_results, self._max_results
+            unicode(self._content), self._min_results, self._max_results
         )
 
     def __repr__(self):
@@ -358,10 +371,10 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         return super(PlanItemWithSemanticContent, self).__eq__(other) and other.get_min_results(
         ) == self.get_min_results() and other.get_max_results() == self.get_max_results()
 
-    def as_json(self):
+    def as_dict(self):
         return {
             self.get_type(): {
-                "issue": convert_to_json(self._content),
+                "issue": self._content,
                 "min_results": self._min_results,
                 "max_results": self._max_results,
             }
@@ -403,8 +416,11 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
         ) and other.should_downdate_plan() == self.should_downdate_plan()
 
     def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
         return "invoke_service_action(%s, {preconfirm=%s, postconfirm=%s, downdate_plan=%s})" % (
-            self.service_action, self.preconfirm, self.postconfirm, self._downdate_plan
+            unicode(self.service_action), self.preconfirm, self.postconfirm, self._downdate_plan
         )
 
     def __repr__(self):
@@ -413,14 +429,14 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
             self._downdate_plan
         )
 
-    def as_json(self):
+    def as_dict(self):
         return {
             self.get_type(): {
-                "service_action": convert_to_json(self.service_action),
-                "ontology": convert_to_json(self.ontology_name),
-                "preconfirm": convert_to_json(self.preconfirm),
-                "postconfirm": convert_to_json(self.postconfirm),
-                "downdate_plan": convert_to_json(self._downdate_plan),
+                "service_action": self.service_action,
+                "ontology": self.ontology_name,
+                "preconfirm": self.preconfirm,
+                "postconfirm": self.postconfirm,
+                "downdate_plan": self._downdate_plan,
             }
         }
 
@@ -448,10 +464,16 @@ class HandlePlanItem(PlanItem, OntologySpecificSemanticObject):
     def service_action(self):
         return self._service_action
 
-    def as_json(self):
+    def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __unicode__(self):
+        return "invoke_service_action(%s)" % (unicode(self.service_action))
+
+    def as_dict(self):
         return {
             self.get_type(): {
-                "service_action": convert_to_json(self._service_action),
-                "ontology": convert_to_json(self.ontology_name),
+                "service_action": self._service_action,
+                "ontology": self.ontology_name,
             }
         }

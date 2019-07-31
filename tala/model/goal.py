@@ -1,9 +1,10 @@
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 
 
-class Goal(SemanticObject):
+class Goal(SemanticObject, AsSemanticExpressionMixin):
     PERFORM_GOAL = "PERFORM_GOAL"
     RESOLVE_GOAL = "RESOLVE_GOAL"
     HANDLE_GOAL = "HANDLE_GOAL"

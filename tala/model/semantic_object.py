@@ -1,7 +1,7 @@
-from tala.utils.as_json import JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 
 
-class SemanticObject(JSONLoggable):
+class SemanticObject(AsJSONMixin):
     def is_yes(self):
         return False
 

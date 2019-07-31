@@ -1,9 +1,10 @@
 import re
 
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class Individual(OntologySpecificSemanticObject):
+class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __init__(self, ontology_name, value, sort):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         if sort.is_string_sort():
@@ -87,7 +88,7 @@ class NegativeIndividual(Individual):
         return False
 
 
-class Yes(SemanticObject):
+class Yes(SemanticObject, AsSemanticExpressionMixin):
     YES = "yes"
 
     def is_positive(self):
@@ -115,7 +116,7 @@ class Yes(SemanticObject):
         return hash(unicode(self))
 
 
-class No(SemanticObject):
+class No(SemanticObject, AsSemanticExpressionMixin):
     NO = "no"
 
     def is_positive(self):

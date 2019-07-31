@@ -1,8 +1,8 @@
-from tala.utils.as_json import convert_to_json, JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 from tala.utils.equality import EqualityMixin
 
 
-class DDD(JSONLoggable, EqualityMixin):
+class DDD(AsJSONMixin, EqualityMixin):
     def __init__(self, name, ontology, domain, rasa_nlu, service_interface, grammars, language_codes, use_rgl):
         super(DDD, self).__init__()
         self._name = name
@@ -47,20 +47,20 @@ class DDD(JSONLoggable, EqualityMixin):
         return self._use_rgl
 
     def __repr__(self):
-        return "%s(%s)" % (
+        return "%s%s" % (
             self.__class__.__name__, (
                 self.name, self.ontology, self.domain, self.rasa_nlu, self.service_interface, self.grammars,
                 self.language_codes, self.use_rgl
             )
         )
 
-    def as_json(self):
+    def as_dict(self):
         return {
-            "ontology": convert_to_json(self.ontology),
-            "domain": convert_to_json(self.domain),
-            "rasa_nlu": convert_to_json(self.rasa_nlu),
-            "service_interface": convert_to_json(self.service_interface),
-            "grammars": [convert_to_json(grammar) for grammar in self.grammars],
+            "ontology": self.ontology,
+            "domain": self.domain,
+            "rasa_nlu": self.rasa_nlu,
+            "service_interface": self.service_interface,
+            "grammars": self.grammars,
             "language_codes": self.language_codes,
             "use_rgl": self.use_rgl,
         }

@@ -1,7 +1,8 @@
 from tala.model.semantic_object import OntologySpecificSemanticObject
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class Predicate(OntologySpecificSemanticObject):
+class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __init__(self, ontology_name, name, sort, feature_of_name=None, multiple_instances=False):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         self.name = name

@@ -7,14 +7,14 @@ from tala.model.speaker import Speaker
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
-from tala.utils.as_json import JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 
 
 class DddDomain:
     pass
 
 
-class Domain(JSONLoggable):
+class Domain(AsJSONMixin):
     DEFAULT_IO_STATUS = "default"
     EXCLUDED_IO_STATUS = "excluded"
     HIDDEN_IO_STATUS = "hidden"
@@ -33,8 +33,8 @@ class Domain(JSONLoggable):
         self._add_top_plan_if_missing()
         self._add_up_plan()
 
-    def as_json(self):
-        json = super(Domain, self).as_json()
+    def as_dict(self):
+        json = super(Domain, self).as_dict()
         json["ontology"] = "<skipped>"
         return json
 

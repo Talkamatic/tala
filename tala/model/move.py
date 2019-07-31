@@ -1,7 +1,7 @@
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
-from tala.utils.as_json import convert_to_json
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.equality import EqualityMixin
 from tala.utils import float_comparison
 from tala.utils.unicodify import unicodify
@@ -11,7 +11,7 @@ class MoveException(Exception):
     pass
 
 
-class Move(SemanticObject, EqualityMixin):
+class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     QUIT = "quit"
     GREET = "greet"
     NO_MOVE = "no_move"
@@ -248,17 +248,17 @@ class Move(SemanticObject, EqualityMixin):
     def set_background(self, background):
         self._background = background
 
-    def as_json(self):
+    def as_dict(self):
         return {
             self.get_type(): {
-                "ddd_name": convert_to_json(self._ddd_name),
-                "speaker": convert_to_json(self._speaker),
-                "understanding_confidence": convert_to_json(self._understanding_confidence),
-                "weighted_understanding_confidence": convert_to_json(self._weighted_understanding_confidence),
-                "perception_confidence": convert_to_json(self.perception_confidence),
-                "modality": convert_to_json(self._modality),
-                "utterance": convert_to_json(self._utterance),
-                "background": convert_to_json(self._background),
+                "ddd_name": self._ddd_name,
+                "speaker": self._speaker,
+                "understanding_confidence": self._understanding_confidence,
+                "weighted_understanding_confidence": self._weighted_understanding_confidence,
+                "perception_confidence": self.perception_confidence,
+                "modality": self._modality,
+                "utterance": self._utterance,
+                "background": self._background,
             }
         }
 
@@ -292,9 +292,9 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
 
-    def as_json(self):
-        json = Move.as_json(self)
-        json[self.get_type()]["content"] = convert_to_json(self._content)
+    def as_dict(self):
+        json = Move.as_dict(self)
+        json[self.get_type()]["content"] = self._content
         return json
 
 
@@ -368,9 +368,6 @@ class ICMMove(Move):
             return True
         else:
             return False
-
-    def as_json(self):
-        self._icm_to_string()
 
     def get_semantic_expression(self):
         string = "ICMMove(%s" % self._icm_to_string()

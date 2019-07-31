@@ -1,7 +1,7 @@
-from tala.utils.as_json import JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 
 
-class TISNode(JSONLoggable):
+class TISNode(AsJSONMixin):
     def pretty_string_new(self, path):
         output = ""
         for attr in sorted(self.__dict__.keys()):

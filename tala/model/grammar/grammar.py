@@ -6,7 +6,7 @@ from tala.model.sort import STRING
 from tala.nl.gf import rgl_grammar_entry_types
 from tala.nl.gf.grammar_entry_types import Constants
 from tala.nl import selection_policy_names
-from tala.utils.as_json import JSONLoggable
+from tala.utils.as_json import AsJSONMixin
 
 
 class NoIndividualsFoundException(Exception):
@@ -45,14 +45,14 @@ class UnexpectedStringsFoundException(Exception):
     pass
 
 
-class GrammarBase(JSONLoggable):
+class GrammarBase(AsJSONMixin):
     def __init__(self, grammar_root, grammar_path):
         super(GrammarBase, self).__init__()
         self._grammar_root = grammar_root
         self._grammar_path = grammar_path
         self._local_individual_identifier = None
 
-    def as_json(self):
+    def as_dict(self):
         return {
             "answers": self.answers(),
         }
@@ -251,8 +251,9 @@ class Grammar(GrammarBase):
         return self._grammar_root.findall("%s[@name='%s']" % (Constants.INDIVIDUAL, name))
 
     def selection_policy_of_report(self, action, status):
-        report_element = self._grammar_root.find("report[@action='{action}'][@status='{status}']".format(
-            action=action, status=status))
+        report_element = self._grammar_root.find(
+            "report[@action='{action}'][@status='{status}']".format(action=action, status=status)
+        )
         if report_element is not None:
             one_of_element = report_element.find(Constants.ONE_OF)
             if one_of_element is not None and Constants.SELECTION in one_of_element.attrib:

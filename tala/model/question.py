@@ -1,8 +1,9 @@
 from tala.model.semantic_object import SemanticObjectWithContent
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 
 
-class Question(SemanticObjectWithContent):
+class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     TYPE_WH = "WHQ"
     TYPE_YESNO = "YNQ"
     TYPE_ALT = "ALTQ"
