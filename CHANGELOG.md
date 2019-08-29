@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [unreleased]
+### Added
+- A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.
+
+### Changed
+- `tala.utils.tdm_client.TDMClient` now supports protocol '3.0' of the HTTP API for frontends.
+
 ## [4.0.0] - 2019-10-08
 ### Added
 - A new optional attribute `selection` is supported for `<one-of>` elements in `<report>` in grammars with RGL disabled, with supported values `disabled` (default) or `cyclic`.

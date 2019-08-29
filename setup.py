@@ -56,6 +56,7 @@ if __name__ == "__main__":
             "python-magic==0.4.15",
             "prompt-toolkit==2.0.8",
             "requests==2.21.0",
-        ],
+            "typing==3.7.4.1",
+        ],  # yapf: disable
         dependency_links=[],
     )

@@ -4,6 +4,9 @@ from mock import patch, Mock, call
 import pytest
 
 from tala.model.input_hypothesis import InputHypothesis
+from tala.model.interpretation import Interpretation
+from tala.model.common import Modality
+from tala.model.user_move import DDDSpecificUserMove
 from tala.utils import tdm_client
 from tala.utils.tdm_client import TDMClient, PROTOCOL_VERSION, TDMRuntimeException
 
@@ -21,7 +24,7 @@ class TestTDMClient(object):
         self._when_calling_start_session()
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"version": {version}, "request": {{"type": "start_session"}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "request": {{"start_session": {{}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -46,8 +49,8 @@ class TestTDMClient(object):
         self._then_request_was_made_with(
             "mock-url",
             data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"input": {{"utterance": "mock-utterance", "modality": "text"}}, '
-            '"version": {version}, "request": {{"type": "input"}}}}'.format(version=PROTOCOL_VERSION),
+            '"version": "{version}", "request": {{"natural_language_input": {{'
+            '"utterance": "mock-utterance", "modality": "text"}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -89,18 +92,51 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._given_session_id("mock-session-id")
-        self._when_requesting_speech_input([InputHypothesis("mock-utterance", "mock-confidence")])
+        self._when_requesting_speech_input([InputHypothesis("mock-utterance", 0.5)])
         self._then_request_was_made_with(
             "mock-url",
             data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"input": {{"hypotheses": [{{"confidence": "mock-confidence", "utterance": "mock-utterance"}}], '
-            '"modality": "speech"}}, '
-            '"version": {version}, "request": {{"type": "input"}}}}'.format(version=PROTOCOL_VERSION),
+            '"version": "{version}", "request": {{"natural_language_input": {{'
+            '"hypotheses": [{{"confidence": 0.5, "utterance": "mock-utterance"}}], '
+            '"modality": "speech"}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
     def _when_requesting_speech_input(self, hypotheses):
         self._tdm_client.request_speech_input(self._session, hypotheses)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_requesting_semantic_input_with_started_session(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session-id")
+        self._when_requesting_semantic_input([
+            Interpretation(
+                [DDDSpecificUserMove(
+                    "mock-ddd", "mock-expression", "mock-perception-confidence", "mock-understanding-confidence")],
+                modality=Modality.SPEECH,
+                utterance="mock-utterance"
+            )
+        ])  # yapf: disable
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"session_id": "mock-session-id"}}, '
+            '"version": "{version}", "request": {{"semantic_input": {{"interpretations": [{{'
+            '"moves": '
+            '[{{'
+            '"perception_confidence": "mock-perception-confidence", '
+            '"understanding_confidence": "mock-understanding-confidence", '
+            '"semantic_expression": "mock-expression", '
+            '"ddd": "mock-ddd"'
+            '}}], '
+            '"utterance": "mock-utterance", '
+            '"modality": "speech"'
+            '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
+
+    def _when_requesting_semantic_input(self, interpretations):
+        self._tdm_client.request_semantic_input(self._session, interpretations)
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_passivity_with_started_session(self, mock_requests):
@@ -111,7 +147,7 @@ class TestTDMClient(object):
         self._then_request_was_made_with(
             "mock-url",
             data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"version": {version}, "request": {{"type": "passivity"}}}}'.format(version=PROTOCOL_VERSION),
+            '"version": "{version}", "request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -175,10 +211,30 @@ class TestTDMClient(object):
         self._given_tdm_client_created_for("mock-url")
         self._given_session_id("mock-session")
         self._given_requests_error_with("mock-error")
-        self._when_requesting_speech_input_then_exception_was_raised([
-            InputHypothesis("mock-utterance", "mock-confidence")
-        ], TDMRuntimeException, "mock-error")
+        self._when_requesting_speech_input_then_exception_was_raised([InputHypothesis("mock-utterance", 0.5)],
+                                                                     TDMRuntimeException, "mock-error")
 
     def _when_requesting_speech_input_then_exception_was_raised(self, hypotheses, expected_exception, expected_message):
         with pytest.raises(expected_exception, match=expected_message):
             self._tdm_client.request_speech_input(self._session, hypotheses)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_request_semantic_input_with_error_response(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session")
+        self._given_requests_error_with("mock-error")
+        self._when_requesting_semantic_input_then_exception_was_raised([
+            Interpretation(
+                [DDDSpecificUserMove(
+                    "mock-ddd", "mock-expression", "mock-perception-confidence", "mock-understanding-confidence")],
+                modality=Modality.SPEECH,
+                utterance="mock-utterance"
+            )
+        ], TDMRuntimeException, "mock-error")  # yapf: disable
+
+    def _when_requesting_semantic_input_then_exception_was_raised(
+        self, interpretations, expected_exception, expected_message
+    ):
+        with pytest.raises(expected_exception, match=expected_message):
+            self._tdm_client.request_semantic_input(self._session, interpretations)

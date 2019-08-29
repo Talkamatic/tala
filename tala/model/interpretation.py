@@ -1,4 +1,5 @@
 from tala.model.common import Modality
+from tala.model.user_move import UserMove  # noqa: F401
 from tala.utils.unicodify import unicodify
 
 
@@ -8,6 +9,7 @@ class UnexpectedModalityException(Exception):
 
 class Interpretation(object):
     def __init__(self, moves, modality, utterance=None):
+        # type: ([UserMove], basestring, basestring) -> None
         self._moves = moves
         if modality not in Modality.SUPPORTED_MODALITIES:
             raise UnexpectedModalityException(
@@ -30,14 +32,17 @@ class Interpretation(object):
 
     @property
     def moves(self):
+        # type: () -> [UserMove]
         return self._moves
 
     @property
     def modality(self):
+        # type: () -> basestring
         return self._modality
 
     @property
     def utterance(self):
+        # type: () -> basestring
         return self._utterance
 
     def __eq__(self, other):
