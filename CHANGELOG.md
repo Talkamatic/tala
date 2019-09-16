@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [unreleased]
 ### Added
 - A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.
+- A new optional parameter `session_data` with default value `None` has been added to `start_session`, `request_text_input`, `request_speech_input`, `request_semantic_input` and `request_passivity` methods in `tala.utils.tdm_client.TDMClient` to accept arbitrary JSON-compatible data for “session”.
 
 ### Changed
 - `tala.utils.tdm_client.TDMClient` now supports protocol '3.0' of the HTTP API for frontends.

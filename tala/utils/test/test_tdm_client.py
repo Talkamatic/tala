@@ -24,7 +24,9 @@ class TestTDMClient(object):
         self._when_calling_start_session()
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"version": "{version}", "request": {{"start_session": {{}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"session": {{}}, "version": "{version}", "request": {{"start_session": {{}}}}}}'.format(
+                version=PROTOCOL_VERSION
+            ),
             headers={'Content-type': 'application/json'}
         )
 
@@ -34,11 +36,23 @@ class TestTDMClient(object):
     def _given_tdm_client_created_for(self, url):
         self._tdm_client = TDMClient(url)
 
-    def _when_calling_start_session(self):
-        self._tdm_client.start_session()
+    def _when_calling_start_session(self, session_data=None):
+        self._tdm_client.start_session(session_data)
 
     def _then_request_was_made_with(self, url, headers, data):
         self._mocked_requests.post.assert_has_calls([call(url, data=data, headers=headers)])
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_start_session_with_data(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._when_calling_start_session(session_data={"key": "value"})
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"key": "value"}}, "version": "{version}", "request": {{"start_session": {{}}}}}}'.
+            format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_say_with_started_session(self, mock_requests):
@@ -84,8 +98,22 @@ class TestTDMClient(object):
         response.json.return_value = json.loads(json_response)
         self._mocked_requests.post.return_value = response
 
-    def _when_requesting_text_input(self, utterance):
-        self._tdm_client.request_text_input(self._session, utterance)
+    def _when_requesting_text_input(self, utterance, session_data=None):
+        self._tdm_client.request_text_input(self._session, utterance, session_data)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_say_with_started_session_with_data(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session-id")
+        self._when_requesting_text_input("mock-utterance", session_data={"key": "value"})
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
+            '"version": "{version}", "request": {{"natural_language_input": {{'
+            '"utterance": "mock-utterance", "modality": "text"}}}}}}'.format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_requesting_speech_input_with_started_session(self, mock_requests):
@@ -102,8 +130,24 @@ class TestTDMClient(object):
             headers={'Content-type': 'application/json'}
         )
 
-    def _when_requesting_speech_input(self, hypotheses):
-        self._tdm_client.request_speech_input(self._session, hypotheses)
+    def _when_requesting_speech_input(self, hypotheses, session_data=None):
+        self._tdm_client.request_speech_input(self._session, hypotheses, session_data)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_requesting_speech_input_with_started_session_with_data(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session-id")
+        self._when_requesting_speech_input([InputHypothesis("mock-utterance", "mock-confidence")],
+                                           session_data={"key": "value"})
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
+            '"version": "{version}", "request": {{"natural_language_input": {{'
+            '"hypotheses": [{{"confidence": "mock-confidence", "utterance": "mock-utterance"}}], '
+            '"modality": "speech"}}}}}}'.format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_requesting_semantic_input_with_started_session(self, mock_requests):
@@ -135,8 +179,36 @@ class TestTDMClient(object):
             headers={'Content-type': 'application/json'}
         )
 
-    def _when_requesting_semantic_input(self, interpretations):
-        self._tdm_client.request_semantic_input(self._session, interpretations)
+    def _when_requesting_semantic_input(self, interpretations, session_data=None):
+        self._tdm_client.request_semantic_input(self._session, interpretations, session_data)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_requesting_semantic_input_with_started_session_with_data(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session-id")
+        self._when_requesting_semantic_input([
+            Interpretation(
+                [DDDSpecificUserMove(
+                    "mock-ddd", "mock-expression", "mock-perception-confidence", "mock-understanding-confidence")],
+                modality=Modality.SPEECH,
+                utterance="mock-utterance"
+            )],
+            session_data={"key": "value"})
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
+            '"version": "{version}", "request": {{"semantic_input": {{"interpretations": [{{"moves": [{{'
+            '"perception_confidence": "mock-perception-confidence", '
+            '"understanding_confidence": "mock-understanding-confidence", '
+            '"semantic_expression": "mock-expression", '
+            '"ddd": "mock-ddd"'
+            '}}], '
+            '"utterance": "mock-utterance", '
+            '"modality": "speech"'
+            '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_passivity_with_started_session(self, mock_requests):
@@ -151,8 +223,21 @@ class TestTDMClient(object):
             headers={'Content-type': 'application/json'}
         )
 
-    def _when_calling_passivity(self):
-        self._tdm_client.request_passivity(self._session)
+    def _when_calling_passivity(self, session_data=None):
+        self._tdm_client.request_passivity(self._session, session_data)
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_passivity_with_started_session_and_data(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_session_id("mock-session-id")
+        self._when_calling_passivity(session_data={"key": "value"})
+        self._then_request_was_made_with(
+            "mock-url",
+            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
+            '"version": "{version}", "request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
+            headers={'Content-type': 'application/json'}
+        )
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_start_session_with_error_response(self, mock_requests):

@@ -6,8 +6,9 @@ import requests
 from tala.model.input_hypothesis import InputHypothesis  # noqa: F401
 from tala.model.interpretation import Interpretation  # noqa: F401
 from tala.utils.observable import Observable
+from copy import copy
 
-PROTOCOL_VERSION = "3.0"
+PROTOCOL_VERSION = "3.1"
 
 
 class InvalidResponseError(Exception):
@@ -24,36 +25,44 @@ class TDMClient(Observable):
         super(TDMClient, self).__init__()
         self._url = url
 
-    def request_text_input(self, session, utterance):
-        # type: (Text, Text) -> dict
-        request = self._create_text_input_request(session, utterance)
+    def request_text_input(self, session, utterance, session_data=None):
+        # type: (str, unicode, dict) -> dict
+        session_object = self._create_session_object(session_data, session)
+        request = self._create_text_input_request(session_object, utterance)
         response = self._make_request(request)
         return response
 
-    def request_speech_input(self, session, hypotheses):
-        # type: (Text, [InputHypothesis]) -> dict
-        request = self._create_speech_input_request(session, hypotheses)
+    def request_speech_input(self, session, hypotheses, session_data=None):
+        # type: (str, [InputHypothesis], dict) -> dict
+        session_object = self._create_session_object(session_data, session)
+        request = self._create_speech_input_request(session_object, hypotheses)
         response = self._make_request(request)
         return response
 
-    def request_semantic_input(self, session, interpretations):
-        # type: (Text, [Interpretation]) -> dict
-        request = self._create_semantic_input_request(session, interpretations)
+    def request_semantic_input(self, session, interpretations, session_data=None):
+        # type: (str, [Interpretation], dict) -> dict
+        session_object = self._create_session_object(session_data, session)
+        request = self._create_semantic_input_request(session_object, interpretations)
         response = self._make_request(request)
         return response
 
-    def request_passivity(self, session):
-        # type: (Text) -> dict
-        request = {"version": PROTOCOL_VERSION, "session": {"session_id": session}, "request": {"passivity": {}}}
+    def request_passivity(self, session, session_data=None):
+        # type: (str, dict) -> dict
+        session_object = self._create_session_object(session_data, session)
+        request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"passivity": {}}}
         response = self._make_request(request)
         return response
+
+    def _create_session_object(self, session_data=None, session_id=None):
+        session = copy(session_data) if session_data else {}
+        if session_id:
+            session["session_id"] = session_id
+        return session
 
     def _create_text_input_request(self, session, utterance):
         return {
             "version": PROTOCOL_VERSION,
-            "session": {
-                "session_id": session
-            },
+            "session": session,
             "request": {
                 "natural_language_input": {
                     "modality": "text",
@@ -65,9 +74,7 @@ class TDMClient(Observable):
     def _create_speech_input_request(self, session, hypotheses):
         return {
             "version": PROTOCOL_VERSION,
-            "session": {
-                "session_id": session
-            },
+            "session": session,
             "request": {
                 "natural_language_input": {
                     "modality": "speech",
@@ -82,9 +89,7 @@ class TDMClient(Observable):
     def _create_semantic_input_request(self, session, interpretations):
         return {
             "version": PROTOCOL_VERSION,
-            "session": {
-                "session_id": session
-            },
+            "session": session,
             "request": {
                 "semantic_input": {
                     "interpretations": [{
@@ -101,9 +106,10 @@ class TDMClient(Observable):
             }
         }  # yapf: disable
 
-    def start_session(self):
-        # type: () -> dict
-        request = {"version": PROTOCOL_VERSION, "request": {"start_session": {}}}
+    def start_session(self, session_data=None):
+        # type: (dict) -> dict
+        session_object = session_data or {}
+        request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"start_session": {}}}
         response = self._make_request(request)
         return response
 
