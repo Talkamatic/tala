@@ -3,9 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [unreleased]
+## [4.0.0] - 2019-10-08
 ### Added
-- A new optional attribute "selection" is supported for <one-of> elements in <report> in grammars with RGL disabled, with supported values "disabled" (default) or "cyclic".
+- A new optional attribute `selection` is supported for `<one-of>` elements in `<report>` in grammars with RGL disabled, with supported values `disabled` (default) or `cyclic`.
 - A new builtin sort `person_name` has been added. Use it together with a `PERSON` or `PER` NER in Rasa NLU.
 - `tala interact` now accepts deployment URLs directly, for instance `tala interact https://my-deployment.ddd.tala.cloud:9090/interact`.
 - `tala generate` has been added. It generates training data for NLUs.
