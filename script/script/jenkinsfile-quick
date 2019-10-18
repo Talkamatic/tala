@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'tala' }
+    agent { label 'docker' }
 
     parameters {
         string(
@@ -84,10 +84,6 @@ pipeline {
                                 $class: 'SubmoduleOption',
                                 disableSubmodules: false,
                                 parentCredentials: true
-                            ],
-                            [
-                                $class: 'RelativeTargetDirectory',
-                                relativeTargetDir: 'tala'
                             ]
                         ],
                         submoduleCfg: [],
@@ -103,40 +99,18 @@ pipeline {
             }
         }
 
-        stage('install') {
-            steps {
-                sh "virtualenv venv"
-                sh ". venv/bin/activate; pip install --editable ./tala"
-                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
-            }
-        }
-
         stage('tests') {
-            failFast true
-            parallel {
-                stage('code checks') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; flake8 ."
-                    }
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-dev'
                 }
-
-                stage('lint') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; pylint tala"
-                    }
-                }
-
-                stage('unit test') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; py.test tala"
-                    }
-                }
-
-                stage('integration test') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
-                    }
-                }
+            }
+            steps {
+                sh "python setup.py build"
+                sh "flake8 ."
+                sh "pylint tala"
+                sh "py.test tala"
+                sh "py.test integration_tests"
             }
         }
     }
