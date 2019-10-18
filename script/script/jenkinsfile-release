@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker && tala && linux' }
+    agent { label 'docker' }
 
     parameters {
         string(
@@ -36,21 +36,31 @@ pipeline {
                     ])
                     env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                 }
-                sh "virtualenv venv"
             }
         }
 
         stage('build wheel') {
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-dev'
+                }
+            }
             steps {
-                sh ". venv/bin/activate; pip wheel --wheel-dir dist --no-deps ."
+                sh "pip wheel --wheel-dir dist --no-deps ."
+                stash includes: 'dist/tala*.whl', name: 'wheel'
             }
         }
 
         stage('upload to PyPI') {
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-release'
+                }
+            }
             steps {
+                unstash 'wheel'
                 withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'TWINE_PASSWORD', usernameVariable: 'TWINE_USERNAME')]) {
-                    sh ". venv/bin/activate; pip install twine cmarkgfm"
-                    sh ". venv/bin/activate; twine upload --skip-existing dist/*"
+                    sh "twine upload --skip-existing dist/*"
                 }
             }
         }

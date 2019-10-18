@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'tala' }
+    agent { label 'docker' }
 
     options {
         buildDiscarder(
@@ -59,9 +59,6 @@ pipeline {
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [
                             [
-                                $class: 'RelativeTargetDirectory',
-                                relativeTargetDir: 'tala'
-                            ],[
                                 $class: 'SubmoduleOption',
                                 disableSubmodules: false,
                                 parentCredentials: true
@@ -73,35 +70,46 @@ pipeline {
                             url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                         ]]
                     ])
-                    env.COMMIT_TO_RELEASE = sh(script: "cd tala; git rev-parse HEAD", returnStdout: true).trim()
+                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                 }
-                sh "virtualenv venv"
             }
         }
 
         stage('build wheel') {
-            steps {
-                sh ". venv/bin/activate; pip wheel --wheel-dir tala/dist --no-deps ./tala"
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-dev'
+                }
             }
-        }
-
-        stage('archive artifacts') {
             steps {
-                archiveArtifacts 'tala/dist/tala*.whl'
+                sh "pip wheel --wheel-dir dist --no-deps ."
+                stash includes: 'dist/tala*.whl', name: 'wheel'
+                archiveArtifacts 'dist/tala*.whl'
             }
         }
 
         stage ('freeze requirements') {
+            agent {
+                docker {
+                    image 'python:2.7-slim'
+                    args  '-u root'
+                }
+            }
             steps {
-                sh ". venv/bin/activate; pip install tala/dist/tala*.whl"
-                sh ". venv/bin/activate; pip uninstall -y tala"
-                sh ". venv/bin/activate; pip freeze --local > tala/requirements.txt"
+                unstash 'wheel'
+                sh "pip install dist/tala*.whl"
+                sh "pip uninstall -y tala"
+                sh "pip freeze --local > requirements.txt"
+                stash includes: 'requirements.txt', name: 'requirements'
+                archiveArtifacts 'requirements.txt'
             }
         }
 
         stage('build master') {
             steps {
-                sh "docker build tala -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
+                unstash 'wheel'
+                unstash 'requirements'
+                sh "docker build . -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
                 sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:master"
             }
         }
@@ -116,40 +124,18 @@ pipeline {
             }
         }
 
-        stage('install') {
-            steps {
-                sh ". venv/bin/activate; pip install --editable ./tala"
-
-                sh ". venv/bin/activate; pip install -r tala/dev-requirements.txt"
-            }
-        }
-
         stage('test') {
-            failFast true
-            parallel {
-                stage('check code') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; flake8 ."
-                    }
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-dev'
                 }
-
-                stage('lint') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; pylint tala"
-                    }
-                }
-
-                stage('unit test') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; py.test tala"
-                    }
-                }
-
-                stage('integration test') {
-                    steps {
-                        sh ". venv/bin/activate; cd tala; py.test integration_tests"
-                    }
-                }
+            }
+            steps {
+                sh "python setup.py build"
+                sh "flake8 ."
+                sh "pylint tala"
+                sh "py.test tala"
+                sh "py.test integration_tests"
             }
         }
 
