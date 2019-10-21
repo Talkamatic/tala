@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker' }
+    agent none
 
     parameters {
         string(
@@ -14,14 +14,10 @@ pipeline {
     }
 
     stages {
-        stage('prepare') {
+        stage('checkout') {
+            agent any
             steps {
                 deleteDir()
-            }
-        }
-
-        stage('checkout') {
-            steps {
                 script {
                     checkout([
                         $class: 'GitSCM',
@@ -66,6 +62,7 @@ pipeline {
         }
 
         stage('tag and push image') {
+            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"

@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker' }
+    agent none
 
     options {
         buildDiscarder(
@@ -44,14 +44,10 @@ pipeline {
     }
 
     stages {
-        stage('clean') {
-            steps {
-                step([$class: 'WsCleanup'])
-            }
-        }
-
         stage('checkout') {
+            agent any
             steps {
+                deleteDir()
                 script {
                     checkout([
                         $class: 'GitSCM',
@@ -106,6 +102,7 @@ pipeline {
         }
 
         stage('build master') {
+            agent { label 'docker' }
             steps {
                 unstash 'wheel'
                 unstash 'requirements'
@@ -115,6 +112,7 @@ pipeline {
         }
 
         stage('push master') {
+            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"
@@ -140,6 +138,7 @@ pipeline {
         }
 
         stage('push candidate') {
+            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"

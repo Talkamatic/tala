@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker' }
+    agent none
 
     parameters {
         string(
@@ -56,14 +56,10 @@ pipeline {
     }
 
     stages {
-        stage('clean') {
-            steps {
-                step([$class: 'WsCleanup'])
-            }
-        }
-
         stage('checkout') {
+            agent any
             steps {
+                deleteDir()
                 checkout(
                     changelog: false,
                     poll: false,
