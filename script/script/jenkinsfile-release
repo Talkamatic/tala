@@ -17,20 +17,28 @@ pipeline {
         stage('checkout') {
             agent any
             steps {
-                deleteDir()
-                script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: 'refs/tags/$GIT_TAG_TO_BUILD']],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [],
-                        submoduleCfg: [],
-                        userRemoteConfigs: [[
-                            credentialsId: 'jenkinsatgerrit',
-                            url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
-                        ]]
-                    ])
-                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+                sh "rm -rf *"
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'refs/tags/$GIT_TAG_TO_BUILD']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [
+                            $class: 'RelativeTargetDirectory',
+                            relativeTargetDir: 'tala'
+                        ]
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'jenkinsatgerrit',
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                    ]]
+                ])
+                dir("tala") {
+                    script {
+                        env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+                    }
+                    stash includes: '**', name: 'tala'
                 }
             }
         }
@@ -42,8 +50,12 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *"
+                unstash 'tala'
                 sh "pip wheel --wheel-dir dist --no-deps ."
-                stash includes: 'dist/tala*.whl', name: 'wheel'
+                dir("dist") {
+                    stash includes: 'tala*.whl', name: 'wheel'
+                }
             }
         }
 
@@ -54,9 +66,10 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *.whl"
                 unstash 'wheel'
                 withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'TWINE_PASSWORD', usernameVariable: 'TWINE_USERNAME')]) {
-                    sh "twine upload --skip-existing dist/*"
+                    sh "twine upload --skip-existing *.whl"
                 }
             }
         }

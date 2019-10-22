@@ -59,7 +59,7 @@ pipeline {
         stage('checkout') {
             agent any
             steps {
-                deleteDir()
+                sh "rm -rf *"
                 checkout(
                     changelog: false,
                     poll: false,
@@ -70,6 +70,10 @@ pipeline {
                         ],
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [
+                            [
+                                $class: 'RelativeTargetDirectory',
+                                relativeTargetDir: 'tala'
+                            ],
                             [
                                 $class: 'BuildChooserSetting',
                                 buildChooser: [
@@ -92,6 +96,9 @@ pipeline {
                         ]
                     ]
                 )
+                dir("tala") {
+                    stash includes: '**', name: 'tala'
+                }
             }
         }
 
@@ -102,6 +109,8 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *"
+                unstash 'tala'
                 sh "python setup.py build"
                 sh "flake8 ."
                 sh "pylint tala"

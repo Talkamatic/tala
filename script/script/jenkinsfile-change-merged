@@ -47,26 +47,33 @@ pipeline {
         stage('checkout') {
             agent any
             steps {
-                deleteDir()
-                script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/master']],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [
-                            [
-                                $class: 'SubmoduleOption',
-                                disableSubmodules: false,
-                                parentCredentials: true
-                            ]
+                sh "rm -rf *"
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [
+                            $class: 'RelativeTargetDirectory',
+                            relativeTargetDir: 'tala'
                         ],
-                        submoduleCfg: [],
-                        userRemoteConfigs: [[
-                            credentialsId: 'jenkinsatgerrit',
-                            url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
-                        ]]
-                    ])
-                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+                        [
+                            $class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            parentCredentials: true
+                        ]
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'jenkinsatgerrit',
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                    ]]
+                ])
+                dir("tala") {
+                    script {
+                        env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+                    }
+                    stash includes: '**', name: 'tala'
                 }
             }
         }
@@ -78,9 +85,13 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *"
+                unstash 'tala'
                 sh "pip wheel --wheel-dir dist --no-deps ."
-                stash includes: 'dist/tala*.whl', name: 'wheel'
-                archiveArtifacts 'dist/tala*.whl'
+                dir("dist") {
+                    stash includes: 'tala*.whl', name: 'wheel'
+                    archiveArtifacts 'tala*.whl'
+                }
             }
         }
 
@@ -92,8 +103,9 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *.whl requirements.txt"
                 unstash 'wheel'
-                sh "pip install dist/tala*.whl"
+                sh "pip install tala*.whl"
                 sh "pip uninstall -y tala"
                 sh "pip freeze --local > requirements.txt"
                 stash includes: 'requirements.txt', name: 'requirements'
@@ -104,6 +116,7 @@ pipeline {
         stage('build master') {
             agent { label 'docker' }
             steps {
+                sh "rm -rf *.whl requirements.txt"
                 unstash 'wheel'
                 unstash 'requirements'
                 sh "docker build . -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
@@ -129,6 +142,8 @@ pipeline {
                 }
             }
             steps {
+                sh "rm -rf *"
+                unstash 'tala'
                 sh "python setup.py build"
                 sh "flake8 ."
                 sh "pylint tala"
