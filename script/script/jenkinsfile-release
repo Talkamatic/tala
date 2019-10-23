@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent { label 'docker' }
 
     parameters {
         string(
@@ -15,30 +15,21 @@ pipeline {
 
     stages {
         stage('checkout') {
-            agent any
             steps {
                 sh "rm -rf *"
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: 'refs/tags/$GIT_TAG_TO_BUILD']],
                     doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [
-                            $class: 'RelativeTargetDirectory',
-                            relativeTargetDir: 'tala'
-                        ]
-                    ],
+                    extensions: [],
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'jenkinsatgerrit',
                         url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                     ]]
                 ])
-                dir("tala") {
-                    script {
-                        env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    }
-                    stash includes: '**', name: 'tala'
+                script {
+                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                 }
             }
         }
@@ -47,15 +38,11 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    reuseNode true
                 }
             }
             steps {
-                sh "rm -rf *"
-                unstash 'tala'
-                sh "pip wheel --wheel-dir dist --no-deps ."
-                dir("dist") {
-                    stash includes: 'tala*.whl', name: 'wheel'
-                }
+                sh "pip wheel --wheel-dir . --no-deps ."
             }
         }
 
@@ -63,11 +50,10 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-release'
+                    reuseNode true
                 }
             }
             steps {
-                sh "rm -rf *.whl"
-                unstash 'wheel'
                 withCredentials([usernamePassword(credentialsId: 'talkamatic-pypi', passwordVariable: 'TWINE_PASSWORD', usernameVariable: 'TWINE_USERNAME')]) {
                     sh "twine upload --skip-existing *.whl"
                 }
@@ -75,7 +61,6 @@ pipeline {
         }
 
         stage('tag and push image') {
-            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"

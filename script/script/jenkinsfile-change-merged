@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent { label 'docker' }
 
     options {
         buildDiscarder(
@@ -45,7 +45,6 @@ pipeline {
 
     stages {
         stage('checkout') {
-            agent any
             steps {
                 sh "rm -rf *"
                 checkout([
@@ -53,10 +52,6 @@ pipeline {
                     branches: [[name: '*/master']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
-                        [
-                            $class: 'RelativeTargetDirectory',
-                            relativeTargetDir: 'tala'
-                        ],
                         [
                             $class: 'SubmoduleOption',
                             disableSubmodules: false,
@@ -69,11 +64,8 @@ pipeline {
                         url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
                     ]]
                 ])
-                dir("tala") {
-                    script {
-                        env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    }
-                    stash includes: '**', name: 'tala'
+                script {
+                    env.COMMIT_TO_RELEASE = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                 }
             }
         }
@@ -82,16 +74,12 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    reuseNode true
                 }
             }
             steps {
-                sh "rm -rf *"
-                unstash 'tala'
-                sh "pip wheel --wheel-dir dist --no-deps ."
-                dir("dist") {
-                    stash includes: 'tala*.whl', name: 'wheel'
-                    archiveArtifacts 'tala*.whl'
-                }
+                sh "pip wheel --wheel-dir . --no-deps ."
+                archiveArtifacts 'tala*.whl'
             }
         }
 
@@ -100,32 +88,25 @@ pipeline {
                 docker {
                     image 'python:2.7-slim'
                     args  '-u root'
+                    reuseNode true
                 }
             }
             steps {
-                sh "rm -rf *.whl requirements.txt"
-                unstash 'wheel'
                 sh "pip install tala*.whl"
                 sh "pip uninstall -y tala"
                 sh "pip freeze --local > requirements.txt"
-                stash includes: 'requirements.txt', name: 'requirements'
                 archiveArtifacts 'requirements.txt'
             }
         }
 
         stage('build master') {
-            agent { label 'docker' }
             steps {
-                sh "rm -rf *.whl requirements.txt"
-                unstash 'wheel'
-                unstash 'requirements'
                 sh "docker build . -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
                 sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:master"
             }
         }
 
         stage('push master') {
-            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"
@@ -139,11 +120,10 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    reuseNode true
                 }
             }
             steps {
-                sh "rm -rf *"
-                unstash 'tala'
                 sh "python setup.py build"
                 sh "flake8 ."
                 sh "pylint tala"
@@ -153,7 +133,6 @@ pipeline {
         }
 
         stage('push candidate') {
-            agent { label 'docker' }
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'dockerhubcred', variable: 'pw']]) {
                     sh "echo ${pw} | docker login -u zigit --password-stdin"
