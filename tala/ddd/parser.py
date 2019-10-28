@@ -357,6 +357,10 @@ class Parser:
                     return YesNoQuestion(question_content)
             except AttributeError:
                 pass
+            if question_content.is_predicate():
+                predicate = question_content
+                if predicate.getSort().is_boolean_sort():
+                    return YesNoQuestion(PredicateProposition(predicate))
         raise ParseFailure()
 
     def _parse_list_of_questions(self, string):

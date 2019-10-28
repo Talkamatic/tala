@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [unreleased]
 ### Added
 - A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.
+- Nullary user yes-no questions are now supported, i.e. user questions of the type "do I need a visa" or "is it raining outside".
 
 ### Changed
 - `tala.utils.tdm_client.TDMClient` now supports protocol '3.0' of the HTTP API for frontends.
