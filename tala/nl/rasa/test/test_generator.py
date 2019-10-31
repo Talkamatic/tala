@@ -959,3 +959,79 @@ class TestGeneratorWithNegativeIntent(RasaGeneratorTestMixin):
 - about
 - above
 """)
+
+
+class TestGeneratorWithBuiltinIntents(RasaGeneratorTestMixin):
+    def test_yes(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mocked_sort", predicate="mocked_predicate", individuals=[])
+        self.given_mocked_grammar()
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:yes
+- yes
+- yeah
+- yep
+- sure
+- ok
+- of course
+- very well
+- fine
+- right
+- excellent
+- okay
+- perfect
+- I think so
+"""
+        )
+
+    def test_no(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mocked_sort", predicate="mocked_predicate", individuals=[])
+        self.given_mocked_grammar()
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:no
+- no
+- nope
+- no thanks
+- no thank you
+- negative
+- don't want to
+- don't
+- do not
+- please don't
+"""
+        )
+
+    def test_top(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mocked_sort", predicate="mocked_predicate", individuals=[])
+        self.given_mocked_grammar()
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(
+            u"""## intent:top
+- forget it
+- never mind
+- get me out of here
+- start over
+- beginning
+- never mind that
+- restart
+"""
+        )
+
+    def test_up(self):
+        self.given_ddd_name("rasa_test")
+        self.given_ontology(sort="mocked_sort", predicate="mocked_predicate", individuals=[])
+        self.given_mocked_grammar()
+        self.given_generator()
+        self.when_generate()
+        self.then_result_matches(u"""## intent:up
+- go back
+- back
+- previous
+""")

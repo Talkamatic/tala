@@ -12,23 +12,39 @@ class SortNotSupportedException(Exception):
 class Examples(object):
     @property
     def negative(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     def integer(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     def string(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     def datetime(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     def person_name(self):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    @property
+    def yes(self):
+        raise NotImplementedError()
+
+    @property
+    def no(self):
+        raise NotImplementedError()
+
+    @property
+    def top(self):
+        raise NotImplementedError()
+
+    @property
+    def up(self):
+        raise NotImplementedError()
 
     @property
     def answer_templates(self):
@@ -107,12 +123,37 @@ class EnglishExamples(Examples):
 
     @property
     def person_name(self):
-        return ["John", "Mary", "James", "Jack", "Harry", "Tom", "William", "George", "Charlie", "Josh", "Lewis",
-                "Michael", "Ben", "Chris", "Robert", "Mark", "Scott", "Beth", "Alice", "Jessica", "Grace", "Rachel",
-                "Anna", "Kathrine", "Emily", "Megan", "Olivia", "Rebecca", "Smith", "Brown", "Wilson", "Stewart",
-                "Thompson", "Anderson", "Murray", "Morrison", "Walker", "Watson", "Miller", "Campbell", "Hunter",
-                "Gray", "Cameron", "Mitchell", "Black", "Allan", "Marshall", "Harris Duncan", "Max Mackenzie",
-                "Ethan Hamilton", "Sophie Simpson", "Lucy Wright", "Emma Murphy", "Charlotte Jones", "Thomas Gordon"]
+        return [
+            "John", "Mary", "James", "Jack", "Harry", "Tom", "William", "George", "Charlie", "Josh", "Lewis", "Michael",
+            "Ben", "Chris", "Robert", "Mark", "Scott", "Beth", "Alice", "Jessica", "Grace", "Rachel", "Anna",
+            "Kathrine", "Emily", "Megan", "Olivia", "Rebecca", "Smith", "Brown", "Wilson", "Stewart", "Thompson",
+            "Anderson", "Murray", "Morrison", "Walker", "Watson", "Miller", "Campbell", "Hunter", "Gray", "Cameron",
+            "Mitchell", "Black", "Allan", "Marshall", "Harris Duncan", "Max Mackenzie", "Ethan Hamilton",
+            "Sophie Simpson", "Lucy Wright", "Emma Murphy", "Charlotte Jones", "Thomas Gordon"
+        ]
+
+    @property
+    def yes(self):
+        return [
+            "yes", "yeah", "yep", "sure", "ok", "of course", "very well", "fine", "right", "excellent", "okay",
+            "perfect", "I think so"
+        ]
+
+    @property
+    def no(self):
+        return [
+            "no", "nope", "no thanks", "no thank you", "negative", "don't want to", "don't", "do not", "please don't"
+        ]
+
+    @property
+    def top(self):
+        return [
+            "forget it", "never mind", "get me out of here", "start over", "beginning", "never mind that", "restart"
+        ]
+
+    @property
+    def up(self):
+        return ["go back", "back", "previous"]
 
     @property
     def answer_negation_templates(self):
@@ -165,12 +206,36 @@ class SwedishExamples(Examples):
 
     @property
     def person_name(self):
-        return ["Astrid", "Nils", "Lisa", "Mats", "Alexander", "Annika", "Erika", "Claes", "Marcus", "Katarina", "Leif",
-                "Sara", "Oskar", "Andreas", "Per", "Roger", "Niklas", "Christer", "Johan", "Danielsson", u"Nordström",
-                "Svensson", "Jonasson", "Karlsson", "Holm", "Olofsson", u"Sandström", "Holmberg", "Olsson", "Persson",
-                "Bergman", "Lindholm", "Axelsson", "Emelie Pettersson", "Johannes Henriksson", "Martin Magnusson",
-                "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", u"Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
-                "Anette Samuelsson", "Annika Lundberg", u"Eva Löfgren", "Linda Hassan", "Robert Norberg"]
+        return [
+            "Astrid", "Nils", "Lisa", "Mats", "Alexander", "Annika", "Erika", "Claes", "Marcus", "Katarina", "Leif",
+            "Sara", "Oskar", "Andreas", "Per", "Roger", "Niklas", "Christer", "Johan", "Danielsson", u"Nordström",
+            "Svensson", "Jonasson", "Karlsson", "Holm", "Olofsson", u"Sandström", "Holmberg", "Olsson", "Persson",
+            "Bergman", "Lindholm", "Axelsson", "Emelie Pettersson", "Johannes Henriksson", "Martin Magnusson",
+            "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", u"Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
+            "Anette Samuelsson", "Annika Lundberg", u"Eva Löfgren", "Linda Hassan", "Robert Norberg"
+        ]
+
+    @property
+    def yes(self):
+        return [
+            "ja", "javisst", "japp", "absolut", u"det stämmer", "precis", u"självklart", u"varför inte", "ok", "okej",
+            "det blir kanon", "perfekt", "det skulle jag tro"
+        ]
+
+    @property
+    def no(self):
+        return [
+            "nej", "nix", u"nähe du", "icke", "nej tack", "helst inte", "det vill jag inte", "det tror jag inte",
+            "det skulle jag inte tro", u"gör inte det", u"gör det inte"
+        ]
+
+    @property
+    def top(self):
+        return [u"glöm alltihop", "jag skiter i detta", u"ta mig härifrån", u"börja om", u"börja från noll"]
+
+    @property
+    def up(self):
+        return [u"jag vill gå tillbaka", u"vad var den förra", "jag vill backa"]
 
     @property
     def answer_negation_templates(self):
@@ -241,14 +306,41 @@ class SpanishExamples(Examples):
 
     @property
     def person_name(self):
-        return ["Antonio", u"José", "Manuel", "Francisco", "David", "Juan", "Javier", "Daniel", u"Jesús", "Carlos",
-                "Alejandro", "Miguel", "Pedro", "Pablo", u"Ángel", "Sergio", "Alberto", u"María", u"Cármen", "Ana",
-                "Isabel", "Laura", "Cristina", "Marta", "Dolores", u"Lucía", "Paula", "Mercedes", "Rosario", "Teresa",
-                "Sara", "Reyes", "Caballero", "Nieto", "Pascual", "Ferrer", u"Giménez", "Lorenzo", "Pastor", "Soto",
-                "Soler", "Parra", u"García", u"González", u"López", u"Pérez", u"Gómez", u"Díaz", "Alonso", "Moreno",
-                "Navarro", u"Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", u"Pedro Sánchez Álvarez",
-                "Sonia Reina Sanz", "Cristina Claret Iglesias", u"Manuel Núñez Santos", "Rafael Rubio Molina",
-                u"Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"]
+        return [
+            "Antonio", u"José", "Manuel", "Francisco", "David", "Juan", "Javier", "Daniel", u"Jesús", "Carlos",
+            "Alejandro", "Miguel", "Pedro", "Pablo", u"Ángel", "Sergio", "Alberto", u"María", u"Cármen", "Ana",
+            "Isabel", "Laura", "Cristina", "Marta", "Dolores", u"Lucía", "Paula", "Mercedes", "Rosario", "Teresa",
+            "Sara", "Reyes", "Caballero", "Nieto", "Pascual", "Ferrer", u"Giménez", "Lorenzo", "Pastor", "Soto",
+            "Soler", "Parra", u"García", u"González", u"López", u"Pérez", u"Gómez", u"Díaz", "Alonso", "Moreno",
+            "Navarro", u"Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", u"Pedro Sánchez Álvarez",
+            "Sonia Reina Sanz", "Cristina Claret Iglesias", u"Manuel Núñez Santos", "Rafael Rubio Molina",
+            u"Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"
+        ]
+
+    @property
+    def yes(self):
+        return [
+            u"sí", "claro", "desde luego", "por supuesto", "de acuerdo", "vale", "perfecto", "bien", "okei", "sip",
+            "sep"
+        ]
+
+    @property
+    def no(self):
+        return ["no", u"de ningún modo", "de ninguna manera", "en absoluto", "na", "nop", "ni de broma", "para nada"]
+
+    @property
+    def top(self):
+        return [
+            "vuelve a empezar", "vuelve al principio", "vuelve al inicio", "principio", "inicio", "desde el principio",
+            "reinicia", "empieza de nuevo", u"olvídalo", "olvida todo"
+        ]
+
+    @property
+    def up(self):
+        return [
+            u"atrás", u"vuelve atrás", "vuelve", "regresa", u"vuelve una atrás", u"quiero ir atrás",
+            u"quiero volver atrás"
+        ]
 
     @property
     def answer_negation_templates(self):

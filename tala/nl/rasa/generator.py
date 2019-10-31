@@ -2,9 +2,12 @@ import warnings
 
 from jinja2 import Template
 
+from tala.model.action import TOP, UP
+from tala.model.individual import Yes, No
 from tala.nl.abstract_generator import AbstractGenerator, UnexpectedPropositionalEntityEncounteredException, \
     UnexpectedRequiredEntityException
-from tala.nl.constants import ACTION_INTENT, QUESTION_INTENT
+from tala.nl.constants import ACTION_INTENT, QUESTION_INTENT, NEGATIVE_INTENT
+from tala.nl.generated_intent import GeneratedBuiltinIntent
 from tala.nl import languages
 
 
@@ -87,12 +90,19 @@ class RasaGenerator(AbstractGenerator):
         synonyms = self._entity_synonyms_from_custom_sorts(grammar)
         rasa_data = data_template.render(
             ddd_examples=examples,
-            general_examples=self._examples_of_negative_intent(),
+            general_examples=self._general_examples(),
             synonym_objects=synonyms,
             ddd=self._ddd.name
         )
 
         return rasa_data
+
+    def _general_examples(self):
+        yield GeneratedBuiltinIntent(NEGATIVE_INTENT, list(self._language_examples.negative))
+        yield GeneratedBuiltinIntent(Yes.YES, self._language_examples.yes)
+        yield GeneratedBuiltinIntent(No.NO, self._language_examples.no)
+        yield GeneratedBuiltinIntent(TOP, self._language_examples.top)
+        yield GeneratedBuiltinIntent(UP, self._language_examples.up)
 
     def _entity_synonyms_from_custom_sorts(self, grammar):
         for sort in self._ddd.ontology.get_sorts().values():

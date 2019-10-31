@@ -1,12 +1,11 @@
 import os
 
 from tala.ddd.grammar.reader import GrammarReader
-from tala.model.grammar.intent import Answer, AnswerNegation, Negative
+from tala.model.grammar.intent import Answer, AnswerNegation
 from tala.model.grammar.required_entity import RequiredSortalEntity
 from tala.nl.examples import Examples
 from tala.nl.generated_intent import GeneratedIntent
-from tala.nl.constants import ANSWER_INTENT, ANSWER_NEGATION_INTENT, \
-    NEGATIVE_INTENT
+from tala.nl.constants import ANSWER_INTENT, ANSWER_NEGATION_INTENT
 
 
 class GrammarFormatNotSupportedException(Exception):
@@ -132,9 +131,6 @@ class AbstractGenerator(object):
         answers = list(answers_from_sorts(sorts))
         samples = list(generate_samples(sorts))
         yield GeneratedIntent(ANSWER_NEGATION_INTENT, answers, samples)
-
-    def _examples_of_negative_intent(self):
-        yield GeneratedIntent(NEGATIVE_INTENT, Negative(), list(self._language_examples.negative))
 
     def _all_individual_grammar_entries_of_custom_sort(self, grammar, sort):
         individuals = self._ddd.ontology.get_individuals_of_sort(sort.get_name())

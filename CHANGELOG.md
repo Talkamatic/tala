@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Changed
 - `tala.utils.tdm_client.TDMClient` now supports protocol '3.0' of the HTTP API for frontends.
+- `tala generate rasa` now generates training data for builtin intents `yes`, `no`, `top` and `up`.
 
 ## [4.0.0] - 2019-10-08
 ### Added

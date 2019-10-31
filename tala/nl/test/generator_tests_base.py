@@ -152,7 +152,8 @@ class GeneratorTestsMixin(object):
 
     def then_result_matches(self, expected_contents):
         expected_pattern = re.escape(expected_contents)
-        assert re.search(expected_pattern, self._result, re.UNICODE) is not None
+        assert re.search(expected_pattern, self._result, re.UNICODE) is not None, \
+            "Expected contents to match {} but got {}".format(expected_pattern, self._result)
 
     def given_mocked_warnings(self, mock_warnings):
         self._mocked_warnings = mock_warnings

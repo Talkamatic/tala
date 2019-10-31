@@ -9,3 +9,7 @@ class GeneratedIntent(namedtuple("GeneratedIntent", ["name", "sources", "samples
         all_entities = chain(*lists)
         unique_entities = list(OrderedDict.fromkeys(all_entities))
         return unique_entities
+
+
+class GeneratedBuiltinIntent(namedtuple("GeneratedBuiltinIntent", ["name", "samples"])):
+    pass
