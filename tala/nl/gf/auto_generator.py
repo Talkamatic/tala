@@ -237,7 +237,7 @@ class AutoGenerator(object):
             predicate_name = predicate.get_name()
             self._generate_predicate_content(predicate_name)
             self._generate_potential_system_question(predicate_name)
-            self._generate_potential_user_question(predicate)
+            self._generate_potential_user_question(predicate_name)
             self._generate_system_answer_content(predicate)
             self._generate_user_answer_content(predicate)
             self._generate_potential_issue_title(predicate_name)
@@ -776,7 +776,7 @@ class AutoGenerator(object):
                 self._missing_entry(self._missing_system_question, key, predicate)
 
     def _generate_potential_user_question(self, predicate):
-        key = Node(Constants.USER_QUESTION, {"predicate": predicate.get_name()})
+        key = Node(Constants.USER_QUESTION, {"predicate": predicate})
         try:
             forms = self._get_form_as_options(key)
             self._generate_user_question(predicate, forms)
@@ -1097,9 +1097,8 @@ class AutoGenerator(object):
         self._natural_language_gf_content.write("%s_sortal_usr_answer answer = answer;\n" % predicate)
 
     def _generate_user_question(self, predicate, forms):
-        self._abstract_gf_content.write("ask_%s : UsrQuestion;\n" % predicate)
-        semantic_function_name = self._get_gf_function_name_for_predicate(predicate)
-        self._semantic_gf_content.write("ask_%s = %s %s;\n" % (predicate, semantic_function_name, predicate))
+        self._abstract_gf_content.write("ask_%s : UsrWHQ;\n" % predicate)
+        self._semantic_gf_content.write("ask_%s = ask_whq %s;\n" % (predicate, predicate))
 
         forms_without_answers = []
         for form in forms:
@@ -1266,16 +1265,10 @@ class AutoGenerator(object):
 
     def _generate_user_question_with_answers(self, predicate, form):
         def generate_semantic_value(semantic_value_arguments):
-            semantic_function_name = self._get_gf_function_name_for_predicate(predicate)
-            return "%s %s %s" % (semantic_function_name, predicate, " ".join(semantic_value_arguments))
+            return "ask_whq %s %s" % (predicate, " ".join(semantic_value_arguments))
 
         function_name = self._generate_new_function_name("%s_user_question" % predicate)
-        self._generate_function_with_answers(function_name, form, "UsrQuestion", generate_semantic_value)
-
-    def _get_gf_function_name_for_predicate(self, predicate):
-        if predicate.getSort().is_boolean_sort():
-            return "ask_ynq"
-        return "ask_whq"
+        self._generate_function_with_answers(function_name, form, "UsrWHQ", generate_semantic_value)
 
     def _generate_request_with_answers(self, action, form):
         def generate_semantic_value(semantic_value_arguments):

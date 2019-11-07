@@ -1917,13 +1917,12 @@ class TestUserAnswer(AutoGeneratorTestCase):
 
 
 class TestUserQuestion(AutoGeneratorTestCase):
-    def test_whq_without_answers(self):
-        self.given_ontology(predicates={"price": "real"})
+    def test_without_answers(self):
         self.given_grammar([
             Node(Constants.USER_QUESTION, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
         ])
         self.when_generating()
-        self.assert_abstract_contains_function("ask_price : UsrQuestion;\n")
+        self.assert_abstract_contains_function("ask_price : UsrWHQ;\n")
         self.assert_semantic_contains_linearization("ask_price = ask_whq price;\n")
         self.assert_natural_language_contains_linearization('ask_price = ss (("price information"));\n')
 
@@ -1935,7 +1934,7 @@ class TestUserQuestion(AutoGeneratorTestCase):
             )
         ])
         self.when_generating()
-        self.assert_abstract_contains_function('price_user_question_1 : Sort_city -> UsrQuestion;\n')
+        self.assert_abstract_contains_function('price_user_question_1 : Sort_city -> UsrWHQ;\n')
         self.assert_semantic_contains_linearization("price_user_question_1 city = ask_whq price city;\n")
         self.assert_natural_language_contains_linearization(
             'price_user_question_1 city = ss ("price to " ++ city.s);\n'
@@ -1949,7 +1948,7 @@ class TestUserQuestion(AutoGeneratorTestCase):
             )
         ])
         self.when_generating()
-        self.assert_abstract_contains_function("price_user_question_1 : Predicate_dest_city -> UsrQuestion;\n")
+        self.assert_abstract_contains_function("price_user_question_1 : Predicate_dest_city -> UsrWHQ;\n")
         self.assert_semantic_contains_linearization("price_user_question_1 dest_city = ask_whq price dest_city;\n")
         self.assert_natural_language_contains_linearization(
             'price_user_question_1 dest_city = ss ("price to " ++ dest_city.s);\n'
@@ -1966,7 +1965,7 @@ class TestUserQuestion(AutoGeneratorTestCase):
         self.given_generator()
         self.when_generating()
         self.assert_abstract_contains_function(
-            'attraction_information_user_question_1 : Predicate_attraction -> UsrQuestion;\n'
+            'attraction_information_user_question_1 : Predicate_attraction -> UsrWHQ;\n'
         )
         self.assert_semantic_contains_linearization(
             'attraction_information_user_question_1 attraction = ask_whq attraction_information attraction;\n'
@@ -1974,16 +1973,6 @@ class TestUserQuestion(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization(
             'attraction_information_user_question_1 attraction = ss ("tell me about " ++ attraction.s);\n'
         )
-
-    def test_ynq_without_answers(self):
-        self.given_ontology(predicates={"need_visa": "boolean"})
-        self.given_grammar([
-            Node(Constants.USER_QUESTION, {"predicate": "need_visa"}, [Node(Constants.ITEM, {}, ["do I need a visa"])])
-        ])
-        self.when_generating()
-        self.assert_abstract_contains_function("ask_need_visa : UsrQuestion;\n")
-        self.assert_semantic_contains_linearization("ask_need_visa = ask_ynq need_visa;\n")
-        self.assert_natural_language_contains_linearization('ask_need_visa = ss (("do I need a visa"));\n')
 
 
 class TestSysQuestion(AutoGeneratorTestCase):

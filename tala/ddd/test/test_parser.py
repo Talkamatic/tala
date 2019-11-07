@@ -220,21 +220,11 @@ class ParserTests(unittest.TestCase):
         individual_from_string = self.parser.parse("~paris")
         self.assertEquals(self.individual_not_paris, individual_from_string)
 
-    def test_ask_whq(self):
+    def test_ask_move(self):
         move_from_string = self.parser.parse("ask(?X.dest_city(X))")
         question = self.parser.parse("?X.dest_city(X)")
         move = self._move_factory.create_ask_move(question)
         self.assertEquals(move, move_from_string)
-
-    def test_ask_ynq_for_boolean_predicate(self):
-        move_from_string = self.parser.parse("ask(?need_visa)")
-        question = self.parser.parse("?need_visa")
-        move = self._move_factory.create_ask_move(question)
-        self.assertEquals(move, move_from_string)
-
-    def test_ask_ynq_for_non_boolean_predicate_yields_parse_error(self):
-        with self.assertRaises(ParseError):
-            self.parser.parse("ask(?price)")
 
     def test_ask_move_with_speaker_score(self):
         score = 1.0
