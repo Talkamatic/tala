@@ -153,7 +153,9 @@ class EnglishExamples(Examples):
 
     @property
     def up(self):
-        return ["go back", "back", "previous"]
+        return [
+            "go back", "back", "previous", "back to the previous", "go to the previous", "go back to the previous one"
+        ]
 
     @property
     def answer_negation_templates(self):
@@ -235,7 +237,9 @@ class SwedishExamples(Examples):
 
     @property
     def up(self):
-        return [u"jag vill gå tillbaka", u"vad var den förra", "jag vill backa"]
+        return [
+            u"gå tillbaka", u"vad var den förra", "backa", u"förra", "tillbaka", "ta mig tillbaka", u"backa till förra"
+        ]
 
     @property
     def answer_negation_templates(self):
