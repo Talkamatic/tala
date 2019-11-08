@@ -134,10 +134,12 @@ class Move(SemanticObject):
         self._utterance = utterance
         self._ddd_name = ddd_name
 
+    def is_realized(self):
+        return self._understanding_confidence is not None or self._speaker is not None or self._modality is not None \
+               or (self._speaker == Speaker.USR and self._ddd_name is not None)
+
     def _verify_realization_data(self, understanding_confidence=None, speaker=None, modality=None, ddd_name=None):
-        if self._understanding_confidence is not None or self._speaker is not None or self._modality is not None or (
-            self._speaker == Speaker.USR and self._ddd_name is not None
-        ):
+        if self.is_realized():
             raise MoveException("realization data already set")
         if speaker is None:
             raise MoveException("speaker must be supplied")
