@@ -19,7 +19,6 @@ from tala.nl.gf.grammar_entry_types import Constants, Node
 from tala.nl.gf.naming import abstract_gf_filename, natural_language_gf_filename, semantic_gf_filename, \
     probabilities_filename
 
-
 UNKNOWN_CATEGORY = "Unknown"
 
 
@@ -139,6 +138,7 @@ class AutoGenerator(object):
         return "build/%s/%s" % (language_code, probabilities_filename(self._ddd_name))
 
     def _add_header_in_auto_generated_gf_files(self, language_code):
+        self._natural_language_gf_content.write("--# -coding=utf-8\n")
         self._abstract_gf_content.write("abstract %s = TDM, Integers ** {\n\n" "cat\n\n" % self._ddd_name)
         for category in self._categories.values():
             self._abstract_gf_content.write("%s;\n" % category)
@@ -508,7 +508,8 @@ class AutoGenerator(object):
 
     def _generate_failed_content_for_unknown_failure_reason(self, action_interface):
         for probability, combination in self._enumerate_with_decreasing_probabilities(
-                self._service_action_parameter_combinations(action_interface)):
+            self._service_action_parameter_combinations(action_interface)
+        ):
             natural_language_gf = 'undefined_service_action_failure'
             self._generate_parameterized_service_action_content(
                 "SysReportFailed", "report_failed", action_interface.name, UNDEFINED_SERVICE_ACTION_FAILURE,
@@ -517,7 +518,8 @@ class AutoGenerator(object):
 
     def _enumerate_with_decreasing_probabilities(self, iterable):
         def rescale_probability_so_that_sum_of_all_explicit_probabilities_is_less_then_1(
-                unit_scaled_probability, large_constant=1000000):
+            unit_scaled_probability, large_constant=1000000
+        ):
             return unit_scaled_probability / large_constant
 
         items = list(iterable)
@@ -525,7 +527,8 @@ class AutoGenerator(object):
         for index, item in enumerate(items):
             unit_scaled_probability = 1 - float(index) / num_items
             safely_rescaled_probability = rescale_probability_so_that_sum_of_all_explicit_probabilities_is_less_then_1(
-                unit_scaled_probability)
+                unit_scaled_probability
+            )
             yield safely_rescaled_probability, item
 
     def _generate_failed_content_for_reason(self, action_interface, failure_reason):
@@ -541,13 +544,15 @@ class AutoGenerator(object):
         forms_for_all_combinations = self._get_form_as_options(key)
         for combination in self._service_action_parameter_combinations(action_interface):
             forms_for_combination = self._pick_service_action_forms(
-                forms_for_all_combinations, combination, action_interface)
+                forms_for_all_combinations, combination, action_interface
+            )
             for probability, form in self._enumerate_with_decreasing_probabilities(forms_for_combination):
                 if len(form.children) > 0:
                     natural_language_gf = 'ss (%s)' % self._parameterized_sys_form(form)
                     self._generate_parameterized_service_action_content(
                         gf_category, sem_util, action_interface.name, reason, natural_language_gf, combination,
-                        probability)
+                        probability
+                    )
 
     def _service_action_parameter_combinations(self, action_interface):
         parameters = action_interface.parameters
@@ -580,8 +585,9 @@ class AutoGenerator(object):
         return True
 
     def _select_most_relevant_service_action_forms(self, forms, combination, action_interface):
-        max_num_referenced_parameters = max([self._num_referenced_parameters(form, combination, action_interface)
-                                             for form in forms])
+        max_num_referenced_parameters = max([
+            self._num_referenced_parameters(form, combination, action_interface) for form in forms
+        ])
         for form in forms:
             if self._num_referenced_parameters(form, combination, action_interface) == max_num_referenced_parameters:
                 yield form
@@ -1032,9 +1038,7 @@ class AutoGenerator(object):
     def _generate_system_placeholder_answer_content(self, predicate, form):
         function_name = "%s_sys_answer" % predicate
         self._abstract_gf_content.write("%s : Placeholder -> SysAnswer;\n" % function_name)
-        self._semantic_gf_content.write(
-            '%s individual = pp "%s" individual;\n' % (function_name, predicate)
-        )
+        self._semantic_gf_content.write('%s individual = pp "%s" individual;\n' % (function_name, predicate))
 
         if form:
             gf_parts = [self._generate_system_placeholder_answer_part(part) for part in form.children]
@@ -1051,31 +1055,36 @@ class AutoGenerator(object):
 
     def _generate_system_integer_answer_content(self, predicate, form):
         def generate_for_small_integers():
-            self._abstract_gf_content.write("%s_sys_answer_small : %s -> SysAnswer;\n" % (
-                predicate, self.CATEGORY_FOR_SMALL_INTEGERS))
-            self._semantic_gf_content.write('%s_sys_answer_small individual = pp "%s" individual;\n' % (
-                predicate, predicate))
+            self._abstract_gf_content.write(
+                "%s_sys_answer_small : %s -> SysAnswer;\n" % (predicate, self.CATEGORY_FOR_SMALL_INTEGERS)
+            )
+            self._semantic_gf_content.write(
+                '%s_sys_answer_small individual = pp "%s" individual;\n' % (predicate, predicate)
+            )
 
             if form:
                 parts = [self._generate_system_answer_part(part) for part in form.children]
                 natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
             else:
                 natural_language_gf = "individual"
-            self._natural_language_gf_content.write("%s_sys_answer_small individual = %s;\n" % (
-                predicate, natural_language_gf))
+            self._natural_language_gf_content.write(
+                "%s_sys_answer_small individual = %s;\n" % (predicate, natural_language_gf)
+            )
 
         def generate_for_large_integers():
             self._abstract_gf_content.write("%s_sys_answer_large : Placeholder -> SysAnswer;\n" % predicate)
-            self._semantic_gf_content.write('%s_sys_answer_large individual = pp "%s" individual;\n' % (
-                predicate, predicate))
+            self._semantic_gf_content.write(
+                '%s_sys_answer_large individual = pp "%s" individual;\n' % (predicate, predicate)
+            )
 
             if form:
                 parts = [self._generate_system_answer_part(part) for part in form.children]
                 natural_language_gf = "answer (%s) individual.s" % " ++ ".join(parts)
             else:
                 natural_language_gf = "answer individual.s"
-            self._natural_language_gf_content.write("%s_sys_answer_large individual = %s;\n" % (
-                predicate, natural_language_gf))
+            self._natural_language_gf_content.write(
+                "%s_sys_answer_large individual = %s;\n" % (predicate, natural_language_gf)
+            )
 
         generate_for_small_integers()
         generate_for_large_integers()

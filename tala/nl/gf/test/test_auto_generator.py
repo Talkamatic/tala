@@ -341,8 +341,8 @@ class AutoGeneratorTestCase(object):
         self._assert_begins_with(expected_beginning, self.generator._natural_language_gf_content.getvalue())
 
     def _assert_begins_with(self, expected_beginning, actual_string):
-        assert actual_string.startswith(expected_beginning), "expected %r to begin with %r" % (
-            actual_string, expected_beginning)
+        assert actual_string.startswith(expected_beginning
+                                        ), "expected %r to begin with %r" % (actual_string, expected_beginning)
 
 
 class TestHeader(AutoGeneratorTestCase):
@@ -354,6 +354,7 @@ class TestHeader(AutoGeneratorTestCase):
             "concrete mockup_ddd_sem of mockup_ddd = TDM_sem, Integers_sem ** open Utils_sem in {"
         )
         self.assert_natural_language_begins_with(
+            "--# -coding=utf-8\n"
             "concrete mockup_ddd_eng of mockup_ddd = TDM_eng, Integers_eng ** open Utils_eng, Prelude in {"
         )
 
@@ -1579,9 +1580,11 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
                 ]
             )
         ])
-        with pytest.raises(InvalidSortOfBackgroundPredicateException,
-                           match="Background is not allowed for predicate 'location' of sort 'string'. "
-                                 "Perhaps you can create a new sort for it?"):
+        with pytest.raises(
+            InvalidSortOfBackgroundPredicateException,
+            match="Background is not allowed for predicate 'location' of sort 'string'. "
+            "Perhaps you can create a new sort for it?"
+        ):
             self.when_generating()
 
     def test_background_with_integer_answer_raises_exception(self):
@@ -1599,9 +1602,11 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
                 ]
             )
         ])
-        with pytest.raises(InvalidSortOfBackgroundPredicateException,
-                           match="Background is not allowed for predicate '%s' of sort 'integer'. "
-                                 "Perhaps you can create a new sort for it?" % INTEGER_PREDICATE):
+        with pytest.raises(
+            InvalidSortOfBackgroundPredicateException,
+            match="Background is not allowed for predicate '%s' of sort 'integer'. "
+            "Perhaps you can create a new sort for it?" % INTEGER_PREDICATE
+        ):
             self.when_generating()
 
     def test_can_be_asked_by_system_true(self):
@@ -1741,13 +1746,16 @@ class TestSysAnswer(AutoGeneratorTestCase):
         self.when_generating_system_answer_content("distance")
         self.assert_abstract(
             "distance_sys_answer_small : Integer -> SysAnswer;\n"
-            "distance_sys_answer_large : Placeholder -> SysAnswer;\n")
+            "distance_sys_answer_large : Placeholder -> SysAnswer;\n"
+        )
         self.assert_semantic(
             'distance_sys_answer_small individual = pp "distance" individual;\n'
-            'distance_sys_answer_large individual = pp "distance" individual;\n')
+            'distance_sys_answer_large individual = pp "distance" individual;\n'
+        )
         self.assert_natural_language(
             "distance_sys_answer_small individual = individual;\n"
-            "distance_sys_answer_large individual = answer individual.s;\n")
+            "distance_sys_answer_large individual = answer individual.s;\n"
+        )
 
     def test_overridden_integer_system_answer(self):
         self.given_grammar([
@@ -1760,10 +1768,12 @@ class TestSysAnswer(AutoGeneratorTestCase):
         self.when_generating_system_answer_content("distance")
         self.assert_abstract(
             "distance_sys_answer_small : Integer -> SysAnswer;\n"
-            "distance_sys_answer_large : Placeholder -> SysAnswer;\n")
+            "distance_sys_answer_large : Placeholder -> SysAnswer;\n"
+        )
         self.assert_semantic(
             'distance_sys_answer_small individual = pp "distance" individual;\n'
-            'distance_sys_answer_large individual = pp "distance" individual;\n')
+            'distance_sys_answer_large individual = pp "distance" individual;\n'
+        )
         self.assert_natural_language(
             'distance_sys_answer_small individual = '
             'answer ("the distance is" ++ individual.s ++ "meters") individual.s;\n'
@@ -1785,13 +1795,14 @@ class TestSysAnswer(AutoGeneratorTestCase):
     def test_default_system_answer_for_builtin_non_integer_predicate(self):
         self.given_generator()
         self.when_generating_system_answer_content(BUILTIN_NON_INTEGER_PREDICATE)
-        self.assert_abstract_contains(
-            "%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
         self.assert_semantic_contains(
-            '%s_sys_answer individual = pp "%s" individual;\n' % (
-                BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE))
+            '%s_sys_answer individual = pp "%s" individual;\n' %
+            (BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE)
+        )
         self.assert_natural_language_contains(
-            '%s_sys_answer individual = answer individual.s;\n' % BUILTIN_NON_INTEGER_PREDICATE)
+            '%s_sys_answer individual = answer individual.s;\n' % BUILTIN_NON_INTEGER_PREDICATE
+        )
 
     def test_overridden_system_answer_for_builtin_non_integer_predicate(self):
         self.given_grammar([
@@ -1802,13 +1813,14 @@ class TestSysAnswer(AutoGeneratorTestCase):
         ])
         self.given_generator()
         self.when_generating_system_answer_content(BUILTIN_NON_INTEGER_PREDICATE)
-        self.assert_abstract_contains(
-            "%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
+        self.assert_abstract_contains("%s_sys_answer : Placeholder -> SysAnswer;\n" % BUILTIN_NON_INTEGER_PREDICATE)
         self.assert_semantic_contains(
-            '%s_sys_answer individual = pp "%s" individual;\n' % (
-                BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE))
+            '%s_sys_answer individual = pp "%s" individual;\n' %
+            (BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE)
+        )
         self.assert_natural_language_contains(
-            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % BUILTIN_NON_INTEGER_PREDICATE)
+            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % BUILTIN_NON_INTEGER_PREDICATE
+        )
 
 
 class TestUserAnswer(AutoGeneratorTestCase):
@@ -2208,7 +2220,8 @@ class TestFileWriting(AutoGeneratorTestCase):
 
     def then_abstract_file_is_created(self, mock_codecs, language_code="eng"):
         mock_codecs.open.assert_any_call(
-            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
@@ -2221,7 +2234,8 @@ class TestFileWriting(AutoGeneratorTestCase):
 
     def then_semantic_file_is_created(self, mock_codecs, language_code="eng"):
         mock_codecs.open.assert_any_call(
-            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
@@ -2234,8 +2248,10 @@ class TestFileWriting(AutoGeneratorTestCase):
 
     def then_natural_language_file_is_created(self, mock_codecs, language_code="eng"):
         mock_codecs.open.assert_any_call(
-            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)), "w",
-            encoding="utf-8")
+            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)),
+            "w",
+            encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.auto_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.auto_generator.__name__))
@@ -2304,9 +2320,11 @@ class TestLoadingAndCompilation(AutoGeneratorTestCase):
         self._then_no_exception_is_raised()
 
     def test_validate_invalid_xml_grammar(self):
-        with pytest.raises(ViolatesSchemaException,
-                           match="Expected grammar_eng.xml compliant with schema but it's in violation: "
-                                 "Element 'invalid_element': This element is not expected., line 1"):
+        with pytest.raises(
+            ViolatesSchemaException,
+            match="Expected grammar_eng.xml compliant with schema but it's in violation: "
+            "Element 'invalid_element': This element is not expected., line 1"
+        ):
             self._given_grammar_source_file(
                 "grammar_eng.xml", '<grammar><invalid_element name="top">start view</invalid_element></grammar>'
             )
