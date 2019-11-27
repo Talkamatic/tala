@@ -703,6 +703,21 @@ class SystemAnswerTestCase(RglGfGeneratorTestCase):
         self.then_semantic_contains_linearization('dest_city_sys_answer individual = pp "dest_city" individual;\n')
         self.then_natural_language_contains_linearization('dest_city_sys_answer individual = mkSysAnswer individual;\n')
 
+    def test_propositional_system_answer_of_custom_sort_with_explicit_slot_but_no_text_elements(self):
+        self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"})
+        self.given_grammar([
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "dest_city"},
+                [Node(rgl_types.UTTERANCE, {}, [Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
+            )
+        ])
+        self.when_generating()
+        self.then_abstract_contains_function('dest_city_sys_answer : Sort_city -> SysAnswer;\n')
+        self.then_semantic_contains_linearization('dest_city_sys_answer individual = pp "dest_city" individual;\n')
+        self.then_natural_language_contains_linearization(
+            'dest_city_sys_answer individual = mkSysAnswer (mkUtt individual);\n'
+        )
+
     def test_overridden_unary_propositional_system_answer_of_custom_sort(self):
         self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"})
         self.given_grammar([
@@ -1097,7 +1112,8 @@ class TestFileWriting(RglGfGeneratorTestCase):
 
     def then_abstract_file_is_created(self, mock_codecs, language_code="eng"):
         mock_codecs.open.assert_any_call(
-            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+            "build/%s/%s" % (language_code, abstract_gf_filename(self._ddd_name)), "w", encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
@@ -1109,7 +1125,8 @@ class TestFileWriting(RglGfGeneratorTestCase):
 
     def then_semantic_file_is_created(self, mock_codecs, language_code="eng"):
         mock_codecs.open.assert_any_call(
-            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8")
+            "build/%s/%s" % (language_code, semantic_gf_filename(self._ddd_name)), "w", encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))
@@ -1121,8 +1138,10 @@ class TestFileWriting(RglGfGeneratorTestCase):
 
     def then_natural_language_file_is_created(self, mock_LowerCaseGfFileWriter, language_code="eng"):
         mock_LowerCaseGfFileWriter.open.assert_any_call(
-            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)), "w",
-            encoding="utf-8")
+            "build/%s/%s" % (language_code, natural_language_gf_filename(self._ddd_name, language_code)),
+            "w",
+            encoding="utf-8"
+        )
 
     @patch("{}.codecs".format(tala.nl.gf.rgl_gf_generator.__name__))
     @patch("{}.open".format(tala.nl.gf.rgl_gf_generator.__name__))

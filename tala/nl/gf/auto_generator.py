@@ -862,7 +862,7 @@ class AutoGenerator(object):
 
     def _write_nl_for_sys_answer_without_background(self, function_name, form, argument_category):
         if argument_category:
-            if form:
+            if form and form.children:
                 gf_string = self._generate_nl_for_system_answer(form)
             else:
                 gf_string = "individual.s"

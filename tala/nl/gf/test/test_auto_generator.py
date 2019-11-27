@@ -1678,6 +1678,14 @@ class TestSysAnswer(AutoGeneratorTestCase):
         self.assert_semantic("dest_city_sys_answer individual = pp dest_city.s individual;\n")
         self.assert_natural_language("dest_city_sys_answer individual = answer (individual.s) individual.s;\n")
 
+    def test_propositional_system_answer_of_custom_sort_with_explicit_slot_but_no_text_elements(self):
+        self.given_generator()
+        self.given_grammar([Node(Constants.SYS_ANSWER, {"predicate": "dest_city"}, [Node(Constants.SLOT, {})])])
+        self.when_generating_system_answer_content("dest_city")
+        self.assert_abstract("dest_city_sys_answer : Sort_city -> SysAnswer;\n")
+        self.assert_semantic("dest_city_sys_answer individual = pp dest_city.s individual;\n")
+        self.assert_natural_language("dest_city_sys_answer individual = answer (individual.s) individual.s;\n")
+
     def test_overridden_unary_propositional_system_answer_of_custom_sort(self):
         self.given_generator()
         self.given_grammar([

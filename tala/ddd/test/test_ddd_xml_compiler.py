@@ -512,11 +512,11 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
     def test_schema_violation_yields_exception(self):
         self._given_compiled_ontology('<ontology name="Ontology"/>')
         self._when_compile_domain_then_exception_is_raised_matching(
-            '<domain name="Domain">invalid_content</domain>',
-            ViolatesSchemaException,
+            '<domain name="Domain">invalid_content</domain>', ViolatesSchemaException,
             "Expected domain.xml compliant with schema but it's in violation: "
             "Element 'domain': Character content other than whitespace is not allowed because the content type is "
-            "'element-only'., line 1")
+            "'element-only'., line 1"
+        )
 
     def _when_compile_domain_then_exception_is_raised_matching(self, xml, expected_exception, expected_message):
         with pytest.raises(expected_exception, match=expected_message):
@@ -1597,6 +1597,22 @@ class TestGrammarCompiler(DddXmlCompilerTestCase):
             )
         ])
 
+    def test_system_answer_without_text_elements(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
+        self._when_compile_grammar(
+            """
+<grammar>
+  <answer speaker="system"><slot type="individual" predicate="dest_city"/></answer>
+</grammar>"""
+        )
+        self._then_grammar_is([Node(Constants.SYS_ANSWER, {"predicate": "dest_city"}, [Node(Constants.SLOT, {})])])
+
     def test_system_answer_with_embedded_answer(self):
         self._given_compiled_ontology(
             """
@@ -1844,6 +1860,52 @@ class TestGrammarCompiler(DddXmlCompilerTestCase):
 
 
 class TestRglGrammarCompiler(DddXmlCompilerTestCase):
+    def test_system_answer(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
+        self._when_compile_rgl_grammar(
+            """
+<grammar>
+  <answer speaker="system" predicate="dest_city">
+    <utterance>to <individual predicate="dest_city"/></utterance>
+  </answer>
+</grammar>"""
+        )
+        self._then_grammar_is([
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "dest_city"},
+                [Node(rgl_types.UTTERANCE, {}, ["to ", Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
+            )
+        ])
+
+    def test_system_answer_without_text_elements(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
+        self._when_compile_rgl_grammar(
+            """
+<grammar>
+  <answer speaker="system" predicate="dest_city">
+    <utterance><individual predicate="dest_city"/></utterance>
+  </answer>
+</grammar>"""
+        )
+        self._then_grammar_is([
+            Node(
+                Constants.SYS_ANSWER, {"predicate": "dest_city"},
+                [Node(rgl_types.UTTERANCE, {}, [Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
+            )
+        ])
+
     def test_action_with_noun_phrase(self):
         self._given_compiled_ontology()
 
