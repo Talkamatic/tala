@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from tala.model.action import Action
 from tala.model.error import DomainError
 from tala.model.goal import PerformGoal, ResolveGoal
@@ -243,16 +245,20 @@ class Domain(JSONLoggable):
         return self.get_goal_attribute(goal, "accommodate_without_feedback")
 
     def get_resolving_answers(self, question):
+        def answers(individuals, predicate, sort):
+            for individual_value in individuals:
+                individual_sort = self.ontology.individual_sort(individual_value)
+                if individual_sort == sort:
+                    individual = self.ontology.create_individual(individual_value)
+                    yield PredicateProposition(predicate, individual)
+
+        def unique(elements):
+            return list(OrderedDict.fromkeys(elements))
+
         predicate = question.get_predicate()
         question_sort = predicate.getSort()
-        answers = set()
-        for individual_value in self.ontology.get_individuals():
-            individual_sort = self.ontology.individual_sort(individual_value)
-            if individual_sort == question_sort:
-                individual = self.ontology.create_individual(individual_value)
-                answer = PredicateProposition(predicate, individual)
-                answers.add(answer)
-        return answers
+        all_answers = answers(self.ontology.get_individuals(), predicate, question_sort)
+        return unique(all_answers)
 
     def _plan_list_to_dict_indexed_by_goal(self, plan_list):
         plans = {}

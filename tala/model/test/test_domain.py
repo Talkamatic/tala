@@ -458,7 +458,7 @@ class DomainTests(LibTestCase):
     def test_get_resolving_answers(self):
         question = self.dest_city_question
         expected_answers = [self.proposition_dest_city_paris, self.proposition_dest_city_london]
-        self.assertEqual(set(expected_answers), set(self.domain.get_resolving_answers(question)))
+        self.assertEqual(expected_answers, self.domain.get_resolving_answers(question))
 
     def test_question_presented_as_list_forces_graphical_choice(self):
         self.domain.parameters[self.dest_city_question] = {
