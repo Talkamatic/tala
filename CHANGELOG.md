@@ -3,13 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [unreleased]
+## [5.0.0] - 2019-11-28
 ### Added
 - A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.
 - A new optional parameter `session_data` with default value `None` has been added to `start_session`, `request_text_input`, `request_speech_input`, `request_semantic_input` and `request_passivity` methods in `tala.utils.tdm_client.TDMClient` to accept arbitrary JSON-compatible data for “session”.
 
 ### Changed
-- `tala.utils.tdm_client.TDMClient` now supports protocol '3.0' of the HTTP API for frontends.
+- `tala.utils.tdm_client.TDMClient` now supports protocol '3.1' of the HTTP API for frontends.
 - `tala generate rasa` now generates training data for builtin intents `yes`, `no`, `top` and `up`.
 
 ## [4.0.0] - 2019-10-08
