@@ -34,11 +34,21 @@ pipeline {
             }
         }
 
-        stage('build wheel') {
+        stage('build python2.7 wheel') {
             agent {
-                dockerfile {
-                    filename 'Dockerfile-dev'
-                    reuseNode true
+                docker {
+                    image 'python:2.7'
+                }
+            }
+            steps {
+                sh "pip wheel --wheel-dir . --no-deps ."
+            }
+        }
+
+        stage('build python3.8 wheel') {
+            agent {
+                docker {
+                    image 'python:3.8'
                 }
             }
             steps {
