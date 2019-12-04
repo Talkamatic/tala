@@ -851,7 +851,7 @@ class UserQuestionFunctionGenerator(FunctionGenerator):
         return self.generate_new_function_name("ask_%s" % self._predicate_name)
 
     def get_function_category(self):
-        return 'UsrWHQ'
+        return 'UsrQuestion'
 
     def get_arguments(self):
         return [

@@ -342,7 +342,7 @@ class UserQuestionTestCase(RglGfGeneratorTestCase):
             )
         ])
         self.when_generating()
-        self.then_abstract_contains_function('ask_phonenumber_of_contact_1 : UsrWHQ;')
+        self.then_abstract_contains_function('ask_phonenumber_of_contact_1 : UsrQuestion;')
         self.then_semantic_contains_linearization('ask_phonenumber_of_contact_1 = ask_whq phonenumber_of_contact;')
         self.then_natural_language_contains_linearization(
             'ask_phonenumber_of_contact_1 = mkUsr (strUtt "what is the phone number");'
