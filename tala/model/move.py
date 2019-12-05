@@ -2,15 +2,16 @@ from tala.model.common import Modality
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_json import convert_to_json
-from tala.utils.unicodify import unicodify
+from tala.utils.equality import EqualityMixin
 from tala.utils import float_comparison
+from tala.utils.unicodify import unicodify
 
 
 class MoveException(Exception):
     pass
 
 
-class Move(SemanticObject):
+class Move(SemanticObject, EqualityMixin):
     QUIT = "quit"
     GREET = "greet"
     NO_MOVE = "no_move"
@@ -197,16 +198,6 @@ class Move(SemanticObject):
         if self._utterance:
             string += ", utterance=%r" % self._utterance
         return string
-
-    def __eq__(self, other):
-        try:
-            return (
-                other.is_move() and self.move_content_equals(other) and self._speaker == other._speaker
-                and self._are_understanding_confidences_equal(other) and self._are_perception_confidences_equal(other)
-                and self._utterance == other._utterance and self._ddd_name == other._ddd_name
-            )
-        except AttributeError:
-            return False
 
     @staticmethod
     def _is_confidence_equal(this, other):
