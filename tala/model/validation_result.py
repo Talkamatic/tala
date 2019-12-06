@@ -1,24 +1,13 @@
-class ValidationResult(object):
+from tala.utils.equality import EqualityMixin
+
+
+class ValidationResult(EqualityMixin):
     @property
     def is_successful(self):
         raise NotImplementedError("This property needs to be implemented in a subclass.")
 
     def __repr__(self):
         return "%s()" % self.__class__.__name__
-
-    def __eq__(self, other):
-        if not isinstance(self, other.__class__):
-            return NotImplemented
-        return True
-
-    def __ne__(self, other):
-        are_equal = self.__eq__(other)
-        if are_equal is NotImplemented:
-            return NotImplemented
-        return not are_equal
-
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
 
 
 class ValidationSuccess(ValidationResult):

@@ -1,5 +1,6 @@
 from tala.model.common import Modality
 from tala.model.user_move import UserMove  # noqa: F401
+from tala.utils.equality import EqualityMixin
 from tala.utils.unicodify import unicodify
 
 
@@ -7,7 +8,7 @@ class UnexpectedModalityException(Exception):
     pass
 
 
-class Interpretation(object):
+class Interpretation(EqualityMixin):
     def __init__(self, moves, modality, utterance=None):
         # type: ([UserMove], basestring, basestring) -> None
         self._moves = moves
@@ -44,14 +45,6 @@ class Interpretation(object):
     def utterance(self):
         # type: () -> basestring
         return self._utterance
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (other == self)
 
     def __unicode__(self):
         return "{}({}, {}, {})".format(self.__class__.__name__, unicodify(self._moves), self._modality, self._utterance)

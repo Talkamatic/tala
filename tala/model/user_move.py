@@ -1,7 +1,9 @@
 from typing import Text  # noqa: F401
 
+from tala.utils.equality import EqualityMixin
 
-class UserMove(object):
+
+class UserMove(EqualityMixin):
     def __init__(self, semantic_expression, perception_confidence, understanding_confidence):
         # type: (Text, float, float) -> None
         self._semantic_expression = semantic_expression
@@ -27,14 +29,6 @@ class UserMove(object):
     def understanding_confidence(self):
         # type: () -> float
         return self._understanding_confidence
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (other == self)
 
     def __unicode__(self):
         return "{}({}, perception_confidence={}, understanding_confidence={})"\

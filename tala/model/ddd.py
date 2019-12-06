@@ -1,7 +1,8 @@
 from tala.utils.as_json import convert_to_json, JSONLoggable
+from tala.utils.equality import EqualityMixin
 
 
-class DDD(JSONLoggable):
+class DDD(JSONLoggable, EqualityMixin):
     def __init__(self, name, ontology, domain, rasa_nlu, service_interface, grammars, language_codes, use_rgl):
         super(DDD, self).__init__()
         self._name = name
@@ -52,14 +53,6 @@ class DDD(JSONLoggable):
                 self.language_codes, self.use_rgl
             )
         )
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (other == self)
 
     def as_json(self):
         return {
