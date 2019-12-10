@@ -97,6 +97,7 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    additionalBuildArgs '--pull'
                     reuseNode true
                 }
             }
