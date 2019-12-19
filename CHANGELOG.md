@@ -3,10 +3,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
-### Fixed
-- `tala verify` no longer fails with a syntax error when a grammar has a system answer with a single slot only, e.g: `<answer speaker="system"><slot type="individual" predicate="my-predicate"/></answer>`. This fix is applied to DDDs with `use_rgl` set to `false` in the DDD config.
-
 ## [5.0.0] - 2019-11-28
 ### Added
 - A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.
