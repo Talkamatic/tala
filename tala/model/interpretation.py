@@ -10,7 +10,7 @@ class UnexpectedModalityException(Exception):
 
 class Interpretation(EqualityMixin):
     def __init__(self, moves, modality, utterance=None):
-        # type: ([UserMove], basestring, basestring) -> None
+        # type: ([UserMove], str, str) -> None
         self._moves = moves
         if modality not in Modality.SUPPORTED_MODALITIES:
             raise UnexpectedModalityException(
@@ -38,19 +38,16 @@ class Interpretation(EqualityMixin):
 
     @property
     def modality(self):
-        # type: () -> basestring
+        # type: () -> str
         return self._modality
 
     @property
     def utterance(self):
-        # type: () -> basestring
+        # type: () -> str
         return self._utterance
 
-    def __unicode__(self):
-        return "{}({}, {}, {})".format(self.__class__.__name__, unicodify(self._moves), self._modality, self._utterance)
-
     def __str__(self):
-        return unicode(self).encode("utf-8")
+        return "{}({}, {}, {})".format(self.__class__.__name__, unicodify(self._moves), self._modality, self._utterance)
 
     def __repr__(self):
         return str(self)

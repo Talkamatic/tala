@@ -32,7 +32,7 @@ class ValidationResultTests(TestBase):
         self._validation_object = ValidationResult()
 
     def when_accessing_is_successful_then_exception_is_raised_matching(self, expected_exception, expected_message):
-        with self.assertRaisesRegexp(expected_exception, expected_message):
+        with self.assertRaisesRegex(expected_exception, expected_message):
             self._result = self._validation_object.is_successful
 
 

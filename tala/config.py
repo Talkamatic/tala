@@ -75,7 +75,7 @@ class Config(object):
     def _write_to_file(config, path):
         with path.open(mode="w") as f:
             string = json.dumps(config, sort_keys=True, indent=4, separators=(',', ': '), ensure_ascii=False)
-            f.write(unicode(string))
+            f.write(str(string))
 
     def _config_from_file(self):
         with self._path.open(mode="r") as f:
@@ -85,12 +85,12 @@ class Config(object):
         config = self._config_from_file()
         config = self._potentially_update_with_values_from_parent(config)
         default_config = self.default_config()
-        keys_different_from_default = set(default_config.keys()).symmetric_difference(config.keys())
+        keys_different_from_default = set(default_config.keys()).symmetric_difference(list(config.keys()))
         if keys_different_from_default:
             updated_config = self._update_config_keys(default_config, config)
             self._write_backup(config)
             self._write(updated_config)
-            message = self._format_unexpected_entries_message(default_config.keys(), config.keys())
+            message = self._format_unexpected_entries_message(list(default_config.keys()), list(config.keys()))
             raise UnexpectedConfigEntriesException(message)
 
     def _potentially_update_with_values_from_parent(self, config):
@@ -106,8 +106,8 @@ class Config(object):
         return parent_config
 
     def _format_unexpected_entries_message(self, expected, actual):
-        unexpected = list(set(actual).difference(expected))
-        missing = list(set(expected).difference(actual))
+        unexpected = sorted(set(actual).difference(expected))
+        missing = sorted(set(expected).difference(actual))
         ending = "The config was updated and the previous config was backed up in {!r}.".format(self.back_up_name())
         if unexpected and missing:
             return "Parameter {} is unexpected while {} is missing from {!r}. {}".format(
@@ -123,7 +123,7 @@ class Config(object):
     @classmethod
     def _update_config_keys(cls, defaults, config):
         updated_config = {}
-        for key, default_value in defaults.iteritems():
+        for key, default_value in list(defaults.items()):
             if key in config:
                 updated_config[key] = config[key]
             else:
@@ -217,7 +217,7 @@ class DddConfig(Config):
         return config
 
     def _validate_rasa_nlu_language(self, config):
-        for language in config.keys():
+        for language in list(config.keys()):
             if language not in SUPPORTED_RASA_LANGUAGES:
                 raise UnexpectedRASALanguageException(
                     "Expected one of the supported RASA languages {} in DDD config '{}' but got '{}'.".format(
@@ -234,7 +234,7 @@ class DddConfig(Config):
             return "Parameters {parameters} are unexpected in 'rasa_nlu.{language}' of DDD config '{file}'." \
                 .format(parameters=parameters, language=language, file=self._absolute_path)
 
-        for language, rasa_nlu in config.items():
+        for language, rasa_nlu in list(config.items()):
             if "url" not in rasa_nlu:
                 raise UnexpectedConfigEntriesException(message_for_missing_entry("url", language))
             if "config" not in rasa_nlu:

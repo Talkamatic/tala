@@ -127,7 +127,7 @@ class ServiceInterfaceTests(unittest.TestCase):
         )
 
     def _when_calling_get_action_then_exception_is_raised_matching(self, name, expected_exception, expected_message):
-        with self.assertRaisesRegexp(expected_exception, expected_message):
+        with self.assertRaisesRegex(expected_exception, expected_message):
             self._service_interface.get_action(name)
 
     def test_duplicate_actions(self):
@@ -140,7 +140,7 @@ class ServiceInterfaceTests(unittest.TestCase):
         )
 
     def _when_creating_service_interface_then_exception_is_raised_matching(self, expected_exception, expected_message):
-        with self.assertRaisesRegexp(expected_exception, expected_message):
+        with self.assertRaisesRegex(expected_exception, expected_message):
             self._given_service_interface()
 
     def test_duplicate_queries(self):
@@ -244,7 +244,7 @@ class ActionInterfaceCreationTests(unittest.TestCase):
         self._failure_reasons = failure_reasons
 
     def _when_creating_action_then_exception_is_raised_matching(self, expected_exception, expected_pattern):
-        with self.assertRaisesRegexp(expected_exception, expected_pattern):
+        with self.assertRaisesRegex(expected_exception, expected_pattern):
             self._create_action()
 
     def test_failure_reasons_allowed_with_device_module_target(self):

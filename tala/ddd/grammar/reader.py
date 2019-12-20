@@ -4,7 +4,7 @@ import os
 class GrammarReader(object):
     @classmethod
     def read(cls, language_code, path=None):
-        with open(cls.path(language_code, path)) as grammar_file:
+        with open(cls.path(language_code, path), mode="rb") as grammar_file:
             grammar_source = grammar_file.read()
         return grammar_source
 

@@ -81,7 +81,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <question speaker="all" predicate="price" type="wh_question">price information</question>
+  <question type="wh_question" speaker="all" predicate="price">price information</question>
 </grammar>
 """
         )
@@ -96,7 +96,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <question speaker="user" predicate="price" type="wh_question">price for travelling to <slot predicate="price" type="individual"/></question>
+  <question type="wh_question" predicate="price" speaker="user">price for travelling to <slot type="individual" predicate="price"/></question>
 </grammar>
 """
         )
@@ -154,7 +154,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <answer polarity="positive" predicate="qualified_for_membership" speaker="system">you have <slot predicate="frequent_flyer_points" type="individual"/> frequent flyer points and are qualified for membership</answer>
+  <answer speaker="system" predicate="qualified_for_membership" polarity="positive">you have <slot type="individual" predicate="frequent_flyer_points"/> frequent flyer points and are qualified for membership</answer>
 </grammar>
 """
         )
@@ -169,7 +169,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <answer polarity="negative" predicate="qualified_for_membership" speaker="system">you are not qualified for membership</answer>
+  <answer speaker="system" predicate="qualified_for_membership" polarity="negative">you are not qualified for membership</answer>
 </grammar>
 """
         )
@@ -187,7 +187,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <answer predicate="next_membership_level" speaker="system">you need <slot predicate="next_membership_points" type="individual"/> to reach <slot predicate="next_membership_level" type="individual"/> level</answer>
+  <answer speaker="system" predicate="next_membership_level">you need <slot type="individual" predicate="next_membership_points"/> to reach <slot type="individual" predicate="next_membership_level"/> level</answer>
 </grammar>
 """
         )
@@ -201,7 +201,7 @@ class GrammarConversionTestCase(unittest.TestCase):
         self._then_result_is(
             """<?xml version="1.0" encoding="utf-8"?>
 <grammar>
-  <question speaker="system" predicate="dest_city" type="wh_question">
+  <question type="wh_question" predicate="dest_city" speaker="system">
     <utterance>where do you want to go</utterance>
   </question>
 </grammar>

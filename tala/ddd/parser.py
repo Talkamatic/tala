@@ -102,7 +102,7 @@ class Parser:
                 return parse_method(string)
             except ParseFailure:
                 pass
-        raise ParseError("failed to parse '" + string + "' (ontology=" + unicode(self.ontology) + ")")
+        raise ParseError("failed to parse '" + string + "' (ontology=" + str(self.ontology) + ")")
 
     def _parse_incrementally(self, string):
         for n in range(1, len(string) + 1):
@@ -804,7 +804,7 @@ class Parser:
 
             if self.ontology.has_predicate(predicate_name):
                 predicate = self.ontology.get_predicate(predicate_name)
-                if individual_string is None or individual_string is "":
+                if individual_string is None or individual_string == "":
                     if not predicate.getSort().is_boolean_sort():
                         raise ParseFailure()
                     individual = None

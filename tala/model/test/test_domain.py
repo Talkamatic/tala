@@ -62,7 +62,7 @@ class DomainTests(LibTestCase):
         }
         self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, self.actions)
 
-        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
+        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set())
 
     def _create_semantic_objects(self):
         self.predicate_dest_city = self.ontology.get_predicate("dest_city")
@@ -243,10 +243,10 @@ class DomainTests(LibTestCase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.domain, non_identical_domain)
 
     def test_get_name(self):
-        self.assertEquals("mockup_domain", self.domain.get_name())
+        self.assertEqual("mockup_domain", self.domain.get_name())
 
     def test_action_method(self):
-        self.assertEquals(self.buy_action, self.domain.action("buy"))
+        self.assertEqual(self.buy_action, self.domain.action("buy"))
 
     def test_has_goal_true_for_question_with_plan(self):
         self.assertTrue(self.domain.has_goal(ResolveGoal(self.price_question, Speaker.SYS)))
@@ -262,7 +262,7 @@ class DomainTests(LibTestCase):
         self.assertFalse(self.domain.has_goal(PerformGoal(self.planless_action)))
 
     def test_up_plan_empty(self):
-        self.assertEquals(0, len(self.domain.get_plan(PerformGoal(self.up_action))))
+        self.assertEqual(0, len(self.domain.get_plan(PerformGoal(self.up_action))))
 
     def test_goal_is_preferred_true_if_plan_always_preferred(self):
         self.assertTrue(self.domain.goal_is_preferred(PerformGoal(self.always_preferred_action)))
@@ -303,10 +303,10 @@ class DomainTests(LibTestCase):
 
     def test_get_plan_questions(self):
         self.maxDiff = None
-        expected_questions = ["?X.dest_city(X)", "?X.dest_city_type(X)", "?X.dept_city(X)", "?X.price(X)"]
+        expected_questions = ["?X.dept_city(X)", "?X.dest_city_type(X)", "?X.dest_city(X)", "?X.price(X)"]
         actual_result = [question for question in self.domain.get_plan_questions()]
-        actual_result_strings = map(str, actual_result)
-        self.assertItemsEqual(expected_questions, actual_result_strings)
+        actual_result_strings = list(map(str, actual_result))
+        assert expected_questions == actual_result_strings
 
     def test_get_all_goals(self):
         expected_goals = {
@@ -343,10 +343,10 @@ class DomainTests(LibTestCase):
         self.assertEqual(expected_goals, actual_result)
 
     def test_get_dependent_question_returns_goal_issue_for_question_in_plan(self):
-        self.assertEquals(self.price_question, self.domain.get_dependent_question(self.dest_city_question))
+        self.assertEqual(self.price_question, self.domain.get_dependent_question(self.dest_city_question))
 
     def test_get_dependent_question_returns_none_for_goal_issue(self):
-        self.assertEquals(None, self.domain.get_dependent_question(self.price_question))
+        self.assertEqual(None, self.domain.get_dependent_question(self.price_question))
 
     def test_iterate_plans(self):
         expected_goals = {
@@ -363,7 +363,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.downdate_plan_false_action),
             HandleGoal("mockup_ontology", "event")
         }
-        actual_goals = set([goal for goal in self.domain.get_plan_goal_iterator()])
+        actual_goals = {goal for goal in self.domain.get_plan_goal_iterator()}
         self.assertEqual(expected_goals, actual_goals)
 
     def test_get_postconds_for_goal_with_postcond(self):
@@ -375,15 +375,15 @@ class DomainTests(LibTestCase):
         self.assertEqual([], list(self.domain.get_postconds(PerformGoal(action_without_postcond))))
 
     def test_get_postconds_returns_implicit_postconds_for_service_action_invocations_if_downdate_plan_is_true(self):
-        self.assertEquals([ServiceActionTerminatedProposition("mockup_ontology", "mock_service_action")],
-                          list(self.domain.get_postconds(PerformGoal(self.downdate_plan_true_action))))
+        self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "mock_service_action")],
+                         list(self.domain.get_postconds(PerformGoal(self.downdate_plan_true_action))))
 
     def test_get_postconds_doesnt_return_implicit_postconds_for_service_action_invocations_if_not_downdating_plan(self):
-        self.assertEquals([], list(self.domain.get_postconds(PerformGoal(self.downdate_plan_false_action))))
+        self.assertEqual([], list(self.domain.get_postconds(PerformGoal(self.downdate_plan_false_action))))
 
     def test_get_postconds_considers_downdate_plan_property_for_handle_goals(self):
-        self.assertEquals([ServiceActionTerminatedProposition("mockup_ontology", "event")],
-                          list(self.domain.get_postconds(HandleGoal("mockup_ontology", "event"))))
+        self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "event")],
+                         list(self.domain.get_postconds(HandleGoal("mockup_ontology", "event"))))
 
     def test_get_postconds_for_resolve_goal(self):
         resolve_goal = ResolveGoal(self.price_question, Speaker.SYS)
@@ -438,7 +438,7 @@ class DomainTests(LibTestCase):
 
     def test_get_gui_context_for_issue_goal_with_context(self):
         expected_result = [self.predicate_dest_city, self.predicate_dept_city]
-        self.assertEquals(expected_result, self.domain.get_gui_context(ResolveGoal(self.price_question, Speaker.SYS)))
+        self.assertEqual(expected_result, self.domain.get_gui_context(ResolveGoal(self.price_question, Speaker.SYS)))
 
     def test_goal_with_dynamic_title_has_dynamic_title(self):
         self.assertTrue(self.domain.has_dynamic_title(PerformGoal(self.with_dynamic_title_action)))
@@ -448,12 +448,12 @@ class DomainTests(LibTestCase):
 
     def test_get_gui_context_for_action_goal_with_context(self):
         expected_result = [self.predicate_dest_city]
-        self.assertEquals(expected_result, self.domain.get_gui_context(PerformGoal(self.with_context_action)))
+        self.assertEqual(expected_result, self.domain.get_gui_context(PerformGoal(self.with_context_action)))
 
     def test_get_gui_context_for_goal_without_context(self):
         expected_result = []
         goal_without_context = self.buy_action
-        self.assertEquals(expected_result, self.domain.get_gui_context(PerformGoal(goal_without_context)))
+        self.assertEqual(expected_result, self.domain.get_gui_context(PerformGoal(goal_without_context)))
 
     def test_get_resolving_answers(self):
         question = self.dest_city_question
@@ -484,7 +484,7 @@ class DomainTests(LibTestCase):
         self.assertFalse(self.domain.get_verbalize(self.non_verbalized_question))
 
     def test_empty_top_plan_by_default(self):
-        self.assertEquals(Plan([]), self.domain.get_plan(PerformGoal(self.top_action)))
+        self.assertEqual(Plan([]), self.domain.get_plan(PerformGoal(self.top_action)))
 
     def test_multiple_plans_for_same_goal_yields_exception(self):
         invalid_plans = [
@@ -535,7 +535,7 @@ class DominatesTests(LibTestCase):
         actions = {
             "dominating_action", "dominated_action", "super_dominated_action", "non_dominated_action", "planless_action"
         }
-        sorts = set([])
+        sorts = set()
         predicates = {
             self._create_predicate("dominated_issue", RealSort()),
             self._create_predicate("non_dominated_issue", RealSort())
@@ -623,8 +623,8 @@ class IOStatusTests(LibTestCase):
 
     def _create_ontology(self):
         self.ontology_name = "status_ontology"
-        sorts = set([])
-        predicates = set([])
+        sorts = set()
+        predicates = set()
         individuals = {}
         actions = set(self.statuses)
         self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
@@ -661,16 +661,16 @@ class IOStatusTests(LibTestCase):
         self.domain = Domain(self.DDD_NAME, self.domain_name, self.ontology, plans=plans)
 
     def test_io_status_for_default_plan(self):
-        self.assertEquals(Domain.DEFAULT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.default_action)))
+        self.assertEqual(Domain.DEFAULT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.default_action)))
 
     def test_io_status_for_excluded_plan(self):
-        self.assertEquals(Domain.EXCLUDED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.excluded_action)))
+        self.assertEqual(Domain.EXCLUDED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.excluded_action)))
 
     def test_io_status_for_hidden_plan(self):
-        self.assertEquals(Domain.HIDDEN_IO_STATUS, self.domain.get_io_status(PerformGoal(self.hidden_action)))
+        self.assertEqual(Domain.HIDDEN_IO_STATUS, self.domain.get_io_status(PerformGoal(self.hidden_action)))
 
     def test_io_status_for_silent_plan(self):
-        self.assertEquals(Domain.SILENT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.silent_action)))
+        self.assertEqual(Domain.SILENT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.silent_action)))
 
     def test_io_status_for_disabled_plan(self):
-        self.assertEquals(Domain.DISABLED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.disabled_action)))
+        self.assertEqual(Domain.DISABLED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.disabled_action)))

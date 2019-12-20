@@ -6,7 +6,7 @@ class TISNode(AsJSONMixin):
         output = ""
         for attr in sorted(self.__dict__.keys()):
             value = self.__dict__[attr]
-            path.append(unicode(attr))
+            path.append(str(attr))
             output += self.value_string_new(path, value)
             path.pop()
         return output
@@ -15,7 +15,7 @@ class TISNode(AsJSONMixin):
         try:
             return value.pretty_string_new(path)
         except AttributeError:
-            string_value = unicode(value)
+            string_value = str(value)
             if len(string_value) > 0 and string_value[0] != "_":
                 return "\n" + ".".join(path) + ": " + string_value
             return ""
@@ -32,7 +32,7 @@ class TISNode(AsJSONMixin):
         try:
             return value.pretty_string(indentation_level)
         except AttributeError:
-            return unicode(value)
+            return str(value)
 
     def indent(self, indentation_level):
         return "\t" * indentation_level

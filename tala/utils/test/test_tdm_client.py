@@ -24,7 +24,7 @@ class TestTDMClient(object):
         self._when_calling_start_session()
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{}}, "version": "{version}", "request": {{"start_session": {{}}}}}}'.format(
+            data='{{"version": "{version}", "session": {{}}, "request": {{"start_session": {{}}}}}}'.format(
                 version=PROTOCOL_VERSION
             ),
             headers={'Content-type': 'application/json'}
@@ -49,7 +49,7 @@ class TestTDMClient(object):
         self._when_calling_start_session(session_data={"key": "value"})
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"key": "value"}}, "version": "{version}", "request": {{"start_session": {{}}}}}}'.
+            data='{{"version": "{version}", "session": {{"key": "value"}}, "request": {{"start_session": {{}}}}}}'.
             format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
@@ -62,9 +62,9 @@ class TestTDMClient(object):
         self._when_requesting_text_input("mock-utterance")
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"version": "{version}", "request": {{"natural_language_input": {{'
-            '"utterance": "mock-utterance", "modality": "text"}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"session_id": "mock-session-id"}}, '
+            '"request": {{"natural_language_input": {{'
+            '"modality": "text", "utterance": "mock-utterance"}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -109,9 +109,9 @@ class TestTDMClient(object):
         self._when_requesting_text_input("mock-utterance", session_data={"key": "value"})
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
-            '"version": "{version}", "request": {{"natural_language_input": {{'
-            '"utterance": "mock-utterance", "modality": "text"}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"key": "value", "session_id": "mock-session-id"}}, '
+            '"request": {{"natural_language_input": {{'
+            '"modality": "text", "utterance": "mock-utterance"}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -123,10 +123,11 @@ class TestTDMClient(object):
         self._when_requesting_speech_input([InputHypothesis("mock-utterance", 0.5)])
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"version": "{version}", "request": {{"natural_language_input": {{'
-            '"hypotheses": [{{"confidence": 0.5, "utterance": "mock-utterance"}}], '
-            '"modality": "speech"}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"session_id": "mock-session-id"}}, '
+            '"request": {{"natural_language_input": {{'
+            '"modality": "speech", '
+            '"hypotheses": [{{"utterance": "mock-utterance", "confidence": 0.5}}]'
+            '}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -138,14 +139,14 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._given_session_id("mock-session-id")
-        self._when_requesting_speech_input([InputHypothesis("mock-utterance", "mock-confidence")],
-                                           session_data={"key": "value"})
+        self._when_requesting_speech_input([InputHypothesis("mock-utterance", 0.5)], session_data={"key": "value"})
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
-            '"version": "{version}", "request": {{"natural_language_input": {{'
-            '"hypotheses": [{{"confidence": "mock-confidence", "utterance": "mock-utterance"}}], '
-            '"modality": "speech"}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"key": "value", "session_id": "mock-session-id"}}, '
+            '"request": {{"natural_language_input": {{'
+            '"modality": "speech", '
+            '"hypotheses": [{{"utterance": "mock-utterance", "confidence": 0.5}}]'
+            '}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -164,17 +165,17 @@ class TestTDMClient(object):
         ])  # yapf: disable
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"version": "{version}", "request": {{"semantic_input": {{"interpretations": [{{'
+            data='{{"version": "{version}", "session": {{"session_id": "mock-session-id"}}, '
+            '"request": {{"semantic_input": {{"interpretations": [{{'
+            '"modality": "speech", '
             '"moves": '
             '[{{'
+            '"ddd": "mock-ddd", '
             '"perception_confidence": "mock-perception-confidence", '
             '"understanding_confidence": "mock-understanding-confidence", '
-            '"semantic_expression": "mock-expression", '
-            '"ddd": "mock-ddd"'
+            '"semantic_expression": "mock-expression"'
             '}}], '
-            '"utterance": "mock-utterance", '
-            '"modality": "speech"'
+            '"utterance": "mock-utterance"'
             '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
@@ -188,24 +189,28 @@ class TestTDMClient(object):
         self._given_tdm_client_created_for("mock-url")
         self._given_session_id("mock-session-id")
         self._when_requesting_semantic_input([
-            Interpretation(
-                [DDDSpecificUserMove(
-                    "mock-ddd", "mock-expression", "mock-perception-confidence", "mock-understanding-confidence")],
-                modality=Modality.SPEECH,
-                utterance="mock-utterance"
-            )],
-            session_data={"key": "value"})
+            Interpretation([
+                DDDSpecificUserMove(
+                    "mock-ddd", "mock-expression", "mock-perception-confidence", "mock-understanding-confidence"
+                )
+            ],
+                           modality=Modality.SPEECH,
+                           utterance="mock-utterance")
+        ],
+                                             session_data={"key": "value"})
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
-            '"version": "{version}", "request": {{"semantic_input": {{"interpretations": [{{"moves": [{{'
+            data='{{"version": "{version}", "session": {{"key": "value", "session_id": "mock-session-id"}}, '
+            '"request": {{"semantic_input": {{"interpretations": [{{'
+            '"modality": "speech", '
+            '"moves": '
+            '[{{'
+            '"ddd": "mock-ddd", '
             '"perception_confidence": "mock-perception-confidence", '
             '"understanding_confidence": "mock-understanding-confidence", '
-            '"semantic_expression": "mock-expression", '
-            '"ddd": "mock-ddd"'
+            '"semantic_expression": "mock-expression"'
             '}}], '
-            '"utterance": "mock-utterance", '
-            '"modality": "speech"'
+            '"utterance": "mock-utterance"'
             '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
@@ -218,8 +223,8 @@ class TestTDMClient(object):
         self._when_calling_passivity()
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id"}}, '
-            '"version": "{version}", "request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"session_id": "mock-session-id"}}, '
+            '"request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -234,8 +239,8 @@ class TestTDMClient(object):
         self._when_calling_passivity(session_data={"key": "value"})
         self._then_request_was_made_with(
             "mock-url",
-            data='{{"session": {{"session_id": "mock-session-id", "key": "value"}}, '
-            '"version": "{version}", "request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
+            data='{{"version": "{version}", "session": {{"key": "value", "session_id": "mock-session-id"}}, '
+            '"request": {{"passivity": {{}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 

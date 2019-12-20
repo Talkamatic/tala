@@ -144,21 +144,21 @@ class TestGrammar(object):
                     GrammarForRGL,
                     "tala/model/grammar/test/grammar_for_rgl_example.xml",
                     [["John"],
-                     [u"约翰"],
+                     ["约翰"],
                      ["Lisa"],
                      ["Mary"],
                      ["Andy"],
-                     [u"安迪"]]
+                     ["安迪"]]
             ),
             (
                     Grammar,
                     "tala/model/grammar/test/grammar_example.xml",
                     [["John", "Johnny"],
-                     [u"约翰"],
+                     ["约翰"],
                      ["Lisa"],
                      ["Mary"],
                      ["Andy"],
-                     [u"安迪"]]
+                     ["安迪"]]
             )
         ])  # yapf: disable
     def test_entries_of_individual(self, GrammarClass, grammar, results):
@@ -244,7 +244,7 @@ class TestGrammar(object):
         self.given_grammar_from_class(Grammar)
         self.when_fetching_questions_of_predicate_then_warns(
             "phone_number_of_contact", "Grammar ignores element 'question' with attributes "
-            "{'predicate': 'phone_number_of_contact', 'speaker': 'user'} since there are no plain text items"
+            "{'speaker': 'user', 'predicate': 'phone_number_of_contact'} since there are no plain text items"
         )
 
     def test_question_in_rgl_without_plain_text_entries_warns(self):
@@ -253,7 +253,7 @@ class TestGrammar(object):
         self.given_grammar_from_class(GrammarForRGL)
         self.when_fetching_questions_of_predicate_then_warns(
             "phone_number_of_contact", "GrammarForRGL ignores element 'question' with attributes "
-            "{'predicate': 'phone_number_of_contact', 'speaker': 'user'} since it has no <utterance>"
+            "{'speaker': 'user', 'predicate': 'phone_number_of_contact'} since it has no <utterance>"
         )
 
     @pytest.mark.parametrize(

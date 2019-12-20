@@ -8,22 +8,19 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
         if content_or_contentclass is None:
             contentclass = None
             initial_content = []
-        elif hasattr(content_or_contentclass, '__iter__'):
-            contentclass = None
-            initial_content = content_or_contentclass
-        else:
+        elif type(content_or_contentclass) is type:
             contentclass = content_or_contentclass
             initial_content = []
+        else:
+            contentclass = None
+            initial_content = content_or_contentclass
         self.contentclass = contentclass
         self.content = []
         for x in initial_content:
             self.add(x)
 
-    def __unicode__(self):
-        return "{" + ", ".join(map(unicode, self.content)) + "}"
-
     def __str__(self):
-        return unicode(self).encode("utf-8")
+        return "{" + ", ".join(map(str, self.content)) + "}"
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.content or self.contentclass or [])
@@ -67,8 +64,8 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
         if self.contentclass:
             if not isinstance(element, self.contentclass):
                 raise TypeError(
-                    "object " + unicode(element) + " of type " + element.__class__.__name__ + " is not of type " +
-                    unicode(self.contentclass)
+                    "object " + str(element) + " of type " + element.__class__.__name__ + " is not of type " +
+                    str(self.contentclass)
                 )
 
     def __len__(self):

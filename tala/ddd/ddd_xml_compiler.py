@@ -175,7 +175,7 @@ class OntologyCompiler(XmlCompiler):
 
     def _compile_predicates(self):
         elements = self._document.getElementsByTagName("predicate")
-        self._predicates = set([self._compile_predicate_element(element) for element in elements])
+        self._predicates = {self._compile_predicate_element(element) for element in elements}
 
     def _compile_predicate_element(self, element):
         name = self._get_mandatory_attribute(element, "name")
@@ -563,7 +563,7 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_dependency_element(self, element):
         dependent_question = self._compile_question(element)
-        others = set([self._compile_question(element) for element in self._find_child_nodes(element, "question")])
+        others = {self._compile_question(element) for element in self._find_child_nodes(element, "question")}
         return dependent_question, others
 
     def _compile_parameters_element(self, element):
@@ -730,11 +730,11 @@ class GrammarCompiler(XmlCompiler):
         self._fix_whitespace_at_end(nodes)
 
     def _fix_whitespace_at_start(self, nodes):
-        if isinstance(nodes[0], (str, unicode)):
+        if isinstance(nodes[0], str):
             nodes[0] = nodes[0].lstrip()
 
     def _fix_whitespace_at_end(self, nodes):
-        if isinstance(nodes[-1], (str, unicode)):
+        if isinstance(nodes[-1], str):
             nodes[-1] = nodes[-1].rstrip()
 
     def _perform_node_type_specific_post_processing(self, node_type, parameters, form_nodes):
@@ -962,7 +962,7 @@ class RglGrammarCompiler(GrammarCompiler):
         if element.nodeType == xml.dom.minidom.Node.TEXT_NODE:
             return self._compile_text_node(element, itemize=False)
         else:
-            compiled_attributes = dict(element.attributes.items())
+            compiled_attributes = dict(list(element.attributes.items()))
             compiled_children = [self._compile_generically(child) for child in self._get_non_empty_child_nodes(element)]
             return Node(element.localName, compiled_attributes, compiled_children)
 

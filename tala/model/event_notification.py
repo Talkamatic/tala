@@ -34,5 +34,5 @@ class EventNotification(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "EventNotification(%r, %r, %r)" % (self._action, self._status, self._parameters)

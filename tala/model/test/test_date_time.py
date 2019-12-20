@@ -9,10 +9,10 @@ class DateTimeTestCase(unittest.TestCase):
         self.then_result_is('datetime(2018-04-11T22:00:00.000Z)')
 
     def when_get_unicode_string(self, date_time):
-        self._actual_result = unicode(date_time)
+        self._actual_result = str(date_time)
 
     def then_result_is(self, expected_result):
-        self.assertEquals(expected_result, self._actual_result)
+        self.assertEqual(expected_result, self._actual_result)
 
     def test_human_standard(self):
         self.when_get_human_standard(DateTime("2018-04-11T22:00:00.000Z"))

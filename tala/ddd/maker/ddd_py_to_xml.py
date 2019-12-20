@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import StringIO
+import io
 import codecs
 import os
 import sys
@@ -32,9 +32,9 @@ class PyToXmlConverter:
         return element
 
     def _set_attributes(self, element, **attributes):
-        for attribute, value in attributes.iteritems():
+        for attribute, value in list(attributes.items()):
             if value is not None:
-                self._set_attribute(element, attribute, unicode(value))
+                self._set_attribute(element, attribute, str(value))
 
     def _set_attribute(self, element, name, value):
         element.attrib[name] = value
@@ -58,7 +58,7 @@ class OntologyConverter(PyToXmlConverter):
             f.write(xml)
 
     def _convert_sorts(self):
-        for sort in self._ddd.ontology.get_sorts().values():
+        for sort in list(self._ddd.ontology.get_sorts().values()):
             if not sort.is_builtin():
                 self._convert_sort(sort)
 
@@ -69,7 +69,7 @@ class OntologyConverter(PyToXmlConverter):
         self._root.append(element)
 
     def _convert_predicates(self):
-        for predicate in self._ddd.ontology.get_predicates().values():
+        for predicate in list(self._ddd.ontology.get_predicates().values()):
             self._convert_predicate(predicate)
 
     def _convert_predicate(self, predicate):
@@ -92,7 +92,7 @@ class OntologyConverter(PyToXmlConverter):
 
     def _convert_individuals(self):
         individuals = self._ddd.ontology.get_individuals()
-        for individual, sort in individuals.iteritems():
+        for individual, sort in list(individuals.items()):
             self._convert_individual(individual, sort.get_name())
 
     def _convert_individual(self, individual, sort_name):
@@ -335,7 +335,7 @@ class DomainConverter(PyToXmlConverter):
         parent.append(element)
 
     def _convert_dependencies(self):
-        for dependent_question, others in self._ddd.domain.dependencies.iteritems():
+        for dependent_question, others in list(self._ddd.domain.dependencies.items()):
             element = self._create_element("dependency")
             self._set_question_attributes(element, dependent_question)
             for other in others:
@@ -345,7 +345,7 @@ class DomainConverter(PyToXmlConverter):
             self._root.append(element)
 
     def _convert_parameters(self):
-        for obj, parameters in self._ddd.domain.parameters.iteritems():
+        for obj, parameters in list(self._ddd.domain.parameters.items()):
             self._convert_object_parameters(obj, parameters)
 
     def _convert_object_parameters(self, obj, parameters):
@@ -356,7 +356,7 @@ class DomainConverter(PyToXmlConverter):
             self._set_attribute(element, "predicate", obj.get_name())
         else:
             raise Exception("parameters supported only for questions and predicates")
-        for name, value in parameters.iteritems():
+        for name, value in list(parameters.items()):
             self._convert_parameter(element, name, value)
         self._root.append(element)
 
@@ -378,7 +378,7 @@ class DomainConverter(PyToXmlConverter):
         elif parameter in [
             "graphical_type", "source", "format", "sort_order", "allow_goal_accommodation", "max_spoken_alts"
         ]:
-            self._set_attribute(parent, parameter, unicode(value))
+            self._set_attribute(parent, parameter, str(value))
         else:
             raise Exception("unsupported parameter %r" % parameter)
 
@@ -489,15 +489,15 @@ class GrammarConverter(PyToXmlConverter):
         self._convert_node(input_root_node)
 
     def _convert_node(self, node, parent=None):
-        if isinstance(node, (str, unicode)):
+        if isinstance(node, str):
             if len(node) > 0:
                 self._write(node)
             else:
-                print "warning: can not convert empty grammar node: %s" % parent
+                print(("warning: can not convert empty grammar node: %s" % parent))
         elif node.type in self._conversion_methods:
             self._conversion_methods[node.type](node, parent)
         else:
-            print "WARNING: don't know how to convert grammar node of type %r" % node.type
+            print(("WARNING: don't know how to convert grammar node of type %r" % node.type))
 
     def _convert_grammar_node(self, node, parent):
         self._write('<grammar>\n')
@@ -617,7 +617,7 @@ class GrammarConverter(PyToXmlConverter):
         else:
             name = node.type
         self._write("%s<%s" % ("  " * indent, name))
-        for key, value in attributes.iteritems():
+        for key, value in list(attributes.items()):
             self._write(' %s="%s"' % (key, value))
 
         if len(node.children) == 0:
@@ -654,7 +654,7 @@ class GrammarConverter(PyToXmlConverter):
         return answer_slots
 
     def convert_node(self, node):
-        self._output = StringIO.StringIO()
+        self._output = io.StringIO()
         self._convert_node(node)
         return self._output.getvalue()
 
@@ -678,5 +678,5 @@ if __name__ == "__main__":
     ddd_set_loader = DDDSetLoader()
     ddds = ddd_set_loader.ddds_as_list(args.ddds, languages=args.languages)
     for ddd in ddds:
-        print "Converting %s to XML" % ddd.name
+        print(("Converting %s to XML" % ddd.name))
         PyToXmlConverter(ddd, args.languages).convert()

@@ -161,14 +161,8 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
             self._weighted_understanding_confidence, self._speaker, self._utterance, self._ddd_name
         ))
 
-    def __unicode__(self):
-        return self._get_expression(True)
-
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __repr__(self):
-        return str(self)
+        return self._get_expression(True)
 
     def _get_expression(self, include_attributes):
         string = "Move("
@@ -237,7 +231,7 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return self.get_type() == Move.ANSWER
 
     def to_rich_string(self):
-        return "%s:%s:%s" % (unicode(self), self._speaker, self._understanding_confidence)
+        return "%s:%s:%s" % (str(self), self._speaker, self._understanding_confidence)
 
     def uprank(self, amount):
         self._weighted_understanding_confidence *= (1 + amount)
@@ -280,7 +274,7 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
 
     def _get_expression(self, include_attributes):
         string = "Move("
-        string += "%s(%s" % (self._type, unicode(self._content))
+        string += "%s(%s" % (self._type, str(self._content))
         if self._background:
             string += ", %s" % unicodify(self._background)
         string += ")"
@@ -392,7 +386,7 @@ class ICMMove(Move):
     def is_turn_yielding(self):
         return self.get_type() == ICMMove.ACC and self._polarity == ICMMove.NEG
 
-    def __unicode__(self):
+    def __str__(self):
         string = "ICMMove(%s" % self._icm_to_string()
         if self._speaker:
             string += ", speaker=%s" % self._speaker
@@ -544,7 +538,7 @@ class PrereportMove(Move, OntologySpecificSemanticObject):
     def get_arguments(self):
         return self.arguments
 
-    def __unicode__(self):
+    def __str__(self):
         return "prereport(%s, %s%s)" % (
             self.service_action, unicodify(self.arguments), self._build_string_from_attributes()
         )

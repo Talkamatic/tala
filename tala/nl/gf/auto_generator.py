@@ -4,7 +4,7 @@ import codecs
 import contextlib
 import itertools
 import os
-from StringIO import StringIO
+from io import StringIO
 import sys
 
 import tala.nl.gf.resource
@@ -120,7 +120,7 @@ class AutoGenerator(object):
     def _get_categories_from_predicates(self):
         categories = {}
 
-        for predicate in self._ontology.get_predicates().values():
+        for predicate in list(self._ontology.get_predicates().values()):
             category = "Predicate_%s" % predicate
             categories[predicate.get_name()] = category
 
@@ -140,7 +140,7 @@ class AutoGenerator(object):
     def _add_header_in_auto_generated_gf_files(self, language_code):
         self._natural_language_gf_content.write("--# -coding=utf-8\n")
         self._abstract_gf_content.write("abstract %s = TDM, Integers ** {\n\n" "cat\n\n" % self._ddd_name)
-        for category in self._categories.values():
+        for category in list(self._categories.values()):
             self._abstract_gf_content.write("%s;\n" % category)
         if self._is_unknown_category_needed():
             self._abstract_gf_content.write("%s;\n" % UNKNOWN_CATEGORY)
@@ -151,7 +151,7 @@ class AutoGenerator(object):
             (self._ddd_name, self._ddd_name)
         )
         self._semantic_gf_content.write("lincat\n\n")
-        for category in self._categories.values():
+        for category in list(self._categories.values()):
             self._semantic_gf_content.write("%s = SS;\n" % category)
         if self._is_unknown_category_needed():
             self._semantic_gf_content.write("%s = SS;\n" % UNKNOWN_CATEGORY)
@@ -233,7 +233,7 @@ class AutoGenerator(object):
         self._generate_placeholders_for_dynamic_custom_sorts()
         self._generate_individuals()
         self._generate_potential_user_answer_sequences()
-        for predicate in self._ontology.get_predicates().values():
+        for predicate in list(self._ontology.get_predicates().values()):
             predicate_name = predicate.get_name()
             self._generate_predicate_content(predicate_name)
             self._generate_potential_system_question(predicate_name)
@@ -267,7 +267,7 @@ class AutoGenerator(object):
         elif optional:
             return None
         else:
-            raise MissingEntry("missing entry %s" % unicode(key))
+            raise MissingEntry("missing entry %s" % str(key))
 
     def _get_form_as_options(self, key, optional=False):
         node = self._get_form(key, optional)
@@ -286,11 +286,11 @@ class AutoGenerator(object):
         return string.replace("_", " ")
 
     def _generate_individuals(self):
-        for (individual, sort) in self._ontology.get_individuals().iteritems():
+        for (individual, sort) in self._ontology.get_individuals().items():
             self._generate_individual(individual, sort)
 
     def _generate_placeholders_for_dynamic_custom_sorts(self):
-        for sort in self._ontology.get_sorts().values():
+        for sort in list(self._ontology.get_sorts().values()):
             if sort.is_dynamic():
                 for index in range(0, utils.MAX_NUM_PLACEHOLDERS):
                     self._generate_placeholder_for_dynamic_custom_sort(sort, index)
@@ -319,7 +319,7 @@ class AutoGenerator(object):
         self._generate_function_with_answers(function_name, form, "UserAnswerSequence", generate_semantic_value)
 
     def _generate_features(self):
-        for predicate in self._ontology.get_predicates().values():
+        for predicate in list(self._ontology.get_predicates().values()):
             if predicate.get_feature_of_name():
                 self._generate_feature(predicate)
 
@@ -453,7 +453,9 @@ class AutoGenerator(object):
     def _form_contains_parameter_not_in_combination(self, form, combination, service_interface):
         parameter_names_in_form = self._parameters_in_form(form, service_interface)
         parameter_names_in_combination = [parameter.name for parameter in combination]
-        return any(filter(lambda parameter: parameter not in parameter_names_in_combination, parameter_names_in_form))
+        return any([
+            parameter for parameter in parameter_names_in_form if parameter not in parameter_names_in_combination
+        ])
 
     def _parameters_in_form(self, form, service_interface):
         parameter_names_in_device = [parameter.name for parameter in service_interface.parameters]
@@ -1162,7 +1164,7 @@ class AutoGenerator(object):
         function_name = action
         self._abstract_gf_content.write("%s : VpAction;\n" % function_name)
         self._semantic_gf_content.write('%s = pp "%s";\n' % (function_name, action))
-        vp_forms = filter(lambda form: not self._is_np(form), forms)
+        vp_forms = [form for form in forms if not self._is_np(form)]
         forms_without_answers = []
         for form in vp_forms:
             if self._form_contains_answer_slots(form):
@@ -1194,7 +1196,7 @@ class AutoGenerator(object):
     def _write_forms_without_answers_to_nl_content(self, phrase_function, function_name, forms_without_answers):
         if len(forms_without_answers) > 0:
             gf_forms = [phrase_function(form) for form in forms_without_answers]
-            self._natural_language_gf_content.write(u"%s = (%s);\n" % (function_name, u"|".join(gf_forms)))
+            self._natural_language_gf_content.write("%s = (%s);\n" % (function_name, "|".join(gf_forms)))
 
     def _get_np_action_category(self, grammatical_features):
         return "NpAction%s%s" % (
@@ -1321,7 +1323,7 @@ class AutoGenerator(object):
         self._write_function_with_answers_in_natural_language_gf(function_name, nl_parts, arguments)
 
     def _write_function_with_answers_in_natural_language_gf(self, function_name, nl_parts, arguments):
-        natural_content = u"{function_name} {joined_arguments} = ss ({concatenated_nl_parts});\n".format(
+        natural_content = "{function_name} {joined_arguments} = ss ({concatenated_nl_parts});\n".format(
             function_name=function_name,
             joined_arguments=" ".join(arguments),
             concatenated_nl_parts=" ++ ".join(nl_parts)
@@ -1347,7 +1349,7 @@ class AutoGenerator(object):
         self._abstract_gf_content.write(abstract_content)
 
     def _get_predicate_sort(self, predicate_as_string):
-        for predicate in self._ontology.get_predicates().values():
+        for predicate in list(self._ontology.get_predicates().values()):
             if predicate.get_name() == predicate_as_string:
                 sort = predicate.getSort()
         return sort
@@ -1405,13 +1407,13 @@ class AutoGenerator(object):
         )
 
     def _load_xml_grammar_source(self, language_code):
-        grammar_object = open(self._xml_grammar_path(language_code))
-        grammar_string = grammar_object.read()
-        return grammar_string
+        with open(self._xml_grammar_path(language_code), mode="rb") as grammar_object:
+            grammar_string = grammar_object.read()
+            return grammar_string
 
     def _missing_entry(self, reporting_method, *args):
         if not self._ignore_warnings:
-            print >> sys.stderr, "Missing grammar entry:",
+            print("Missing grammar entry:", end=' ', file=sys.stderr)
             reporting_method(*args)
 
     def _missing_action(self, action):
@@ -1545,14 +1547,14 @@ class AutoGenerator(object):
 
     def _is_goal_issue(self, predicate):
         goal_string = "resolve(?X.%s(X))" % predicate
-        resolve_goals = filter(ResolveGoal.filter(), self._domain.get_all_goals())
-        return goal_string in [unicode(resolve_goal) for resolve_goal in resolve_goals]
+        resolve_goals = list(filter(ResolveGoal.filter(), self._domain.get_all_goals()))
+        return goal_string in [str(resolve_goal) for resolve_goal in resolve_goals]
 
     def _warn(self, warning):
-        print >> sys.stderr, warning
+        print(warning, file=sys.stderr)
 
     def _form_to_gf_string(self, form):
-        if isinstance(form, (str, unicode)):
+        if isinstance(form, str):
             return form
         elif form.type == Constants.ITEM:
             return " ".join([self._form_to_gf_string(child) for child in form.children])
@@ -1563,7 +1565,7 @@ class AutoGenerator(object):
 
     def _can_be_asked_by_system(self, predicate):
         return predicate in [
-            unicode(question.get_predicate()) for question in self._domain.get_plan_questions() if (
+            str(question.get_predicate()) for question in self._domain.get_plan_questions() if (
                 question.get_content().is_lambda_abstracted_predicate_proposition()
                 and question.get_predicate().get_feature_of_name() is None
             )
@@ -1615,7 +1617,7 @@ class AutoGenerator(object):
         return self._is_slot(form) and len(form.parameters) == 0
 
     def _has_np(self, forms):
-        return any(filter(lambda form: self._is_np(form), forms))
+        return any([form for form in forms if self._is_np(form)])
 
     def _is_np(self, form):
         if isinstance(form, Node) and form.type == Constants.ITEM:
@@ -1624,7 +1626,7 @@ class AutoGenerator(object):
             return isinstance(form, Node) and form.type == Constants.NP
 
     def _has_vp(self, forms):
-        return any(filter(lambda form: self._is_vp(form), forms))
+        return any([form for form in forms if self._is_vp(form)])
 
     def _is_vp(self, form):
         if isinstance(form, Node) and form.type == Constants.ITEM:

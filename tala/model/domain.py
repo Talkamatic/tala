@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from tala.model.action import Action
 from tala.model.error import DomainError
 from tala.model.goal import PerformGoal, ResolveGoal
@@ -8,6 +6,7 @@ from tala.model.plan import Plan, InvalidPlansException
 from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.unique import unique
 
 
 class DddDomain:
@@ -40,14 +39,15 @@ class Domain(AsJSONMixin):
 
     @property
     def goals(self):
-        return self.plans.keys()
+        return list(self.plans.keys())
 
     def _has_top_plan(self):
-        return any(filter(lambda plan:
-                              (plan["goal"].is_goal() and
-                               plan["goal"].get_goal_type() == PerformGoal.PERFORM_GOAL and
-                               plan["goal"].get_action().get_value() == "top"),
-                          self.plans.values()))  # noqa: E127
+        return any([
+            plan for plan in list(self.plans.values()) if (
+                plan["goal"].is_goal() and plan["goal"].get_goal_type() == PerformGoal.PERFORM_GOAL
+                and plan["goal"].get_action().get_value() == "top"
+            )
+        ])  # noqa: E127
 
     def get_ontology(self):
         return self.ontology
@@ -171,13 +171,13 @@ class Domain(AsJSONMixin):
             yield goal
 
     def get_all_goals(self):
-        return self.plans.keys()
+        return list(self.plans.keys())
 
     def get_all_goals_in_defined_order(self):
         return self._goals_in_defined_order
 
     def get_all_resolve_goals(self):
-        return filter(lambda x: x.is_resolve_goal(), self.plans)
+        return [x for x in self.plans if x.is_resolve_goal()]
 
     def get_postconds(self, goal):
         if self.has_goal(goal):
@@ -251,9 +251,6 @@ class Domain(AsJSONMixin):
                 if individual_sort == sort:
                     individual = self.ontology.create_individual(individual_value)
                     yield PredicateProposition(predicate, individual)
-
-        def unique(elements):
-            return list(OrderedDict.fromkeys(elements))
 
         predicate = question.get_predicate()
         question_sort = predicate.getSort()
@@ -354,7 +351,7 @@ class Domain(AsJSONMixin):
     def get_feature_questions_for_plan_item(self, question, plan_item):
         feature_questions = []
         if question.get_content().is_lambda_abstracted_predicate_proposition():
-            for predicate in self.ontology.get_predicates().values():
+            for predicate in list(self.ontology.get_predicates().values()):
                 if predicate.is_feature_of(question.get_content().getPredicate()):
                     feature_question = self.ontology.create_wh_question(predicate.get_name())
                     feature_questions.append(feature_question)

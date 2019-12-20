@@ -166,18 +166,18 @@ class SwedishExamples(Examples):
     @property
     def negative(self):
         phrases = [
-            "om", u"ovanför", u"tvärsöver", "efter", "mot", "bland", "runt", "som", u"på", "vid", u"ovanpå", u"före",
-            "bakom", "nedan", "under", "bredvid", "mellan", "bortom", "men", "av", "trots", "ner", u"förutom", u"för",
-            u"från", "i", "inuti", "in i", u"nära", u"nästa", "mittemot", "ut", u"utanför", u"över", "per", "plus",
-            "runt", "sedan", u"än", "genom", "tills", "till", "mot", "olik", "upp", "via", "med", "inom", "utan", u"är",
-            "vara", "den", "det", "en", "ett", "dem", "denna", "detta", "jag", "du", "ni", "han", "hon", "hen", "de",
-            "hans", "hennes", "hens", "min", "mina", "deras", "er", "din", "vi", "oss", u"vår"
+            "om", "ovanför", "tvärsöver", "efter", "mot", "bland", "runt", "som", "på", "vid", "ovanpå", "före",
+            "bakom", "nedan", "under", "bredvid", "mellan", "bortom", "men", "av", "trots", "ner", "förutom", "för",
+            "från", "i", "inuti", "in i", "nära", "nästa", "mittemot", "ut", "utanför", "över", "per", "plus", "runt",
+            "sedan", "än", "genom", "tills", "till", "mot", "olik", "upp", "via", "med", "inom", "utan", "är", "vara",
+            "den", "det", "en", "ett", "dem", "denna", "detta", "jag", "du", "ni", "han", "hon", "hen", "de", "hans",
+            "hennes", "hens", "min", "mina", "deras", "er", "din", "vi", "oss", "vår"
         ]
-        question_phrases = ["hur", u"hur är", u"när", u"när är", "vad", u"vad är", u"varför", u"varför är"]
+        question_phrases = ["hur", "hur är", "när", "när är", "vad", "vad är", "varför", "varför är"]
         action_phrases = [
-            u"gör", u"göra", "skapa", u"berätta", "tala om", u"börja", "starta", "sluta", "stopp", "stanna", u"sätt på",
-            u"stäng av", u"höj", u"sänk", u"öka", "minska", "agera", u"bestäm", u"säg", u"fråga", u"gå", u"kör",
-            u"vänta", "ok", "visa", u"hjälp"
+            "gör", "göra", "skapa", "berätta", "tala om", "börja", "starta", "sluta", "stopp", "stanna", "sätt på",
+            "stäng av", "höj", "sänk", "öka", "minska", "agera", "bestäm", "säg", "fråga", "gå", "kör", "vänta", "ok",
+            "visa", "hjälp"
         ]
         for phrase in phrases:
             yield phrase
@@ -188,57 +188,56 @@ class SwedishExamples(Examples):
 
     @property
     def integer(self):
-        return ["0", "99", "1224", "etthundratjugosju", "tre", u"tvåtusenfemton"]
+        return ["0", "99", "1224", "etthundratjugosju", "tre", "tvåtusenfemton"]
 
     @property
     def string(self):
         return [
-            "enkel", "dubbelt ord", "det blir tre", u"fyra på en gång", u"ju fler desto bättre fem",
-            u"håll andan och räkna till sex", "led dem fram till de glada sju",
-            u"ingen räknar tår som den med åtta tår", u"det spelar roll att det låter rimligt för nio",
-            u"tar du med tio eller inga till en öde ö"
+            "enkel", "dubbelt ord", "det blir tre", "fyra på en gång", "ju fler desto bättre fem",
+            "håll andan och räkna till sex", "led dem fram till de glada sju", "ingen räknar tår som den med åtta tår",
+            "det spelar roll att det låter rimligt för nio", "tar du med tio eller inga till en öde ö"
         ]
 
     @property
     def datetime(self):
         return [
-            "idag", u"måndag 18 mars", "1:a mars", "klockan 11.45", u"följande tre veckor", "om tio minuter",
-            u"20:e mars vid 22.00", u"tjugonde mars vid tio på kvällen"
+            "idag", "måndag 18 mars", "1:a mars", "klockan 11.45", "följande tre veckor", "om tio minuter",
+            "20:e mars vid 22.00", "tjugonde mars vid tio på kvällen"
         ]
 
     @property
     def person_name(self):
         return [
             "Astrid", "Nils", "Lisa", "Mats", "Alexander", "Annika", "Erika", "Claes", "Marcus", "Katarina", "Leif",
-            "Sara", "Oskar", "Andreas", "Per", "Roger", "Niklas", "Christer", "Johan", "Danielsson", u"Nordström",
-            "Svensson", "Jonasson", "Karlsson", "Holm", "Olofsson", u"Sandström", "Holmberg", "Olsson", "Persson",
+            "Sara", "Oskar", "Andreas", "Per", "Roger", "Niklas", "Christer", "Johan", "Danielsson", "Nordström",
+            "Svensson", "Jonasson", "Karlsson", "Holm", "Olofsson", "Sandström", "Holmberg", "Olsson", "Persson",
             "Bergman", "Lindholm", "Axelsson", "Emelie Pettersson", "Johannes Henriksson", "Martin Magnusson",
-            "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", u"Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
-            "Anette Samuelsson", "Annika Lundberg", u"Eva Löfgren", "Linda Hassan", "Robert Norberg"
+            "Patrik Isaksson", "Jakob Eliasson", "Roland Ali", "Viktor Nyström", "Helen Viklund", "Kurt Gustafsson",
+            "Anette Samuelsson", "Annika Lundberg", "Eva Löfgren", "Linda Hassan", "Robert Norberg"
         ]
 
     @property
     def yes(self):
         return [
-            "ja", "javisst", "japp", "absolut", u"det stämmer", "precis", u"självklart", u"varför inte", "ok", "okej",
+            "ja", "javisst", "japp", "absolut", "det stämmer", "precis", "självklart", "varför inte", "ok", "okej",
             "det blir kanon", "perfekt", "det skulle jag tro"
         ]
 
     @property
     def no(self):
         return [
-            "nej", "nix", u"nähe du", "icke", "nej tack", "helst inte", "det vill jag inte", "det tror jag inte",
-            "det skulle jag inte tro", u"gör inte det", u"gör det inte"
+            "nej", "nix", "nähe du", "icke", "nej tack", "helst inte", "det vill jag inte", "det tror jag inte",
+            "det skulle jag inte tro", "gör inte det", "gör det inte"
         ]
 
     @property
     def top(self):
-        return [u"glöm alltihop", "jag skiter i detta", u"ta mig härifrån", u"börja om", u"börja från noll"]
+        return ["glöm alltihop", "jag skiter i detta", "ta mig härifrån", "börja om", "börja från noll"]
 
     @property
     def up(self):
         return [
-            u"gå tillbaka", u"vad var den förra", "backa", u"förra", "tillbaka", "ta mig tillbaka", u"backa till förra"
+            "gå tillbaka", "vad var den förra", "backa", "förra", "tillbaka", "ta mig tillbaka", "backa till förra"
         ]
 
     @property
@@ -250,32 +249,32 @@ class SpanishExamples(Examples):
     @property
     def negative(self):
         phrases = [
-            "a bordo", "acerca de", "arriba", u"a través de", u"después de", "en contra", "a lo largo de", "entre",
-            "como", "en", "en", "en lo alto", "antes", u"detrás", "abajo", "debajo", "al lado", "entre", u"más allá de",
+            "a bordo", "acerca de", "arriba", "a través de", "después de", "en contra", "a lo largo de", "entre",
+            "como", "en", "en", "en lo alto", "antes", "detrás", "abajo", "debajo", "al lado", "entre", "más allá de",
             "pero", "por", "abajo", "durante", "excepto", "para", "desde", "en", "dentro", "en", "menos", "como",
             "cerca", "de", "encima de", "sobre", "opuesto", "fuera", "fuera de", "corto", "desde", "que", "entonces",
             "a lo largo de", "hasta", "hacia", "debajo de", "a diferencia de", "hasta", "arriba", "con", "dentro de",
             "sin", "vale", "es"
             "se", "el", "la"
-            "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", u"él", "ella", "ellos", "ellas", "su", "sus",
-            "mi", "tu", u"tú", "nosotros", "nosotras", "vosotros", "vosotras", "nuestro", "nuestra", "vuestro",
-            "vuestra", "vuestros", "vuestras", u"mío", u"mía", u"míos", u"mías", "tuyo", "tuyos", "tuya", "tuyas",
-            "suyo", "suya", "suyos", "suyas"
+            "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", "él", "ella", "ellos", "ellas", "su", "sus",
+            "mi", "tu", "tú", "nosotros", "nosotras", "vosotros", "vosotras", "nuestro", "nuestra", "vuestro",
+            "vuestra", "vuestros", "vuestras", "mío", "mía", "míos", "mías", "tuyo", "tuyos", "tuya", "tuyas", "suyo",
+            "suya", "suyos", "suyas"
         ]
         question_phrases = [
-            u"cómo", u"cómo está", u"cómo es", u"cómo está el", u"cómo es el", u"cómo está la", u"cómo es la",
-            u"cómo están los", u"cómo están las"
-            u"cuándo", u"cuándo es", u"cuándo está", u"cuándo es el", u"cuándo es la", u"cuándo son los",
-            u"cuándo son las", u"cuándo está el", u"cuándo está la", u"cuándo están los", u"cuándo están las", u"qué",
-            u"qué es", u"qué es la", u"qué es el", u"qué son los", u"qué son las", u"cuál", u"cuál es", u"cuál es la",
-            u"cuál es el", u"cuáles son los", u"cuáles son las", u"por qué", u"por qué es", u"por qué está",
-            u"por qué es el", u"por qué es la", u"por qué son", u"por qué son los", u"por qué son las",
-            u"por qué está el", u"por qué está la", u"por qué están los", u"por qué están las"
+            "cómo", "cómo está", "cómo es", "cómo está el", "cómo es el", "cómo está la", "cómo es la",
+            "cómo están los", "cómo están las"
+            "cuándo", "cuándo es", "cuándo está", "cuándo es el", "cuándo es la", "cuándo son los", "cuándo son las",
+            "cuándo está el", "cuándo está la", "cuándo están los", "cuándo están las", "qué", "qué es", "qué es la",
+            "qué es el", "qué son los", "qué son las", "cuál", "cuál es", "cuál es la", "cuál es el", "cuáles son los",
+            "cuáles son las", "por qué", "por qué es", "por qué está", "por qué es el", "por qué es la", "por qué son",
+            "por qué son los", "por qué son las", "por qué está el", "por qué está la", "por qué están los",
+            "por qué están las"
         ]
         action_phrases = [
             "hacer", "decir", "iniciar", "detener", "habilitar", "deshabilitar", "querer", "dar", "haber"
             "subir", "bajar", "disminuir", "aumentar", "actuar", "determinar", "preguntar", "ir", "disparar", "esperar",
-            "esperar", "aceptar", "mostrar", u"enseñar", "ayudar"
+            "esperar", "aceptar", "mostrar", "enseñar", "ayudar"
         ]
         for phrase in phrases:
             yield phrase
@@ -287,63 +286,63 @@ class SpanishExamples(Examples):
     @property
     def integer(self):
         return [
-            "0", "99", "1224", "100000", "100.000", "una", "uno", u"dieciséis", "veintiuno", "veintiuno",
-            "veinte y uno", "tres", "dos mil quince", "mil cincuenta y siete"
+            "0", "99", "1224", "100000", "100.000", "una", "uno", "dieciséis", "veintiuno", "veintiuno", "veinte y uno",
+            "tres", "dos mil quince", "mil cincuenta y siete"
         ]
 
     @property
     def string(self):
         return [
-            "singular", "doble palabra", "tres en uno", "hey pon cuatro", u"cuanto más mejor cinco",
-            u"cálmate y cuenta hasta seis", u"llévalos hasta el siete",
+            "singular", "doble palabra", "tres en uno", "hey pon cuatro", "cuanto más mejor cinco",
+            "cálmate y cuenta hasta seis", "llévalos hasta el siete",
             "nadie cuenta los dedos de los pies como un chico de ocho dedos",
-            "importa tener sentido para nueve de nosotros", u"llevarías diez o ninguno a una isla desierta"
+            "importa tener sentido para nueve de nosotros", "llevarías diez o ninguno a una isla desierta"
         ]
 
     @property
     def datetime(self):
         return [
-            "hoy", "ayer", "este lunes", u"miércoles", "viernes 18 de febrero", "20 de febrero", "el 1 de marzo",
+            "hoy", "ayer", "este lunes", "miércoles", "viernes 18 de febrero", "20 de febrero", "el 1 de marzo",
             "11:45 de la noche", "a las tres y quince", "la semana que viene", "en cinco minutos",
-            u"próximos tres meses", "este fin de semana", u"el 12 de marzo a las 8 de la mañana"
+            "próximos tres meses", "este fin de semana", "el 12 de marzo a las 8 de la mañana"
         ]
 
     @property
     def person_name(self):
         return [
-            "Antonio", u"José", "Manuel", "Francisco", "David", "Juan", "Javier", "Daniel", u"Jesús", "Carlos",
-            "Alejandro", "Miguel", "Pedro", "Pablo", u"Ángel", "Sergio", "Alberto", u"María", u"Cármen", "Ana",
-            "Isabel", "Laura", "Cristina", "Marta", "Dolores", u"Lucía", "Paula", "Mercedes", "Rosario", "Teresa",
-            "Sara", "Reyes", "Caballero", "Nieto", "Pascual", "Ferrer", u"Giménez", "Lorenzo", "Pastor", "Soto",
-            "Soler", "Parra", u"García", u"González", u"López", u"Pérez", u"Gómez", u"Díaz", "Alonso", "Moreno",
-            "Navarro", u"Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", u"Pedro Sánchez Álvarez",
-            "Sonia Reina Sanz", "Cristina Claret Iglesias", u"Manuel Núñez Santos", "Rafael Rubio Molina",
-            u"Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"
+            "Antonio", "José", "Manuel", "Francisco", "David", "Juan", "Javier", "Daniel", "Jesús", "Carlos",
+            "Alejandro", "Miguel", "Pedro", "Pablo", "Ángel", "Sergio", "Alberto", "María", "Cármen", "Ana",
+            "Isabel", "Laura", "Cristina", "Marta", "Dolores", "Lucía", "Paula", "Mercedes", "Rosario", "Teresa",
+            "Sara", "Reyes", "Caballero", "Nieto", "Pascual", "Ferrer", "Giménez", "Lorenzo", "Pastor", "Soto",
+            "Soler", "Parra", "García", "González", "López", "Pérez", "Gómez", "Díaz", "Alonso", "Moreno",
+            "Navarro", "Rámos", "Torres", "Castillo", "Carlos Aguilar Moreno", "Pedro Sánchez Álvarez",
+            "Sonia Reina Sanz", "Cristina Claret Iglesias", "Manuel Núñez Santos", "Rafael Rubio Molina",
+            "Isabel Tomás Comas", "Anna Delgado Prieto", "Lorena Fuentes Ortiz", "Silvia Carrasco Rojas"
         ]
 
     @property
     def yes(self):
         return [
-            u"sí", "claro", "desde luego", "por supuesto", "de acuerdo", "vale", "perfecto", "bien", "okei", "sip",
+            "sí", "claro", "desde luego", "por supuesto", "de acuerdo", "vale", "perfecto", "bien", "okei", "sip",
             "sep"
         ]
 
     @property
     def no(self):
-        return ["no", u"de ningún modo", "de ninguna manera", "en absoluto", "na", "nop", "ni de broma", "para nada"]
+        return ["no", "de ningún modo", "de ninguna manera", "en absoluto", "na", "nop", "ni de broma", "para nada"]
 
     @property
     def top(self):
         return [
             "vuelve a empezar", "vuelve al principio", "vuelve al inicio", "principio", "inicio", "desde el principio",
-            "reinicia", "empieza de nuevo", u"olvídalo", "olvida todo"
+            "reinicia", "empieza de nuevo", "olvídalo", "olvida todo"
         ]
 
     @property
     def up(self):
         return [
-            u"atrás", u"vuelve atrás", "vuelve", "regresa", u"vuelve una atrás", u"quiero ir atrás",
-            u"quiero volver atrás"
+            "atrás", "vuelve atrás", "vuelve", "regresa", "vuelve una atrás", "quiero ir atrás",
+            "quiero volver atrás"
         ]
 
     @property

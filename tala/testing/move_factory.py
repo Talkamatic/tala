@@ -98,7 +98,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
                     ddd_name=ddd_name,
                     perception_confidence=perception_confidence
                 )
-            if isinstance(content, basestring):
+            if isinstance(content, str):
                 return ICMMoveWithStringContent(
                     icm_type,
                     content,

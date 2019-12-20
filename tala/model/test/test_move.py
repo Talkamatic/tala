@@ -28,28 +28,28 @@ class ReportMoveTests(LibTestCase):
         )
 
     def test_getters(self):
-        self.assertEquals(Move.REPORT, self.success_move.get_type())
-        self.assertEquals(self.success_result, self.success_move.report_proposition)
+        self.assertEqual(Move.REPORT, self.success_move.get_type())
+        self.assertEqual(self.success_result, self.success_move.report_proposition)
 
     def test_str_success_move(self):
-        self.assertEquals(
+        self.assertEqual(
             "report(ServiceResultProposition("
-            "BuyTrip, [dest_city(paris), dept_city(london)], SuccessfulServiceAction()))", unicode(self.success_move)
+            "BuyTrip, [dest_city(paris), dept_city(london)], SuccessfulServiceAction()))", str(self.success_move)
         )
 
     def test_str_failure_move(self):
-        self.assertEquals(
+        self.assertEqual(
             "report(ServiceResultProposition("
             "BuyTrip, [dest_city(paris), dept_city(london)], FailedServiceAction(no_itinerary_found)))",
-            unicode(self.failure_move)
+            str(self.failure_move)
         )
 
     def test_str_with_ddd_name(self):
         self.success_move.set_ddd_name("mockup_ddd")
-        self.assertEquals(
+        self.assertEqual(
             "report(ServiceResultProposition("
             "BuyTrip, [dest_city(paris), dept_city(london)], SuccessfulServiceAction()), ddd_name='mockup_ddd')",
-            unicode(self.success_move)
+            str(self.success_move)
         )
 
     def test_equality(self):
@@ -68,15 +68,15 @@ class ReportMoveTests(LibTestCase):
     def test_unicode_with_swedish_character(self):
         parameters = [
             PredicateProposition(
-                self.ontology.get_predicate("comment_message"), self.ontology.create_individual(u"balkong önskas")
+                self.ontology.get_predicate("comment_message"), self.ontology.create_individual("balkong önskas")
             )
         ]
         move = self.move_factory.create_report_move(
             ServiceResultProposition(self.ontology_name, "RegisterComment", parameters, SuccessfulServiceAction())
         )
-        self.assertEquals(
-            u'report(ServiceResultProposition('
-            u'RegisterComment, [comment_message("balkong önskas")], SuccessfulServiceAction()))', unicode(move)
+        self.assertEqual(
+            'report(ServiceResultProposition('
+            'RegisterComment, [comment_message("balkong önskas")], SuccessfulServiceAction()))', str(move)
         )
 
 
@@ -89,12 +89,12 @@ class PrereportMoveTests(LibTestCase):
         self.move = self.move_factory.create_prereport_move(self.service_action, self.arguments)
 
     def test_getters(self):
-        self.assertEquals(Move.PREREPORT, self.move.get_type())
-        self.assertEquals(self.service_action, self.move.get_service_action())
-        self.assertEquals(self.arguments, self.move.get_arguments())
+        self.assertEqual(Move.PREREPORT, self.move.get_type())
+        self.assertEqual(self.service_action, self.move.get_service_action())
+        self.assertEqual(self.arguments, self.move.get_arguments())
 
     def test_to_string(self):
-        self.assertEquals("prereport(BuyTrip, [dest_city(paris), dept_city(london)])", unicode(self.move))
+        self.assertEqual("prereport(BuyTrip, [dest_city(paris), dept_city(london)])", str(self.move))
 
     def test_equality(self):
         move = self.move_factory.create_prereport_move(self.service_action, self.arguments)
@@ -133,14 +133,14 @@ class MoveTests(LibTestCase):
     def testShortAnswerunicode(self):
         move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
         answer = move_factory.createAnswerMove(self.individual_paris)
-        self.assertEquals("Move(answer(paris))", unicode(answer))
+        self.assertEqual("Move(answer(paris))", str(answer))
 
     def test_short_answer_is_answer_move(self):
         move_factory = MoveFactoryWithPredefinedBoilerplate(
             self.ontology_name, speaker="USR", understanding_confidence=1.0, ddd_name=""
         )
         answer = move_factory.createAnswerMove(self.individual_paris)
-        self.assertEquals(Move.ANSWER, answer.get_type())
+        self.assertEqual(Move.ANSWER, answer.get_type())
 
     def test_is_question_raising_true_for_ask_move(self):
         question_string = "?X.dest_city(X)"
@@ -188,33 +188,33 @@ class MoveTests(LibTestCase):
 
     def test_create_greet_move(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
-        self.assertEquals(Move.GREET, move.get_type())
+        self.assertEqual(Move.GREET, move.get_type())
 
     def test_greet_move_to_string(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
-        self.assertEquals(
+        self.assertEqual(
             "Move(greet, ddd_name='mockup_ddd', speaker=SYS, understanding_confidence=1.0, "
-            "weighted_understanding_confidence=1.0, perception_confidence=1.0, modality=speech)", unicode(move)
+            "weighted_understanding_confidence=1.0, perception_confidence=1.0, modality=speech)", str(move)
         )
 
     def test_greet_move_to_semantic_expression(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
-        self.assertEquals("Move(greet)", move.get_semantic_expression())
+        self.assertEqual("Move(greet)", move.get_semantic_expression())
 
     def test_string_representation_with_score_and_speaker(self):
         move = self.move_factory.createMove(
             Move.GREET, understanding_confidence=1.0, speaker=Speaker.SYS, perception_confidence=0.9
         )
         move_string = "Move(greet, ddd_name='mockup_ddd', speaker=SYS, understanding_confidence=1.0, " "weighted_understanding_confidence=1.0, perception_confidence=0.9, modality=speech)"
-        self.assertEquals(move_string, unicode(move))
+        self.assertEqual(move_string, str(move))
 
     def test_str_with_background(self):
         move = self.move_factory.create_ask_move(speaker=Speaker.SYS, question=self.dept_city_question)
         move.set_background([self.proposition_dest_city_paris])
-        self.assertEquals(
+        self.assertEqual(
             "Move(ask(?X.dept_city(X), [dest_city(paris)]), ddd_name='mockup_ddd', speaker=SYS, "
             "understanding_confidence=1.0, weighted_understanding_confidence=1.0, "
-            "perception_confidence=1.0, modality=speech)", unicode(move)
+            "perception_confidence=1.0, modality=speech)", str(move)
         )
 
     def test_str_with_utterance(self):
@@ -222,7 +222,7 @@ class MoveTests(LibTestCase):
             Move.GREET, understanding_confidence=0.5, speaker=Speaker.USR, utterance="hello"
         )
         move_string = "Move(greet, ddd_name='mockup_ddd', speaker=USR, understanding_confidence=0.5, " "weighted_understanding_confidence=0.5, perception_confidence=1.0, modality=speech, " "utterance='hello')"
-        self.assertEquals(move_string, unicode(move))
+        self.assertEqual(move_string, str(move))
 
     def test_move_equality_basic(self):
         move1 = self.move_factory.createMove(
@@ -337,7 +337,7 @@ class MoveTests(LibTestCase):
     def test_upscore(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.USR, understanding_confidence=0.5)
         move.uprank(0.2)
-        self.assertEquals(0.5 * 1.2, move.weighted_understanding_confidence)
+        self.assertEqual(0.5 * 1.2, move.weighted_understanding_confidence)
 
 
 class ICMMoveTests(LibTestCase):
@@ -351,11 +351,11 @@ class ICMMoveTests(LibTestCase):
 
     def test_reraise_to_string(self):
         move = self.move_factory.createIcmMove(ICMMove.RERAISE, content=self.ontology.create_action("top"))
-        self.assertEquals("ICMMove(icm:reraise:top)", unicode(move))
+        self.assertEqual("ICMMove(icm:reraise:top)", str(move))
 
     def test_loadplan_to_string(self):
         move = self.move_factory.createIcmMove(ICMMove.LOADPLAN)
-        self.assertEquals("ICMMove(icm:loadplan)", unicode(move))
+        self.assertEqual("ICMMove(icm:loadplan)", str(move))
 
     def test_string_representation_with_score_and_speaker(self):
         move = self.move_factory.createIcmMove(
@@ -365,22 +365,22 @@ class ICMMoveTests(LibTestCase):
             speaker=Speaker.SYS,
             perception_confidence=0.9
         )
-        self.assertEquals(
-            "ICMMove(icm:acc*pos, speaker=SYS, understanding_confidence=1.0, perception_confidence=0.9)", unicode(move)
+        self.assertEqual(
+            "ICMMove(icm:acc*pos, speaker=SYS, understanding_confidence=1.0, perception_confidence=0.9)", str(move)
         )
 
     def test_create_und_int(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.INT, speaker=Speaker.SYS)
-        self.assertEquals(ICMMove.UND, icm.get_type())
-        self.assertEquals(ICMMove.INT, icm.get_polarity())
+        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.INT, icm.get_polarity())
 
     def test_inequality_due_to_polarity_difference(self):
         icm_int = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.INT)
         icm_pos = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.POS)
         icm_neg = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.NEG)
-        self.assertNotEquals(icm_pos, icm_int)
-        self.assertNotEquals(icm_pos, icm_neg)
-        self.assertNotEquals(icm_int, icm_neg)
+        self.assertNotEqual(icm_pos, icm_int)
+        self.assertNotEqual(icm_pos, icm_neg)
+        self.assertNotEqual(icm_int, icm_neg)
 
     def test_inequality_due_to_type_difference(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.POS)
@@ -476,62 +476,62 @@ class ICMMoveTests(LibTestCase):
     def test_und_neg_to_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.NEG)
         expected_string = "ICMMove(icm:und*neg)"
-        self.assertEquals(expected_string, unicode(icm))
+        self.assertEqual(expected_string, str(icm))
 
     def test_und_int_to_string(self):
         icm = self.move_factory.createIcmMove(
             ICMMove.UND, polarity=ICMMove.INT, content_speaker=Speaker.USR, content=self.proposition_dest_city_paris
         )
         expected_string = "ICMMove(icm:und*int:USR*dest_city(paris))"
-        self.assertEquals(expected_string, unicode(icm))
+        self.assertEqual(expected_string, str(icm))
 
     def test_create_und_pos(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.POS, speaker=Speaker.SYS)
-        self.assertEquals(ICMMove.UND, icm.get_type())
-        self.assertEquals(ICMMove.POS, icm.get_polarity())
+        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.POS, icm.get_polarity())
 
     def test_und_pos_to_string(self):
         icm = self.move_factory.createIcmMove(
             ICMMove.UND, polarity=ICMMove.POS, content_speaker=Speaker.USR, content=self.proposition_dest_city_paris
         )
         expected_string = "ICMMove(icm:und*pos:USR*dest_city(paris))"
-        self.assertEquals(expected_string, unicode(icm))
+        self.assertEqual(expected_string, str(icm))
 
     def test_per_neg_to_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.PER, polarity=ICMMove.NEG)
-        self.assertEquals("ICMMove(icm:per*neg)", unicode(icm))
+        self.assertEqual("ICMMove(icm:per*neg)", str(icm))
 
     def test_per_pos_to_string_with_content_as_double_quoted_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.PER, polarity=ICMMove.POS, content='a string')
-        self.assertEquals('ICMMove(icm:per*pos:"a string")', unicode(icm))
+        self.assertEqual('ICMMove(icm:per*pos:"a string")', str(icm))
 
     def test_acc_pos_to_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.ACC, polarity=ICMMove.POS)
-        self.assertEquals("ICMMove(icm:acc*pos)", unicode(icm))
+        self.assertEqual("ICMMove(icm:acc*pos)", str(icm))
 
     def test_sem_neg_to_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.SEM, polarity=ICMMove.NEG)
         expected_string = "ICMMove(icm:sem*neg)"
-        self.assertEquals(expected_string, unicode(icm))
+        self.assertEqual(expected_string, str(icm))
 
     def test_acc_neg_issue_to_string(self):
         icm = self.move_factory.createIcmMove(ICMMove.ACC, polarity=ICMMove.NEG, content="issue")
-        self.assertEquals("ICMMove(icm:acc*neg:issue)", unicode(icm))
+        self.assertEqual("ICMMove(icm:acc*neg:issue)", str(icm))
 
     def test_icm_move_getters(self):
         move = self.move_factory.createIcmMove(
             ICMMove.UND, polarity=ICMMove.INT, content=self.price_question, content_speaker=Speaker.USR
         )
         self.assertTrue(move.is_icm())
-        self.assertEquals(ICMMove.INT, move.get_polarity())
-        self.assertEquals(self.price_question, move.get_content())
-        self.assertEquals(Speaker.USR, move.get_content_speaker())
+        self.assertEqual(ICMMove.INT, move.get_polarity())
+        self.assertEqual(self.price_question, move.get_content())
+        self.assertEqual(Speaker.USR, move.get_content_speaker())
 
     def test_ddd_getter_and_setter(self):
         move = self.move_factory.createMove(Move.GREET)
         name = "mockup_ddd"
         move.set_ddd_name(name)
-        self.assertEquals(name, move.get_ddd_name())
+        self.assertEqual(name, move.get_ddd_name())
 
 
 class MoveRealizationTests(LibTestCase):
@@ -550,9 +550,9 @@ class MoveRealizationTests(LibTestCase):
             modality=modality,
             ddd_name="mockup_ddd"
         )
-        self.assertEquals(understanding_confidence, move.understanding_confidence)
-        self.assertEquals(speaker, move.get_speaker())
-        self.assertEquals(modality, move.get_modality())
+        self.assertEqual(understanding_confidence, move.understanding_confidence)
+        self.assertEqual(speaker, move.get_speaker())
+        self.assertEqual(modality, move.get_modality())
 
     def test_set_realization_data_for_spoken_input(self):
         move = self.move_factory.createMove(Move.GREET)
@@ -567,37 +567,37 @@ class MoveRealizationTests(LibTestCase):
             utterance=utterance,
             ddd_name="mockup_ddd"
         )
-        self.assertEquals(understanding_confidence, move.understanding_confidence)
-        self.assertEquals(speaker, move.get_speaker())
-        self.assertEquals(modality, move.get_modality())
-        self.assertEquals(utterance, move.get_utterance())
+        self.assertEqual(understanding_confidence, move.understanding_confidence)
+        self.assertEqual(speaker, move.get_speaker())
+        self.assertEqual(modality, move.get_modality())
+        self.assertEqual(utterance, move.get_utterance())
 
     def test_set_realization_data_raises_exception_if_already_set(self):
         greet_move = self.move_factory.createMove(Move.GREET)
         icm_move = self.move_factory.createIcmMove(ICMMove.ACC, content=ICMMove.POS)
         for move in [greet_move, icm_move]:
             move.set_realization_data(speaker=Speaker.SYS, ddd_name="mockup_ddd")
-            with self.assertRaisesRegexp(MoveException, "realization data already set"):
+            with self.assertRaisesRegex(MoveException, "realization data already set"):
                 move.set_realization_data(speaker=Speaker.SYS)
 
     def test_realization_with_speaker_usr_and_no_score_not_allowed(self):
-        with self.assertRaisesRegexp(MoveException, "understanding confidence must be supplied for user moves"):
+        with self.assertRaisesRegex(MoveException, "understanding confidence must be supplied for user moves"):
             self.move_factory.createMove(Move.GREET, speaker=Speaker.USR)
         with self.assertRaises(MoveException):
             self.move_factory.createIcmMove(ICMMove.ACC, ICMMove.POS, speaker=Speaker.USR)
 
     def test_realization_without_speaker_not_allowed(self):
-        with self.assertRaisesRegexp(MoveException, "speaker must be supplied"):
+        with self.assertRaisesRegex(MoveException, "speaker must be supplied"):
             self.move_factory.createMove(Move.GREET, understanding_confidence=1.0)
         with self.assertRaises(MoveException):
             self.move_factory.createIcmMove(ICMMove.ACC, ICMMove.POS, understanding_confidence=1.0)
 
     def test_realization_without_ddd_name_not_allowed_for_user_moves(self):
-        with self.assertRaisesRegexp(MoveException, "ddd_name must be supplied"):
+        with self.assertRaisesRegex(MoveException, "ddd_name must be supplied"):
             self.move_factory.createMove(Move.GREET, understanding_confidence=1.0, speaker=Speaker.USR)
 
     def test_realization_with_speaker_sys_and_score_below_one_not_allowed(self):
-        with self.assertRaisesRegexp(MoveException, "understanding confidence below 1.0 not allowed for system moves"):
+        with self.assertRaisesRegex(MoveException, "understanding confidence below 1.0 not allowed for system moves"):
             self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS, understanding_confidence=0.5)
         with self.assertRaises(MoveException):
             self.move_factory.createIcmMove(
@@ -612,13 +612,13 @@ class MoveRealizationTests(LibTestCase):
         greet_move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
         icm_move = self.move_factory.createIcmMove(ICMMove.ACC, content=ICMMove.POS, speaker=Speaker.SYS)
         for sys_move in [greet_move, icm_move]:
-            self.assertEquals(1.0, sys_move.understanding_confidence)
+            self.assertEqual(1.0, sys_move.understanding_confidence)
 
     def test_move_speech_modality_is_default(self):
         quit_move = self.move_factory.createMove(Move.QUIT, speaker=Speaker.SYS)
         icm_move = self.move_factory.createIcmMove(ICMMove.ACC, content=ICMMove.POS, speaker=Speaker.SYS)
         for move in [quit_move, icm_move]:
-            self.assertEquals(Modality.SPEECH, move.get_modality())
+            self.assertEqual(Modality.SPEECH, move.get_modality())
 
     def test_move_haptic_modality_is_available(self):
         self.move_factory.createMove(Move.QUIT, speaker=Speaker.SYS, modality=Modality.HAPTIC)
@@ -642,11 +642,11 @@ class MoveTestsFromTdmLib(LibTestCase):
         question = self.ontology.create_yes_no_question("dest_city", "paris")
         move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
         move = move_factory.create_ask_move(question)
-        moveAsString = unicode(move)
-        self.assertEquals("Move(ask(?dest_city(paris)))", moveAsString)
+        moveAsString = str(move)
+        self.assertEqual("Move(ask(?dest_city(paris)))", moveAsString)
 
     def test_wh_ask_move_to_string(self):
         move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
         move = move_factory.create_ask_move(self.dest_city_question)
-        moveAsString = unicode(move)
-        self.assertEquals("Move(ask(?X.dest_city(X)))", moveAsString)
+        moveAsString = str(move)
+        self.assertEqual("Move(ask(?X.dest_city(X)))", moveAsString)

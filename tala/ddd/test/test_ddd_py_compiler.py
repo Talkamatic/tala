@@ -48,7 +48,7 @@ class DddPyCompilerTestCase(DddCompilerTestCase):
         class Domain:
             plans = []
 
-        for key, value in kwargs.iteritems():
+        for key, value in list(kwargs.items()):
             setattr(Domain, key, value)
 
         self._result = DddPyCompiler().compile_domain(self.DDD_NAME, Domain, self._ontology, self._parser)
@@ -60,7 +60,7 @@ class DddPyCompilerTestCase(DddCompilerTestCase):
         self._when_compile_domain(plans=[{"goal": "perform(top)", "plan": [], key: value}])
 
     def _then_result_has_keys(self, expected_keys):
-        self.assertItemsEqual(expected_keys, self._result.keys())
+        self.assertItemsEqual(expected_keys, list(self._result.keys()))
 
     def _then_result_has_field(self, expected_key, expected_value):
         assert expected_value == self._result[expected_key]
@@ -109,26 +109,26 @@ class TestOntologyCompiler(DddPyCompilerTestCase):
 
     def test_custom_sort(self):
         self._when_compile_ontology(sorts={"city": {}})
-        self._then_result_has_field("sorts", set([CustomSort(self._ontology_name, "city")]))
+        self._then_result_has_field("sorts", {CustomSort(self._ontology_name, "city")})
 
     def test_dynamic_sort(self):
         self._when_compile_ontology(sorts={"city": {"dynamic": True}})
-        self._then_result_has_field("sorts", set([CustomSort(self._ontology_name, "city", dynamic=True)]))
+        self._then_result_has_field("sorts", {CustomSort(self._ontology_name, "city", dynamic=True)})
 
     def test_predicate_of_custom_sort(self):
         self._when_compile_ontology(predicates={"dest_city": "city"}, sorts={"city": {}})
         self._then_result_has_field(
-            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology_name, "city"))])
+            "predicates", {self._predicate("dest_city", CustomSort(self._ontology_name, "city"))}
         )
 
     def test_predicate_of_builtin_sort(self):
         self._when_compile_ontology(predicates={"price": "real"})
-        self._then_result_has_field("predicates", set([self._predicate("price", RealSort())]))
+        self._then_result_has_field("predicates", {self._predicate("price", RealSort())})
 
     def test_predicate_of_dynamic_sort(self):
         self._when_compile_ontology(predicates={"dest_city": "city"}, sorts={"city": {"dynamic": True}})
         self._then_result_has_field(
-            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology_name, "city", dynamic=True))])
+            "predicates", {self._predicate("dest_city", CustomSort(self._ontology_name, "city", dynamic=True))}
         )
 
     def test_feature_of(self):
@@ -144,12 +144,12 @@ class TestOntologyCompiler(DddPyCompilerTestCase):
         )
         self._then_result_has_field(
             "predicates",
-            set([
+            {
                 self._predicate("dest_city", sort=CustomSort(self._ontology_name, "city")),
                 self._predicate(
                     "dest_city_type", sort=CustomSort(self._ontology_name, "city"), feature_of_name="dest_city"
                 )
-            ])
+            }
         )
 
     def test_individuals(self):
@@ -157,8 +157,8 @@ class TestOntologyCompiler(DddPyCompilerTestCase):
         self._then_result_has_field("individuals", {"paris": CustomSort(self._ontology_name, "city")})
 
     def test_actions(self):
-        self._when_compile_ontology(actions=set(["buy"]))
-        self._then_result_has_field("actions", set(["buy"]))
+        self._when_compile_ontology(actions={"buy"})
+        self._then_result_has_field("actions", {"buy"})
 
 
 class TestPlanCompilation(DddPyCompilerTestCase):
@@ -190,15 +190,17 @@ class TestPlanCompilation(DddPyCompilerTestCase):
         self._given_compiled_ontology()
 
         with pytest.raises(
-                DddPyCompilerException, match='.*: "top" is not a goal\. Perhaps you mean "perform\(top\)"\?'):
+            DddPyCompilerException, match='.*: "top" is not a goal\. Perhaps you mean "perform\(top\)"\?'
+        ):
             self._when_compile_domain(plans=[{"goal": "top", "plan": []}])
 
     def test_plan_for_issue_yields_helpful_exception(self):
         self._given_compiled_ontology(predicates={"price": "real"})
 
         with pytest.raises(
-                DddPyCompilerException,
-                match='.*: "\?X.price\(X\)" is not a goal\. Perhaps you mean "resolve\(\?X.price\(X\)\)"\?'):
+            DddPyCompilerException,
+            match='.*: "\?X.price\(X\)" is not a goal\. Perhaps you mean "resolve\(\?X.price\(X\)\)"\?'
+        ):
             self._when_compile_domain(plans=[{"goal": "?X.price(X)", "plan": []}])
 
     def test_plan_stack_order(self):
@@ -289,7 +291,7 @@ class DomainCompilerTests(DddPyCompilerTestCase):
         self._when_compile_domain(dependencies={"?X.dest_country(X)": ["?X.dest_city(X)"]})
 
         self._then_result_has_field(
-            "dependencies", {self._parse("?X.dest_country(X)"): set([self._parse("?X.dest_city(X)")])}
+            "dependencies", {self._parse("?X.dest_country(X)"): {self._parse("?X.dest_city(X)")}}
         )
 
     def test_default_questions(self):
@@ -303,7 +305,7 @@ class DomainCompilerTests(DddPyCompilerTestCase):
         self._then_result_has_field("default_questions", [])
 
     def test_superactions(self):
-        self._given_compiled_ontology(actions=set(["top", "buy"]))
+        self._given_compiled_ontology(actions={"top", "buy"})
 
         self._when_compile_domain(
             plans=[{
@@ -344,7 +346,7 @@ class DomainCompilerTests(DddPyCompilerTestCase):
 
 class TestGrammarCompiler(DddPyCompilerTestCase):
     def test_multiple_variants(self):
-        self._given_compiled_ontology(actions=set(["buy"]))
+        self._given_compiled_ontology(actions={"buy"})
         self._when_compile_grammar('buy = ["buy", "purchase"]')
         self._then_result_is(
             Node(
@@ -363,12 +365,12 @@ class TestGrammarCompiler(DddPyCompilerTestCase):
         )
 
     def test_action(self):
-        self._given_compiled_ontology(actions=set(["buy"]))
+        self._given_compiled_ontology(actions={"buy"})
         self._when_compile_grammar('buy = "purchase"')
         self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
 
     def test_action_with_sortal_answer_of_custom_sort(self):
-        self._given_compiled_ontology(actions=set(["buy"]), sorts={"city": {}})
+        self._given_compiled_ontology(actions={"buy"}, sorts={"city": {}})
         self._when_compile_grammar('buy = "purchase trip to <answer:city>"')
         self._then_grammar_is([
             Node(
@@ -379,7 +381,7 @@ class TestGrammarCompiler(DddPyCompilerTestCase):
         ])
 
     def test_action_with_sortal_string_answer(self):
-        self._given_compiled_ontology(actions=set(["set_comment"]), predicates={"comment": "string"})
+        self._given_compiled_ontology(actions={"set_comment"}, predicates={"comment": "string"})
         self._when_compile_grammar('set_comment = "tell the hotel that <answer:string>"')
         self._then_grammar_is([
             Node(
@@ -390,7 +392,7 @@ class TestGrammarCompiler(DddPyCompilerTestCase):
         ])
 
     def test_action_with_propositional_answer(self):
-        self._given_compiled_ontology(actions=set(["buy"]), sorts={"city": {}}, predicates={"dest_city": "city"})
+        self._given_compiled_ontology(actions={"buy"}, sorts={"city": {}}, predicates={"dest_city": "city"})
         self._when_compile_grammar('buy = "purchase trip to <answer:dest_city>"')
         self._then_grammar_is([
             Node(
@@ -470,7 +472,7 @@ top = NP("start view")
         ])
 
     def test_english_verb_phrase_as_single_variant(self):
-        self._given_compiled_ontology(actions=set(["buy"]))
+        self._given_compiled_ontology(actions={"buy"})
         self._when_compile_english_grammar_with_verb_phrase_as_single_variant()
         self._then_result_has_expected_english_verb_phrase_as_single_variant()
 
@@ -499,7 +501,7 @@ buy = VP("buy", "buy", "buying", "a ticket")
         ])
 
     def test_swedish_verb_phrase_as_single_variant(self):
-        self._given_compiled_ontology(actions=set(["buy"]))
+        self._given_compiled_ontology(actions={"buy"})
         self._when_compile_swedish_grammar_with_verb_phrase_as_single_variant()
         self._then_result_has_expected_swedish_verb_phrase_as_single_variant()
 
@@ -508,7 +510,7 @@ buy = VP("buy", "buy", "buying", "a ticket")
             """
 #-*- coding: utf-8 -*-
 from tala.nl.gf.resource_sv import VP
-buy = VP(u"köpa", u"köp", u"köper", u"en biljett")
+buy = VP("köpa", "köp", "köper", "en biljett")
 """
         )
 
@@ -518,10 +520,10 @@ buy = VP(u"köpa", u"köp", u"köper", u"en biljett")
                 Constants.ACTION, {"name": "buy"}, [
                     Node(
                         Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, [u"köpa"]),
-                            Node(Constants.IMPERATIVE, {}, [u"köp"]),
-                            Node(Constants.ING_FORM, {}, [u"köper"]),
-                            Node(Constants.OBJECT, {}, [u"en biljett"])
+                            Node(Constants.INFINITIVE, {}, ["köpa"]),
+                            Node(Constants.IMPERATIVE, {}, ["köp"]),
+                            Node(Constants.ING_FORM, {}, ["köper"]),
+                            Node(Constants.OBJECT, {}, ["en biljett"])
                         ]
                     )
                 ]
@@ -529,7 +531,7 @@ buy = VP(u"köpa", u"köp", u"köper", u"en biljett")
         ])
 
     def test_english_verb_phrase_among_multiple_variants(self):
-        self._given_compiled_ontology(actions=set(["buy"]))
+        self._given_compiled_ontology(actions={"buy"})
         self._when_compile_english_grammar_with_verb_phrase_among_multiple_variants()
         self._then_result_has_expected_english_verb_phrase_among_multiple_variants()
 
@@ -567,7 +569,7 @@ buy = [VP("buy", "buy", "buying", "a ticket"), "purchase"]
         ])
 
     def test_italian_noun_phrase_as_single_variant(self):
-        self._given_compiled_ontology(actions=set(["settings"]))
+        self._given_compiled_ontology(actions={"settings"})
         self._when_compile_italian_noun_phrase_as_single_variant()
         self._then_result_has_expected_italian_noun_phrase_as_single_variant()
 
@@ -575,7 +577,7 @@ buy = [VP("buy", "buy", "buying", "a ticket"), "purchase"]
         self._compile_grammar(
             """#-*- coding: utf-8 -*-
 from tala.nl.gf.resource_it import NP, PLURAL, FEMININE
-settings = NP(u"impostazioni", number=PLURAL, gender=FEMININE)
+settings = NP("impostazioni", number=PLURAL, gender=FEMININE)
 """
         )
 
@@ -586,12 +588,12 @@ settings = NP(u"impostazioni", number=PLURAL, gender=FEMININE)
                     "name": "settings",
                     "number": tala.nl.gf.resource.PLURAL,
                     "gender": tala.nl.gf.resource.FEMININE
-                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"impostazioni"])])]
+                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["impostazioni"])])]
             )
         ])
 
     def test_italian_noun_phrase_among_multiple_variants(self):
-        self._given_compiled_ontology(actions=set(["settings"]))
+        self._given_compiled_ontology(actions={"settings"})
         self._when_compile_italian_noun_phrase_among_multiple_variants()
         self._then_result_has_expected_italian_noun_phrase_among_multiple_variants()
 
@@ -599,7 +601,7 @@ settings = NP(u"impostazioni", number=PLURAL, gender=FEMININE)
         self._compile_grammar(
             """#-*- coding: utf-8 -*-
 from tala.nl.gf.resource_it import NP, PLURAL, FEMININE
-settings = [NP(u"impostazioni", number=PLURAL, gender=FEMININE), u"vedere l'impostazioni"]
+settings = [NP("impostazioni", number=PLURAL, gender=FEMININE), "vedere l'impostazioni"]
 """
         )
 
@@ -615,9 +617,9 @@ settings = [NP(u"impostazioni", number=PLURAL, gender=FEMININE), u"vedere l'impo
                         Constants.ONE_OF, {}, [
                             Node(
                                 Constants.ITEM, {},
-                                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"impostazioni"])])]
+                                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["impostazioni"])])]
                             ),
-                            Node(Constants.ITEM, {}, [u"vedere l'impostazioni"])
+                            Node(Constants.ITEM, {}, ["vedere l'impostazioni"])
                         ]
                     )
                 ]
@@ -846,19 +848,21 @@ top = [NP("start view", "the start view"), "main menu"]
 
     def test_decompile_key_with_single_arg(self):
         assert "price_user_question" == GrammarCompiler()._decompile_key(
-            Node(Constants.USER_QUESTION, {"predicate": "price"}))
+            Node(Constants.USER_QUESTION, {"predicate": "price"})
+        )
 
     def test_decompile_key_with_multiple_args(self):
         parameters = OrderedDict()
         parameters["reason"] = "no_reservation_exists"
         parameters["action"] = "CancelReservation"
         assert "CancelReservation_failed_no_reservation_exists" == GrammarCompiler()._decompile_key(
-            Node(Constants.REPORT_FAILED, parameters))
+            Node(Constants.REPORT_FAILED, parameters)
+        )
 
     def test_decompile_key_without_args(self):
         assert "ANSWER" == GrammarCompiler()._decompile_key(Node(Constants.ANSWER_COMBINATION, {}))
 
     def test_decompile_node(self):
-        assert u'make_reservation = "make reservation"\n' == GrammarCompiler().decompile_node(
-                Node(Constants.ACTION, {'name': 'make_reservation'}, [u'make reservation'])
-            )
+        assert 'make_reservation = "make reservation"\n' == GrammarCompiler().decompile_node(
+            Node(Constants.ACTION, {'name': 'make_reservation'}, ['make reservation'])
+        )

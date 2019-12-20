@@ -36,10 +36,10 @@ class IndividualTestBase(LibTestCase):
             "paris": CustomSort(self.ontology_name, "city"),
             "london": CustomSort(self.ontology_name, "city"),
         }
-        actions = set([])
+        actions = set()
         self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
-        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
+        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set())
 
     def _create_predicate(self, *args, **kwargs):
         return Predicate(self.ontology_name, *args, **kwargs)
@@ -74,30 +74,30 @@ class IndividualTest(IndividualTestBase):
 
     def test_real_individual_unicode(self):
         real_individual = self.ontology.create_individual(1234.0)
-        self.assertEquals("1234.0", unicode(real_individual))
+        self.assertEqual("1234.0", str(real_individual))
 
     def test_integer_individual_unicode(self):
-        self.assertEquals("1234", unicode(self.integer_individual))
+        self.assertEqual("1234", str(self.integer_individual))
 
     def test_string_individual_unicode(self):
-        self.assertEquals('"a string"', unicode(self.string_individual))
+        self.assertEqual('"a string"', str(self.string_individual))
 
     def test_image_individual_unicode(self):
-        self.assertEquals('image("http://mymap.com/map.png")', unicode(self.image_individual))
+        self.assertEqual('image("http://mymap.com/map.png")', str(self.image_individual))
 
     def test_webview_individual_unicode(self):
-        self.assertEquals(u'webview("http://mymap.com/map.html")', unicode(self.webview_individual))
+        self.assertEqual('webview("http://mymap.com/map.html")', str(self.webview_individual))
 
     def test_datetime_individual_unicode(self):
-        self.assertEquals('datetime(2018-04-11T22:00:00.000Z)', unicode(self.datetime_individual))
+        self.assertEqual('datetime(2018-04-11T22:00:00.000Z)', str(self.datetime_individual))
 
     def test_create_individual(self):
         individual = self.ontology.create_individual("paris")
-        self.assertEquals("paris", individual.getValue())
+        self.assertEqual("paris", individual.getValue())
 
     def test_create_negative_individual(self):
         individual = self.ontology.create_negative_individual("paris")
-        self.assertEquals("paris", individual.getValue())
+        self.assertEqual("paris", individual.getValue())
 
     def test_create_invalid_individual(self):
         ontology_without_string_predicate = self.empty_ontology
@@ -111,7 +111,7 @@ class IndividualTest(IndividualTestBase):
 
     def test_get_sort(self):
         individual = self.ontology.create_individual("paris")
-        self.assertEquals(self.sort_city, individual.getSort())
+        self.assertEqual(self.sort_city, individual.getSort())
 
     def test_equality(self):
         individual1 = self.ontology.create_individual("paris")
@@ -137,10 +137,10 @@ class IndividualTest(IndividualTestBase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.individual_paris, non_individual)
 
     def test_unicode_for_individual_of_custom_sort(self):
-        self.assertEquals("paris", unicode(self.individual_paris))
+        self.assertEqual("paris", str(self.individual_paris))
 
     def test_unicode_for_negative_individual_of_custom_sort(self):
-        self.assertEquals("~paris", unicode(self.individual_not_paris))
+        self.assertEqual("~paris", str(self.individual_not_paris))
 
     def test_individual_is_positive(self):
         self.assertTrue(self.individual_paris.is_positive())
@@ -170,7 +170,7 @@ class IndividualTest(IndividualTestBase):
 
     def given_value_as_json_object_in_mock_sort_returns(self, expected_value, value_as_json_object):
         def mock_value_as_json_object(value):
-            self.assertEquals(expected_value, value)
+            self.assertEqual(expected_value, value)
             return value_as_json_object
         self._mock_sort.value_as_json_object.side_effect = mock_value_as_json_object
 

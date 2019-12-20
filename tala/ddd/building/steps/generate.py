@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
 from tala.nl.gf.auto_generator import AutoGenerator
 from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator
@@ -36,16 +34,16 @@ class GenerateStepForGFGeneration(AbstractGenerateStep):
     _AutoGeneratorClass = AutoGenerator
 
     def _generate_grammars(self, language_code):
-        print("[%s] Generating grammar." % (language_code))
+        print(("[%s] Generating grammar." % (language_code)))
         self._auto_generate_gf_grammar(self._AutoGeneratorClass, language_code)
-        print("[%s] Finished generating grammar." % (language_code))
+        print(("[%s] Finished generating grammar." % (language_code)))
 
 
 class GenerateStepForHandcraftedGFFiles(AbstractGenerateStep):
     _build_directory = "build_handcrafted"
 
     def _generate_grammars(self, language_code):
-        print("[%s] Using handcrafted grammar, will not generate." % (language_code))
+        print(("[%s] Using handcrafted grammar, will not generate." % (language_code)))
         pass
 
 

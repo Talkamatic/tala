@@ -111,7 +111,7 @@ class OpenQueue(AsJSONMixin):
         tmp_list.extend(self.back_content)
         return tmp_list.__iter__()
 
-    def __unicode__(self):
+    def __str__(self):
         tmp_list = self._create_concatenated_list_of_contents_with_delimiter()
         string = "OpenQueue(%s)" % unicodify(tmp_list)
         return string
@@ -122,9 +122,6 @@ class OpenQueue(AsJSONMixin):
         tmp_list.append('#')
         tmp_list.extend(self.back_content)
         return tmp_list
-
-    def __str__(self):
-        return unicode(self).encode("utf-8")
 
     def __repr__(self):
         tmp_list = self._create_concatenated_list_of_contents_with_delimiter()

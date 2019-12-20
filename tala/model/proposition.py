@@ -150,7 +150,7 @@ class ControlProposition(Proposition):
     def __ne__(self, other):
         return not self == other
 
-    def __unicode__(self):
+    def __str__(self):
         return self._type
 
     def __hash__(self):
@@ -225,11 +225,11 @@ class PredicateProposition(PropositionWithSemanticContent):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.individual is None:
-            return "%s%s" % (self.get_polarity_prefix_string(), unicode(self.predicate))
+            return "%s%s" % (self.get_polarity_prefix_string(), str(self.predicate))
         else:
-            return "%s%s(%s)" % (self.get_polarity_prefix_string(), unicode(self.predicate), unicode(self.individual))
+            return "%s%s(%s)" % (self.get_polarity_prefix_string(), str(self.predicate), str(self.individual))
 
     def __hash__(self):
         return hash((self.predicate, self.individual, self.get_polarity()))
@@ -256,7 +256,7 @@ class GoalProposition(PropositionWithSemanticContent):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%sgoal(%s)" % (self.get_polarity_prefix_string(), self._goal)
 
     def __hash__(self):
@@ -294,9 +294,9 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%spreconfirmed(%s, %s)" % (
-            self.get_polarity_prefix_string(), unicode(self.service_action), unicodify(self._arguments)
+            self.get_polarity_prefix_string(), str(self.service_action), unicodify(self._arguments)
         )
 
     def __hash__(self):
@@ -336,8 +336,8 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
     def __hash__(self):
         return hash((self.ontology_name, self.service_action, self.argument_set))
 
-    def __unicode__(self):
-        return "prereported(%s, %s)" % (unicode(self.service_action), unicode(self.get_arguments()))
+    def __str__(self):
+        return "prereported(%s, %s)" % (str(self.service_action), str(self.get_arguments()))
 
 
 class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticObject):
@@ -349,8 +349,8 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
     def get_service_action(self):
         return self.service_action
 
-    def __unicode__(self):
-        return "%sservice_action_terminated(%s)" % (self.get_polarity_prefix_string(), unicode(self.service_action))
+    def __str__(self):
+        return "%sservice_action_terminated(%s)" % (self.get_polarity_prefix_string(), str(self.service_action))
 
     def __eq__(self, other):
         try:
@@ -383,7 +383,7 @@ class PredictedProposition(PropositionWithSemanticContent):
     def get_prediction(self):
         return self.predicted_proposition
 
-    def __unicode__(self):
+    def __str__(self):
         return "%spredicted(%s)" % (self.get_polarity_prefix_string(), self.predicted_proposition)
 
     def __eq__(self, other):
@@ -446,7 +446,7 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "ServiceResultProposition(%s, %s, %s)" % (self.service_action, unicodify(self.arguments), self.result)
 
     def __hash__(self):
@@ -473,7 +473,7 @@ class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObjec
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "ServiceActionStartedProposition(%s, %s)" % (self.service_action, unicodify(self.parameters))
 
 
@@ -489,13 +489,13 @@ class RejectedPropositions(PropositionWithSemanticContent):
     def get_reason(self):
         return self.reason_for_rejection
 
-    def __unicode__(self):
+    def __str__(self):
         if self.reason_for_rejection:
             return "%srejected(%s, %s)" % (
                 self.get_polarity_prefix_string(), self.rejected_combination, self.reason_for_rejection
             )
         else:
-            return "%srejected(%s)" % (self.get_polarity_prefix_string(), unicode(self.rejected_combination))
+            return "%srejected(%s)" % (self.get_polarity_prefix_string(), str(self.rejected_combination))
 
     def __eq__(self, other):
         try:
@@ -530,7 +530,7 @@ class PropositionSet(Proposition):
         return self._propositions
 
     def unicode_propositions(self):
-        return u"[%s]" % u", ".join([unicode(proposition) for proposition in self._propositions])
+        return "[%s]" % ", ".join([str(proposition) for proposition in self._propositions])
 
     def is_single_alt(self):
         return len(self._propositions) == 1
@@ -560,14 +560,14 @@ class PropositionSet(Proposition):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%sset(%s)" % (self.get_polarity_prefix_string(), self.unicode_propositions())
 
     def __repr__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self._propositions, self._polarity)
 
     def getPredicate(self):
-        predicates = set([proposition.getPredicate() for proposition in self._propositions])
+        predicates = {proposition.getPredicate() for proposition in self._propositions}
         if len(predicates) == 1:
             return list(predicates)[0]
         else:
@@ -615,8 +615,8 @@ class UnderstandingProposition(PropositionWithSemanticContent):
     def get_content(self):
         return self._content
 
-    def __unicode__(self):
-        return "und(%s, %s)" % (unicode(self._speaker), unicode(self._content))
+    def __str__(self):
+        return "und(%s, %s)" % (str(self._speaker), str(self._content))
 
     def __eq__(self, other):
         try:
@@ -642,7 +642,7 @@ class ResolvednessProposition(PropositionWithSemanticContent):
     def get_issue(self):
         return self.issue
 
-    def __unicode__(self):
+    def __str__(self):
         return "resolved(%s)" % self.issue
 
     def __eq__(self, other):

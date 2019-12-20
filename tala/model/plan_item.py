@@ -39,10 +39,7 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
         return "%s%s" % (PlanItem.__class__.__name__, (self._type, ))
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
-        return unicode(self._type)
+        return str(self._type)
 
     def __eq__(self, other):
         return other.is_plan_item() and self.get_type() == other.get_type()
@@ -156,10 +153,7 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return "%s%s" % (PlanItemWithSemanticContent.__name__, (self._type, self._content))
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
-        return "%s(%s)" % (unicode(self._type), unicode(self._content))
+        return "%s(%s)" % (str(self._type), str(self._content))
 
     def __eq__(self, other):
         return other is not None and other.is_plan_item() and other.has_semantic_content() and self.get_type(
@@ -297,9 +291,6 @@ class IfThenElse(PlanItem):
         self.alternative = None
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
         return "if_then_else{}".format(unicodify((self.condition, self.consequent, self.alternative)))
 
     def as_dict(self):
@@ -355,11 +346,8 @@ class InvokeServiceQueryPlanItem(PlanItemWithSemanticContent):
         return self._max_results
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
         return "invoke_service_query(%s, min_results=%s, max_results=%s)" % (
-            unicode(self._content), self._min_results, self._max_results
+            str(self._content), self._min_results, self._max_results
         )
 
     def __repr__(self):
@@ -416,11 +404,8 @@ class InvokeServiceActionPlanItem(PlanItem, OntologySpecificSemanticObject):
         ) and other.should_downdate_plan() == self.should_downdate_plan()
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
         return "invoke_service_action(%s, {preconfirm=%s, postconfirm=%s, downdate_plan=%s})" % (
-            unicode(self.service_action), self.preconfirm, self.postconfirm, self._downdate_plan
+            str(self.service_action), self.preconfirm, self.postconfirm, self._downdate_plan
         )
 
     def __repr__(self):
@@ -465,10 +450,7 @@ class HandlePlanItem(PlanItem, OntologySpecificSemanticObject):
         return self._service_action
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
-        return "invoke_service_action(%s)" % (unicode(self.service_action))
+        return "invoke_service_action(%s)" % (str(self.service_action))
 
     def as_dict(self):
         return {

@@ -35,7 +35,7 @@ class ResolveGoalTest(LibTestCase):
 
     def test_hashable(self):
         goal = ResolveGoal(self.price_question, Speaker.SYS)
-        set([goal])
+        {goal}
 
     def test_is_goal(self):
         goal = ResolveGoal(self.price_question, Speaker.SYS)
@@ -43,16 +43,16 @@ class ResolveGoalTest(LibTestCase):
 
     def test_str_with_target_sys(self):
         goal = ResolveGoal(self.price_question, Speaker.SYS)
-        self.assertEquals("resolve(?X.price(X))", unicode(goal))
+        self.assertEqual("resolve(?X.price(X))", str(goal))
 
     def test_str_with_target_user(self):
         goal = ResolveGoal(self.price_question, Speaker.USR)
-        self.assertEquals("resolve_user(?X.price(X))", unicode(goal))
+        self.assertEqual("resolve_user(?X.price(X))", str(goal))
 
     def test_str_with_background(self):
         goal = ResolveGoal(self.price_question, Speaker.SYS)
         goal.set_background(self.predicate_dest_city)
-        self.assertEquals("resolve(?X.price(X), dest_city)", unicode(goal))
+        self.assertEqual("resolve(?X.price(X), dest_city)", str(goal))
 
     def setUp(self):
         self.setUpLibTestCase()
@@ -71,7 +71,7 @@ class PerformGoalTest(LibTestCase):
 
     def test_hashable(self):
         goal = PerformGoal(self.top_action)
-        set([goal])
+        {goal}
 
     def test_is_goal(self):
         goal = PerformGoal(self.top_action)

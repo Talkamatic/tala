@@ -53,12 +53,12 @@ class DDDBuilderForGenerating(object):
     def build(self):
         for ddd in self._backend_dependencies.ddds:
             with chdir.chdir(ddd.name):
-                print("Generating models for DDD '{}'.".format(ddd.name))
+                print(("Generating models for DDD '{}'.".format(ddd.name)))
                 self._cleaners[ddd.name].build()
                 self._generators[ddd.name].build()
-                print("Finished generating models for DDD '{}'.".format(ddd.name))
+                print(("Finished generating models for DDD '{}'.".format(ddd.name)))
 
     def verify(self):
-        for ddd_name, verifier in self._verifiers.items():
+        for ddd_name, verifier in list(self._verifiers.items()):
             with chdir.chdir(ddd_name):
                 verifier.build()

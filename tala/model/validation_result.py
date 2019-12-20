@@ -40,3 +40,6 @@ class ValidationFailure(ValidationResult):
         if not isinstance(self, other.__class__):
             return NotImplemented
         return self.invalidity_reason == other.invalidity_reason and self.invalid_parameters == other.invalid_parameters
+
+    def __hash__(self):
+        return 17 * hash(str(self)) + 7 * hash(self.__class__.__name__)

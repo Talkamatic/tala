@@ -324,7 +324,7 @@ class TestDddConfig(ConfigTester):
         self.given_created_config_object(DddConfig)
         self.when_reading_then_exception_is_raised_with_message_that_matches_regex(
             UnexpectedConfigEntriesException,
-            "Parameters \[u'unexpected-key'\] are unexpected in 'rasa_nlu.eng' of DDD config '.+'\."
+            "Parameters \['unexpected-key'\] are unexpected in 'rasa_nlu.eng' of DDD config '.+'\."
         )
 
     def test_missing_url_in_rasa_nlu(self):

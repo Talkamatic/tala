@@ -74,7 +74,7 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         )
 
     def _then_result_has_keys(self, expected_keys):
-        self.assertItemsEqual(expected_keys, self._result.keys())
+        self.assertItemsEqual(expected_keys, list(self._result.keys()))
 
     def _then_result_has_field(self, expected_key, expected_value):
         assert expected_value == self._result[expected_key]
@@ -125,14 +125,14 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 <ontology name="Ontology">
   <sort name="city"/>
 </ontology>""")
-        self._then_result_has_field("sorts", set([CustomSort(self._ontology.name, "city")]))
+        self._then_result_has_field("sorts", {CustomSort(self._ontology.name, "city")})
 
     def test_dynamic_sort(self):
         self._when_compile_ontology("""
 <ontology name="Ontology">
   <sort name="city" dynamic="true"/>
 </ontology>""")
-        self._then_result_has_field("sorts", set([CustomSort(self._ontology.name, "city", dynamic=True)]))
+        self._then_result_has_field("sorts", {CustomSort(self._ontology.name, "city", dynamic=True)})
 
     def test_predicate_of_custom_sort(self):
         self._when_compile_ontology(
@@ -143,7 +143,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>"""
         )
         self._then_result_has_field(
-            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology.name, "city"))])
+            "predicates", {self._predicate("dest_city", CustomSort(self._ontology.name, "city"))}
         )
 
     def test_predicate_of_builtin_sort(self):
@@ -153,7 +153,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
   <predicate name="price" sort="real"/>
 </ontology>"""
         )
-        self._then_result_has_field("predicates", set([self._predicate("price", RealSort())]))
+        self._then_result_has_field("predicates", {self._predicate("price", RealSort())})
 
     def test_predicate_of_dynamic_sort(self):
         self._when_compile_ontology(
@@ -164,7 +164,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>"""
         )
         self._then_result_has_field(
-            "predicates", set([self._predicate("dest_city", CustomSort(self._ontology.name, "city", dynamic=True))])
+            "predicates", {self._predicate("dest_city", CustomSort(self._ontology.name, "city", dynamic=True))}
         )
 
     def test_feature_of(self):
@@ -178,12 +178,12 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
         )
         self._then_result_has_field(
             "predicates",
-            set([
+            {
                 self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city")),
                 self._predicate(
                     "dest_city_type", sort=CustomSort(self._ontology.name, "city"), feature_of_name="dest_city"
                 )
-            ])
+            }
         )
 
     def test_multiple_instances(self):
@@ -196,7 +196,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
         )
         self._then_result_has_field(
             "predicates",
-            set([self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city"), multiple_instances=True)])
+            {self._predicate("dest_city", sort=CustomSort(self._ontology.name, "city"), multiple_instances=True)}
         )
 
     def test_individuals(self):
@@ -214,7 +214,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 <ontology name="Ontology">
   <action name="buy"/>
 </ontology>""")
-        self._then_result_has_field("actions", set(["buy"]))
+        self._then_result_has_field("actions", {"buy"})
 
     def test_exception_for_undefined_sort_in_predicate(self):
         self._when_compile_ontology_then_exception_is_raised(
@@ -442,7 +442,7 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "dependencies", {self._parse("?X.dest_country(X)"): set([self._parse("?X.dest_city(X)")])}
+            "dependencies", {self._parse("?X.dest_country(X)"): {self._parse("?X.dest_city(X)")}}
         )
 
     def test_default_questions(self):
@@ -1026,7 +1026,7 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 InvokeServiceActionPlanItem(
-                    u"MockupOntology", u"MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
+                    "MockupOntology", "MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
                 )
             ])
         )
@@ -1417,10 +1417,10 @@ class TestGrammarCompiler(DddXmlCompilerTestCase):
                 Constants.ACTION, {"name": "buy"}, [
                     Node(
                         Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, [u"köpa"]),
-                            Node(Constants.IMPERATIVE, {}, [u"köp"]),
-                            Node(Constants.ING_FORM, {}, [u"köper"]),
-                            Node(Constants.OBJECT, {}, [u"en biljett"])
+                            Node(Constants.INFINITIVE, {}, ["köpa"]),
+                            Node(Constants.IMPERATIVE, {}, ["köp"]),
+                            Node(Constants.ING_FORM, {}, ["köper"]),
+                            Node(Constants.OBJECT, {}, ["en biljett"])
                         ]
                     )
                 ]

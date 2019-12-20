@@ -60,8 +60,8 @@ class SemanticObject(AsJSONMixin):
     def has_semantic_content(self):
         return False
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __repr__(self):
+        return repr(self.__dict__)
 
 
 class OntologySpecificSemanticObject(SemanticObject):

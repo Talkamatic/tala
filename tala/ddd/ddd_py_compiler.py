@@ -52,8 +52,8 @@ class OntologyCompiler:
             self._sorts_dict[name] = CustomSort(self._ontology_name, name, **sorts_description[name])
 
     def _compile_predicates(self, predicates_description):
-        predicates = set([])
-        for name, description in predicates_description.iteritems():
+        predicates = set()
+        for name, description in list(predicates_description.items()):
             predicate = self._compile_predicate(name, description)
             predicates.add(predicate)
         return predicates
@@ -159,7 +159,7 @@ class DomainCompiler:
             else:
                 raise DddPyCompilerException(
                     "in %s: Expected goal but found %s (parsed as %s)" %
-                    (inspect.getsourcefile(self._domain_description), unicode(string), unicode(potential_goal))
+                    (inspect.getsourcefile(self._domain_description), str(string), str(potential_goal))
                 )
 
     def _compile_plan_single_attribute(self, plan, attribute_name, compilation_method=IDENTITY):
@@ -169,9 +169,9 @@ class DomainCompiler:
 
     def _compile_plan_multi_attribute(self, plan, attribute_name, compilation_method=IDENTITY):
         if attribute_name in self._plan_description:
-            plan[attribute_name] = map(
-                lambda string: compilation_method(string), self._select_plan_descriptor(attribute_name)
-            )
+            plan[attribute_name] = [
+                compilation_method(string) for string in self._select_plan_descriptor(attribute_name)
+            ]
 
     def _compile_superaction(self, string):
         return Action(string, self._ontology.get_name())
@@ -198,14 +198,14 @@ class DomainCompiler:
 
     def _parse_default_questions(self):
         if hasattr(self._domain_description, "default_questions"):
-            self._default_questions = map(self._parse, self._domain_description.default_questions)
+            self._default_questions = list(map(self._parse, self._domain_description.default_questions))
         else:
             self._default_questions = []
 
     def _parse_parameters(self):
         if hasattr(self._domain_description, "parameters"):
             self._parameters = {}
-            for question_as_string in self._domain_description.parameters.keys():
+            for question_as_string in list(self._domain_description.parameters.keys()):
                 question = self._parse(question_as_string)
                 parameters_as_string = self._domain_description.parameters[question_as_string]
                 parameters = self._parser.parse_parameters(parameters_as_string)
@@ -338,7 +338,7 @@ class GrammarCompiler:
 
     def _compile_entries_from_dict(self, module_dict):
         grammar_node = Node(Constants.GRAMMAR, {})
-        for name, entry in module_dict.iteritems():
+        for name, entry in list(module_dict.items()):
             if not self._is_builtin_member(name) and not self._is_resource_class(name):
                 self._compile_entry(grammar_node, name, entry)
         return grammar_node
@@ -400,7 +400,7 @@ class GrammarCompiler:
             return result
 
     def _parse_key(self, string):
-        for parser in self._key_parsers.values():
+        for parser in list(self._key_parsers.values()):
             key = parser.parse(string)
             if key:
                 return key
@@ -410,7 +410,7 @@ class GrammarCompiler:
             return self._compile_one_of(form_object)
         elif self._is_of_resource_class(form_object):
             return self._resource_class_node(form_object)
-        elif isinstance(form_object, (str, unicode)):
+        elif isinstance(form_object, str):
             return self._compile_form_string(form_object)
         else:
             raise DddPyCompilerException("failed to compile grammar form %r" % form_object)
@@ -480,7 +480,7 @@ class GrammarCompiler:
         return self._key_parsers[key.type].generate(key.parameters)
 
     def _decompile_node_value(self, node):
-        if isinstance(node, (str, unicode)):
+        if isinstance(node, str):
             return node
         elif node.type == Constants.SLOT:
             return "<answer:%s>" % node.parameters["predicate"]
@@ -501,4 +501,4 @@ class GrammarCompiler:
         return len(children) == 1 and isinstance(children[0], Node) and children[0].type == Constants.ONE_OF
 
     def _warn(self, warning):
-        print "warning: %s" % warning
+        print(("warning: %s" % warning))

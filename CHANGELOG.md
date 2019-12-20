@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Changed
+- Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
+
 ## [5.0.0] - 2019-11-28
 ### Added
 - A new method `request_semantic_input` has been added to `tala.utils.tdm_client.TDMClient`.

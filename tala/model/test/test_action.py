@@ -10,10 +10,10 @@ class ActionTests(LibTestCase):
 
     def test_create(self):
         self.assertTrue(self.buy_action.is_action())
-        self.assertEquals("buy", self.buy_action.get_value())
+        self.assertEqual("buy", self.buy_action.get_value())
 
     def test_unicode(self):
-        self.assertEquals("buy", unicode(self.buy_action))
+        self.assertEqual("buy", str(self.buy_action))
 
     def test_equality(self):
         action = self.buy_action
@@ -36,4 +36,4 @@ class ActionTests(LibTestCase):
         self.assertFalse(non_action.is_action())
 
     def test_actions_are_hashable(self):
-        set([self.buy_action])
+        {self.buy_action}

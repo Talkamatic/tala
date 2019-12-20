@@ -54,12 +54,12 @@ class ServiceInterface(AsJSONMixin):
 
     @property
     def actions(self):
-        return self._actions.values()
+        return list(self._actions.values())
 
     def get_action(self, name):
         if not self.has_action(name):
             raise UnexpectedActionException(
-                "Expected one of the known actions %s but got '%s'" % (self._actions.keys(), name)
+                "Expected one of the known actions %s but got '%s'" % (list(self._actions.keys()), name)
             )
         return self._actions[name]
 
@@ -69,7 +69,7 @@ class ServiceInterface(AsJSONMixin):
     def get_query(self, name):
         if not self.has_query(name):
             raise UnexpectedQueryException(
-                "Expected one of the known queries %s but got '%s'" % (self._queries.keys(), name)
+                "Expected one of the known queries %s but got '%s'" % (list(self._queries.keys()), name)
             )
         return self._queries[name]
 
@@ -79,7 +79,7 @@ class ServiceInterface(AsJSONMixin):
     def get_validator(self, name):
         if not self.has_validator(name):
             raise UnexpectedValidatorException(
-                "Expected one of the known validators %s but got '%s'" % (self._validators.keys(), name)
+                "Expected one of the known validators %s but got '%s'" % (list(self._validators.keys()), name)
             )
         return self._validators[name]
 
@@ -88,15 +88,15 @@ class ServiceInterface(AsJSONMixin):
 
     @property
     def queries(self):
-        return self._queries.values()
+        return list(self._queries.values())
 
     @property
     def validators(self):
-        return self._validators.values()
+        return list(self._validators.values())
 
     @property
     def entity_recognizers(self):
-        return self._entity_recognizers.values()
+        return list(self._entity_recognizers.values())
 
     def __repr__(self):
         return "%s(actions=%s, queries=%s, validators=%s, entity_recognizers=%s)" % (

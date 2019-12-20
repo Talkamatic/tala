@@ -19,7 +19,7 @@ class PlanTests(LibTestCase):
     def test_plan_iteration_steps_into_nested_blocks(self):
         self._given_plan_with_nested_item()
         expected_list = [self.findout_price, self.findout_dest_city, self.consequent, self.alternative]
-        self.assertEquals(expected_list, list(self.plan))
+        self.assertEqual(expected_list, list(self.plan))
 
     def _given_plan_with_nested_item(self):
         self.plan = Plan([self.if_then_else_item, self.findout_dest_city, self.findout_price])
@@ -28,7 +28,7 @@ class PlanTests(LibTestCase):
         plan = Plan()
         plan.push(self.findout_price)
         expected_list = [self.findout_price]
-        self.assertEquals(expected_list, list(plan))
+        self.assertEqual(expected_list, list(plan))
 
     def test_removal_of_findout_from_nested_block(self):
         self._given_plan_with_nested_item()
@@ -40,7 +40,7 @@ class PlanTests(LibTestCase):
 
     def _then_all_elements_but_consequent_are_left(self):
         expected_list = [self.findout_price, self.findout_dest_city, self.alternative]
-        self.assertEquals(expected_list, list(self.plan))
+        self.assertEqual(expected_list, list(self.plan))
 
 
 class SemanticObjectPlanTests(unittest.TestCase):

@@ -1,8 +1,9 @@
 import iso8601
-import urlparse
 import mimetypes
 import magic
-import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from tala.model.person_name import PersonName
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
@@ -66,7 +67,7 @@ class Sort(SemanticObject):
     def is_webview_sort(self):
         return self._name == WEBVIEW
 
-    def __unicode__(self):
+    def __str__(self):
         return "Sort(%r, dynamic=%r)" % (self._name, self._dynamic)
 
     def __repr__(self):
@@ -181,7 +182,7 @@ class StringSort(BuiltinSort):
         BuiltinSort.__init__(self, STRING)
 
     def normalize_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             return value
         else:
             raise InvalidValueException(
@@ -195,8 +196,7 @@ class ImageSort(BuiltinSort):
 
     def normalize_value(self, value):
         if isinstance(value, Image):
-            if isinstance(value.url,
-                          (str, unicode)) and "http" in value.url and self._has_mime_type(value.url, "image"):
+            if isinstance(value.url, str) and "http" in value.url and self._has_mime_type(value.url, "image"):
                 return value
             else:
                 raise InvalidValueException("Expected an image URL but got '%s'." % value.url)
@@ -211,13 +211,14 @@ class ImageSort(BuiltinSort):
             return False
 
     def _get_mime_type_from_url(self, url):
-        path = urlparse.urlparse(url).path
+        path = urllib.parse.urlparse(url).path
         mime_type, mime_subtype = mimetypes.guess_type(path)
         if not mime_type:
             try:
-                filepath, _ = urllib.urlretrieve(url)
+                filepath, _ = urllib.request.urlretrieve(url)
             except IOError:
                 return None
+
             mime_type = magic.from_file(filepath, mime=True)
         return mime_type
 
@@ -234,7 +235,7 @@ class WebviewSort(BuiltinSort):
 
     def normalize_value(self, value):
         if isinstance(value, Webview):
-            if isinstance(value.url, (str, unicode)) and "http" in value.url:
+            if isinstance(value.url, str) and "http" in value.url:
                 return value
             else:
                 raise InvalidValueException("Expected a webview URL but got '%s'." % value.url)

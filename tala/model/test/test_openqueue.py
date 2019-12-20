@@ -7,7 +7,7 @@ class MockElement:
     def __init__(self, name):
         self._name = name
 
-    def __unicode__(self):
+    def __str__(self):
         return "MockElement(%r)" % self._name
 
 
@@ -28,7 +28,7 @@ class OpenQueueTests(unittest.TestCase):
 
     def _first_returns(self, element):
         actual_element = self.queue.first()
-        self.assertEquals(element, actual_element)
+        self.assertEqual(element, actual_element)
 
     def test_is_first(self):
         self._given_an_element_enqueued("a")
@@ -54,14 +54,14 @@ class OpenQueueTests(unittest.TestCase):
 
     def _last_returns(self, element):
         actual_element = self.queue.last()
-        self.assertEquals(element, actual_element)
+        self.assertEqual(element, actual_element)
 
     def test_size_0(self):
-        self.assertEquals(0, len(self.queue))
+        self.assertEqual(0, len(self.queue))
 
     def test_size_1(self):
         self._given_an_element_enqueued("a")
-        self.assertEquals(1, len(self.queue))
+        self.assertEqual(1, len(self.queue))
 
     def test_dequeue_returns_right_element(self):
         self._given_an_element_enqueued("a")
@@ -69,7 +69,7 @@ class OpenQueueTests(unittest.TestCase):
 
     def _dequeue_returns(self, element):
         actual_element = self.queue.dequeue()
-        self.assertEquals(element, actual_element)
+        self.assertEqual(element, actual_element)
 
     def test_dequeue_deletes_element(self):
         self._given_an_element_enqueued("a")
@@ -101,17 +101,17 @@ class OpenQueueTests(unittest.TestCase):
     def test_string_representation(self):
         self.queue.enqueue(MockElement("first"))
         self.queue.enqueue(MockElement("second"))
-        self.assertEquals("OpenQueue(['#', MockElement('first'), MockElement('second')])", unicode(self.queue))
+        self.assertEqual("OpenQueue(['#', MockElement('first'), MockElement('second')])", str(self.queue))
 
     def test_create_from_iterable(self):
         self.queue = OpenQueue(["a", "b", "c"])
-        self.assertEquals("OpenQueue(['a', 'b', 'c', '#'])", unicode(self.queue))
+        self.assertEqual("OpenQueue(['a', 'b', 'c', '#'])", str(self.queue))
 
     def test_shift(self):
         self.queue = OpenQueue(["a", "b", "c"])
         self.queue.init_shift()
         self.queue.shift()
-        self.assertEquals("OpenQueue(['b', 'c', '#', 'a'])", unicode(self.queue))
+        self.assertEqual("OpenQueue(['b', 'c', '#', 'a'])", str(self.queue))
 
     def test_fully_shifted(self):
         self.queue = OpenQueue(["a", "b", "c"])
@@ -126,7 +126,7 @@ class OpenQueueTests(unittest.TestCase):
         self.queue.dequeue()
         self.queue.init_shift()
         self.queue.shift()
-        self.assertEquals("OpenQueue(['c', '#', 'b'])", unicode(self.queue))
+        self.assertEqual("OpenQueue(['c', '#', 'b'])", str(self.queue))
 
     def test_clear(self):
         self._given_an_element_enqueued("element")
@@ -142,56 +142,56 @@ class OpenQueueTests(unittest.TestCase):
     def test_empty_queues_are_equal(self):
         first_queue = OpenQueue()
         second_queue = OpenQueue()
-        self.assertEquals(first_queue, second_queue)
+        self.assertEqual(first_queue, second_queue)
 
     def test_empty_queue_not_equals_none(self):
         empty_queue = OpenQueue()
-        self.assertNotEquals(None, empty_queue)
+        self.assertNotEqual(None, empty_queue)
 
     def test_single_element_queues_are_equal(self):
         first_queue = OpenQueue(["a"])
         second_queue = OpenQueue(["a"])
-        self.assertEquals(first_queue, second_queue)
+        self.assertEqual(first_queue, second_queue)
 
     def test_single_element_queue_equal_to_shifted_single_element_queue(self):
         first_queue = OpenQueue(["a"])
         second_queue = OpenQueue(["a"])
         second_queue.shift()
-        self.assertEquals(first_queue, second_queue)
+        self.assertEqual(first_queue, second_queue)
 
     def test_unshifted_multi_element_queues_are_equal(self):
         first_queue = OpenQueue(["a", "b", "c"])
         second_queue = OpenQueue(["a", "b", "c"])
-        self.assertEquals(first_queue, second_queue)
+        self.assertEqual(first_queue, second_queue)
 
     def test_queue_not_equal_to_shifted_queue_1(self):
         first_queue = OpenQueue(["a", "b", "c"])
         second_queue = OpenQueue(["a", "b", "c"])
         second_queue.shift()
-        self.assertNotEquals(first_queue, second_queue)
+        self.assertNotEqual(first_queue, second_queue)
 
     def test_queue_not_equal_to_shifted_queue_2(self):
         first_queue = OpenQueue(["a", "b", "c"])
         second_queue = OpenQueue(["c", "a", "b"])
         second_queue.shift()
-        self.assertNotEquals(first_queue, second_queue)
+        self.assertNotEqual(first_queue, second_queue)
 
     def test_enqueue_first(self):
         queue = OpenQueue(["b"])
         queue.enqueue_first("a")
-        self.assertEquals("a", queue.first())
+        self.assertEqual("a", queue.first())
 
     def test_remove_if_exists_for_existing_element(self):
         queue = OpenQueue(["first", "second"])
         queue.remove_if_exists("first")
         expected_result = OpenQueue(["second"])
-        self.assertEquals(expected_result, queue)
+        self.assertEqual(expected_result, queue)
 
     def test_remove_if_exists_for_non_existing_element_has_no_effect(self):
         queue = OpenQueue(["first", "second"])
         queue.remove_if_exists("third")
         expected_result = OpenQueue(["first", "second"])
-        self.assertEquals(expected_result, queue)
+        self.assertEqual(expected_result, queue)
 
     def test_set_property(self):
         self._given_an_element_enqueued("a")
@@ -200,7 +200,7 @@ class OpenQueueTests(unittest.TestCase):
         self._len_is(1)
 
     def _len_is(self, length):
-        self.assertEquals(length, len(self.queue))
+        self.assertEqual(length, len(self.queue))
 
     def test_cancel_shift(self):
         queue = OpenQueue(["a", "b", "c"])
@@ -209,7 +209,7 @@ class OpenQueueTests(unittest.TestCase):
         queue.remove("b")
         queue.cancel_shift()
         expected_queue = OpenQueue(["a", "c"])
-        self.assertEquals(expected_queue, queue)
+        self.assertEqual(expected_queue, queue)
 
     def test_cancel_shift_raises_exception_if_init_shift_not_called(self):
         queue = OpenQueue([])
@@ -218,4 +218,4 @@ class OpenQueueTests(unittest.TestCase):
 
     def test_getitem(self):
         queue = OpenQueue(["a", "b", "c"])
-        self.assertEquals("a", queue[0])
+        self.assertEqual("a", queue[0])

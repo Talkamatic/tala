@@ -42,7 +42,7 @@ class RglGfGeneratorTestCase(unittest.TestCase):
     def given_ontology(self, *args, **kwargs):
         self._create_ontology(*args, **kwargs)
 
-    def _create_ontology(self, sorts={}, predicates={}, actions=set([]), individuals={}):
+    def _create_ontology(self, sorts={}, predicates={}, actions=set(), individuals={}):
         class MockupOntology:
             pass
 
@@ -78,7 +78,7 @@ class RglGfGeneratorTestCase(unittest.TestCase):
         self._ensure_ontology_exists()
         self._ensure_domain_exists()
         plan_item = self._parser.parse(plan_item_as_string)
-        any_goal = self._domain.plans.keys()[0]
+        any_goal = list(self._domain.plans.keys())[0]
         self._domain.plans[any_goal]["plan"].push(plan_item)
 
     def given_domain_parameter(self, object_as_string, parameter_name, parameter_value_as_string):
@@ -212,10 +212,10 @@ class RglGfGeneratorTestCase(unittest.TestCase):
         )
 
     def then_warning_is_yielded(self, expected_warning):
-        self.assertEquals(expected_warning, self.generator.warning.strip())
+        self.assertEqual(expected_warning, self.generator.warning.strip())
 
     def then_no_warning_is_yielded(self):
-        self.assertEquals("", self.generator.warning)
+        self.assertEqual("", self.generator.warning)
 
 
 class HeaderTestCase(RglGfGeneratorTestCase):
@@ -245,7 +245,7 @@ class HeaderTestCase(RglGfGeneratorTestCase):
 
 class ActionTestCase(RglGfGeneratorTestCase):
     def test_noun_phrase_with_noun_only(self):
-        self.given_ontology(actions=set(["profile"]))
+        self.given_ontology(actions={"profile"})
         self.given_grammar([
             Node(
                 Constants.ACTION, {"name": "profile"},
@@ -261,7 +261,7 @@ class ActionTestCase(RglGfGeneratorTestCase):
         )
 
     def test_verb_phrase_with_verb_only(self):
-        self.given_ontology(actions=set(["start_game"]))
+        self.given_ontology(actions={"start_game"})
         self.given_grammar([
             Node(
                 Constants.ACTION, {"name": "start_game"},
@@ -275,7 +275,7 @@ class ActionTestCase(RglGfGeneratorTestCase):
         self.then_natural_language_contains_linearization('start_game = mkVpAction "start";')
 
     def test_verb_phrase_with_noun(self):
-        self.given_ontology(actions=set(["start_game"]))
+        self.given_ontology(actions={"start_game"})
         self.given_grammar([
             Node(
                 Constants.ACTION, {"name": "start_game"}, [
@@ -301,7 +301,7 @@ class ActionTestCase(RglGfGeneratorTestCase):
         )
 
     def test_one_of_for_verb_phrase(self):
-        self.given_ontology(actions=set(["restart"]))
+        self.given_ontology(actions={"restart"})
         self.given_grammar([
             Node(
                 Constants.ACTION, {"name": "restart"}, [
@@ -351,7 +351,7 @@ class UserQuestionTestCase(RglGfGeneratorTestCase):
 
 class RequestTestCase(RglGfGeneratorTestCase):
     def test_base_case(self):
-        self.given_ontology(actions=set(["restart"]))
+        self.given_ontology(actions={"restart"})
         self.given_grammar([
             Node(rgl_types.REQUEST, {"action": "restart"}, [Node(rgl_types.UTTERANCE, {}, ["forget everything"])])
         ])
@@ -361,7 +361,7 @@ class RequestTestCase(RglGfGeneratorTestCase):
         self.then_natural_language_contains_linearization('restart_request_1 = mkUsr (strUtt "forget everything");')
 
     def test_one_of_in_utterance(self):
-        self.given_ontology(actions=set(["restart"]))
+        self.given_ontology(actions={"restart"})
         self.given_grammar([
             Node(
                 rgl_types.REQUEST, {"action": "restart"}, [
@@ -390,7 +390,7 @@ class RequestTestCase(RglGfGeneratorTestCase):
         self.then_natural_language_contains_linearization('restart_request_2 = mkUsr (strUtt "restart the app")')
 
     def test_with_individual(self):
-        self.given_ontology(actions=set(["call"]), sorts={"contact": {}})
+        self.given_ontology(actions={"call"}, sorts={"contact": {}})
         self.given_grammar([
             Node(
                 rgl_types.REQUEST, {"action": "call"}, [
@@ -409,7 +409,7 @@ class RequestTestCase(RglGfGeneratorTestCase):
         )
 
     def test_one_of_in_utterance_with_individual(self):
-        self.given_ontology(actions=set(["call"]), sorts={"contact": {}})
+        self.given_ontology(actions={"call"}, sorts={"contact": {}})
         self.given_grammar([
             Node(
                 rgl_types.REQUEST, {"action": "call"}, [
@@ -658,14 +658,14 @@ class SystemQuestionTestCase(RglGfGeneratorTestCase):
 
 class CategoriesTestCase(RglGfGeneratorTestCase):
     def test_sortal_category(self):
-        self.given_ontology(sorts={"city": {}}, predicates={}, actions=set([]), individuals={})
+        self.given_ontology(sorts={"city": {}}, predicates={}, actions=set(), individuals={})
         self.given_grammar([])
         self.when_generating()
         self.then_abstract_contains_category("Sort_city;\n")
         self.then_natural_language_contains_linearization_category("Sort_city = Sort;\n")
 
     def test_predicate_category(self):
-        self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"}, actions=set([]), individuals={})
+        self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"}, actions=set(), individuals={})
         self.given_grammar([])
         self.when_generating()
         self.then_abstract_contains_category("Predicate_dest_city;\n")
@@ -723,7 +723,7 @@ class SystemAnswerTestCase(RglGfGeneratorTestCase):
         self.given_grammar([
             Node(
                 Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(rgl_types.UTTERANCE, {}, [u"to ", Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
+                [Node(rgl_types.UTTERANCE, {}, ["to ", Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
             )
         ])
         self.when_generating()
@@ -740,9 +740,9 @@ class SystemAnswerTestCase(RglGfGeneratorTestCase):
                 Constants.SYS_ANSWER, {"predicate": "dest_city"}, [
                     Node(
                         rgl_types.UTTERANCE, {}, [
-                            u"to ",
+                            "to ",
                             Node(Constants.INDIVIDUAL, {"predicate": "dest_city"}),
-                            u" in ",
+                            " in ",
                             Node(Constants.INDIVIDUAL, {"predicate": "dest_month"}),
                         ]
                     )
@@ -1044,7 +1044,7 @@ class ValidityTestCase(RglGfGeneratorTestCase):
 
 class WarningsAndErrorsTest(RglGfGeneratorTestCase):
     def test_warn_about_missing_entry_for_action(self):
-        self.given_ontology(actions=set(["call"]))
+        self.given_ontology(actions={"call"})
         self.given_domain_has_plan_for_goal("perform(call)")
         self.given_empty_grammar()
         self.when_generating()
@@ -1066,7 +1066,7 @@ class WarningsAndErrorsTest(RglGfGeneratorTestCase):
 
 Example:
 
-  <question speaker="system" predicate="dest_city" type="wh_question">
+  <question type="wh_question" predicate="dest_city" speaker="system">
     <utterance>what is dest city</utterance>
   </question>"""
         )

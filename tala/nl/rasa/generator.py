@@ -31,7 +31,7 @@ class RasaGenerator(AbstractGenerator):
 
     def stream(self, file_object):
         stream = self._rasa_config_template.stream(language=self._language, data=self._generate_examples())
-        return stream.dump(file_object, encoding="utf-8")
+        return stream.dump(file_object)
 
     def generate(self):
         return self._rasa_config_template.render(language=self._language, data=self._generate_examples())
@@ -105,7 +105,7 @@ class RasaGenerator(AbstractGenerator):
         yield GeneratedBuiltinIntent(UP, self._language_examples.up)
 
     def _entity_synonyms_from_custom_sorts(self, grammar):
-        for sort in self._ddd.ontology.get_sorts().values():
+        for sort in list(self._ddd.ontology.get_sorts().values()):
             if sort.is_builtin():
                 continue
             entities = list(self._all_individual_grammar_entries_of_custom_sort(grammar, sort))

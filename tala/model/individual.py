@@ -39,12 +39,12 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __hash__(self):
         return hash((self.value, self.sort))
 
-    def __unicode__(self):
+    def __str__(self):
         sort = self.getSort()
         if sort.is_string_sort():
             return '"%s"' % self.getValue()
         else:
-            return unicode(self.getValue())
+            return str(self.getValue())
 
     def __repr__(self):
         return "%s%s" % (self.__class__.__name__, (self.getValue(), self.getSort()))
@@ -68,8 +68,8 @@ class NegativeIndividual(Individual):
     def negate(self):
         return Individual(self.ontology_name, self.value, self.sort)
 
-    def __unicode__(self):
-        return "~%s" % unicode(self.getValue())
+    def __str__(self):
+        return "~%s" % self.getValue()
 
     def __eq__(self, other):
         try:
@@ -97,7 +97,7 @@ class Yes(SemanticObject, AsSemanticExpressionMixin):
     def is_yes(self):
         return True
 
-    def __unicode__(self):
+    def __str__(self):
         return Yes.YES
 
     def __eq__(self, other):
@@ -113,7 +113,7 @@ class Yes(SemanticObject, AsSemanticExpressionMixin):
             return False
 
     def __hash__(self):
-        return hash(unicode(self))
+        return hash(str(self))
 
 
 class No(SemanticObject, AsSemanticExpressionMixin):
@@ -125,7 +125,7 @@ class No(SemanticObject, AsSemanticExpressionMixin):
     def is_no(self):
         return True
 
-    def __unicode__(self):
+    def __str__(self):
         return No.NO
 
     def __eq__(self, other):
@@ -141,4 +141,4 @@ class No(SemanticObject, AsSemanticExpressionMixin):
             return False
 
     def __hash__(self):
-        return hash(unicode(self))
+        return hash(str(self))

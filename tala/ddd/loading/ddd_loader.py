@@ -79,7 +79,7 @@ class DDDLoader(object):
 
     def _load_xml_resource(self, resource_name):
         if os.path.exists(resource_name):
-            with open(resource_name) as f:
+            with open(resource_name, "rb") as f:
                 return f.read()
         else:
             raise DddLoaderException("Expected '%s' to exist but it does not" % resource_name)
@@ -117,6 +117,6 @@ class DDDLoader(object):
 
     def _create_ddd(self, ontology, domain, service_interface, grammars):
         return DDD(
-            self._name, ontology, domain, self._ddd_config["rasa_nlu"], service_interface, grammars,
-            self._languages, self._ddd_config["use_rgl"]
+            self._name, ontology, domain, self._ddd_config["rasa_nlu"], service_interface, grammars, self._languages,
+            self._ddd_config["use_rgl"]
         )

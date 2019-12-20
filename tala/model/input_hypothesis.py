@@ -23,11 +23,8 @@ class InputHypothesis(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
-        return "InputHypothesis(%r, %r)" % (self._utterance, self._confidence)
-
     def __str__(self):
-        return unicode(self).encode("utf-8")
+        return "InputHypothesis(%r, %r)" % (self._utterance, self._confidence)
 
     def __repr__(self):
         return str(self)

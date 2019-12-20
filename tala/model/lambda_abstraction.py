@@ -10,7 +10,7 @@ class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject, AsSem
     def is_lambda_abstracted_predicate_proposition(self):
         return True
 
-    def __unicode__(self):
+    def __str__(self):
         variable = "X"
         return variable + "." + self.getPredicate().get_name() + "(" + variable + ")"
 
@@ -46,7 +46,7 @@ class LambdaAbstractedGoalProposition(SemanticObject, AsSemanticExpressionMixin)
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "X.goal(X)"
 
     def __hash__(self):

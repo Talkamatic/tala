@@ -145,7 +145,7 @@ def _config_exception_handling():
 
 
 def version(args):
-    print installed_version.version
+    print((installed_version.version))
 
 
 def interact(args):
@@ -158,8 +158,8 @@ def interact(args):
     except (KeyboardInterrupt, EOFError):
         tdm_cli.stop()
     except MissingSchema:
-        environments = config.read().keys()
-        print "Expected a URL or one of the known environments {} but got '{}'".format(environments, url)
+        environments = list(config.read().keys())
+        print(("Expected a URL or one of the known environments {} but got '{}'".format(environments, url)))
 
 
 def add_verify_subparser(subparsers):

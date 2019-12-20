@@ -32,13 +32,13 @@ class TDMCLI(object):
 
     def run(self):
         for system_turn in self.system_turns():
-            print system_turn
+            print(system_turn)
 
     def system_turns(self):
         greeting = self._request(self._client.start_session)
         yield greeting
         while True:
-            message = self._session.prompt(u"U> ").rstrip()
+            message = self._session.prompt("U> ").rstrip()
             self._passivity_timer.stop()
             yield self._request(self._client.request_text_input, self._tdm_session, message)
 
@@ -50,14 +50,14 @@ class TDMCLI(object):
         if expected_passivity is not None:
             self._passivity_timer.start(expected_passivity)
         system_utterance = response["output"]["utterance"]
-        return u"S> {}".format(system_utterance)
+        return "S> {}".format(system_utterance)
 
     def request_passivity(self):
         system_utterance = self._request(self._client.request_passivity, self._tdm_session)
 
         def print_passivity_turn():
-            print u"U>"
-            print system_utterance
+            print("U>")
+            print(system_utterance)
 
         prompt_toolkit.application.run_in_terminal(print_passivity_turn)
 

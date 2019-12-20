@@ -15,8 +15,11 @@ class Webview(object):
     def __ne__(self, other):
         return not (other == self)
 
-    def __unicode__(self):
-        return u'webview("%s")' % self.url
+    def __str__(self):
+        return 'webview("%s")' % self.url
 
     def __repr__(self):
-        return unicode(self)
+        return str(self)
+
+    def __hash__(self):
+        return 17 * hash(str(self)) + 7 * hash(self.__class__.__name__)

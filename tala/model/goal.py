@@ -47,7 +47,7 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
     def __repr__(self):
         return "%s(%s, %s)" % (Goal.__name__, self._goal_type, self._target)
 
-    def __unicode__(self):
+    def __str__(self):
         return repr(self)
 
     def set_background(self, background):
@@ -110,7 +110,7 @@ class PerformGoal(GoalWithSemanticContent):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         return "perform(%s)" % self.get_action()
 
 
@@ -132,7 +132,7 @@ class ResolveGoal(GoalWithSemanticContent):
     def __ne__(self, other):
         return not (self == other)
 
-    def __unicode__(self):
+    def __str__(self):
         result = ""
         if self._target == Speaker.USR:
             result += "resolve_user"
@@ -169,5 +169,8 @@ class HandleGoal(Goal, OntologySpecificSemanticObject):
     def is_handle_goal(self):
         return True
 
-    def __unicode__(self):
+    def __str__(self):
         return "handle(%s)" % self.get_device_event()
+
+    def __hash__(self):
+        return 17 * hash(str(self)) + 7 * hash(self.__class__.__name__)

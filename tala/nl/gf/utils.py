@@ -25,7 +25,7 @@ MAX_NUM_PLACEHOLDERS = 10
 
 
 def tokenise(s):
-    tokenised = filter(None, TOKENISE_RE.split(s))
+    tokenised = [_f for _f in TOKENISE_RE.split(s) if _f]
     return tokenised
 
 
@@ -69,7 +69,7 @@ def str_phrase(phrase, marked=None):
 
 
 def str_token(token, marked=None):
-    if isinstance(token, basestring):
+    if isinstance(token, str):
         return token
     word, path = token
     star = "*" if is_path(marked) and startswith(path, marked) else ""
@@ -100,7 +100,7 @@ def startswith(sequence, prefix):
 
 def str_path(path):
     if path is None:
-        return unicode(None)
+        return str(None)
     return "".join(map(str, path))
 
 

@@ -59,8 +59,11 @@ class ConsoleScriptTestCase(TempDirTestCase):
         console_script.main(args)
 
     def _run_command(self, command_line):
-        self._process = subprocess.Popen(command_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        return self._process.communicate()
+        self._process = subprocess.Popen(
+            command_line.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        stdout, stderr = self._process.communicate()
+        return stdout, stderr
 
     def _then_stderr_contains_constructive_error_message_for_missing_backend_config(self, config_path):
         pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " \
@@ -159,7 +162,7 @@ class TestVersionIntegration(ConsoleScriptTestCase):
         self._then_result_is_a_version_number()
 
     def _when_checking_tala_version(self):
-        process = subprocess.Popen(["tala version"], stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(["tala", "version"], stdout=subprocess.PIPE, text=True)
         stdout, _ = process.communicate()
         self._result = stdout
 
@@ -383,7 +386,7 @@ class TestInteractIntegration(ConsoleScriptTestCase):
         self._given_created_deployments_config()
         self._when_running_command("tala interact my-made-up-environment")
         self._then_stdout_matches(
-            "Expected a URL or one of the known environments \[u'dev'\] but got 'my-made-up-environment'"
+            "Expected a URL or one of the known environments \['dev'\] but got 'my-made-up-environment'"
         )
 
     def _given_created_deployments_config(self):
@@ -776,10 +779,10 @@ class TestGenerateAlexaIntegration(ConsoleScriptTestCase):
     def _then_stdout_has_json(self, expected_json):
         def unicodify(o):
             if isinstance(o, dict):
-                return {unicode(key): unicodify(value) for key, value in o.items()}
+                return {str(key): unicodify(value) for key, value in list(o.items())}
             if isinstance(o, list):
                 return [unicodify(element) for element in o]
-            return unicode(o)
+            return str(o)
 
         actual_json = json.loads(self._stdout)
         assert actual_json == unicodify(expected_json)

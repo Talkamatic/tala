@@ -20,14 +20,14 @@ class WhQuestionTests(LibTestCase):
         self.assertTrue(self.dest_city_wh_question.is_question())
 
     def test_string_format_predicate(self):
-        self.assertEquals("?X.dest_city(X)", unicode(self.dest_city_wh_question))
+        self.assertEqual("?X.dest_city(X)", str(self.dest_city_wh_question))
 
     def test_string_format_goal(self):
         goal_question = WhQuestion(self.lambda_abstracted_goal_prop)
-        self.assertEquals("?X.goal(X)", unicode(goal_question))
+        self.assertEqual("?X.goal(X)", str(goal_question))
 
     def test_wh_question_get_content(self):
-        self.assertEquals(self.lambda_abstracted_dest_city, self.dest_city_wh_question.get_content())
+        self.assertEqual(self.lambda_abstracted_dest_city, self.dest_city_wh_question.get_content())
 
     def testWhQuestionEquality(self):
         question = self.dest_city_question
@@ -52,7 +52,7 @@ class QuestionTests(LibTestCase):
         self.assertFalse(non_question.is_question())
 
     def test_questions_are_hashable(self):
-        set([self.price_question])
+        {self.price_question}
 
 
 class YesNoQuestionTests(LibTestCase):
@@ -65,7 +65,7 @@ class YesNoQuestionTests(LibTestCase):
 
     def testYesNoQuestionunicode(self):
         question = self.ontology.create_yes_no_question("dest_city", "paris")
-        self.assertEquals("?dest_city(paris)", unicode(question))
+        self.assertEqual("?dest_city(paris)", str(question))
 
     def testInvalidYesNoQuestion(self):
         with self.assertRaises(OntologyError):
@@ -100,7 +100,7 @@ class AltQuestionTests(LibTestCase):
                 GoalProposition(PerformGoal(self.buy_action))
             ])
         )
-        self.assertEquals("?set([goal(perform(top)), goal(perform(buy))])", unicode(alt_question))
+        self.assertEqual("?set([goal(perform(top)), goal(perform(buy))])", str(alt_question))
 
     def test_string_format_for_predicate_alt_question(self):
-        self.assertEquals("?X.dest_city(X), set([dest_city(paris), dest_city(london)])", unicode(self.question))
+        self.assertEqual("?X.dest_city(X), set([dest_city(paris), dest_city(london)])", str(self.question))

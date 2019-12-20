@@ -25,7 +25,7 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def is_up_action(self):
         return self.value == UP
 
-    def __unicode__(self):
+    def __str__(self):
         return self.value
 
     def __hash__(self):

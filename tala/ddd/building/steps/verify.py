@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from tala.ddd.building.steps.abstract_build_step import AbstractBuildStep
 from tala.nl.gf.auto_generator import AutoGenerator
 from tala.nl.gf.rgl_gf_generator import RglGfFilesGenerator

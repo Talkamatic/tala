@@ -68,11 +68,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
         )
         self.given_generator()
@@ -88,7 +88,7 @@ class TestAlexaGenerator(GeneratorTestsMixin):
             }, {
                 "id": "contact_john_chi",
                 "name": {
-                    "value": u"约翰",
+                    "value": "约翰",
                     "synonyms": []
                 }
             }, {
@@ -112,7 +112,7 @@ class TestAlexaGenerator(GeneratorTestsMixin):
             }, {
                 "id": "contact_andy_chi",
                 "name": {
-                    "value": u"安迪",
+                    "value": "安迪",
                     "synonyms": []
                 }
             }]
@@ -136,11 +136,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request("mocked_action", ["make a mocked_action"], []),
@@ -187,11 +187,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request(
@@ -231,11 +231,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             questions=[
                 Question("mocked_question", ["tell me a phone number"], []),
@@ -276,11 +276,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             questions=[
                 Question("mocked_question", ["tell me a phone number"], []),
@@ -322,11 +322,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             }
         )
         self.given_generator()
@@ -357,11 +357,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             }
         )
         self.given_generator()
@@ -377,7 +377,7 @@ class TestAlexaGenerator(GeneratorTestsMixin):
 
     @property
     def _contact_data(self):
-        return ["Andy", "Mary", "Lisa", "Elizabeth", u"安迪", u"约翰", "John", "Johnny"]
+        return ["Andy", "Mary", "Lisa", "Elizabeth", "安迪", "约翰", "John", "Johnny"]
 
     def test_sortal_entities_in_answers(self):
         self.given_ddd_name("mock_ddd")
@@ -396,11 +396,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=[Answer(["my sortal friend ", ""], [
                 RequiredSortalEntity("mocked_sort"),
@@ -437,11 +437,11 @@ class TestAlexaGenerator(GeneratorTestsMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=[Answer(["my friend ", ""], [
                 RequiredPropositionalEntity("mocked_predicate"),

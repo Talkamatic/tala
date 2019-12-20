@@ -90,11 +90,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request("call", ["make a call"], []),
@@ -104,7 +104,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:action::call
+            """## intent:rasa_test:action::call
 - make a call
 - call [John](sort.contact)
 - call [Johnny](sort.contact)
@@ -135,11 +135,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request("call", ["make a call"], []),
@@ -150,7 +150,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:action::call
+        self.then_result_matches("""## intent:rasa_test:action::call
 - make a call
 
 """)
@@ -175,11 +175,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request("call", ["make a call"], []),
@@ -213,11 +213,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             requests=[
                 Request(
@@ -231,7 +231,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:action::call
+            """## intent:rasa_test:action::call
 - call [John](sort.contact) and say hi from [John](sort.contact)
 - call [John](sort.contact) and say hi from [Johnny](sort.contact)
 - call [John](sort.contact) and say hi from [约翰](sort.contact)
@@ -317,18 +317,18 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             questions=self._questions_of_predicate(sort="contact")
         )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:question::phone_number_of_contact
+            """## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
 - what is [John](sort.contact)'s number
 - what is [Johnny](sort.contact)'s number
@@ -372,22 +372,20 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             questions=self._questions_of_predicate(predicate="selected_contact_to_call")
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(
-            u"""## intent:rasa_test:question::phone_number_of_contact
+        self.then_result_matches("""## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
 
-"""
-        )
+""")
 
     @patch("{}.warnings".format(generator.__name__), autospec=True)
     def test_questions_with_propositional_entities_issue_warning(self, mock_warnings):
@@ -409,11 +407,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             questions=self._questions_of_predicate(predicate="selected_contact_to_call")
         )
@@ -441,17 +439,17 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             }
         )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:answer
+            """## intent:rasa_test:answer
 - [John](sort.contact)
 - [Johnny](sort.contact)
 - [约翰](sort.contact)
@@ -480,17 +478,17 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             }
         )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:answer_negation
+            """## intent:rasa_test:answer_negation
 - not [John](sort.contact)
 - not [Johnny](sort.contact)
 - not [约翰](sort.contact)
@@ -504,7 +502,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 
     @property
     def _contact_data(self):
-        return ["Andy", "Mary", "Lisa", "Elizabeth", u"安迪", u"约翰", "John", "Johnny"]
+        return ["Andy", "Mary", "Lisa", "Elizabeth", "安迪", "约翰", "John", "Johnny"]
 
     def test_answers(self):
         self.given_ddd_name("rasa_test")
@@ -523,18 +521,18 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=list(self._answers(sort="contact"))
         )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:answer
+            """## intent:rasa_test:answer
 - [John](sort.contact)
 - [Johnny](sort.contact)
 - [约翰](sort.contact)
@@ -571,18 +569,18 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=list(self._answers(predicate="selected_contact"))
         )
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:answer
+            """## intent:rasa_test:answer
 - [John](sort.contact)
 - [Johnny](sort.contact)
 - [约翰](sort.contact)
@@ -624,11 +622,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=list(self._answers(predicate="selected_contact"))
         )
@@ -656,17 +654,17 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar_with(
             individuals={
                 "contact_john": ["John", "Johnny"],
-                "contact_john_chi": [u"约翰"],
+                "contact_john_chi": ["约翰"],
                 "contact_lisa": ["Lisa", "Elizabeth"],
                 "contact_mary": ["Mary"],
                 "contact_andy": ["Andy"],
-                "contact_andy_chi": [u"安迪"],
+                "contact_andy_chi": ["安迪"],
             },
             answers=list(self._answers(sort="contact"))
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## synonyms:rasa_test:John
+        self.then_result_matches("""## synonyms:rasa_test:John
 - Johnny
 
 ## synonyms:rasa_test:Lisa
@@ -714,7 +712,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:action::mock_action
+            """## intent:rasa_test:action::mock_action
 - mock phrase without entities
 - mock phrase with sortal entity mock example 1
 - mock phrase with sortal entity mock example 2
@@ -738,7 +736,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:action::mock_action
+        self.then_result_matches("""## intent:rasa_test:action::mock_action
 - mock phrase without entities
 
 """)
@@ -780,7 +778,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:question::mock_predicate
+            """## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
 - mock phrase with sortal entity mock example 1
 - mock phrase with sortal entity mock example 2
@@ -802,7 +800,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:question::mock_predicate
+        self.then_result_matches("""## intent:rasa_test:question::mock_predicate
 - mock phrase without entities
 
 """)
@@ -835,7 +833,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:answer
+        self.then_result_matches("""## intent:rasa_test:answer
 - mock example 1
 - mock example 2
 """)
@@ -846,7 +844,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:answer_negation
+        self.then_result_matches("""## intent:rasa_test:answer_negation
 - not mock example 1
 - not mock example 2
 """)
@@ -861,7 +859,7 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:rasa_test:answer
+        self.then_result_matches("""## intent:rasa_test:answer
 - mock example 1
 - mock example 2
 
@@ -906,7 +904,7 @@ class TestGeneratorWithStringSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:rasa_test:action::mock_action
+            """## intent:rasa_test:action::mock_action
 - mock phrase without entities
 - mock phrase with sortal entity [single](sort.string)
 - mock phrase with sortal entity [double word](sort.string)
@@ -940,7 +938,7 @@ class TestGeneratorWithStringSorts(RasaGeneratorTestMixin):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_does_not_match(u"intent:rasa_test:answer_negation")
+        self.then_result_does_not_match("intent:rasa_test:answer_negation")
 
     def then_result_does_not_match(self, contents):
         expected_pattern = re.escape(contents)
@@ -969,7 +967,7 @@ class TestGeneratorWithBuiltinIntents(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:yes
+            """## intent:yes
 - yes
 - yeah
 - yep
@@ -993,7 +991,7 @@ class TestGeneratorWithBuiltinIntents(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:no
+            """## intent:no
 - no
 - nope
 - no thanks
@@ -1013,7 +1011,7 @@ class TestGeneratorWithBuiltinIntents(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            u"""## intent:top
+            """## intent:top
 - forget it
 - never mind
 - get me out of here
@@ -1030,7 +1028,7 @@ class TestGeneratorWithBuiltinIntents(RasaGeneratorTestMixin):
         self.given_mocked_grammar()
         self.given_generator()
         self.when_generate()
-        self.then_result_matches(u"""## intent:up
+        self.then_result_matches("""## intent:up
 - go back
 - back
 - previous

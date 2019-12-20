@@ -18,7 +18,7 @@ def items(object_):
     if isinstance(object_, (list, tuple, set)):
         return (items(element) for element in object_)
     if isinstance(object_, dict):
-        return tuple({key: items(value) for key, value in object_.items()})
+        return tuple({key: items(value) for key, value in list(object_.items())})
     if hasattr(object_, "__class__"):
         if not isinstance(object_, EqualityMixin):
             if hasattr(object_, "__hash__"):

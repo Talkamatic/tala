@@ -56,7 +56,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     def get_predicate(self):
         return self._content.getPredicate()
 
-    def __unicode__(self):
+    def __str__(self):
         return "?" + unicodify(self._content)
 
 
@@ -69,14 +69,14 @@ class AltQuestion(Question):
     def __init__(self, proposition_set):
         Question.__init__(self, Question.TYPE_ALT, proposition_set)
 
-    def __unicode__(self):
+    def __str__(self):
         if self._contains_single_predicate():
             return "?X.%s(X), %s" % (self._predicate(), self._content)
         else:
-            return Question.__unicode__(self)
+            return Question.__str__(self)
 
     def _contains_single_predicate(self):
-        predicates = set([alt.getPredicate() for alt in self._content if alt.is_predicate_proposition()])
+        predicates = {alt.getPredicate() for alt in self._content if alt.is_predicate_proposition()}
         return len(predicates) == 1
 
     def _predicate(self):

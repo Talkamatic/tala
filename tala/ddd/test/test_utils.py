@@ -21,18 +21,18 @@ class MockClass:
 class CacheTest(unittest.TestCase):
     def test_preserves_result(self):
         obj = MockClass()
-        self.assertEquals(2, obj.increase(1))
-        self.assertEquals(5, obj.increase(4))
+        self.assertEqual(2, obj.increase(1))
+        self.assertEqual(5, obj.increase(4))
 
     def test_uses_cache_when_args_similar(self):
         obj = MockClass()
-        self.assertEquals(0, obj.times_called)
+        self.assertEqual(0, obj.times_called)
         obj.increase(1)
         obj.increase(1)
-        self.assertEquals(1, obj.times_called)
+        self.assertEqual(1, obj.times_called)
 
     def test_clear_cache(self):
         obj = MockClass()
-        self.assertEquals(2, obj.increase(1))
+        self.assertEqual(2, obj.increase(1))
         obj.set_increment(4)
-        self.assertEquals(5, obj.increase(1))
+        self.assertEqual(5, obj.increase(1))

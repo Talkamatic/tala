@@ -2,7 +2,7 @@
 
 import codecs
 import itertools
-from StringIO import StringIO
+from io import StringIO
 import sys
 
 from tala.nl import languages
@@ -61,8 +61,8 @@ DEFAULT_LEXICONS = {
         Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, ["terugkeren"])]),
     ],
     languages.CHINESE: [
-        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, [u"菜单"])]),
-        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, [u"返回"])]),
+        Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["菜单"])]),
+        Node(rgl_types.VERB, {"id": "return"}, [Node("infinitive", {}, ["返回"])]),
     ],
 }
 
@@ -173,7 +173,7 @@ class GrammarProcessor(object):
             )
 
     def is_string(self, obj):
-        return isinstance(obj, basestring)
+        return isinstance(obj, str)
 
     def is_text(self, form_parts):
         return all([self.is_string(form_part) for form_part in form_parts])
@@ -354,7 +354,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         return header
 
     def _get_categories_for_sorts_and_predicates(self):
-        return self._sort_categories.values() + self._predicate_categories.values()
+        return list(self._sort_categories.values()) + list(self._predicate_categories.values())
 
     def _generate_semantic_header(self):
         return (
@@ -391,8 +391,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         )
 
     def _generate_linearization_categories(self):
-        sort_lines = ["%s = Sort;\n" % category for category in self._sort_categories.values()]
-        predicate_lines = ["%s = Pred;\n" % category for category in self._predicate_categories.values()]
+        sort_lines = ["%s = Sort;\n" % category for category in list(self._sort_categories.values())]
+        predicate_lines = ["%s = Pred;\n" % category for category in list(self._predicate_categories.values())]
         return "".join(sort_lines + predicate_lines)
 
     def _add_footer_in_generated_gf_files(self):
@@ -493,7 +493,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         elif optional:
             return None
         else:
-            raise MissingEntry("missing entry %s" % unicode(key))
+            raise MissingEntry("missing entry %s" % str(key))
 
     def _get_form_as_options(self, key, optional=False):
         node = self._get_form(key, optional)
@@ -501,8 +501,8 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
 
     def _warn_about_missing_entry(self, warning):
         if not self._ignore_warnings:
-            print >> sys.stderr, "\nMissing grammar entry:",
-            print >> sys.stderr, warning
+            print("\nMissing grammar entry:", end=' ', file=sys.stderr)
+            print(warning, file=sys.stderr)
 
     def _add_content_based_on_service_interface(self):
         for action_interface in self._ddd.service_interface.actions:
@@ -539,7 +539,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             pass
 
     def _generate_predicates(self):
-        for predicate in self._ontology.get_predicates().values():
+        for predicate in list(self._ontology.get_predicates().values()):
             predicate_name = predicate.get_name()
             self._generate_predicate_content(predicate_name)
             self._generate_potential_system_question(predicate_name)
@@ -666,7 +666,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
         )
 
     def _generate_individuals(self):
-        for individual, sort in self._ontology.get_individuals().iteritems():
+        for individual, sort in self._ontology.get_individuals().items():
             self._generate_individual(individual, sort)
 
     def _generate_individual(self, individual, sort):
@@ -711,7 +711,7 @@ class RglGfFilesGenerator(GfGenerator, GrammarProcessor):
             return node.get_single_child()
 
     def _generate_mock_individuals_for_dynamic_sorts(self):
-        for sort in self._ontology.get_sorts().values():
+        for sort in list(self._ontology.get_sorts().values()):
             if sort.is_dynamic():
                 for i in range(0, MAX_NUM_ENTITIES_PER_PARSE):
                     placeholder_name = utils.name_of_user_answer_placeholder_of_sort(sort.get_name(), i)

@@ -30,7 +30,7 @@ class DateTime(object):
     def __ne__(self, other):
         return not (other == self)
 
-    def __unicode__(self):
+    def __str__(self):
         return "datetime(%s)" % self.iso8601_string
 
     def human_standard(self, locale="en_US.UTF-8"):
@@ -43,6 +43,9 @@ class DateTime(object):
 
     def __repr__(self):
         return 'DateTime("%s")' % self._iso8601_string
+
+    def __hash__(self):
+        return 17 * hash(str(self)) + 7 * hash(self.__class__.__name__)
 
 
 class UnsupportedLocale(Exception):

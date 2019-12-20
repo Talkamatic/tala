@@ -26,7 +26,7 @@ class TDMClient(Observable):
         self._url = url
 
     def request_text_input(self, session, utterance, session_data=None):
-        # type: (str, unicode, dict) -> dict
+        # type: (str, str, dict) -> dict
         session_object = self._create_session_object(session_data, session)
         request = self._create_text_input_request(session_object, utterance)
         response = self._make_request(request)

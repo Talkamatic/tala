@@ -17,7 +17,7 @@ def convert_to_json(object_, verbose=True):
     if isinstance(object_, set):
         return {"set": [convert_to_json(element, verbose) for element in object_]}
     if isinstance(object_, dict):
-        return {str(key): convert_to_json(value, verbose) for key, value in object_.items()}
+        return {str(key): convert_to_json(value, verbose) for key, value in list(object_.items())}
     if not verbose and isinstance(object_, AsSemanticExpressionMixin):
         return json_semantic_expression_of(object_)
     if isinstance(object_, AsJSONMixin):
@@ -26,7 +26,7 @@ def convert_to_json(object_, verbose=True):
         if isinstance(object_, AsSemanticExpressionMixin):
             json.update(json_semantic_expression_of(object_))
         return json
-    return unicode(object_)
+    return str(object_)
 
 
 class AsJSONMixin(object):

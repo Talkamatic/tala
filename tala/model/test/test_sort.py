@@ -72,7 +72,7 @@ class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
             self.ontology.get_sort("sdkjfhskdjf")
 
     def test_sort_unicode(self):
-        assert "Sort('city', dynamic=False)" == unicode(CustomSort(self.ontology_name, "city"))
+        assert "Sort('city', dynamic=False)" == str(CustomSort(self.ontology_name, "city"))
 
     def test_sort_equality(self):
         sort1 = self.ontology.get_sort("city")
@@ -97,11 +97,11 @@ class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
         self.when_call_value_from_basic_type("mock_value")
         self.then_result_is("mock_value")
 
-    @pytest.mark.parametrize("value,expected_sort",
-                             [(123.50, RealSort()),
-                              (123, IntegerSort()),
-                              (Image("http://www.internet.org/image.png"), ImageSort()),
-                              (Webview("http://maps.com/map.html"), WebviewSort())])
+    @pytest.mark.parametrize(
+        "value,expected_sort", [(123.50, RealSort()), (123, IntegerSort()),
+                                (Image("http://www.internet.org/image.png"), ImageSort()),
+                                (Webview("http://maps.com/map.html"), WebviewSort())]
+    )
     def test_from_value_returns_expected_sort(self, value, expected_sort):
         self.when_call_from_value(value)
         self.then_result_is(expected_sort)
@@ -142,13 +142,13 @@ class TestStringSort(SortTestCase):
         assert StringSort() == individual.getSort()
 
     def test_string_individual_unicode(self):
-        individual = self.ontology.create_individual(u'"a unicode string"')
-        assert u"a unicode string" == individual.getValue()
+        individual = self.ontology.create_individual('"a unicode string"')
+        assert "a unicode string" == individual.getValue()
         assert StringSort() == individual.getSort()
 
     def test_string_individual_unicode_method(self):
         individual = self.ontology.create_individual('"a string"')
-        assert '"a string"' == unicode(individual)
+        assert '"a string"' == str(individual)
 
     def test_normalize_base_case(self):
         self.when_normalize_value("a string")
@@ -190,12 +190,16 @@ class TestImageSort(SortTestCase):
     @patch("%s.urllib" % tala.model.sort.__name__)
     def test_normalize_dynamic_url_of_image_mime_type(self, mock_urllib, mock_magic):
         self.given_get_mime_type_of_url_returns(mock_magic, mock_urllib, "image/jpeg")
+        self.given_urllib_parsed_path_is(mock_urllib, "/generate_image")
         self.when_normalize_value(Image("http://mock.domain/generate_image"))
         self.then_result_is(Image("http://mock.domain/generate_image"))
 
     def given_get_mime_type_of_url_returns(self, mock_magic, mock_urllib, mime_type):
-        mock_urllib.urlretrieve.return_value = "mock_filepath", "mock_headers"
+        mock_urllib.request.urlretrieve.return_value = "mock_filepath", "mock_headers"
         mock_magic.from_file.return_value = mime_type
+
+    def given_urllib_parsed_path_is(self, mock_urllib, path):
+        mock_urllib.parse.urlparse.return_value.path = path
 
     def test_exception_when_normalize_non_url(self):
         self.when_normalize_value_then_exception_is_raised(
@@ -217,6 +221,7 @@ class TestImageSort(SortTestCase):
     @patch("%s.urllib" % tala.model.sort.__name__)
     def test_exception_when_normalize_dynamic_url_of_non_image_mime_type(self, mock_urllib, mock_magic):
         self.given_get_mime_type_of_url_returns(mock_magic, mock_urllib, "text/html")
+        self.given_urllib_parsed_path_is(mock_urllib, "/generate_html")
         self.when_normalize_value_then_exception_is_raised(
             Image("http://mock.domain/generate_html"), InvalidValueException,
             "Expected an image URL but got 'http://mock.domain/generate_html'."
@@ -389,7 +394,8 @@ class TestPersonName(SortTestCase):
     def test_exception_when_normalize_non_person_name_value(self):
         self.when_normalize_value_then_exception_is_raised(
             "non_person_name", InvalidValueException,
-            "Expected a person name object but got non_person_name of type str.")
+            "Expected a person name object but got non_person_name of type str."
+        )
 
     def test_value_as_basic_type(self):
         self.when_call_value_as_basic_type(PersonName("John"))

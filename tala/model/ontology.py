@@ -9,6 +9,7 @@ from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
 from tala.model.sort import DomainSort, Sort
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.unique import unique
 
 
 class IndividualExistsException(Exception):
@@ -78,7 +79,7 @@ class Ontology(AsJSONMixin):
         return dict_
 
     def _validate_individuals(self):
-        for name, sort in self._individuals.iteritems():
+        for name, sort in list(self._individuals.items()):
             self._validate_individual_name(name)
             self._validate_individual_sort(name, sort)
 
@@ -90,14 +91,14 @@ class Ontology(AsJSONMixin):
             raise InvalidIndividualName("invalid individual name %r" % name)
 
     def _validate_individual_sort(self, name, sort):
-        if sort not in self._sorts.values():
+        if sort not in list(self._sorts.values()):
             raise OntologyError("individual '%s' has unknown sort '%s' (%s)" % (name, sort.get_name(), self.__dict__))
 
     def _add_default_sorts(self):
         self._sorts["domain"] = DomainSort()
 
     def _add_builtin_sorts_for_predicates(self):
-        for predicate in self._predicates.values():
+        for predicate in list(self._predicates.values()):
             self._add_builtin_sorts_for_predicate(predicate)
 
     def _add_builtin_sorts_for_predicate(self, predicate):
@@ -106,8 +107,8 @@ class Ontology(AsJSONMixin):
             self._sorts[sort.get_name()] = sort
 
     def _validate_predicates(self):
-        for predicate in self._predicates.values():
-            if predicate.getSort() not in self._sorts.values():
+        for predicate in list(self._predicates.values()):
+            if predicate.getSort() not in list(self._sorts.values()):
                 raise OntologyError(
                     "predicate '%s' has unknown sort '%s' (sorts=%s)" %
                     (predicate.get_name(), predicate.getSort(), self._sorts)
@@ -142,13 +143,13 @@ class Ontology(AsJSONMixin):
         return self._individuals
 
     def get_individuals_of_sort(self, expected_sort):
-        return [individual for individual, sort in self._individuals.iteritems() if sort.get_name() == expected_sort]
+        return [individual for individual, sort in list(self._individuals.items()) if sort.get_name() == expected_sort]
 
     def set_individuals(self, individuals):
         self._individuals = individuals
 
     def add_individual(self, name, sort_as_string):
-        if name in self._individuals.keys():
+        if name in list(self._individuals.keys()):
             raise IndividualExistsException("invididual %r already exists" % name)
         self._validate_name_and_add_individual(name, sort_as_string)
 
@@ -157,17 +158,14 @@ class Ontology(AsJSONMixin):
         self._individuals[name] = self.get_sort(sort_as_string)
 
     def ensure_individual_exists(self, name, sort_as_string):
-        if name not in self._individuals.keys():
+        if name not in list(self._individuals.keys()):
             self._validate_name_and_add_individual(name, sort_as_string)
 
     def get_name(self):
         return self.name
 
-    def __unicode__(self):
-        return self.name
-
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return self.name
 
     def get_sort(self, name):
         if not self.has_sort(name):
@@ -182,13 +180,13 @@ class Ontology(AsJSONMixin):
             raise OntologyError("unknown predicate %r in %s" % (name, self))
 
     def has_predicate(self, name):
-        return name in self._predicates.keys()
+        return name in list(self._predicates.keys())
 
     def has_sort(self, name):
-        return name in self._sorts.keys()
+        return name in list(self._sorts.keys())
 
     def isPredicate(self, predicate):
-        return predicate in self._predicates.values()
+        return predicate in list(self._predicates.values())
 
     def individual_sort(self, value):
         def sort_of(value):
@@ -197,11 +195,11 @@ class Ontology(AsJSONMixin):
             return Sort.from_value(value)
 
         def names_of(sorts):
-            return {sort.name for sort in sorts}
+            return [sort.name for sort in sorts]
 
         sort = sort_of(value)
         if not self.predicates_contain_sort(sort.name):
-            predicate_sorts = names_of(self.predicate_sorts)
+            predicate_sorts = unique(names_of(self.predicate_sorts))
             raise OntologyError(
                 "Expected one of the predicate sorts {} in ontology '{}', but got value '{}' of sort '{}'".format(
                     predicate_sorts, self.name, value, sort.name
@@ -216,21 +214,21 @@ class Ontology(AsJSONMixin):
         try:
             return self._individuals[value]
         except KeyError:
-            raise OntologyError("failed to get sort of unknown individual: " + unicode(value))
+            raise OntologyError("failed to get sort of unknown individual: " + str(value))
 
     def predicates_contain_sort(self, name):
         return name in [sort.get_name() for sort in self.predicate_sorts]
 
     @property
     def predicate_sorts(self):
-        return {predicate.getSort() for predicate in self._predicates.values()}
+        return unique(predicate.getSort() for predicate in sorted(self._predicates.values()))
 
     def is_action(self, value):
         return value in self._actions
 
     def create_lambda_abstracted_predicate_proposition(self, predicate):
         if not self.isPredicate(predicate):
-            raise OntologyError("predicate %s is not valid in ontology %s" % (unicode(predicate), self.name))
+            raise OntologyError("predicate %s is not valid in ontology %s" % (str(predicate), self.name))
         return LambdaAbstractedPredicateProposition(predicate, self.name)
 
     def create_action(self, action):
@@ -265,7 +263,7 @@ class Ontology(AsJSONMixin):
         try:
             self.individual_sort(value)
         except OntologyError as error:
-            raise OntologyError("failed to create individual with unknown value: " + unicode(error))
+            raise OntologyError("failed to create individual with unknown value: " + str(error))
 
     def create_negative_individual(self, value):
         try:

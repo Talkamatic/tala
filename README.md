@@ -9,7 +9,7 @@ apt-get install libxml2-dev libxslt-dev libmagic1
 # Install tala
 Install the latest version of tala with pip:
 ```bash
-pip install tala
+pip3 install tala
 ```
 
 # Run tala

@@ -8,7 +8,7 @@ class MockElement:
     def __init__(self, name):
         self._name = name
 
-    def __unicode__(self):
+    def __str__(self):
         return "MockElement(%r)" % self._name
 
 
@@ -17,14 +17,14 @@ class StackTester(EqualityAssertionTestCaseMixin):
         stack = self.create_stack()
         stack.push("first")
         stack.push("second")
-        self.assertEquals(stack.pop(), "second")
-        self.assertEquals(stack.pop(), "first")
-        self.assertEquals(len(stack), 0)
+        self.assertEqual(stack.pop(), "second")
+        self.assertEqual(stack.pop(), "first")
+        self.assertEqual(len(stack), 0)
 
     def test_initialize_with_content(self):
         stack = self.create_stack(["first", "second"])
-        self.assertEquals(stack.pop(), "second")
-        self.assertEquals(stack.pop(), "first")
+        self.assertEqual(stack.pop(), "second")
+        self.assertEqual(stack.pop(), "first")
 
     def test_equality_based_on_contents(self):
         stack1 = self.create_stack()
@@ -44,7 +44,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         stack.push("harry")
         element = "kalle"
         stack.push(element)
-        self.assertEquals(element, stack.top())
+        self.assertEqual(element, stack.top())
 
     def test_newly_created_stack_is_empty(self):
         stack = self.create_stack()
@@ -57,7 +57,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
 
     def test_empty_stack_not_equals_none(self):
         empty_stack = self.create_stack()
-        self.assertNotEquals(None, empty_stack)
+        self.assertNotEqual(None, empty_stack)
 
     def test_pop_on_empty_stack_raises_exception(self):
         stack = self.create_stack()
@@ -89,7 +89,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         list = []
         for element in stack:
             list.append(element)
-        self.assertEquals(["top", "bottom"], list)
+        self.assertEqual(["top", "bottom"], list)
 
     def test_pushing_elem_of_correct_type_raises_no_exception(self):
         stack = self.create_stack(contentclass=str)
@@ -122,7 +122,7 @@ class StackTester(EqualityAssertionTestCaseMixin):
         expected_stack.push("top")
         result_stack = lower_stack
         result_stack.push_stack(upper_stack)
-        self.assertEquals(expected_stack, result_stack)
+        self.assertEqual(expected_stack, result_stack)
 
 
 class TestStacks(unittest.TestCase, StackTester):
@@ -133,7 +133,7 @@ class TestStacks(unittest.TestCase, StackTester):
         stack = Stack()
         stack.push(MockElement("bottom"))
         stack.push(MockElement("top"))
-        self.assertEquals("Stack([MockElement('top'), MockElement('bottom')])", unicode(stack))
+        self.assertEqual("Stack([MockElement('top'), MockElement('bottom')])", str(stack))
 
 
 class TestStackSets(unittest.TestCase, StackTester):
@@ -144,13 +144,13 @@ class TestStackSets(unittest.TestCase, StackTester):
         stack = StackSet()
         stack.push(MockElement("bottom"))
         stack.push(MockElement("top"))
-        self.assertEquals("stackset([MockElement('top'), MockElement('bottom')])", unicode(stack))
+        self.assertEqual("stackset([MockElement('top'), MockElement('bottom')])", str(stack))
 
     def test_stacking_two_identical_elements_leaves_only_one(self):
         stack = StackSet()
         stack.push("first")
         stack.push("first")
-        self.assertEquals(1, len(stack))
+        self.assertEqual(1, len(stack))
 
     def test_stacking_an_element_a_second_time_leaves_it_at_top(self):
         stack = StackSet()
@@ -161,19 +161,19 @@ class TestStackSets(unittest.TestCase, StackTester):
         expected_stack.push("second")
         expected_stack.push("first")
 
-        self.assertEquals(expected_stack, stack)
+        self.assertEqual(expected_stack, stack)
 
     def test_remove_if_exists_for_existing_element(self):
         set = StackSet(["first", "second"])
         set.remove_if_exists("first")
         expected_result = StackSet(["second"])
-        self.assertEquals(expected_result, set)
+        self.assertEqual(expected_result, set)
 
     def test_remove_if_exists_for_non_existing_element_has_no_effect(self):
         set = StackSet(["first", "second"])
         set.remove_if_exists("third")
         expected_result = StackSet(["first", "second"])
-        self.assertEquals(expected_result, set)
+        self.assertEqual(expected_result, set)
 
 
 class TestStackSetView(unittest.TestCase):
@@ -197,7 +197,7 @@ class TestStackSetView(unittest.TestCase):
         self._result = self._view.top()
 
     def _then_return_value_is(self, expected_return_value):
-        self.assertEquals(expected_return_value, self._result)
+        self.assertEqual(expected_return_value, self._result)
 
     def test_push_in_view_simple_case(self):
         self._given_a_stack_set([])
@@ -227,7 +227,7 @@ class TestStackSetView(unittest.TestCase):
         self._view.push(1)
 
     def _then_the_stack_is_unmodified(self):
-        self.assertEquals(2, self._stack_set.top())
+        self.assertEqual(2, self._stack_set.top())
 
     def test_pop_in_view(self):
         self._given_a_stack_set([2, 1, 0, -1])
@@ -254,7 +254,7 @@ class TestStackSetView(unittest.TestCase):
         self._integer_list = list(self._view.__iter__())
 
     def _then_the_list_is(self, elems):
-        self.assertEquals(elems, self._integer_list)
+        self.assertEqual(elems, self._integer_list)
 
     def test_length_of_view(self):
         self._given_a_stack_set([2, 1, 0, -1])
@@ -263,4 +263,4 @@ class TestStackSetView(unittest.TestCase):
         self._then_length_is(len([1, 2]))
 
     def _then_length_is(self, length):
-        self.assertEquals(length, len(self._view))
+        self.assertEqual(length, len(self._view))

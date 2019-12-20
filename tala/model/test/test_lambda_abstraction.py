@@ -10,7 +10,7 @@ class LambdaAbstractedGoalPropositionTests(LibTestCase):
         self.lambda_prop = LambdaAbstractedGoalProposition()
 
     def test_unicode(self):
-        self.assertEquals("X.goal(X)", unicode(self.lambda_prop))
+        self.assertEqual("X.goal(X)", str(self.lambda_prop))
 
     def test_equality(self):
         lambda_prop1 = LambdaAbstractedGoalProposition()
@@ -23,7 +23,7 @@ class LambdaAbstractedGoalPropositionTests(LibTestCase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(lambda_prop, non_identical_lambda_prop)
 
     def test_hashing(self):
-        set([self.lambda_prop])
+        {self.lambda_prop}
 
     def test_is_lambda_abstracted_goal_proposition(self):
         self.assertTrue(self.lambda_abstracted_goal_prop.is_lambda_abstracted_goal_proposition())
@@ -36,7 +36,7 @@ class LambdaAbstractedPredicatePropositionTests(LibTestCase):
         self.lambda_prop = LambdaAbstractedPredicateProposition(self.predicate_dest_city, self.ontology.get_name())
 
     def test_unicode(self):
-        self.assertEquals("X.dest_city(X)", unicode(self.lambda_prop))
+        self.assertEqual("X.dest_city(X)", str(self.lambda_prop))
 
     def test_equality(self):
         lambda_prop = self.lambda_abstracted_dest_city_prop
@@ -54,7 +54,7 @@ class LambdaAbstractedPredicatePropositionTests(LibTestCase):
         )
 
     def test_hashing(self):
-        set([self.lambda_prop])
+        {self.lambda_prop}
 
     def test_is_lambda_abstracted_predicate_proposition(self):
         self.assertTrue(self.lambda_abstracted_dest_city_prop.is_lambda_abstracted_predicate_proposition())

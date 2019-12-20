@@ -109,13 +109,13 @@ class TestConvertToJson(object):
         })
 
     def test_unicode_of_object_is_returned_as_fallback(self):
-        self.given_an_object_that_should_be_treated_with_a_fallback_strategy(unicode_return_value=u"åäö unicode_string")
+        self.given_an_object_that_should_be_treated_with_a_fallback_strategy(unicode_return_value="åäö unicode_string")
         self.when_convert_to_json()
-        self.then_result_is(u"åäö unicode_string")
+        self.then_result_is("åäö unicode_string")
 
     def given_an_object_that_should_be_treated_with_a_fallback_strategy(self, unicode_return_value):
         class MockCustomClass(object):
-            def __unicode__(self):
+            def __str__(self):
                 return unicode_return_value
 
         self._object = MockCustomClass()

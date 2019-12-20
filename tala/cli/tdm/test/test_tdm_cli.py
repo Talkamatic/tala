@@ -90,7 +90,7 @@ class TestTDMCLI(object):
         self._given_initiated_system_turns()
         self._given_session_is_started()
         self._when_getting_system_turn()
-        self._then_prompt_is_started_with(u"U> ")
+        self._then_prompt_is_started_with("U> ")
 
     def _given_session_is_started(self):
         next(self._system_turns)
@@ -212,7 +212,7 @@ class TestTDMCLI(object):
         self._given_initiated_system_turns()
         self._given_session_is_started()
         self._when_passivity_timer_triggers()
-        self._then_prompt_toolkit_is_instructed_to_print(u"U>\nS> system-utterance\n")
+        self._then_prompt_toolkit_is_instructed_to_print("U>\nS> system-utterance\n")
 
     def _given_mocked_application(self, mock_application):
         self._mocked_application = mock_application

@@ -99,12 +99,12 @@ class AutoGeneratorTestCase(object):
             }
 
         if actions is None:
-            actions = set([
+            actions = {
                 "top",
                 "make_reservation",
                 "settings",
                 "set_time",
-            ])
+            }
 
         if individuals is None:
             individuals = {
@@ -361,13 +361,13 @@ class TestHeader(AutoGeneratorTestCase):
 
 class TestCategories(AutoGeneratorTestCase):
     def test_sortal_category(self):
-        self.given_ontology(sorts={"city": {}}, predicates={}, actions=set([]), individuals={})
+        self.given_ontology(sorts={"city": {}}, predicates={}, actions=set(), individuals={})
         self.given_grammar([])
         self.when_generating()
         self.assert_abstract_contains_category("Sort_city;\n")
 
     def test_predicate_category(self):
-        self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"}, actions=set([]), individuals={})
+        self.given_ontology(sorts={"city": {}}, predicates={"dest_city": "city"}, actions=set(), individuals={})
         self.given_grammar([])
         self.when_generating()
         self.assert_abstract_contains_category("Predicate_dest_city;\n")
@@ -376,13 +376,13 @@ class TestCategories(AutoGeneratorTestCase):
 class TestAction(AutoGeneratorTestCase):
     def test_action_base_case(self):
         self.given_grammar([
-            Node(Constants.ACTION, {"name": "settings"}, [Node(Constants.ITEM, {}, [u"inställningar"])])
+            Node(Constants.ACTION, {"name": "settings"}, [Node(Constants.ITEM, {}, ["inställningar"])])
         ])
         self.when_generating()
         self.assert_abstract_contains_function('settings : VpAction;')
         self.assert_semantic_contains_linearization('settings = pp "settings";')
         self.assert_natural_language_contains_linearization(
-            u'settings = (mkverb "inställningar" "inställningar" "inställningar");'
+            'settings = (mkverb "inställningar" "inställningar" "inställningar");'
         )
 
     def test_vp_action_as_single_variant(self):
@@ -393,9 +393,9 @@ class TestAction(AutoGeneratorTestCase):
                         Constants.ITEM, {}, [
                             Node(
                                 Constants.VP, {}, [
-                                    Node(Constants.INFINITIVE, {}, [u"ställ in"]),
-                                    Node(Constants.IMPERATIVE, {}, [u"ställ in"]),
-                                    Node(Constants.ING_FORM, {}, [u"ställer in"]),
+                                    Node(Constants.INFINITIVE, {}, ["ställ in"]),
+                                    Node(Constants.IMPERATIVE, {}, ["ställ in"]),
+                                    Node(Constants.ING_FORM, {}, ["ställer in"]),
                                     Node(Constants.OBJECT, {}, ["klockan"])
                                 ]
                             )
@@ -408,7 +408,7 @@ class TestAction(AutoGeneratorTestCase):
         self.assert_abstract_contains_function('set_time : VpAction;')
         self.assert_semantic_contains_linearization('set_time = pp "set_time";')
         self.assert_natural_language_contains_linearization(
-            u'set_time = (mkverb "ställ in" "ställ in" "ställer in" "klockan");'
+            'set_time = (mkverb "ställ in" "ställ in" "ställer in" "klockan");'
         )
 
     def test_vp_action_among_multiple_variants(self):
@@ -421,15 +421,15 @@ class TestAction(AutoGeneratorTestCase):
                                 Constants.ITEM, {}, [
                                     Node(
                                         Constants.VP, {}, [
-                                            Node(Constants.INFINITIVE, {}, [u"ställ in"]),
-                                            Node(Constants.IMPERATIVE, {}, [u"ställ in"]),
-                                            Node(Constants.ING_FORM, {}, [u"ställer in"]),
+                                            Node(Constants.INFINITIVE, {}, ["ställ in"]),
+                                            Node(Constants.IMPERATIVE, {}, ["ställ in"]),
+                                            Node(Constants.ING_FORM, {}, ["ställer in"]),
                                             Node(Constants.OBJECT, {}, ["klockan"])
                                         ]
                                     )
                                 ]
                             ),
-                            Node(Constants.ITEM, {}, [u"sätt klockan"])
+                            Node(Constants.ITEM, {}, ["sätt klockan"])
                         ]
                     )
                 ]
@@ -439,7 +439,7 @@ class TestAction(AutoGeneratorTestCase):
         self.assert_abstract_contains_function('set_time : VpAction;')
         self.assert_semantic_contains_linearization('set_time = pp "set_time";')
         self.assert_natural_language_contains_linearization(
-            u'set_time = (mkverb "ställ in" "ställ in" "ställer in" "klockan"|mkverb "sätt klockan" "sätt klockan" "sätt klockan");'
+            'set_time = (mkverb "ställ in" "ställ in" "ställer in" "klockan"|mkverb "sätt klockan" "sätt klockan" "sätt klockan");'
         )
 
     def test_np_action_with_explicit_definite(self):
@@ -448,8 +448,8 @@ class TestAction(AutoGeneratorTestCase):
                 Constants.ACTION, {"name": "settings"}, [
                     Node(
                         Constants.NP, {}, [
-                            Node(Constants.INDEFINITE, {}, [u"inställningar"]),
-                            Node(Constants.DEFINITE, {}, [u"inställningarna"])
+                            Node(Constants.INDEFINITE, {}, ["inställningar"]),
+                            Node(Constants.DEFINITE, {}, ["inställningarna"])
                         ]
                     )
                 ]
@@ -458,13 +458,13 @@ class TestAction(AutoGeneratorTestCase):
         self.when_generating()
         self.assert_abstract_contains_function('settings : NpAction;')
         self.assert_semantic_contains_linearization('settings = pp "settings";')
-        self.assert_natural_language_contains_linearization(u'settings = (mkdef "inställningar" "inställningarna");')
+        self.assert_natural_language_contains_linearization('settings = (mkdef "inställningar" "inställningarna");')
 
     def test_np_action_with_implicit_definite(self):
         self.given_grammar([
             Node(
                 Constants.ACTION, {"name": "settings"},
-                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"preferences"])])]
+                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["preferences"])])]
             )
         ])
         self.when_generating()
@@ -479,7 +479,7 @@ class TestAction(AutoGeneratorTestCase):
                     "name": "settings",
                     "number": tala.nl.gf.resource.SINGULAR,
                     "gender": tala.nl.gf.resource.FEMININE
-                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"impostazione"])])]
+                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["impostazione"])])]
             )
         ])
         self.when_generating()
@@ -494,7 +494,7 @@ class TestAction(AutoGeneratorTestCase):
                     "name": "top",
                     "number": tala.nl.gf.resource.SINGULAR,
                     "gender": tala.nl.gf.resource.MASCULINE
-                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"menu principale"])])]
+                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["menu principale"])])]
             )
         ])
         self.when_generating()
@@ -509,7 +509,7 @@ class TestAction(AutoGeneratorTestCase):
                     "name": "settings",
                     "number": tala.nl.gf.resource.PLURAL,
                     "gender": tala.nl.gf.resource.FEMININE
-                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"impostazioni"])])]
+                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["impostazioni"])])]
             )
         ])
         self.when_generating()
@@ -524,7 +524,7 @@ class TestAction(AutoGeneratorTestCase):
                     "name": "top",
                     "number": tala.nl.gf.resource.PLURAL,
                     "gender": tala.nl.gf.resource.MASCULINE
-                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"menu principali"])])]
+                }, [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["menu principali"])])]
             )
         ])
         self.when_generating()
@@ -541,7 +541,7 @@ class TestAction(AutoGeneratorTestCase):
                             Node(Constants.ITEM, {}, ["options"]),
                             Node(
                                 Constants.ITEM, {},
-                                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, [u"preferences"])])]
+                                [Node(Constants.NP, {}, [Node(Constants.INDEFINITE, {}, ["preferences"])])]
                             )
                         ]
                     )
@@ -647,19 +647,19 @@ class test_parameterized_sys_form_answer(AutoGeneratorTestCase):
         self.given_form(
             Node(
                 Constants.ITEM, {},
-                [u"kan inte ställa timmen till ",
+                ["kan inte ställa timmen till ",
                  Node(Constants.SLOT, {"predicate": "hour_to_set"}), "."]
             )
         )
         self.given_generator()
         self.when_called()
-        self.then_result_is(u'"kan inte ställa timmen till " ++ hour_to_set.alt ++ "."')
+        self.then_result_is('"kan inte ställa timmen till " ++ hour_to_set.alt ++ "."')
 
     def when_called(self):
         self._actual_result = self.generator._parameterized_sys_form(self._form)
 
     def then_result_is(self, expected_gf_content):
-        self.assertEquals(expected_gf_content, self._actual_result)
+        self.assertEqual(expected_gf_content, self._actual_result)
 
 
 class TestUsrRequest(AutoGeneratorTestCase):
@@ -698,7 +698,7 @@ class TestUsrRequest(AutoGeneratorTestCase):
         self.given_form(
             Node(
                 Constants.ITEM, {}, [
-                    u"ställ klockan på ",
+                    "ställ klockan på ",
                     Node(Constants.SLOT, {"predicate": "hour_to_set"}), " ",
                     Node(Constants.SLOT, {"predicate": "minute_to_set"})
                 ]
@@ -713,7 +713,7 @@ class TestUsrRequest(AutoGeneratorTestCase):
             'set_time_request_1 hour_to_set minute_to_set = request (pp "set_time") hour_to_set minute_to_set;\n'
         )
         self.assert_natural_language(
-            u'set_time_request_1 hour_to_set minute_to_set = ss ("ställ klockan på " ++ hour_to_set.s ++ " " ++ minute_to_set.s);\n'
+            'set_time_request_1 hour_to_set minute_to_set = ss ("ställ klockan på " ++ hour_to_set.s ++ " " ++ minute_to_set.s);\n'
         )
 
     def test_action_with_literal_parameter(self):
@@ -1123,7 +1123,7 @@ class TestReport(AutoGeneratorTestCase):
     def test_unicode(self):
         self.given_grammar([
             Node(
-                Constants.REPORT_ENDED, {"action": "SetTime"}, [Node(Constants.ITEM, {}, [u"klockan har ställts in."])]
+                Constants.REPORT_ENDED, {"action": "SetTime"}, [Node(Constants.ITEM, {}, ["klockan har ställts in."])]
             )
         ])
         self.given_service_interface_has_action(
@@ -1134,7 +1134,7 @@ class TestReport(AutoGeneratorTestCase):
         self.assert_abstract_contains_function('report_ended_SetTime_1 : SysReportEnded;\n')
         self.assert_semantic_contains_linearization('report_ended_SetTime_1 = report_ended "SetTime" (empty_list);\n')
         self.assert_natural_language_contains_linearization(
-            u'report_ended_SetTime_1 = ss ("klockan har ställts in.");\n'
+            'report_ended_SetTime_1 = ss ("klockan har ställts in.");\n'
         )
 
     def test_multiple_variants_with_same_parameters(self):
@@ -1162,9 +1162,9 @@ class TestReport(AutoGeneratorTestCase):
         self.assert_semantic_contains_linearization('report_ended_SetTime_1 = report_ended "SetTime" (empty_list);\n')
         self.assert_semantic_contains_linearization('report_ended_SetTime_2 = report_ended "SetTime" (empty_list);\n')
         self.assert_semantic_contains_linearization('report_ended_SetTime_3 = report_ended "SetTime" (empty_list);\n')
-        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_1 = ss ("the clock was set");\n')
-        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_2 = ss ("I have set the clock");\n')
-        self.assert_natural_language_contains_linearization(u'report_ended_SetTime_3 = ss ("the time was set");\n')
+        self.assert_natural_language_contains_linearization('report_ended_SetTime_1 = ss ("the clock was set");\n')
+        self.assert_natural_language_contains_linearization('report_ended_SetTime_2 = ss ("I have set the clock");\n')
+        self.assert_natural_language_contains_linearization('report_ended_SetTime_3 = ss ("the time was set");\n')
         self.assert_probabilities_file_contains('report_ended_SetTime_1 0.00000100')
         self.assert_probabilities_file_contains('report_ended_SetTime_2 0.00000067')
         self.assert_probabilities_file_contains('report_ended_SetTime_3 0.00000033')
@@ -1457,7 +1457,7 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
         self.given_compulsory_grammar_for_app(exclude=(Constants.ACTION, {"name": "settings"}))
         self.when_generating()
         self.expect_warning(
-            'How do speakers talk about the action settings? Specify the utterance:\n\n  <action name="settings">settings</action>\n\nAlternatively, you can specify several possible utterances in a list:\n\n  <action name="settings">\n    <one-of>\n      <item>settings one way</item>\n      <item>settings another way</item>\n      <item>settings <slot predicate="city" type="individual"/></item>\n    </one-of>\n  </action>'
+            'How do speakers talk about the action settings? Specify the utterance:\n\n  <action name="settings">settings</action>\n\nAlternatively, you can specify several possible utterances in a list:\n\n  <action name="settings">\n    <one-of>\n      <item>settings one way</item>\n      <item>settings another way</item>\n      <item>settings <slot type="individual" predicate="city"/></item>\n    </one-of>\n  </action>'
         )
 
     def test_warn_about_missing_entry_for_goal_issue_py_grammar(self):
@@ -1481,7 +1481,7 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
         ])
         self.when_generating()
         self.expect_warning(
-            'How do the speakers talk about the issue price? The entry is used in questions such as "Do you want to know X?" or "I want to know X", where X is the grammar entry.\n\nExample:\n\n  <question speaker="all" predicate="price" type="wh_question">price</question>\n\nAlternatively, you can specify several possible utterances in a list:\n\n  <question speaker="all" predicate="price" type="wh_question">\n    <one-of>\n      <item>price one way</item>\n      <item>price another way</item>\n    </one-of>\n  </question>'
+            'How do the speakers talk about the issue price? The entry is used in questions such as "Do you want to know X?" or "I want to know X", where X is the grammar entry.\n\nExample:\n\n  <question type="wh_question" speaker="all" predicate="price">price</question>\n\nAlternatively, you can specify several possible utterances in a list:\n\n  <question type="wh_question" speaker="all" predicate="price">\n    <one-of>\n      <item>price one way</item>\n      <item>price another way</item>\n    </one-of>\n  </question>'
         )
 
     def test_warn_about_missing_entry_for_user_question(self):
@@ -1508,7 +1508,7 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
         self.given_compulsory_grammar_for_app()
         self.when_generating()
         self.expect_warning(
-            'How does the system ask about dest_city?\n\nExample:\n\n  <question speaker="system" predicate="dest_city" type="wh_question">what is dest city</question>'
+            'How does the system ask about dest_city?\n\nExample:\n\n  <question type="wh_question" predicate="dest_city" speaker="system">what is dest city</question>'
         )
 
     def test_not_warn_about_system_question_due_to_explicit_entry(self):
@@ -1653,7 +1653,7 @@ class TestWarningsAndErrors(AutoGeneratorTestCase):
         self._ensure_ontology_exists()
         self._ensure_domain_exists()
         plan_item = self._parser.parse(plan_item_as_string)
-        any_goal = self._domain.plans.keys()[0]
+        any_goal = list(self._domain.plans.keys())[0]
         self._domain.plans[any_goal]["plan"].push(plan_item)
 
     def expect_warning(self, expected_warning):
@@ -1691,13 +1691,13 @@ class TestSysAnswer(AutoGeneratorTestCase):
         self.given_grammar([
             Node(
                 Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(Constants.ITEM, {}, [u"på ", Node(Constants.SLOT, {})])]
+                [Node(Constants.ITEM, {}, ["på ", Node(Constants.SLOT, {})])]
             )
         ])
         self.when_generating_system_answer_content("dest_city")
         self.assert_abstract("dest_city_sys_answer : Sort_city -> SysAnswer;\n")
         self.assert_semantic("dest_city_sys_answer individual = pp dest_city.s individual;\n")
-        self.assert_natural_language(u'dest_city_sys_answer individual = answer ("på" ++ individual.s) individual.s;\n')
+        self.assert_natural_language('dest_city_sys_answer individual = answer ("på" ++ individual.s) individual.s;\n')
 
     def test_nullary_propositional_system_answer(self):
         self.given_generator()
@@ -1816,7 +1816,7 @@ class TestSysAnswer(AutoGeneratorTestCase):
         self.given_grammar([
             Node(
                 Constants.SYS_ANSWER, {"predicate": BUILTIN_NON_INTEGER_PREDICATE},
-                [Node(Constants.ITEM, {}, [u"svaret är ", Node(Constants.SLOT, {})])]
+                [Node(Constants.ITEM, {}, ["svaret är ", Node(Constants.SLOT, {})])]
             )
         ])
         self.given_generator()
@@ -1827,7 +1827,7 @@ class TestSysAnswer(AutoGeneratorTestCase):
             (BUILTIN_NON_INTEGER_PREDICATE, BUILTIN_NON_INTEGER_PREDICATE)
         )
         self.assert_natural_language_contains(
-            u'%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % BUILTIN_NON_INTEGER_PREDICATE
+            '%s_sys_answer individual = answer ("svaret är" ++ individual.s);\n' % BUILTIN_NON_INTEGER_PREDICATE
         )
 
 
@@ -2192,10 +2192,10 @@ class TestGreeting(AutoGeneratorTestCase):
         self._then_no_exception_is_raised()
 
     def test_greeting_contains_unicode(self):
-        self.given_grammar([Node(Constants.GREETING, {}, [Node(Constants.ITEM, {}, [u"Hallå!"])])])
+        self.given_grammar([Node(Constants.GREETING, {}, [Node(Constants.ITEM, {}, ["Hallå!"])])])
         self.given_generator()
         self.when_generating()
-        self.assert_natural_language_contains_linearization(u'sysGreet = ss "Hallå!";')
+        self.assert_natural_language_contains_linearization('sysGreet = ss "Hallå!";')
 
 
 class TestIndividual(AutoGeneratorTestCase):

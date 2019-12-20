@@ -23,7 +23,7 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self._city_sort = CustomSort(self.ontology_name, "city", dynamic=True)
         self.ontology = self._create_ontology()
 
-        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
+        self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set())
 
         self.domain_name = "mockup_domain"
 
@@ -32,13 +32,13 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.ddd = self._create_and_add_ddd(self._language_code)
 
     def _create_ontology(self):
-        sorts = set([
+        sorts = {
             self._city_sort,
             CustomSort(self.ontology_name, "city_type"),
             CustomSort(self.ontology_name, "ticket_type"),
             CustomSort(self.ontology_name, "passenger_type"),
-        ])
-        predicates = set([
+        }
+        predicates = {
             self._create_predicate("dest_city", self._city_sort),
             self._create_predicate(
                 "dest_city_type", sort=CustomSort(self.ontology_name, "city_type"), feature_of_name="dest_city"
@@ -53,12 +53,12 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
             self._create_predicate("available_city", self._city_sort),
             self._create_predicate("need_visa", BooleanSort()),
             self._create_predicate("comment_message", StringSort()),
-        ])
+        }
         individuals = {
             "paris": self._city_sort,
             "london": self._city_sort,
         }
-        actions = set(["top", "buy"])
+        actions = {"top", "buy"}
         return Ontology(self.ontology_name, sorts, predicates, individuals, actions)
 
     def _create_predicate(self, *args, **kwargs):

@@ -144,7 +144,7 @@ class GeneratorTestsMixin(object):
         self._mocked_ddd.domain.get_all_resolve_goals.return_value = mocked_resolve_goals
 
     def _plan_questions(self, predicates):
-        for predicate_name, sort_name in predicates.iteritems():
+        for predicate_name, sort_name in list(predicates.items()):
             predicate = Predicate("mocked_ontology", predicate_name, CustomSort("mocked_ontology", sort_name))
             proposition = LambdaAbstractedPredicateProposition(predicate, "mocked_ontology")
             question = WhQuestion(proposition)

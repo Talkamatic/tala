@@ -36,7 +36,7 @@ class DeviceMethod(object):
 
     def _parse_parameters(self):
         if hasattr(self, "PARAMETERS"):
-            return map(self._parse_parameter, self.PARAMETERS)
+            return list(map(self._parse_parameter, self.PARAMETERS))
         return []
 
     def _parse_parameter(self, parameters_string):

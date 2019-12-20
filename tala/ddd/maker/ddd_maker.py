@@ -1,5 +1,5 @@
 import os
-from StringIO import StringIO
+from io import StringIO
 
 from tala.config import BackendConfig, DddConfig
 from tala.ddd.maker import utils

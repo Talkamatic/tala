@@ -12,4 +12,4 @@ class AbstractBuildStep(object):
 
     def _log_command(self, cmd):
         if self._verbose:
-            print("calling %r" % cmd)
+            print(("calling %r" % cmd))

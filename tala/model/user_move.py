@@ -30,13 +30,10 @@ class UserMove(EqualityMixin):
         # type: () -> float
         return self._understanding_confidence
 
-    def __unicode__(self):
-        return "{}({}, perception_confidence={}, understanding_confidence={})"\
+    def __str__(self):
+        return "{}({}, perception_confidence={}, understanding_confidence={})" \
             .format(self.__class__.__name__, self._semantic_expression, self._perception_confidence,
                     self._understanding_confidence)
-
-    def __str__(self):
-        return unicode(self).encode("utf-8")
 
     def __repr__(self):
         return str(self)
@@ -58,7 +55,7 @@ class DDDSpecificUserMove(UserMove):
         # type: () -> Text
         return self._ddd
 
-    def __unicode__(self):
+    def __str__(self):
         return "{}({}, perception_confidence={}, understanding_confidence={})"\
             .format(self.__class__.__name__, self._ddd, self._semantic_expression, self._perception_confidence,
                     self._understanding_confidence)

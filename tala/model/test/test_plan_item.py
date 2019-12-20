@@ -30,11 +30,11 @@ class PlanItemTests(LibTestCase):
 
     def test_create_DoPlanItem(self):
         do_item = DoPlanItem(self.buy_action)
-        self.assertEquals(self.buy_action, do_item.getContent())
+        self.assertEqual(self.buy_action, do_item.getContent())
 
     def test_DoPlanItem_type(self):
         do_item = DoPlanItem(self.buy_action)
-        self.assertEquals(PlanItem.TYPE_DO, do_item.getType())
+        self.assertEqual(PlanItem.TYPE_DO, do_item.getType())
 
     def test_isRespondPlanItem(self):
         self.assertTrue(self.respond_plan_item.isRespondPlanItem())
@@ -43,25 +43,25 @@ class PlanItemTests(LibTestCase):
         self.assertTrue(self.findout_plan_item.isFindoutPlanItem())
 
     def test_FindoutPlanItem_getContent(self):
-        self.assertEquals(self.question, self.findout_plan_item.getContent())
+        self.assertEqual(self.question, self.findout_plan_item.getContent())
 
     def test_isRaisePlanItem(self):
         self.assertTrue(self.raise_plan_item.isRaisePlanItem())
 
     def test_RaisePlanItem_getContent(self):
-        self.assertEquals(self.question, self.raise_plan_item.getContent())
+        self.assertEqual(self.question, self.raise_plan_item.getContent())
 
     def test_FindoutPlanItem_to_string(self):
         expected_string = "findout(?X.dest_city(X))"
-        self.assertEquals(expected_string, unicode(self.findout_plan_item))
+        self.assertEqual(expected_string, str(self.findout_plan_item))
 
     def test_PlanItem_unicode(self):
         quitPlanItem = QuitPlanItem()
-        self.assertEquals(unicode(quitPlanItem), "quit")
+        self.assertEqual(str(quitPlanItem), "quit")
 
     def test_GreetPlanItem_unicode(self):
         greetPlanItem = GreetPlanItem()
-        self.assertEquals(unicode(greetPlanItem), "greet")
+        self.assertEqual(str(greetPlanItem), "greet")
 
     def test_findout_is_question_plan_item(self):
         self.assertTrue(self.findout_plan_item.is_question_plan_item())
@@ -128,14 +128,14 @@ class PlanItemTests(LibTestCase):
 
     def test_if_then_else_getters(self):
         plan_item = self.if_then_else_plan_item
-        self.assertEquals(PlanItem.TYPE_IF_THEN_ELSE, plan_item.getType())
-        self.assertEquals(self.if_condition, plan_item.get_condition())
-        self.assertEquals(self.if_consequent, plan_item.get_consequent())
-        self.assertEquals(self.if_alternative, plan_item.get_alternative())
+        self.assertEqual(PlanItem.TYPE_IF_THEN_ELSE, plan_item.getType())
+        self.assertEqual(self.if_condition, plan_item.get_condition())
+        self.assertEqual(self.if_consequent, plan_item.get_consequent())
+        self.assertEqual(self.if_alternative, plan_item.get_alternative())
 
     def test_if_then_else_to_string(self):
         expected_string = "if_then_else(%s, %s, %s)" % (self.if_condition, self.if_consequent, self.if_alternative)
-        self.assertEquals(expected_string, unicode(self.if_then_else_plan_item))
+        self.assertEqual(expected_string, str(self.if_then_else_plan_item))
 
     def test_create_forget_all(self):
         item = ForgetAllPlanItem()
@@ -177,7 +177,7 @@ class PlanItemTests(LibTestCase):
         findout_plan_item = FindoutPlanItem(self.domain_name, self.question)
         raise_plan_item = findout_plan_item.clone_as_type(PlanItem.TYPE_RAISE)
         self.assertTrue(raise_plan_item.isRaisePlanItem())
-        self.assertEquals(self.question, raise_plan_item.get_question())
+        self.assertEqual(self.question, raise_plan_item.get_question())
 
 
 class InvokeServiceActionPlanItemTests(LibTestCase):
@@ -247,7 +247,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
         )
 
     def when_get_unicode(self):
-        self._actual_result = unicode(self._plan_item)
+        self._actual_result = str(self._plan_item)
 
 
 class InvokeServiceQueryPlanItemTests(LibTestCase):
@@ -306,7 +306,7 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
     ):
         with self.assertRaises(expected_exception) as context_manager:
             self._create_invoke_service_query_plan_item(min_results=min_results, max_results=max_results)
-        self.assertEquals(expected_message, str(context_manager.exception))
+        self.assertEqual(expected_message, str(context_manager.exception))
 
     def test_getContent(self):
         self.given_created_invoke_service_query_plan_item(issue="mock_issue")
@@ -319,7 +319,7 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
         self.then_result_is("invoke_service_query(mock_issue, min_results=0, max_results=1)")
 
     def when_get_unicode(self):
-        self._actual_result = unicode(self._plan_item)
+        self._actual_result = str(self._plan_item)
 
 
 class consultDBPlanItemTests(LibTestCase):
@@ -332,7 +332,7 @@ class consultDBPlanItemTests(LibTestCase):
 
     def testConsultDBPlanItemContent(self):
         plan_item = ConsultDBPlanItem(self.price_question)
-        self.assertEquals(self.price_question, plan_item.getContent())
+        self.assertEqual(self.price_question, plan_item.getContent())
 
 
 class JumpToPlanItemTests(LibTestCase):
@@ -342,7 +342,7 @@ class JumpToPlanItemTests(LibTestCase):
         self.item = JumpToPlanItem(self.action)
 
     def test_unicode(self):
-        self.assertEquals("jumpto(buy)", unicode(self.item))
+        self.assertEqual("jumpto(buy)", str(self.item))
 
     def test_equality(self):
         identical_item = JumpToPlanItem(self.action)
@@ -359,7 +359,7 @@ class AssumePlanItemTests(LibTestCase):
         self.assume_price = AssumePlanItem(self.price_proposition)
 
     def test_unicode(self):
-        self.assertEquals("assume(price(1234.0))", unicode(self.assume_price))
+        self.assertEqual("assume(price(1234.0))", str(self.assume_price))
 
     def test_is_assume_item(self):
         self.assertTrue(self.assume_price.is_assume_plan_item())
@@ -371,7 +371,7 @@ class AssumeSharedPlanItemTests(LibTestCase):
         self.assume_shared_price = AssumeSharedPlanItem(self.price_proposition)
 
     def test_unicode(self):
-        self.assertEquals("assume_shared(price(1234.0))", unicode(self.assume_shared_price))
+        self.assertEqual("assume_shared(price(1234.0))", str(self.assume_shared_price))
 
     def test_is_assume_shared_item(self):
         self.assertTrue(self.assume_shared_price.is_assume_shared_plan_item())
@@ -383,7 +383,7 @@ class AssumeSharedIssuePlanItemTests(LibTestCase):
         self.assume_price_issue = AssumeIssuePlanItem(self.price_question)
 
     def test_unicode(self):
-        self.assertEquals("assume_issue(?X.price(X))", unicode(self.assume_price_issue))
+        self.assertEqual("assume_issue(?X.price(X))", str(self.assume_price_issue))
 
     def test_is_assume_shared_issue(self):
         self.assertTrue(self.assume_price_issue.is_assume_issue_plan_item())

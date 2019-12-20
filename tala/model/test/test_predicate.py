@@ -9,7 +9,7 @@ class PredicateTests(LibTestCase):
         self.setUpLibTestCase()
 
     def test_get_name(self):
-        self.assertEquals("dest_city", self.predicate_dest_city.get_name())
+        self.assertEqual("dest_city", self.predicate_dest_city.get_name())
 
     def test_create_invalid_predicate(self):
         with self.assertRaises(OntologyError):
@@ -17,11 +17,11 @@ class PredicateTests(LibTestCase):
 
     def test_getSort(self):
         predicate = self.ontology.get_predicate("dest_city")
-        self.assertEquals(self.sort_city, predicate.getSort())
+        self.assertEqual(self.sort_city, predicate.getSort())
 
     def test_feature_get_sort(self):
         predicate = self.ontology.get_predicate("dest_city_type")
-        self.assertEquals(self.sort_city_type, predicate.getSort())
+        self.assertEqual(self.sort_city_type, predicate.getSort())
 
     def test_is_feature_of_true(self):
         self.assertTrue(self.predicate_dest_city_type.is_feature_of(self.predicate_dest_city))
@@ -74,7 +74,7 @@ class PredicateTests(LibTestCase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(predicate1, predicate2)
 
     def test_unicode(self):
-        self.assertEquals("dest_city", unicode(self.predicate_dest_city))
+        self.assertEqual("dest_city", str(self.predicate_dest_city))
 
     def test_hashable(self):
         s = set()

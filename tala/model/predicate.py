@@ -36,6 +36,9 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         except AttributeError:
             return False
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     def __ne__(self, other):
         return not (self == other)
 

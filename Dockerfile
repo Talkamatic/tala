@@ -1,4 +1,4 @@
-FROM python:2.7-slim
+FROM python:3.7-slim
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   build-essential \

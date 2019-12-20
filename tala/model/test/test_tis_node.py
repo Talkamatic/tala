@@ -21,20 +21,20 @@ class TISNodeTests(unittest.TestCase):
 
     def testTISNode_pretty_string_with_indent0(self):
         expected_string = "\n\tchild1: {}\n\tchild2: string"
-        self.assertEquals(expected_string, self.node.pretty_string(0))
+        self.assertEqual(expected_string, self.node.pretty_string(0))
 
     def testTISNode_pretty_string_with_indent1(self):
         expected_string = "\n\t\tchild1: {}\n\t\tchild2: string"
-        self.assertEquals(expected_string, self.node.pretty_string(1))
+        self.assertEqual(expected_string, self.node.pretty_string(1))
 
     def testTISNode_recursive_pretty_string(self):
         expected_string = "\n\tnode1: \n\t\tchild1: {}\n\t\tchild2: string\n\tnode2: \n\t\tchild1: {}\n\t\tchild2: string"
-        self.assertEquals(expected_string, self.recursive_node.pretty_string(0))
+        self.assertEqual(expected_string, self.recursive_node.pretty_string(0))
 
     def testTISNode_pretty_string_base_case(self):
         expected_string = "\nchild1: {}\nchild2: string"
-        self.assertEquals(expected_string, self.node.pretty_string_new([]))
+        self.assertEqual(expected_string, self.node.pretty_string_new([]))
 
     def testTISNode_pretty_string_recursive_case(self):
         expected_string = "\nnode1.child1: {}\nnode1.child2: string\nnode2.child1: {}\nnode2.child2: string"
-        self.assertEquals(expected_string, self.recursive_node.pretty_string_new([]))
+        self.assertEqual(expected_string, self.recursive_node.pretty_string_new([]))

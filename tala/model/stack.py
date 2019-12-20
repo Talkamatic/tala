@@ -23,9 +23,6 @@ class Stack(AsJSONMixin):
         return "{name}(content={content})".format(name=self.__class__.__name__, content=self.content)
 
     def __str__(self):
-        return unicode(self).encode("utf-8")
-
-    def __unicode__(self):
         string = "Stack(" + unicodify(self.content) + ")"
         return string
 
@@ -55,8 +52,8 @@ class Stack(AsJSONMixin):
         if self.contentclass:
             if not isinstance(element, self.contentclass):
                 raise TypeError(
-                    "object " + unicode(element) + " of type " + element.__class__.__name__ + " is not of type " +
-                    unicode(self.contentclass)
+                    "object " + str(element) + " of type " + element.__class__.__name__ + " is not of type " +
+                    str(self.contentclass)
                 )
 
     def top(self):
@@ -97,7 +94,7 @@ class StackSet(Stack):
             "stackset": self.content,
         }
 
-    def __unicode__(self):
+    def __str__(self):
         string = "stackset(" + unicodify(self.content) + ")"
         return string
 
@@ -120,12 +117,9 @@ class StackSetView:
         self.source_object = source_object
         self.philter = philter
 
-    def __unicode__(self):
-        string = "stacksetview(" + unicode(list(self)) + ")"
-        return string
-
     def __str__(self):
-        return unicode(self).encode("utf-8")
+        string = "stacksetview(" + str(list(self)) + ")"
+        return string
 
     def top(self):
         return self._filtered_top(self.philter)

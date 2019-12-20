@@ -19,7 +19,7 @@ class ServiceInterfaceFromDevice(object):
     @classmethod
     def _convert_play_audio_actions(cls, device_handler):
         actions = device_handler.get_actions()
-        for name, action in actions.iteritems():
+        for name, action in list(actions.items()):
             if hasattr(action, "TYPE") and action.TYPE == DeviceAction.PLAY_AUDIO:
                 audio_url_predicate = action.AUDIO_URL_PARAMETER
                 audio_url_parameter = AudioURLServiceParameter(audio_url_predicate)
@@ -30,7 +30,7 @@ class ServiceInterfaceFromDevice(object):
     @classmethod
     def _convert_actions(cls, device_handler):
         actions = device_handler.get_actions()
-        for name, action in actions.iteritems():
+        for name, action in list(actions.items()):
             if not hasattr(action, "TYPE") or action.TYPE != DeviceAction.PLAY_AUDIO:
                 target = DeviceModuleTarget(device_handler.get_name())
                 parameters = list(cls.convert_parameters(action.parameters))
@@ -42,7 +42,7 @@ class ServiceInterfaceFromDevice(object):
     def _convert_queries(cls, device_handler):
         queries = device_handler.get_queries()
         device_name = device_handler.get_name()
-        for name, query in queries.iteritems():
+        for name, query in list(queries.items()):
             parameters = list(cls.convert_parameters(query.parameters))
             yield ServiceQueryInterface(name, DeviceModuleTarget(device_name), parameters)
 
@@ -50,7 +50,7 @@ class ServiceInterfaceFromDevice(object):
     def _convert_validators(cls, device_handler):
         validities = device_handler.get_validities()
         device_name = device_handler.get_name()
-        for name, validity in validities.iteritems():
+        for name, validity in list(validities.items()):
             parameters = list(cls.convert_parameters(validity.parameters))
             yield ServiceValidatorInterface(name, DeviceModuleTarget(device_name), parameters)
 
@@ -58,7 +58,7 @@ class ServiceInterfaceFromDevice(object):
     def _convert_entity_recognizers(cls, device_handler):
         entity_recognizers = device_handler.get_entity_recognizers()
         device_name = device_handler.get_name()
-        for name, entity_recognizer in entity_recognizers.iteritems():
+        for name, entity_recognizer in list(entity_recognizers.items()):
             yield ServiceEntityRecognizerInterface(name, DeviceModuleTarget(device_name))
 
     @classmethod
