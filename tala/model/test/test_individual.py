@@ -148,9 +148,13 @@ class IndividualTest(IndividualTestBase):
     def test_negative_individual_is_not_positive(self):
         self.assertFalse(self.individual_not_paris.is_positive())
 
-    def test_hashing(self):
-        s = set()
-        s.add(self.individual_paris)
+    def test_individual_is_hashable(self):
+        set_ = set()
+        set_.add(self.individual_paris)
+
+    def test_negative_individual_is_hashable(self):
+        set_ = set()
+        set_.add(self.individual_not_paris)
 
     def test_negate_positive_individual(self):
         self.assertFalse(self.individual_paris.negate().is_positive())

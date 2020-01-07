@@ -84,6 +84,9 @@ class NegativeIndividual(Individual):
     def __ne__(self, other):
         return not (self == other)
 
+    def __hash__(self):
+        return super(NegativeIndividual, self).__hash__()
+
     def is_positive(self):
         return False
 
