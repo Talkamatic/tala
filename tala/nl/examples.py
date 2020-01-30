@@ -2,7 +2,7 @@
 
 from jinja2 import Template
 
-from tala.nl.languages import ENGLISH, SWEDISH, SPANISH
+from tala.nl.languages import ENGLISH, SWEDISH, SPANISH, PERSIAN
 
 
 class SortNotSupportedException(Exception):
@@ -69,7 +69,7 @@ class Examples(object):
 
     @staticmethod
     def from_language(language_code):
-        examples = {ENGLISH: EnglishExamples(), SWEDISH: SwedishExamples(), SPANISH: SpanishExamples()}
+        examples = {ENGLISH: EnglishExamples(), SWEDISH: SwedishExamples(), SPANISH: SpanishExamples(), PERSIAN: PersianExamples()}
         return examples[language_code]
 
 
@@ -168,16 +168,16 @@ class SwedishExamples(Examples):
         phrases = [
             "om", "ovanför", "tvärsöver", "efter", "mot", "bland", "runt", "som", "på", "vid", "ovanpå", "före",
             "bakom", "nedan", "under", "bredvid", "mellan", "bortom", "men", "av", "trots", "ner", "förutom", "för",
-            "från", "i", "inuti", "in i", "nära", "nästa", "mittemot", "ut", "utanför", "över", "per", "plus", "runt",
-            "sedan", "än", "genom", "tills", "till", "mot", "olik", "upp", "via", "med", "inom", "utan", "är", "vara",
-            "den", "det", "en", "ett", "dem", "denna", "detta", "jag", "du", "ni", "han", "hon", "hen", "de", "hans",
-            "hennes", "hens", "min", "mina", "deras", "er", "din", "vi", "oss", "vår"
+            "från", "i", "inuti", "in i", "nära", "nästa", "mittemot", "ut", "utanför", "över", "per", "plus",
+            "runt", "sedan", "än", "genom", "tills", "till", "mot", "olik", "upp", "via", "med", "inom", "utan", "är",
+            "vara", "den", "det", "en", "ett", "dem", "denna", "detta", "jag", "du", "ni", "han", "hon", "hen", "de",
+            "hans", "hennes", "hens", "min", "mina", "deras", "er", "din", "vi", "oss", "vår"
         ]
         question_phrases = ["hur", "hur är", "när", "när är", "vad", "vad är", "varför", "varför är"]
         action_phrases = [
             "gör", "göra", "skapa", "berätta", "tala om", "börja", "starta", "sluta", "stopp", "stanna", "sätt på",
-            "stäng av", "höj", "sänk", "öka", "minska", "agera", "bestäm", "säg", "fråga", "gå", "kör", "vänta", "ok",
-            "visa", "hjälp"
+            "stäng av", "höj", "sänk", "öka", "minska", "agera", "bestäm", "säg", "fråga", "gå", "kör",
+            "vänta", "ok", "visa", "hjälp"
         ]
         for phrase in phrases:
             yield phrase
@@ -194,8 +194,9 @@ class SwedishExamples(Examples):
     def string(self):
         return [
             "enkel", "dubbelt ord", "det blir tre", "fyra på en gång", "ju fler desto bättre fem",
-            "håll andan och räkna till sex", "led dem fram till de glada sju", "ingen räknar tår som den med åtta tår",
-            "det spelar roll att det låter rimligt för nio", "tar du med tio eller inga till en öde ö"
+            "håll andan och räkna till sex", "led dem fram till de glada sju",
+            "ingen räknar tår som den med åtta tår", "det spelar roll att det låter rimligt för nio",
+            "tar du med tio eller inga till en öde ö"
         ]
 
     @property
@@ -258,18 +259,18 @@ class SpanishExamples(Examples):
             "se", "el", "la"
             "a", "soy", "son", "ellos", "este", "ese", "yo", "usted ", "él", "ella", "ellos", "ellas", "su", "sus",
             "mi", "tu", "tú", "nosotros", "nosotras", "vosotros", "vosotras", "nuestro", "nuestra", "vuestro",
-            "vuestra", "vuestros", "vuestras", "mío", "mía", "míos", "mías", "tuyo", "tuyos", "tuya", "tuyas", "suyo",
-            "suya", "suyos", "suyas"
+            "vuestra", "vuestros", "vuestras", "mío", "mía", "míos", "mías", "tuyo", "tuyos", "tuya", "tuyas",
+            "suyo", "suya", "suyos", "suyas"
         ]
         question_phrases = [
             "cómo", "cómo está", "cómo es", "cómo está el", "cómo es el", "cómo está la", "cómo es la",
             "cómo están los", "cómo están las"
-            "cuándo", "cuándo es", "cuándo está", "cuándo es el", "cuándo es la", "cuándo son los", "cuándo son las",
-            "cuándo está el", "cuándo está la", "cuándo están los", "cuándo están las", "qué", "qué es", "qué es la",
-            "qué es el", "qué son los", "qué son las", "cuál", "cuál es", "cuál es la", "cuál es el", "cuáles son los",
-            "cuáles son las", "por qué", "por qué es", "por qué está", "por qué es el", "por qué es la", "por qué son",
-            "por qué son los", "por qué son las", "por qué está el", "por qué está la", "por qué están los",
-            "por qué están las"
+            "cuándo", "cuándo es", "cuándo está", "cuándo es el", "cuándo es la", "cuándo son los",
+            "cuándo son las", "cuándo está el", "cuándo está la", "cuándo están los", "cuándo están las", "qué",
+            "qué es", "qué es la", "qué es el", "qué son los", "qué son las", "cuál", "cuál es", "cuál es la",
+            "cuál es el", "cuáles son los", "cuáles son las", "por qué", "por qué es", "por qué está",
+            "por qué es el", "por qué es la", "por qué son", "por qué son los", "por qué son las",
+            "por qué está el", "por qué está la", "por qué están los", "por qué están las"
         ]
         action_phrases = [
             "hacer", "decir", "iniciar", "detener", "habilitar", "deshabilitar", "querer", "dar", "haber"
@@ -286,8 +287,8 @@ class SpanishExamples(Examples):
     @property
     def integer(self):
         return [
-            "0", "99", "1224", "100000", "100.000", "una", "uno", "dieciséis", "veintiuno", "veintiuno", "veinte y uno",
-            "tres", "dos mil quince", "mil cincuenta y siete"
+            "0", "99", "1224", "100000", "100.000", "una", "uno", "dieciséis", "veintiuno", "veintiuno",
+            "veinte y uno", "tres", "dos mil quince", "mil cincuenta y siete"
         ]
 
     @property
@@ -348,3 +349,88 @@ class SpanishExamples(Examples):
     @property
     def answer_negation_templates(self):
         yield Template('no {{ name }}')
+
+
+class PersianExamples(Examples):
+    @property
+    def negative(self):
+        phrases = [
+            "داخل", "درباره", "بالا", "در سراسر", "بعد", "علیه", "همراه", "در بین", "به عنوان", "در", "روی", "بالای",
+            "قبل", "پشت", "زیر", "زیر", "کنار", "بین", "فراتر", "اما", "توسط", "بیا", "پایین", "هنگام", "به جز",
+            "برای", "از", "در", "داخل", "به", "کمتر", "مانند", "نزدیک", "از", "خاموش", "روشن", "روی", "مخالف",
+            "خارج", "بیش", "گذشته", "ذخیره", "کوتاه", "از", "بعد", "از طریق", "سراسر", "به", "به سمت", "زیر",
+            "بر خلاف", "تا", "بالا", "بر", "با", "بدون", "ارزش", "است", "آن", "این", "یک", "من", "هستند", "آنها",
+            "این", "آن", "من", "شما", "او", "آنها", "ایشان", "او", "اون", "مال", "آنها", "شما", "ما"
+        ]
+        question_phrases = [
+            "چگونه", "چطور", "چه وقت", "چه وقتی", "برای چه", "وقتی", "چه زمانی", "چه موقع", "کی" "چه زمانی", "چه",
+            "برای چی", "چطور میشه که", "چی میشه که", "برای چه", "چرا"
+        ]
+        action_phrases = [
+            "انجام بده", "بساز", "بگو", "شروع کن", "متوقف کن", "فعال کن", "غیرفعال کن", "افزایش بده", "پایین بیار",
+            "کاهش بده", "افزایش بده", "عمل کن", "تعیین کن", "بگو", "سؤال کن", "برو", "شلیک کن", "صبر کن", "متوقف شو",
+            "نشون بده", "نمایش بده", "کمک کن"
+        ]
+        for phrase in phrases:
+            yield phrase
+        for phrase in question_phrases:
+            yield phrase
+        for phrase in action_phrases:
+            yield phrase
+
+    @property
+    def integer(self):
+        return ["0", "99", "1224", "صد و پنجاه و هفت", "سه", "دو هزار و پانزده"]
+
+    @property
+    def string(self):
+        return [
+            "تک", "کلمه دوتایی", "سه در یک", "چهار تاش  از اونها بده", "پنج انگشت با هم برابرند",
+            "آرام باش و تا شش بشمر", "توی هفت آسمون یک ستاره هم نداره",
+            "هیچکس انگشتها رو مثل آن هشت انگشتی نمیشناسد",
+            "مهم هست که برای ما نه نفر معنی داره",
+            "لطفا ده تا یا هیچ کدام را به جزیره بیاورید"
+        ]
+
+    @property
+    def datetime(self):
+        return [
+            "امروز", "دوشنبه ۱۸ مارش", "اول مارش", "11:45 صبح", "سه هفته بعد", "ده دقیقه بعد",
+            "20 مارش ساعت 22:00", "بیستم مارش ساعت 10 صبح"
+        ]
+
+    @property
+    def person_name(self):
+        return [
+            "علی", "فاطمه", "آرمان", "شیوا", "فرناز", "آریا", "رویا",
+            "فرناز عطایی", "سعید صادقپور", "حامد زاهدی", "آرمان بحری"
+        ]
+
+    @property
+    def yes(self):
+        return [
+            "بله", "آره", "مطمئن", "مطمئنم", "اوکی", "البته", "خیلی خوب", "خوبه", "درست", "درسته", "عالی",
+            "عالیه", "من اینطور فکر میکنم"
+        ]
+
+    @property
+    def no(self):
+        return [
+            "نه", "نه متشکرم", "نه ممنون", "نه خیلی ممنون", "منفی", "اینو نمیخوام", "نیمخوام", "نکن", "لطفا نکن"
+        ]
+
+    @property
+    def top(self):
+        return [
+            "فراموش کن", "ولش کن", "منو از اینجا بیرون ببر", "دوباره شورع کن", "ابتدا", "اینو ولش کن", "شروع دوباره"
+        ]
+
+    @property
+    def up(self):
+        return [
+            "برو عقب", "عقب", "قبلی", "برو به عقب", "برو به قبلی", "قبلیه"
+        ]
+
+    @property
+    def answer_negation_templates(self):
+        yield Template('not {{ name }}')

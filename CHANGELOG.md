@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [5.0.1] - 2020-02-08
+### Added
+- Persian has been added as a new language. It is currently supported when `use_rgl` is set to `false` in the DDD config.
+
 ## [Unreleased]
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.

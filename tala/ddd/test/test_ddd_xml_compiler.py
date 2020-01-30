@@ -1394,6 +1394,39 @@ class TestGrammarCompiler(DddXmlCompilerTestCase):
             )
         ])
 
+    def test_persian_verb_phrase(self):
+        self._given_compiled_ontology("""
+<ontology name="Ontology">
+  <action name="buy"/>
+</ontology>""")
+        self._when_compile_grammar(
+            """
+<grammar>
+  <action name="buy">
+    <vp>
+      <infinitive>خریدن</infinitive>
+      <imperative>بخر</imperative>
+      <ing-form>میخری</ing-form>
+      <object>یک بلیط</object>
+    </vp>
+  </action>
+</grammar>"""
+        )
+        self._then_grammar_is([
+            Node(
+                Constants.ACTION, {"name": "buy"}, [
+                    Node(
+                        Constants.VP, {}, [
+                            Node(Constants.INFINITIVE, {}, ["خریدن"]),
+                            Node(Constants.IMPERATIVE, {}, ["بخر"]),
+                            Node(Constants.ING_FORM, {}, ["میخری"]),
+                            Node(Constants.OBJECT, {}, ["یک بلیط"])
+                        ]
+                    )
+                ]
+            )
+        ])
+
     def test_swedish_verb_phrase(self):
         self._given_compiled_ontology("""
 <ontology name="Ontology">
