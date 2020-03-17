@@ -17,9 +17,11 @@ from tala.model.predicate import Predicate
 from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
 from tala.model.question import WhQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
-from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort
+from tala.model.sort import CustomSort, RealSort, IntegerSort, StringSort, BooleanSort, PersonNameSort, DateTimeSort
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.testing.move_factory import MoveFactoryWithPredefinedBoilerplate
+from tala.model.person_name import PersonName
+from tala.model.date_time import DateTime
 
 
 class ParserTests(unittest.TestCase):
@@ -42,6 +44,8 @@ class ParserTests(unittest.TestCase):
             self._create_predicate("number_of_passengers", IntegerSort()),
             self._create_predicate("number_to_call", StringSort()),
             self._create_predicate("need_visa", BooleanSort()),
+            self._create_predicate("selected_person", PersonNameSort()),
+            self._create_predicate("selected_datetime", DateTimeSort()),
         }
         individuals = {
             "paris": CustomSort(self.ontology_name, "city"),
@@ -65,11 +69,15 @@ class ParserTests(unittest.TestCase):
         self.predicate_price = self.ontology.get_predicate("price")
         self.predicate_number_to_call = self.ontology.get_predicate("number_to_call")
         self.predicate_need_visa = self.ontology.get_predicate("need_visa")
+        self.predicate_selected_person = self.ontology.get_predicate("selected_person")
+        self.predicate_selected_datetime = self.ontology.get_predicate("selected_datetime")
         self.individual_paris = self.ontology.create_individual("paris")
         self.individual_not_paris = self.ontology.create_negative_individual("paris")
         self.individual_london = self.ontology.create_individual("london")
         self.real_individual = self.ontology.create_individual(1234.0)
         self.integer_individual = self.ontology.create_individual(1234)
+        self.datetime_individual = self.ontology.create_individual(DateTime("2018-04-11T22:00:00.000Z"))
+        self.person_name_individual = self.ontology.create_individual(PersonName("John"))
 
         self.proposition_dest_city_paris = PredicateProposition(self.predicate_dest_city, self.individual_paris)
         self.proposition_not_dest_city_paris = PredicateProposition(
@@ -153,6 +161,30 @@ class ParserTests(unittest.TestCase):
     def test_integer_short_answer(self):
         move = self.parser.parse("answer(1234)")
         expected_move = self._move_factory.createAnswerMove(self.integer_individual)
+        self.assertEqual(expected_move, move)
+
+    def test_person_name_sortal_answer(self):
+        move = self.parser.parse("answer(person_name(John))")
+        expected_move = self._move_factory.createAnswerMove(self.person_name_individual)
+        self.assertEqual(expected_move, move)
+
+    def test_person_name_propositional_answer(self):
+        move = self.parser.parse("answer(selected_person(person_name(John)))")
+        individual = self.person_name_individual
+        answer = PredicateProposition(self.predicate_selected_person, individual)
+        expected_move = self._move_factory.createAnswerMove(answer)
+        self.assertEqual(expected_move, move)
+
+    def test_datetime_sortal_answer(self):
+        move = self.parser.parse("answer(datetime(2018-04-11T22:00:00.000Z))")
+        expected_move = self._move_factory.createAnswerMove(self.datetime_individual)
+        self.assertEqual(expected_move, move)
+
+    def test_datetime_propositional_answer(self):
+        move = self.parser.parse("answer(selected_datetime(datetime(2018-04-11T22:00:00.000Z)))")
+        individual = self.datetime_individual
+        answer = PredicateProposition(self.predicate_selected_datetime, individual)
+        expected_move = self._move_factory.createAnswerMove(answer)
         self.assertEqual(expected_move, move)
 
     def test_integer_short_answer_with_ontology_without_real_sort(self):

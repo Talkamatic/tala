@@ -15,6 +15,8 @@ from tala.model.proposition import GoalProposition, PropositionSet, ServiceActio
 from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
+from tala.model.person_name import PersonName
+from tala.model.date_time import DateTime
 
 
 class ParseError(Exception):
@@ -838,6 +840,14 @@ class Parser:
             return self._parse_individual_of_enumerated_sort(string)
         except ParseFailure:
             pass
+        try:
+            return self._parse_individual_of_person_name_sort(string)
+        except ParseFailure:
+            pass
+        try:
+            return self._parse_individual_of_datetime_sort(string)
+        except ParseFailure:
+            pass
         raise ParseFailure()
 
     def _parse_individual_of_enumerated_sort(self, string):
@@ -864,6 +874,24 @@ class Parser:
         m = re.search('^[0-9]+$', string)
         if m:
             individual_value = int(string)
+            return self.ontology.create_individual(individual_value)
+        else:
+            raise ParseFailure()
+
+    def _parse_individual_of_person_name_sort(self, string):
+        m = re.search('^person_name\((.+)\)$', string)
+        if m:
+            individual_value_string = m.group(1)
+            individual_value = PersonName(individual_value_string)
+            return self.ontology.create_individual(individual_value)
+        else:
+            raise ParseFailure()
+
+    def _parse_individual_of_datetime_sort(self, string):
+        m = re.search('^datetime\((.+)\)$', string)
+        if m:
+            individual_value_string = m.group(1)
+            individual_value = DateTime(individual_value_string)
             return self.ontology.create_individual(individual_value)
         else:
             raise ParseFailure()
