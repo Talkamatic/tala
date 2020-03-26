@@ -7,7 +7,7 @@ import pytest
 
 from tala.config import Config, DddConfig, BackendConfig, DeploymentsConfig, \
     UnexpectedConfigEntriesException, BackendConfigNotFoundException, DddConfigNotFoundException, \
-    DeploymentsConfigNotFoundException, UnexpectedRASALanguageException, DEFAULT_INACTIVE_SECONDS_ALLOWED
+    DeploymentsConfigNotFoundException, UnexpectedRASALanguageException
 
 
 class ConfigTester(object):
@@ -457,7 +457,8 @@ class TestBackendConfig(ConfigTester):
             "use_word_list_correction": False,
             "overrides": None,
             "rerank_amount": 0.2,
-            "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
         }
 
     def test_default_config_with_ddd_name(self):
@@ -471,7 +472,8 @@ class TestBackendConfig(ConfigTester):
             "use_word_list_correction": False,
             "overrides": None,
             "rerank_amount": 0.2,
-            "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
         }
 
     def test_read_with_missing_config_file_raises_exception(self):
@@ -491,7 +493,8 @@ class TestBackendConfig(ConfigTester):
                 "use_recognition_profile": False,
                 "repeat_questions": True,
                 "overrides": None,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
         self.given_created_config_object(BackendConfig)
@@ -507,7 +510,8 @@ class TestBackendConfig(ConfigTester):
                 "use_word_list_correction": True,
                 "overrides": None,
                 "rerank_amount": 0.2,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
 
@@ -521,7 +525,8 @@ class TestBackendConfig(ConfigTester):
                 "use_recognition_profile": False,
                 "use_word_list_correction": False,
                 "overrides": None,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
         self.given_created_config_object(BackendConfig)
@@ -537,7 +542,8 @@ class TestBackendConfig(ConfigTester):
                 "use_word_list_correction": False,
                 "overrides": None,
                 "rerank_amount": 0.2,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
 
@@ -551,7 +557,8 @@ class TestBackendConfig(ConfigTester):
                 "use_recognition_profile": False,
                 "use_word_list_correction": True,
                 "overrides": None,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
         self.given_created_config_object(BackendConfig)
@@ -567,7 +574,8 @@ class TestBackendConfig(ConfigTester):
                 "use_word_list_correction": True,
                 "overrides": None,
                 "rerank_amount": 0.2,
-                "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "inactive_seconds_allowed": BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+                "response_timeout": BackendConfig.DEFAULT_RESPONSE_TIMEOUT,
             }
         )
 

@@ -28,6 +28,7 @@ class AbstractBackendDependencies(object):
         self._rerank_amount = self._raw_config["rerank_amount"]
         self._inactive_seconds_allowed = self._raw_config["inactive_seconds_allowed"]
         self._validate_inactive_seconds_allowed()
+        self._response_timeout = self._raw_config["response_timeout"]
 
         self.ddds = self.load_ddds(self._raw_config["ddds"])
 
@@ -92,3 +93,7 @@ class AbstractBackendDependencies(object):
     @property
     def inactive_seconds_allowed(self):
         return self._inactive_seconds_allowed
+
+    @property
+    def response_timeout(self):
+        return self._response_timeout

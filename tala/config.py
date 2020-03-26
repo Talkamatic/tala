@@ -6,8 +6,6 @@ from pathlib import Path
 from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
 from tala.utils.text_formatting import readable_list
 
-DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
-
 
 class ConfigNotFoundException(Exception):
     def __init__(self, message, config_path):
@@ -146,12 +144,15 @@ class Config(object):
 
 
 class BackendConfig(Config):
+    DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
+    DEFAULT_RESPONSE_TIMEOUT = 2.5
+
     @staticmethod
     def default_name():
         return "backend.config.json"
 
-    @staticmethod
-    def default_config(ddd_name=""):
+    @classmethod
+    def default_config(cls, ddd_name=""):
         return {
             "supported_languages": ["eng"],
             "ddds": [ddd_name],
@@ -161,8 +162,9 @@ class BackendConfig(Config):
             "repeat_questions": True,
             "use_word_list_correction": False,
             "overrides": None,
-            "rerank_amount": BackendConfig.default_rerank_amount(),
-            "inactive_seconds_allowed": DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "rerank_amount": cls.default_rerank_amount(),
+            "inactive_seconds_allowed": cls.DEFAULT_INACTIVE_SECONDS_ALLOWED,
+            "response_timeout": cls.DEFAULT_RESPONSE_TIMEOUT,
         }
 
     @staticmethod
