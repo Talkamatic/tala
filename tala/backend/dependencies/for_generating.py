@@ -8,6 +8,7 @@ from tala.model.sort import DATETIME, INTEGER
 class BackendDependenciesForGenerating(AbstractBackendDependencies):
     def __init__(self, backend_args):
         super(BackendDependenciesForGenerating, self).__init__(backend_args)
+        self.ddds = self.load_ddds(self._raw_config["ddds"])
         self._validate_rasa_compatibility()
 
     def _validate_rasa_compatibility(self):

@@ -67,12 +67,12 @@ class ConsoleScriptTestCase(TempDirTestCase):
 
     def _then_stderr_contains_constructive_error_message_for_missing_backend_config(self, config_path):
         pattern = "Expected backend config '.*{config}' to exist but it was not found. To create it, " \
-                  "run 'tala create-backend-config --filename .*{config}'\.".format(config=config_path)
+                  r"run 'tala create-backend-config --filename .*{config}'\.".format(config=config_path)
         assert re.search(pattern, self._stderr) is not None
 
     def _then_stderr_contains_constructive_error_message_for_missing_ddd_config(self, config_path):
         pattern = "Expected DDD config '.*{config}' to exist but it was not found. To create it, " \
-                  "run 'tala create-ddd-config --filename .*{config}'\.".format(config=config_path)
+                  r"run 'tala create-ddd-config --filename .*{config}'\.".format(config=config_path)
         assert re.search(pattern, self._stderr) is not None
 
     def _given_config_overrides_missing_parent(self, path):
@@ -303,8 +303,8 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             self._when_running_command("tala verify")
         self._then_stdout_matches(
             "^Verifying models for DDD 'test_ddd'.\n"
-            "\[eng\] Verifying grammar.\n"
-            "\[eng\] Finished verifying grammar.\n"
+            r"\[eng\] Verifying grammar.\n"
+            r"\[eng\] Finished verifying grammar.\n"
             "Finished verifying models for DDD 'test_ddd'.\n$"
         )
 
@@ -316,8 +316,8 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
             self._when_running_command("tala verify")
         self._then_stdout_matches(
             "^Verifying models for DDD 'test_ddd'.\n"
-            "\[eng\] Verifying grammar.\n"
-            "\[eng\] Finished verifying grammar.\n"
+            r"\[eng\] Verifying grammar.\n"
+            r"\[eng\] Finished verifying grammar.\n"
             "Finished verifying models for DDD 'test_ddd'.\n$"
         )
 
@@ -386,7 +386,7 @@ class TestInteractIntegration(ConsoleScriptTestCase):
         self._given_created_deployments_config()
         self._when_running_command("tala interact my-made-up-environment")
         self._then_stdout_matches(
-            "Expected a URL or one of the known environments \['dev'\] but got 'my-made-up-environment'"
+            r"Expected a URL or one of the known environments \['dev'\] but got 'my-made-up-environment'"
         )
 
     def _given_created_deployments_config(self):
@@ -437,7 +437,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             '\n'
             'pipeline: "spacy_sklearn"\n'
             '\n'
-            'data: \|\n'
+            r'data: |\n'
             '  ## intent:test_ddd:action::call\n'
             '  - make a call\n'
             '  \n'
@@ -459,7 +459,16 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
         self._given_created_ddd_in_a_target_dir()
         with self._given_changed_directory_to_target_dir():
             self._when_running_command("tala generate rasa test_ddd unknown-language")
-        self._then_stderr_matches("tala generate\: error\: argument language\: invalid choice\: 'unknown-language'")
+        self._then_stderr_matches("tala generate: error: argument language: invalid choice: 'unknown-language'")
+
+    def test_generating_for_unsupported_language(self):
+        self._given_created_ddd_in_a_target_dir()
+        with self._given_changed_directory_to_target_dir():
+            self._when_running_command("tala generate rasa test_ddd pes")
+        self._then_stderr_matches(
+            r"Expected one of the supported languages \['eng'\] in backend config "
+            "'backend.config.json', but got 'pes'"
+        )
 
     def test_stdout_when_generating_ddd_with_action_and_question_and_sortal_and_propositional_answers_without_rgl(self):
         self._given_created_ddd_in_a_target_dir()
@@ -535,7 +544,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             '\n'
             'pipeline: "spacy_sklearn"\n'
             '\n'
-            'data: \|\n'
+            r'data: |\n'
             '  ## intent:test_ddd:action::buy\n'
             '  - buy apples\n'
             '  - buy 0 apples\n'
@@ -547,7 +556,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             '  \n'
             '  ## intent:test_ddd:question::phone_number_of_contact\n'
             '  - tell me a phone number\n'
-            '  - what is \[John\]\(sort.contact\)\'s number\n'
+            r'  - what is [John](sort.contact)\'s number\n'
             '  \n'
             '  ## intent:test_ddd:answer\n'
             '  - 0\n'
@@ -556,7 +565,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             '  - a hundred and fifty seven\n'
             '  - three\n'
             '  - two thousand fifteen\n'
-            '  - \[John\]\(sort.contact\)\n'
+            r'  - [John](sort.contact)\n'
             '  \n'
             '  ## intent:test_ddd:answer_negation\n'
             '  - not 0\n'
@@ -565,7 +574,7 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             '  - not a hundred and fifty seven\n'
             '  - not three\n'
             '  - not two thousand fifteen\n'
-            '  - not \[John\]\(sort.contact\)\n'
+            r'  - not [John](sort.contact)\n'
             '  \n'
             '  ## intent:NEGATIVE\n'
             '  - aboard\n'

@@ -39,6 +39,10 @@ class UnexpectedPlatformException(Exception):
     pass
 
 
+class UnexpectedLanguageException(Exception):
+    pass
+
+
 class ConfigAlreadyExistsException(Exception):
     pass
 
@@ -109,7 +113,14 @@ def generate(args):
                 "Expected one of the known platforms {} but got '{}'".format(GENERATE_PLATFORMS, args.platform)
             )
 
+    def validate(backend_dependencies, language):
+        if language not in backend_dependencies.supported_languages:
+            raise UnexpectedLanguageException(f"Expected one of the supported languages "
+                                              f"{backend_dependencies.supported_languages} in backend config "
+                                              f"'{backend_dependencies.path}', but got '{language}'")
+
     backend_dependencies = BackendDependenciesForGenerating(args)
+    validate(backend_dependencies, args.language)
     ddd_path = Path(args.ddd)
     if not ddd_path.exists():
         raise UnexpectedDDDException("Expected DDD '{}' to exist but it didn't".format(args.ddd))
@@ -145,7 +156,7 @@ def _config_exception_handling():
 
 
 def version(args):
-    print((installed_version.version))
+    print(installed_version.version)
 
 
 def interact(args):
@@ -159,7 +170,7 @@ def interact(args):
         tdm_cli.stop()
     except MissingSchema:
         environments = list(config.read().keys())
-        print(("Expected a URL or one of the known environments {} but got '{}'".format(environments, url)))
+        print("Expected a URL or one of the known environments {} but got '{}'".format(environments, url))
 
 
 def add_verify_subparser(subparsers):

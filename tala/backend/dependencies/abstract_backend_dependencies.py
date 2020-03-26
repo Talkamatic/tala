@@ -18,7 +18,7 @@ class AbstractBackendDependencies(object):
         else:
             self._interpret_partially = None
         self._raw_config = BackendConfig(args.config).read()
-
+        self._path = args.config or BackendConfig.default_name()
         self._asr = self._raw_config["asr"]
         self._use_recognition_profile = self._raw_config["use_recognition_profile"]
         self._repeat_questions = self._raw_config["repeat_questions"]
@@ -30,17 +30,12 @@ class AbstractBackendDependencies(object):
         self._validate_inactive_seconds_allowed()
         self._response_timeout = self._raw_config["response_timeout"]
 
-        self.ddds = self.load_ddds(self._raw_config["ddds"])
-
     def _validate_inactive_seconds_allowed(self):
         if self._inactive_seconds_allowed < INACTIVE_SECONDS_ALLOWED_MIN or self._inactive_seconds_allowed > INACTIVE_SECONDS_ALLOWED_MAX:
             raise InvalidConfigValue(
                 "Expected inactive_seconds_allowed to be in the range %d-%d, but it was %d." %
                 (INACTIVE_SECONDS_ALLOWED_MIN, INACTIVE_SECONDS_ALLOWED_MAX, self._inactive_seconds_allowed)
             )
-
-    def load_ddds(self, ddd_names):
-        raise NotImplementedError("Expected method _load_ddds(...) to be implemented but it wasn't")
 
     @property
     def raw_config(self):
@@ -97,3 +92,7 @@ class AbstractBackendDependencies(object):
     @property
     def response_timeout(self):
         return self._response_timeout
+
+    @property
+    def path(self):
+        return self._path
