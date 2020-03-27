@@ -4,7 +4,6 @@ import datetime
 from pathlib import Path
 
 from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
-from tala.utils.text_formatting import readable_list
 
 
 class ConfigNotFoundException(Exception):
@@ -37,6 +36,35 @@ class UnexpectedRASALanguageException(Exception):
     pass
 
 
+class MissingMandatoryConfigEntryException(Exception):
+    pass
+
+
+class AbstractConfigFieldDefinition(object):
+    @property
+    def optional(self):
+        raise NotImplementedError()
+
+
+class OptionalConfigField(AbstractConfigFieldDefinition):
+    def __init__(self, default_value):
+        self._default_value = default_value
+
+    @property
+    def optional(self):
+        return True
+
+    @property
+    def default_value(self):
+        return self._default_value
+
+
+class MandatoryConfigField(AbstractConfigFieldDefinition):
+    @property
+    def optional(self):
+        return False
+
+
 class Config(object):
     def __init__(self, path=None):
         path = path or self.default_name()
@@ -46,12 +74,26 @@ class Config(object):
     def _absolute_path(self):
         return Path.cwd() / self._path
 
+    @classmethod
+    def default_config(cls, **kwargs):
+        def get_value(key, field_definition):
+            if key in kwargs:
+                return kwargs[key]
+            elif field_definition.optional:
+                return field_definition.default_value
+            else:
+                raise MissingMandatoryConfigEntryException(
+                    f"Expected mandatory entry '{key}' but it is missing among entries {list(kwargs.keys())}.")
+        return {key: get_value(key, field_definition) for key, field_definition in cls.fields().items()}
+
     def read(self):
         if not self._path.exists():
             self._handle_non_existing_config_file()
         self._potentially_update_and_backup_config()
         config = self._config_from_file()
         config = self._potentially_update_with_values_from_parent(config)
+        self._raise_exception_if_mandatory_field_is_missing(config)
+        self._set_default_values_for_missing_optional_entries(config)
         return config
 
     def _handle_non_existing_config_file(self):
@@ -61,9 +103,9 @@ class Config(object):
         self._write_to_file(config, self._path)
 
     @classmethod
-    def write_default_config(cls, path=None):
+    def write_default_config(cls, path=None, **kwargs):
         path = path or cls.default_name()
-        cls._write_to_file(cls.default_config(), Path(path))
+        cls._write_to_file(cls.default_config(**kwargs), Path(path))
 
     def _write_backup(self, config):
         path = Path(self.back_up_name())
@@ -79,17 +121,25 @@ class Config(object):
         with self._path.open(mode="r") as f:
             return json.load(f)
 
+    def _raise_exception_if_mandatory_field_is_missing(self, config):
+        for key, field_definition in self.fields().items():
+            if not field_definition.optional and key not in config:
+                raise MissingMandatoryConfigEntryException(
+                    f"Expected mandatory entry '{key}' in '{self._path}' but it is missing among entries "
+                    f"{list(config.keys())}.")
+
     def _potentially_update_and_backup_config(self):
         config = self._config_from_file()
         config = self._potentially_update_with_values_from_parent(config)
-        default_config = self.default_config()
-        keys_different_from_default = set(default_config.keys()).symmetric_difference(list(config.keys()))
-        if keys_different_from_default:
-            updated_config = self._update_config_keys(default_config, config)
+        expected_entries = set(self.fields().keys())
+        expected_entries.add("overrides")
+        unexpected_entries = sorted(set(config.keys()).difference(expected_entries))
+        if unexpected_entries:
             self._write_backup(config)
-            self._write(updated_config)
-            message = self._format_unexpected_entries_message(list(default_config.keys()), list(config.keys()))
-            raise UnexpectedConfigEntriesException(message)
+            self._write(config)
+            raise UnexpectedConfigEntriesException(
+                f"Parameters {unexpected_entries} are unexpected in '{self._absolute_path}'. "
+                f"The config was updated and the previous config was backed up in '{self.back_up_name()}'.")
 
     def _potentially_update_with_values_from_parent(self, config):
         parent_path = config.get("overrides")
@@ -103,30 +153,10 @@ class Config(object):
         parent_config.update(config)
         return parent_config
 
-    def _format_unexpected_entries_message(self, expected, actual):
-        unexpected = sorted(set(actual).difference(expected))
-        missing = sorted(set(expected).difference(actual))
-        ending = "The config was updated and the previous config was backed up in {!r}.".format(self.back_up_name())
-        if unexpected and missing:
-            return "Parameter {} is unexpected while {} is missing from {!r}. {}".format(
-                readable_list(unexpected), readable_list(missing), self._absolute_path, ending
-            )
-        if unexpected:
-            return "Parameter {} is unexpected in {!r}. {}"\
-                .format(readable_list(unexpected), self._absolute_path, ending)
-        if missing:
-            return "Parameter {} is missing from {!r}. {}"\
-                .format(readable_list(missing), self._absolute_path, ending)
-
-    @classmethod
-    def _update_config_keys(cls, defaults, config):
-        updated_config = {}
-        for key, default_value in list(defaults.items()):
-            if key in config:
-                updated_config[key] = config[key]
-            else:
-                updated_config[key] = default_value
-        return updated_config
+    def _set_default_values_for_missing_optional_entries(self, config):
+        for key, field_definition in self.fields().items():
+            if field_definition.optional and key not in config:
+                config[key] = field_definition.default_value
 
     def back_up_name(self):
         return "{}.backup".format(self._path)
@@ -136,7 +166,7 @@ class Config(object):
         raise NotImplementedError()
 
     @staticmethod
-    def default_config():
+    def fields():
         raise NotImplementedError()
 
     def _raise_config_not_found_exception(self):
@@ -144,6 +174,7 @@ class Config(object):
 
 
 class BackendConfig(Config):
+    DEFAULT_RERANK_AMOUNT = 0.2
     DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
     DEFAULT_RESPONSE_TIMEOUT = 2.5
 
@@ -151,38 +182,36 @@ class BackendConfig(Config):
     def default_name():
         return "backend.config.json"
 
-    @classmethod
-    def default_config(cls, ddd_name=""):
+    @staticmethod
+    def fields():
         return {
-            "supported_languages": ["eng"],
-            "ddds": [ddd_name],
-            "active_ddd": ddd_name,
-            "asr": "none",
-            "use_recognition_profile": False,
-            "repeat_questions": True,
-            "use_word_list_correction": False,
-            "overrides": None,
-            "rerank_amount": cls.default_rerank_amount(),
-            "inactive_seconds_allowed": cls.DEFAULT_INACTIVE_SECONDS_ALLOWED,
-            "response_timeout": cls.DEFAULT_RESPONSE_TIMEOUT,
+            "ddds": MandatoryConfigField(),
+            "active_ddd": MandatoryConfigField(),
+            "supported_languages": MandatoryConfigField(),
+            "asr": OptionalConfigField(default_value="none"),
+            "use_recognition_profile": OptionalConfigField(default_value=False),
+            "repeat_questions": OptionalConfigField(default_value=True),
+            "use_word_list_correction": OptionalConfigField(default_value=False),
+            "rerank_amount": OptionalConfigField(default_value=BackendConfig.DEFAULT_RERANK_AMOUNT),
+            "inactive_seconds_allowed": OptionalConfigField(
+                default_value=BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED),
+            "response_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_RESPONSE_TIMEOUT)
         }
 
-    @staticmethod
-    def default_rerank_amount():
-        return 0.2
+    def _set_default_values_for_missing_optional_entries(self, config):
+        if "use_word_list_correction" not in config:
+            config["use_word_list_correction"] = (config.get("asr") == "android")
+        super(BackendConfig, self)._set_default_values_for_missing_optional_entries(config)
 
     @classmethod
-    def _update_config_keys(cls, defaults, config):
-        updated_config = super(BackendConfig, cls)._update_config_keys(defaults, config)
-        if "use_word_list_correction" not in config and config.get("asr") == "android":
-            updated_config["use_word_list_correction"] = True
-        return updated_config
-
-    @classmethod
-    def write_default_config(cls, path=None, ddd_name=None):
+    def write_default_config(cls, ddd_name, path=None):
         path = path or cls.default_name()
         ddd_name = ddd_name or ""
-        cls._write_to_file(cls.default_config(ddd_name), Path(path))
+        cls._write_to_file(cls.default_config(
+            ddds=[ddd_name],
+            active_ddd=ddd_name,
+            supported_languages=["eng"]),
+            Path(path))
 
     def _raise_config_not_found_exception(self):
         raise BackendConfigNotFoundException(
@@ -197,14 +226,13 @@ class DddConfig(Config):
         return "ddd.config.json"
 
     @staticmethod
-    def default_config():
+    def fields():
         return {
-            "use_rgl": True,
-            "use_third_party_parser": False,
-            "device_module": None,
-            "word_list": "word_list.txt",
-            "overrides": None,
-            "rasa_nlu": {},
+            "use_rgl": MandatoryConfigField(),
+            "use_third_party_parser": OptionalConfigField(default_value=False),
+            "device_module": OptionalConfigField(default_value=None),
+            "word_list": OptionalConfigField(default_value="word_list.txt"),
+            "rasa_nlu": OptionalConfigField(default_value={}),
         }
 
     def _raise_config_not_found_exception(self):
@@ -252,9 +280,9 @@ class DeploymentsConfig(Config):
         return "deployments.config.json"
 
     @staticmethod
-    def default_config():
+    def fields():
         return {
-            "dev": "https://127.0.0.1:9090/interact",
+            "dev": OptionalConfigField(default_value="https://127.0.0.1:9090/interact")
         }
 
     def _raise_config_not_found_exception(self):

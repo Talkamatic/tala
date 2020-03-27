@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
+- The argument `ddd` for the command `tala create-backend-config` is now required and passed positionally, instead of optionally.
+- Most fields in config files are now optional instead of required. The only required fields are `ddds`, `active_ddd` and `supported_languages` for backend configs, as well as `use_rgl` for DDD configs.
 
 ### Fixed
 - Running `tala generate` on a language that is not supported by the DDD now renders a helpful error message.

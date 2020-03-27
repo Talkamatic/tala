@@ -2,6 +2,7 @@ from mock import Mock
 
 from tala.config import BackendConfig
 from tala.model.ontology import Ontology
+from tala.nl import languages
 
 
 class BackendDependenciesTestBase(object):
@@ -10,8 +11,10 @@ class BackendDependenciesTestBase(object):
         self._result = None
         self._mock_ddds = []
 
-    def given_mock_backend_config(self, MockBackendConfig):
-        self._config = BackendConfig.default_config()
+    def given_mock_backend_config(self, MockBackendConfig, active_ddd="mock_ddd", ddds=["mock_ddd"],
+                                  supported_languages=[languages.ENGLISH]):
+        self._config = BackendConfig.default_config(
+            active_ddd=active_ddd, ddds=ddds, supported_languages=supported_languages)
         mock_backend_config = MockBackendConfig.return_value
         mock_backend_config.read.return_value = self._config
 

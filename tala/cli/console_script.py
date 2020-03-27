@@ -55,7 +55,7 @@ class InvalidArgumentException(Exception):
 
 
 def create_ddd(args):
-    DddMaker(args.name, args.target_dir).make()
+    DddMaker(args.name, use_rgl=True, target_dir=args.target_dir).make()
 
 
 def create_backend_config(args):
@@ -63,7 +63,7 @@ def create_backend_config(args):
         raise ConfigAlreadyExistsException(
             "Expected to be able to create backend config file '%s' but it already exists." % args.filename
         )
-    BackendConfig().write_default_config(args.filename, args.ddd)
+    BackendConfig().write_default_config(args.ddd, args.filename)
 
 
 def create_ddd_config(args):
@@ -71,7 +71,7 @@ def create_ddd_config(args):
         raise ConfigAlreadyExistsException(
             "Expected to be able to create DDD config file '%s' but it already exists." % args.filename
         )
-    DddConfig().write_default_config(args.filename)
+    DddConfig().write_default_config(path=args.filename, use_rgl=True)
 
 
 def create_deployments_config(args):
@@ -210,13 +210,13 @@ def add_create_ddd_subparser(subparsers):
 def add_create_backend_config_subparser(subparsers):
     parser = subparsers.add_parser("create-backend-config", help="create a backend config")
     parser.set_defaults(func=create_backend_config)
+    parser.add_argument("ddd", help="name of the active DDD, e.g. my_ddd")
     parser.add_argument(
         "--filename",
         default=BackendConfig.default_name(),
         metavar="NAME",
         help="filename of the backend config, e.g. %s" % BackendConfig.default_name()
     )
-    parser.add_argument("--ddd", help="name of the active DDD, e.g. my_ddd")
 
 
 def add_create_ddd_config_subparser(subparsers):

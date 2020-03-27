@@ -12,9 +12,10 @@ class UnexpectedCharactersException(Exception):
 
 
 class DddMaker(object):
-    def __init__(self, ddd_name, target_dir="."):
+    def __init__(self, ddd_name, use_rgl, target_dir="."):
         self._validate(ddd_name)
         self._ddd_name = ddd_name
+        self._use_rgl = use_rgl
         self._class_name_prefix = self.directory_to_class_name(ddd_name)
         self._target_dir = target_dir
 
@@ -57,7 +58,7 @@ class DddMaker(object):
         with chdir.chdir(self._target_dir):
             BackendConfig.write_default_config(ddd_name=self._ddd_name)
             with chdir.chdir(self._ddd_name):
-                DddConfig.write_default_config()
+                DddConfig.write_default_config(use_rgl=self._use_rgl)
 
     def _create_ontology_skeleton_file(self):
         self._create_skeleton_file("ontology_template.xml", "ontology.xml")

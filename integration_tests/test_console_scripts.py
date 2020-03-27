@@ -77,18 +77,15 @@ class ConsoleScriptTestCase(TempDirTestCase):
         assert re.search(pattern, self._stderr) is not None
 
     def _given_config_overrides_missing_parent(self, path):
-        self._replace_in_file(path, '"overrides": null', '"overrides": "missing_parent.json"')
+        self._set_in_config_file(path, "overrides", "missing_parent.json")
 
-    def _replace_in_file(self, path, old, new):
-        with path.open() as f:
-            old_contents = f.read()
-        if old not in old_contents:
-            raise UnexpectedContentsException(
-                "Expected to find string to be replaced '{}' in '{}' but got '{}'".format(old, str(path), old_contents)
-            )
-        new_contents = old_contents.replace(old, new)
-        with path.open("w") as f:
-            f.write(new_contents)
+    def _set_in_config_file(self, path, key, value):
+        with path.open(mode="r") as f:
+            config = json.load(f)
+        config[key] = value
+        with path.open(mode="w") as f:
+            string = json.dumps(config)
+            f.write(str(string))
 
     def _then_file_contains(self, filename, expected_string):
         actual_content = self._read_file(filename)
@@ -124,6 +121,17 @@ class ConsoleScriptTestCase(TempDirTestCase):
 <ontology name="TestDddOntology">
 </ontology>"""
         self._replace_in_file(Path("ontology.xml"), old_content, new_content)
+
+    def _replace_in_file(self, path, old, new):
+        with path.open() as f:
+            old_contents = f.read()
+        if old not in old_contents:
+            raise UnexpectedContentsException(
+                "Expected to find string to be replaced '{}' in '{}' but got '{}'".format(old, str(path), old_contents)
+            )
+        new_contents = old_contents.replace(old, new)
+        with path.open("w") as f:
+            f.write(new_contents)
 
     def _given_grammar_contains(self, new_content):
         old_content = """
@@ -194,70 +202,86 @@ class TestVersionIntegration(ConsoleScriptTestCase):
 
 
 class TestBackendConfigCreationIntegration(ConsoleScriptTestCase):
-    def test_create_config_without_path_or_ddd(self):
-        self._when_running_command("tala create-backend-config")
-        self._then_backend_config_has_active_ddd(BackendConfig.default_name(), "")
-
-    def test_create_backend_config_without_ddd(self):
-        self._when_running_command("tala create-backend-config --filename test.config.json")
-        self._then_backend_config_has_active_ddd("test.config.json", "")
+    def test_create_backend_config(self):
+        self._when_running_command("tala create-backend-config test_ddd --filename test.config.json")
+        self._then_backend_config_has_active_ddd("test.config.json", "test_ddd")
 
     def _then_backend_config_has_active_ddd(self, config_path, expected_active_ddd):
         config = BackendConfig(config_path).read()
         assert expected_active_ddd == config["active_ddd"]
 
-    def test_create_backend_config_with_ddd(self):
-        self._when_running_command("tala create-backend-config --filename test.config.json --ddd test_ddd")
-        self._then_backend_config_has_active_ddd("test.config.json", "test_ddd")
-
 
 class TestConfigFileIntegration(ConsoleScriptTestCase):
+    EXPECTED_CONFIGS = {
+        BackendConfig: {
+            "active_ddd": "my_ddd",
+            "ddds": ["my_ddd"],
+            "supported_languages": ["eng"],
+            "asr": "none",
+            "use_recognition_profile": False,
+            "repeat_questions": True,
+            "use_word_list_correction": False,
+            "rerank_amount": 0.2,
+            "inactive_seconds_allowed": 7200,
+            "response_timeout": 2.5,
+        },
+        DddConfig: {
+            "use_rgl": True,
+            "use_third_party_parser": False,
+            "device_module": None,
+            "word_list": "word_list.txt",
+            "rasa_nlu": {}
+        },
+        DeploymentsConfig: {
+            "dev": "https://127.0.0.1:9090/interact"
+        }
+    }
+
     @pytest.mark.parametrize(
         "ConfigClass,command", [
-            (BackendConfig, "create-backend-config"),
+            (BackendConfig, "create-backend-config my_ddd"),
             (DddConfig, "create-ddd-config"),
-            (DeploymentsConfig, "create-deployments-config"),
+            (DeploymentsConfig, "create-deployments-config")
         ]
     )
     def test_create_config_without_path(self, ConfigClass, command):
-        self._when_running_command("tala {}".format(command))
-        self._then_config_contains_defaults(ConfigClass, ConfigClass.default_name())
+        self._when_running_command(f"tala {command}")
+        self._then_config_contains(ConfigClass, ConfigClass.default_name(), self.EXPECTED_CONFIGS[ConfigClass])
 
-    def _then_config_contains_defaults(self, ConfigClass, name):
-        expected_config = ConfigClass.default_config()
+    def _then_config_contains(self, ConfigClass, name, expected_config):
         actual_config = ConfigClass(name).read()
         assert expected_config == actual_config
 
     @pytest.mark.parametrize(
         "ConfigClass,command", [
-            (BackendConfig, "create-backend-config"),
+            (BackendConfig, "create-backend-config my_ddd"),
             (DddConfig, "create-ddd-config"),
-            (DeploymentsConfig, "create-deployments-config"),
+            (DeploymentsConfig, "create-deployments-config")
         ]
     )
     def test_create_config_with_path(self, ConfigClass, command):
-        self._when_running_command("tala {} --filename my_ddd.config.json".format(command))
-        self._then_config_contains_defaults(ConfigClass, "my_ddd.config.json")
+        self._when_running_command(f"tala {command} --filename my_ddd.config.json")
+        self._then_config_contains(ConfigClass, "my_ddd.config.json", self.EXPECTED_CONFIGS[ConfigClass])
 
     @pytest.mark.parametrize(
         "name,command", [
-            ("backend", "create-backend-config"),
+            ("backend", "create-backend-config mock_ddd"),
             ("DDD", "create-ddd-config"),
             ("deployments", "create-deployments-config"),
         ]
     )
     def test_exception_raised_if_config_file_already_exists(self, name, command):
-        self._given_config_was_created_with([command, "--filename", "test.config.json"])
+        self._given_config_was_created_with("tala {} --filename test.config.json".format(command))
         self._when_running_command("tala {} --filename test.config.json".format(command))
         self._then_stderr_contains(
             "Expected to be able to create {} config file 'test.config.json' but it already exists.".format(name)
         )
 
-    def _given_config_was_created_with(self, arguments):
-        self._run_tala_with(arguments)
+    def _given_config_was_created_with(self, command):
+        self._run_command(command)
 
     @pytest.mark.parametrize("command", [
-        "create-backend-config",
+        "create-backend-config mock_ddd",
         "create-ddd-config",
         "create-deployments-config",
     ])
@@ -335,8 +359,8 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         )
 
     def _given_enabled_rasa(self):
-        self._replace_in_file(
-            Path(DddConfig.default_name()), '"rasa_nlu": {}', '"rasa_nlu": {"eng": {"url": "mock-url", "config": {}}}'
+        self._set_in_config_file(
+            Path(DddConfig.default_name()), "rasa_nlu", {"eng": {"url": "mock-url", "config": {}}}
         )
 
     def test_stderr_when_verifying_boilerplate_ddd(self):

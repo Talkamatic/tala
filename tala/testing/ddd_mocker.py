@@ -1,4 +1,3 @@
-from copy import copy
 import os
 import shutil
 import sys
@@ -6,6 +5,7 @@ import tempfile
 import unittest
 
 from tala.config import BackendConfig, DddConfig
+from tala.nl import languages
 
 
 class DddMockingTestCase(unittest.TestCase):
@@ -15,8 +15,9 @@ class DddMockingTestCase(unittest.TestCase):
         os.chdir(temp_dir)
         self._temp_dir = os.getcwd()
         self._exception_occurred = False
-        self._mock_ddd_config = DddConfig.default_config()
-        self._mock_backend_config = BackendConfig.default_config()
+        self._mock_ddd_config = DddConfig.default_config(use_rgl=True)
+        self._mock_backend_config = BackendConfig.default_config(
+            active_ddd="mockup_app", ddds=["mockup_app"], supported_languages=[languages.ENGLISH])
 
     def tearDown(self):
         os.chdir(self._working_dir)
@@ -81,34 +82,13 @@ class MockupDevice(DddDevice):
 """
         self.create_mockup_file(path, content)
 
-    def _given_mocked_ddd_config(
-        self, use_rgl=False, use_third_party_parser=False, device_module="device.py", rasa_nlu=None
-    ):
-        rasa_nlu = rasa_nlu or {}
-        default_config = DddConfig.default_config()
-        overrides = {
-            "use_rgl": use_rgl,
-            "use_third_party_parser": use_third_party_parser,
-            "device_module": device_module,
-            "rasa_nlu": rasa_nlu,
-        }
-        config = self._override_default_config(default_config, overrides)
-        self._mock_ddd_config = config
+    def _given_mocked_ddd_config(self, **kwargs):
+        if "use_rgl" not in kwargs:
+            kwargs["use_rgl"] = True
+        self._mock_ddd_config = DddConfig.default_config(**kwargs)
 
-    def _given_mocked_backend_config(self, ddd, language_codes=["eng"]):
-        default_config = BackendConfig.default_config()
-        overrides = {
-            "ddds": [ddd],
-            "active_ddd": ddd,
-            "supported_languages": language_codes,
-        }
-        config = self._override_default_config(default_config, overrides)
-        self._mock_backend_config = config
-
-    def _override_default_config(self, default_config, overrides):
-        config = copy(default_config)
-        config.update(overrides)
-        return config
+    def _given_mocked_backend_config(self, **kwargs):
+        self._mock_backend_config = BackendConfig.default_config(**kwargs)
 
     def create_mockup_file(self, relative_path, content):
         container_directory = os.path.dirname(relative_path)
