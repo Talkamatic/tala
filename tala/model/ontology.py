@@ -114,6 +114,13 @@ class Ontology(AsJSONMixin):
                     (predicate.get_name(), predicate.getSort(), self._sorts)
                 )
 
+        for name in self._predicates.keys():
+            if name in self._sorts.keys():
+                raise AmbiguousNamesException(
+                    f"Expected predicate and sort names to be unique but there is both a predicate and sort named "
+                    f"'{name}' in ontology '{self.name}'"
+                )
+
     def _check_predicate_action_integrity(self):
         for action in self._actions:
             if action in self._predicates:

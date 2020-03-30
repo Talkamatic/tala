@@ -338,6 +338,19 @@ class TestOntologyBasic(TestOntology):
             "but got value '{}' of sort '{}'".format(self.DEFAULT_NAME, value, sort)
         )
 
+    def test_identical_sort_and_predicate_name_raises_exception(self):
+        self._when_creating_ontology_then_exception_is_raised(
+            sorts={CustomSort(self.DEFAULT_NAME, "mock-name")},
+            predicates={self._create_predicate("mock-name", CustomSort(self.DEFAULT_NAME, "mock-name"))},
+            expected_exception=AmbiguousNamesException,
+            expected_message="Expected predicate and sort names to be unique but there is both a predicate and sort "
+                             f"named 'mock-name' in ontology '{self.DEFAULT_NAME}'"
+        )  # yapf: disable
+
+    def _when_creating_ontology_then_exception_is_raised(self, expected_exception, expected_message, *args, **kwargs):
+        with pytest.raises(expected_exception, match=expected_message):
+            self._create_ontology(*args, **kwargs)
+
 
 class TestDynamicOntology(TestOntology):
     def test_add_dynamic_individual(self):
