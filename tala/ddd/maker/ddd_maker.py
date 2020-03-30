@@ -1,16 +1,35 @@
-import os
 from io import StringIO
+import os
+import re
 
 from tala.config import BackendConfig, DddConfig
 from tala.ddd.maker import utils
 from tala.utils import chdir
 
 
-class DddMaker:
-    def __init__(self, class_name_prefix, ddd_name, target_dir="."):
+class UnexpectedCharactersException(Exception):
+    pass
+
+
+class DddMaker(object):
+    def __init__(self, ddd_name, target_dir="."):
+        self._validate(ddd_name)
         self._ddd_name = ddd_name
-        self._class_name_prefix = class_name_prefix
+        self._class_name_prefix = self.directory_to_class_name(ddd_name)
         self._target_dir = target_dir
+
+    @staticmethod
+    def directory_to_class_name(directory_name):
+        name_with_capitalized_words = directory_name.title()
+        class_name = re.sub("[_]", "", name_with_capitalized_words)
+        return class_name
+
+    @staticmethod
+    def _validate(name):
+        if re.match(r'^[0-9a-zA-Z_]+$', name) is None:
+            raise UnexpectedCharactersException(
+                f"Expected only alphanumeric ASCII and underscore characters in DDD name '{name}', but found others."
+            )
 
     def make(self):
         self._ensure_target_dir_exists()

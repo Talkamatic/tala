@@ -43,7 +43,7 @@ class TestDddMaker(unittest.TestCase):
         self._target_dir = "."
 
     def _when_make_is_called(self):
-        ddd_maker.DddMaker("Ddd", "ddd", self._target_dir).make()
+        ddd_maker.DddMaker("ddd", self._target_dir).make()
         os.chdir(self._target_dir)
 
     def _base_dir_is_created(self):

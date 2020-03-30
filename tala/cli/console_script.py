@@ -3,7 +3,6 @@
 import argparse
 import contextlib
 import os
-import re
 import sys
 import warnings
 
@@ -56,14 +55,7 @@ class InvalidArgumentException(Exception):
 
 
 def create_ddd(args):
-    def directory_to_class_name(directory_name):
-        name_with_capitalized_words = directory_name.title()
-        class_name = re.sub("[_ ]", "", name_with_capitalized_words)
-        return class_name
-
-    directory_name = args.name
-    class_name = directory_to_class_name(directory_name)
-    DddMaker(class_name, directory_name, args.target_dir).make()
+    DddMaker(args.name, args.target_dir).make()
 
 
 def create_backend_config(args):
@@ -115,9 +107,11 @@ def generate(args):
 
     def validate(backend_dependencies, language):
         if language not in backend_dependencies.supported_languages:
-            raise UnexpectedLanguageException(f"Expected one of the supported languages "
-                                              f"{backend_dependencies.supported_languages} in backend config "
-                                              f"'{backend_dependencies.path}', but got '{language}'")
+            raise UnexpectedLanguageException(
+                f"Expected one of the supported languages "
+                f"{backend_dependencies.supported_languages} in backend config "
+                f"'{backend_dependencies.path}', but got '{language}'"
+            )
 
     backend_dependencies = BackendDependenciesForGenerating(args)
     validate(backend_dependencies, args.language)

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Fixed
 - Running `tala generate` on a language that is not supported by the DDD now renders a helpful error message.
+- `tala create-ddd` now prevents illegal DDD names, avoiding errors downstream. ASCII alphanumerics and underscores are allowed.
 
 ## [5.0.0] - 2019-11-28
 ### Added
