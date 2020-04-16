@@ -1,5 +1,6 @@
 from tala.model.speaker import Speaker
-from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, ReportMove, PrereportMove
+from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
+    ICMMoveWithSemanticContent, ReportMove, PrereportMove, AnswerMove, RequestMove, AskMove
 
 
 class MoveFactoryWithPredefinedBoilerplate(object):
@@ -41,27 +42,27 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         if ddd_name is None:
             ddd_name = self._ddd_name
 
-        if content is not None:
-            return MoveWithSemanticContent(
-                type_,
-                content,
-                understanding_confidence=understanding_confidence,
-                speaker=speaker,
-                utterance=utterance,
-                modality=modality,
-                ddd_name=ddd_name,
-                perception_confidence=perception_confidence
-            )
+        kwargs = {
+            "understanding_confidence": understanding_confidence,
+            "speaker": speaker,
+            "utterance": utterance,
+            "modality": modality,
+            "ddd_name": ddd_name,
+            "perception_confidence": perception_confidence
+        }
 
-        return Move(
-            type_,
-            understanding_confidence=understanding_confidence,
-            speaker=speaker,
-            utterance=utterance,
-            modality=modality,
-            ddd_name=ddd_name,
-            perception_confidence=perception_confidence
-        )
+        if content is not None:
+            classes = {
+                Move.ANSWER: AnswerMove,
+                Move.REQUEST: RequestMove,
+                Move.ASK: AskMove,
+            }
+            if type_ in classes:
+                Class = classes[type_]
+                return Class(content, **kwargs)
+            return MoveWithSemanticContent(type_, content, **kwargs)
+
+        return Move(type_, **kwargs)
 
     def create_ask_move(self, question, speaker=None):
         return self.createMove(Move.ASK, question, speaker=speaker)

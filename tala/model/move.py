@@ -172,9 +172,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         string += ")"
         return string
 
-    def get_semantic_expression(self):
-        return self._get_expression(False)
-
     def _build_string_from_attributes(self):
         string = ""
         if self._ddd_name:
@@ -244,17 +241,13 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
 
     def as_dict(self):
         return {
-            self.get_type(): {
-                "ddd_name": self._ddd_name,
-                "speaker": self._speaker,
-                "understanding_confidence": self._understanding_confidence,
-                "weighted_understanding_confidence": self._weighted_understanding_confidence,
-                "perception_confidence": self.perception_confidence,
-                "modality": self._modality,
-                "utterance": self._utterance,
-                "background": self._background,
-            }
+            "ddd": self._ddd_name,
+            "understanding_confidence": self._understanding_confidence,
+            "perception_confidence": self.perception_confidence,
         }
+
+    def as_semantic_expression(self):
+        return self._type
 
 
 class MoveWithSemanticContent(Move, SemanticObjectWithContent):
@@ -285,11 +278,6 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
 
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
-
-    def as_dict(self):
-        json = Move.as_dict(self)
-        json[self.get_type()]["content"] = self._content
-        return json
 
 
 class ICMMove(Move):
@@ -402,6 +390,9 @@ class ICMMove(Move):
             return "icm:%s*%s" % (self._type, self._polarity)
         return "icm:%s" % self._type
 
+    def as_semantic_expression(self):
+        return self._icm_to_string()
+
 
 class IssueICMMove(ICMMove):
     def is_issue_icm(self):
@@ -509,6 +500,9 @@ class ReportMove(MoveWithSemanticContent):
         self.report_proposition = report_proposition
         MoveWithSemanticContent.__init__(self, Move.REPORT, report_proposition)
 
+    def as_semantic_expression(self):
+        return f"report({self._content.as_semantic_expression()})"
+
     def is_turn_yielding(self):
         return True
 
@@ -543,6 +537,9 @@ class PrereportMove(Move, OntologySpecificSemanticObject):
             self.service_action, unicodify(self.arguments), self._build_string_from_attributes()
         )
 
+    def as_semantic_expression(self):
+        return str(self)
+
     def class_internal_move_content_equals(self, other):
         return (self.service_action == other.service_action and self.arguments == other.arguments)
 
@@ -576,17 +573,21 @@ class AskMove(MoveWithSemanticContent):
     def __init__(self, question, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.ASK, question, *args, **kwargs)
 
-
-class OntologySpecificAnswerMove(MoveWithSemanticContent):
-    def __init__(self, answer, *args, **kwargs):
-        MoveWithSemanticContent.__init__(self, Move.ANSWER, answer, *args, **kwargs)
+    def as_semantic_expression(self):
+        return f"ask({self._content.as_semantic_expression()})"
 
 
 class AnswerMove(MoveWithSemanticContent):
     def __init__(self, answer, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.ANSWER, answer, *args, **kwargs)
 
+    def as_semantic_expression(self):
+        return f"answer({self._content.as_semantic_expression()})"
+
 
 class RequestMove(MoveWithSemanticContent):
     def __init__(self, action, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.REQUEST, action, *args, **kwargs)
+
+    def as_semantic_expression(self):
+        return f"request({self._content.as_semantic_expression()})"

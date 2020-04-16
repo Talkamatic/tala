@@ -11,7 +11,15 @@ from tala.model.service_action_outcome import SuccessfulServiceAction, FailedSer
 from tala.testing.move_factory import MoveFactoryWithPredefinedBoilerplate
 
 
-class ReportMoveTests(LibTestCase):
+class SemanticExpressionTestMixin(object):
+    def given_move(self, move):
+        self._move = move
+
+    def when_generating_semantic_expression(self):
+        self._actual_result = self._move.as_semantic_expression()
+
+
+class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name, ddd_name="mockup_ddd")
@@ -79,8 +87,17 @@ class ReportMoveTests(LibTestCase):
             'RegisterComment, [comment_message("balkong önskas")], SuccessfulServiceAction()))', str(move)
         )
 
+    def test_as_semantic_expression(self):
+        self.given_move(self.success_move)
+        self.when_generating_semantic_expression()
+        self.then_result_is(
+            "report("
+            "ServiceResultProposition(BuyTrip, [dest_city(paris), dept_city(london)], SuccessfulServiceAction())"
+            ")"
+        )
 
-class PrereportMoveTests(LibTestCase):
+
+class PrereportMoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name, ddd_name="mockup_ddd")
@@ -111,8 +128,13 @@ class PrereportMoveTests(LibTestCase):
         move2 = self.move_factory.create_prereport_move("action2", [])
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(move1, move2)
 
+    def test_as_semantic_expression(self):
+        self.given_move(self.move)
+        self.when_generating_semantic_expression()
+        self.then_result_is("prereport(BuyTrip, [dest_city(paris), dept_city(london)])")
 
-class MoveTests(LibTestCase):
+
+class MoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name, ddd_name="mockup_ddd")
@@ -129,6 +151,55 @@ class MoveTests(LibTestCase):
         self.answer_move = self.move_factory.createAnswerMove(speaker=Speaker.SYS, answer=self.individual_paris)
         self.request_move = self.move_factory.createRequestMove(action=self.buy_action)
         self.ask_move = self.move_factory.create_ask_move(speaker=Speaker.SYS, question=self.price_question)
+
+    def test_as_semantic_expression_for_answer(self):
+        self.given_move(self.answer_move)
+        self.when_generating_semantic_expression()
+        self.then_result_is("answer(paris)")
+
+    def test_as_semantic_expression_for_request(self):
+        self.given_move(self.request_move)
+        self.when_generating_semantic_expression()
+        self.then_result_is("request(buy)")
+
+    def test_as_semantic_expression_for_ask(self):
+        self.given_move(self.ask_move)
+        self.when_generating_semantic_expression()
+        self.then_result_is("ask(?X.price(X))")
+
+    def test_as_semantic_expression_for_icm_acc_neg(self):
+        self.given_move(self.icm_acc_neg)
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:acc*neg")
+
+    def test_as_semantic_expression_for_icm_acc_neg_issue(self):
+        self.given_move(self.icm_acc_neg_issue)
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:acc*neg:issue")
+
+    def test_as_semantic_expression_for_icm_with_propositional_content(self):
+        self.given_move(
+            self.move_factory.createIcmMove(
+                ICMMove.SEM, speaker=Speaker.SYS, polarity=ICMMove.NEG, content=self.proposition_dest_city_paris
+            )
+        )
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:sem*neg:dest_city(paris)")
+
+    def test_as_semantic_expression_for_icm_per_neg(self):
+        self.given_move(self.icm_per_neg)
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:per*neg")
+
+    def test_as_semantic_expression_for_icm_per_pos(self):
+        self.given_move(self.icm_per_pos)
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:per*pos")
+
+    def test_as_semantic_expression_for_icm_acc_pos(self):
+        self.given_move(self.icm_acc_pos)
+        self.when_generating_semantic_expression()
+        self.then_result_is("icm:acc*pos")
 
     def testShortAnswerunicode(self):
         move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
@@ -199,7 +270,7 @@ class MoveTests(LibTestCase):
 
     def test_greet_move_to_semantic_expression(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
-        self.assertEqual("Move(greet)", move.get_semantic_expression())
+        self.assertEqual("greet", move.as_semantic_expression())
 
     def test_string_representation_with_score_and_speaker(self):
         move = self.move_factory.createMove(
