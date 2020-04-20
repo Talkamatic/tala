@@ -12,7 +12,7 @@ from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan
-from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem
+from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem, AssumePlanItem
 from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet
 from tala.model.proposition import PredicateProposition
@@ -279,7 +279,7 @@ class DomainCompiler(XmlCompiler):
             plan, element, "gui_context", "gui_context", self._compile_gui_context
         )
         self._compile_plan_element_with_multiple_children(
-            plan, element, "postconds", "postcond", self._compile_proposition
+            plan, element, "postconds", "postcond", self._compile_proposition_child_of
         )
         self._compile_plan_element_with_multiple_children(
             plan, element, "superactions", "superaction", self._compile_superaction
@@ -331,11 +331,11 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_proposition_set(self, element, node_name):
         child_nodes = self._find_child_nodes(element, node_name)
-        propositions = [self._compile_proposition(child) for child in child_nodes]
+        propositions = [self._compile_proposition_child_of(child) for child in child_nodes]
         return PropositionSet(propositions)
 
     def _compile_yn_question(self, element):
-        proposition = self._compile_proposition(element)
+        proposition = self._compile_proposition_child_of(element)
         return YesNoQuestion(proposition)
 
     def _compile_plan_item_nodes(self, nodes):
@@ -365,6 +365,8 @@ class DomainCompiler(XmlCompiler):
             return self._compile_assume_shared_element(element)
         elif element.localName == "assume_issue":
             return self._compile_assume_issue_element(element)
+        elif element.localName == "assume_system_belief":
+            return self._compile_assume_element(element)
         elif element.localName == "log":
             return self._compile_log_element(element)
         else:
@@ -383,8 +385,10 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_condition(self, element):
         condition_element = self._get_single_child_element(element, ["condition"])
-        return self._compile_proposition(condition_element)
-
+        if len(condition_element.childNodes) == 1:
+            return self._compile_proposition_child_of(condition_element)
+        else:
+            raise DddXmlCompilerException("expected condition to contain a single child element")
 
     def _get_single_child_element(self, node, allowed_names):
         child_elements = [child for child in node.childNodes if child.localName in allowed_names]
@@ -401,8 +405,8 @@ class DomainCompiler(XmlCompiler):
             predicate_name = self._get_mandatory_attribute(element, "predicate")
             predicate = self._ontology.get_predicate(predicate_name)
             return ForgetPlanItem(predicate)
-        else:
-            proposition = self._compile_proposition(element)
+        elif len(element.childNodes) == 1:
+            proposition = self._compile_proposition_child_of(element)
             return ForgetPlanItem(proposition)
 
     def _compile_invoke_service_query_element(self, element):
@@ -463,8 +467,16 @@ class DomainCompiler(XmlCompiler):
         return JumpToPlanItem(goal)
 
     def _compile_assume_shared_element(self, element):
-        proposition = self._compile_proposition(element)
-        return AssumeSharedPlanItem(proposition)
+        predicate_proposition = self._compile_predicate_proposition_child_of(element)
+        return AssumeSharedPlanItem(predicate_proposition)
+
+    def _compile_assume_element(self, element):
+        predicate_proposition = self._compile_predicate_proposition_child_of(element)
+        return AssumePlanItem(predicate_proposition)
+
+    def _compile_predicate_proposition_child_of(self, element):
+        child = self._get_single_child_element(element, ["proposition"])
+        return self._compile_predicate_proposition(child)
 
     def _compile_assume_issue_element(self, element):
         question_type = self._get_mandatory_attribute(element, "type")
@@ -481,7 +493,7 @@ class DomainCompiler(XmlCompiler):
         else:
             return self._parser.parse_preconfirm_value(string)
 
-    def _compile_proposition(self, element):
+    def _compile_proposition_child_of(self, element):
         child = self._get_single_child_element(element, ["proposition", "resolve", "perform"])
         if child.localName == "proposition":
             return self._compile_predicate_proposition(child)
@@ -620,7 +632,7 @@ class DomainCompiler(XmlCompiler):
     def _compile_alts_parameter(self, question, element, result):
         alt_nodes = self._find_child_nodes(element, "alt")
         if len(alt_nodes) > 0:
-            result["alts"] = PropositionSet([self._compile_proposition(node) for node in alt_nodes])
+            result["alts"] = PropositionSet([self._compile_proposition_child_of(node) for node in alt_nodes])
 
     def _compile_question_valued_parameter(self, element, parameter_name, result):
         child_nodes = self._find_child_nodes(element, parameter_name)
@@ -650,7 +662,7 @@ class DomainCompiler(XmlCompiler):
     def _compile_preferred(self, element):
         if len(element.childNodes) > 0:
             child = self._get_single_child_element(element, ["proposition"])
-            return self._compile_proposition(element)
+            return self._compile_proposition_child_of(element)
         else:
             return True
 

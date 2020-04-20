@@ -74,8 +74,11 @@
       <xs:element ref="invoke_service_action" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="dev_perform" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="dev_query" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="assume_shared" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_issue" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="assume_shared" type="has_predicate_proposition"
+                  minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="assume_system_belief" type="has_predicate_proposition"
+                  minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="if" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="jumpto" type="has_goal" minOccurs="0" maxOccurs="unbounded"/>
     </xs:choice>
@@ -181,6 +184,13 @@
       <xs:enumeration value="yn_question"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:complexType name="has_predicate_proposition">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="proposition" type="predicate_proposition"/>
+    </xs:all>
+    <xs:attribute name="predicate" type="xs:string"/>
+  </xs:complexType>
 
   <xs:complexType name="proposition">
     <xs:choice minOccurs="0" maxOccurs="1">

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Persian has been added as a new language. It is currently supported when `use_rgl` is set to `false` in the DDD config.
 - The format for domain XML files now supports the "assume_issue" plan item, for assumming an issue for the system to resolve.
 - A new plan item `<log message="message"/>` has been added to the domain langugage for allowing user defined log messages on `DEBUG` level, where `message` is a string.
+- A new plan item `<assume_system_belief>` has been added to the domain langugage. It takes as a child element a proposition. When executed, the proposition is added to the system's private beliefs and is available as a parameter for service queries and actions as well as for answers to user queries. It is also available for conditions of if/then/else elements.
 
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.

@@ -527,6 +527,20 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
             '<log/>', ViolatesSchemaException, "The attribute 'message' is required but missing.")
 
+    def test_malformed_assume_shared_element(self):
+        self._given_compiled_ontology()
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<assume_shared/>', ViolatesSchemaException,
+            "Element 'assume_shared': Missing child element\(s\). Expected is \( proposition \)."
+        )
+
+    def test_malformed_assume_system_belief_element(self):
+        self._given_compiled_ontology()
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<assume_system_belief/>', ViolatesSchemaException,
+            "Element 'assume_system_belief': Missing child element\(s\). Expected is \( proposition \)."
+        )
+
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
             self, xml, expected_exception, expected_message):
         with pytest.raises(expected_exception, match=expected_message):
@@ -1125,6 +1139,21 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
 </assume_shared>"""
         )
         self._then_result_has_plan(Plan([self._parser.parse("assume_shared(price(123.0))")]))
+
+    def test_assume_system_belief(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<assume_system_belief>
+  <proposition predicate="price" value="123.0"/>
+</assume_system_belief>"""
+        )
+        self._then_result_has_plan(Plan([self._parser.parse("assume(price(123.0))")]))
 
 
 class TestGrammarCompiler(DddXmlCompilerTestCase):
