@@ -381,10 +381,8 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_condition(self, element):
         condition_element = self._get_single_child_element(element, ["condition"])
-        if len(condition_element.childNodes) == 1:
-            return self._compile_proposition(condition_element)
-        else:
-            raise DddXmlCompilerException("expected condition to contain a single child element")
+        return self._compile_proposition(condition_element)
+
 
     def _get_single_child_element(self, node, allowed_names):
         child_elements = [child for child in node.childNodes if child.localName in allowed_names]
@@ -401,11 +399,9 @@ class DomainCompiler(XmlCompiler):
             predicate_name = self._get_mandatory_attribute(element, "predicate")
             predicate = self._ontology.get_predicate(predicate_name)
             return ForgetPlanItem(predicate)
-        elif len(element.childNodes) == 1:
+        else:
             proposition = self._compile_proposition(element)
             return ForgetPlanItem(proposition)
-        else:
-            raise DddXmlCompilerException("expected forget to have a predicate or to contain a single child element")
 
     def _compile_invoke_service_query_element(self, element):
         question = self._compile_question(element)

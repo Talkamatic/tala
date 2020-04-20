@@ -414,6 +414,32 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
         self._when_compile_plan_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
+    def test_domain_schema_validation_for_illegal_plan(self):
+        self._given_compiled_ontology()
+        self._given_illegal_plan()
+        self._when_compile_illegal_plan_then_exception_is_raised_matching(
+            ViolatesSchemaException, "Expected domain.xml compliant with schema"
+        )
+
+    def _given_illegal_plan(self):
+        self.illegal_plan = """
+<if>
+  <condition>
+   <proposition predicate="means_of_transport" value="train"/>
+   <proposition predicate="means_of_transport" value="train"/>
+  </condition>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </then>
+  <else />
+</if>"""
+
+    def _when_compile_illegal_plan_then_exception_is_raised_matching(
+            self, exception, error_message
+    ):
+        with pytest.raises(exception, match=error_message):
+            self._when_compile_domain_with_plan(self.illegal_plan)
+
 
 class TestDomainCompiler(DddXmlCompilerTestCase):
     def test_name(self):
@@ -910,6 +936,39 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
             ])
         )
 
+    def test_if_then_else_tolerates_newlines_in_condition(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <condition>
+    <proposition predicate="means_of_transport" value="train"/>
+  </condition>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </then>
+  <else />
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    self._parse("means_of_transport(train)"), self._parse("findout(?X.transport_train_type(X))"), None
+                )
+            ])
+        )
+
     def test_forget_proposition(self):
         self._given_compiled_ontology(
             """
@@ -925,6 +984,26 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         )
 
         self._then_result_has_plan(Plan([self._parse("forget(means_of_transport(train))")]))
+
+    def test_forget_proposition_accepts_newlines(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<forget>
+  <proposition predicate="means_of_transport" value="train"/>
+</forget>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([self._parse("forget(means_of_transport(train))")]))
 
     def test_forget_predicate(self):
         self._given_compiled_ontology(
@@ -2356,8 +2435,8 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameter', "
-            "attribute 'format': \[facet 'enumeration'\] The value 'something_else' is not an element of the set "
-            "\{'value', 'grammar_entry'\}., line 5"
+            r"attribute 'format': \[facet 'enumeration'\] The value 'something_else' is not an element of the set "
+            r"\{'value', 'grammar_entry'\}., line 5"
         )
 
     def _when_compile_service_interface_then_exception_is_raised_matching(
@@ -2485,7 +2564,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 8"
+            r"This element is not expected. Expected is one of \( device_module, http \)., line 8"
         )
 
     def test_frontend_target_for_validator(self):
@@ -2504,7 +2583,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 9"
+            r"This element is not expected. Expected is one of \( device_module, http \)., line 9"
         )
 
     def test_frontend_target_for_entity_recognizer(self):
@@ -2519,7 +2598,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 5"
+            r"This element is not expected. Expected is one of \( device_module, http \)., line 5"
         )
 
     def test_http_target_for_action(self):
@@ -2630,7 +2709,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameters': "
-            "This element is not expected. Expected is \( audio_url_parameter \)., line 4"
+            r"This element is not expected. Expected is \( audio_url_parameter \)., line 4"
         )
 
     def test_play_audio_action_with_parameters(self):
@@ -2720,5 +2799,5 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'device_module': "
-            "This element is not expected. Expected is \( frontend \)., line 9"
+            r"This element is not expected. Expected is \( frontend \)., line 9"
         )
