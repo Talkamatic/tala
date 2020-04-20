@@ -1,7 +1,7 @@
 # flake8: noqa
 
 from tala.model.move import ICMMove, ICMMoveWithSemanticContent
-from tala.model.plan_item import RespondPlanItem, BindPlanItem, ConsultDBPlanItem, IfThenElse, ServiceReportPlanItem, DoPlanItem, PlanItem, QuitPlanItem, GreetPlanItem, EmitIcmPlanItem, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, JumpToPlanItem, AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, MinResultsNotSupportedException, MaxResultsNotSupportedException
+from tala.model.plan_item import RespondPlanItem, BindPlanItem, ConsultDBPlanItem, IfThenElse, ServiceReportPlanItem, DoPlanItem, PlanItem, QuitPlanItem, GreetPlanItem, EmitIcmPlanItem, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, JumpToPlanItem, AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, MinResultsNotSupportedException, MaxResultsNotSupportedException, LogPlanItem
 from tala.model.question_raising_plan_item import FindoutPlanItem, RaisePlanItem
 from tala.model.proposition import ServiceResultProposition
 from tala.testing.lib_test_case import LibTestCase
@@ -387,3 +387,17 @@ class AssumeSharedIssuePlanItemTests(LibTestCase):
 
     def test_is_assume_shared_issue(self):
         self.assertTrue(self.assume_price_issue.is_assume_issue_plan_item())
+
+
+class LogPlanItemTests(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+        self.message = "log message"
+        self.log_plan_item = LogPlanItem(self.message)
+
+    def test_string(self):
+        self.assertEqual("log_plan_item('log message')",
+                         str(self.log_plan_item))
+
+    def test_is_log_plan_item(self):
+        self.assertTrue(self.log_plan_item.is_log_plan_item())

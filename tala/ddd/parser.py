@@ -9,7 +9,7 @@ from tala.model.speaker import Speaker
 from tala.model.set import Set
 from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
 from tala.model.ontology import OntologyError
-from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
 from tala.model.polarity import Polarity
 from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition
 from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion
@@ -52,6 +52,7 @@ class Parser:
             self._parse_assume_shared_plan_item,
             self._parse_goal,
             self._parse_assume_issue_item,
+            self._parse_log_item,
             self._parse_forget_issue_plan_item,
             self._parse_invoke_service_query_plan_item,
             self._parse_deprecated_dev_query_plan_item,
@@ -632,6 +633,14 @@ class Parser:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
             return AssumeIssuePlanItem(issue)
+        else:
+            raise ParseFailure()
+
+    def _parse_log_item(self, string):
+        m = re.search('^log\("(.+)"\)$', string)
+        if m:
+            log_message = m.group(1)
+            return LogPlanItem(log_message)
         else:
             raise ParseFailure()
 

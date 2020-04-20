@@ -11,7 +11,7 @@ from tala.model.speaker import Speaker
 from tala.model.set import Set
 from tala.model.move import ICMMove, ICMMoveWithStringContent, ICMMoveWithSemanticContent, IssueICMMove, Move, ReportMove, GreetMove, MuteMove, PrereportMove
 from tala.model.ontology import Ontology
-from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse
+from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, EmitIcmPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, LogPlanItem
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
 from tala.model.proposition import ResolvednessProposition, RejectedPropositions, ServiceResultProposition, GoalProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, PropositionSet, PredicateProposition
@@ -1028,6 +1028,11 @@ class ParserTests(unittest.TestCase):
     def test_assume(self):
         item = self.parser.parse("assume(dest_city(paris))")
         expected_item = AssumePlanItem(self.proposition_dest_city_paris)
+        self.assertEqual(expected_item, item)
+
+    def test_log(self):
+        item = self.parser.parse('log("message")')
+        expected_item = LogPlanItem("message")
         self.assertEqual(expected_item, item)
 
     def test_assume_shared(self):

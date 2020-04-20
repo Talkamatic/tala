@@ -6,7 +6,6 @@
     <xs:annotation>
       <xs:documentation>The domain element is the root element of the document.</xs:documentation>
     </xs:annotation>
-
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element ref="goal" minOccurs="0" maxOccurs="unbounded"/>
@@ -17,7 +16,6 @@
       <xs:attribute name="name" type="xs:string" use="required"/>
       <xs:attribute name="is_super_domain" type="xs:boolean"/>
     </xs:complexType>
-
   </xs:element>
 
   <xs:element name="goal">
@@ -58,10 +56,17 @@
     </xs:attribute>
   </xs:complexType>
 
+  <xs:element name="log">
+    <xs:complexType>
+      <xs:attribute name="message" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
   <xs:complexType name="plan">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="forget" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="forget_all" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="log" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_service_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="findout" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="raise" type="has_question" minOccurs="0" maxOccurs="unbounded"/>

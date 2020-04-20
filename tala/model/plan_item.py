@@ -30,6 +30,7 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
     TYPE_ASSUME_ISSUE = "assume_issue"
     TYPE_EMIT_MOVE = "emit_move"
     TYPE_HANDLE = "handle"
+    TYPE_LOG = "log"
 
     def __init__(self, type):
         SemanticObject.__init__(self)
@@ -127,6 +128,9 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
 
     def is_handle_plan_item(self):
         return self._type == self.TYPE_HANDLE
+
+    def is_log_plan_item(self):
+        return self._type == self.TYPE_LOG
 
     def getType(self):
         return self._type
@@ -459,3 +463,16 @@ class HandlePlanItem(PlanItem, OntologySpecificSemanticObject):
                 "ontology": self.ontology_name,
             }
         }
+
+
+class LogPlanItem(PlanItem):
+    def __init__(self, message):
+        PlanItem.__init__(self, PlanItem.TYPE_LOG)
+        self._message = message
+
+    @property
+    def message(self):
+        return self._message
+
+    def __str__(self):
+        return f"log_plan_item('{self.message}')"
