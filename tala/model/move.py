@@ -371,6 +371,9 @@ class ICMMove(Move):
     def is_interrogative_understanding_icm_with_non_neg_content(self):
         return False
 
+    def is_grounding_proposition(self):
+        return False
+
     def is_turn_yielding(self):
         return self.get_type() == ICMMove.ACC and self._polarity == ICMMove.NEG
 
@@ -455,6 +458,9 @@ class ICMMoveWithContent(ICMMove):
         return (
             self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.get_content().is_positive()
         )
+
+    def is_grounding_proposition(self):
+        return self.get_type() == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
 
 
 class ICMMoveWithStringContent(ICMMoveWithContent):

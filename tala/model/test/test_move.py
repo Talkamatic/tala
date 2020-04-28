@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from mock import Mock
+import pytest
+from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
@@ -721,3 +722,32 @@ class MoveTestsFromTdmLib(LibTestCase):
         move = move_factory.create_ask_move(self.dest_city_question)
         moveAsString = str(move)
         self.assertEqual("Move(ask(?X.dest_city(X)))", moveAsString)
+
+
+class TestICMMoves(object):
+    def setup(self):
+        self._move = None
+        self._actual_result = None
+
+    @pytest.mark.parametrize("move,expected_result", [
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.INT), True),
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.POS), True),
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.NEG), False),
+        (ICMMoveWithSemanticContent(ICMMove.SEM, content="content", polarity=ICMMove.POS), False),
+        (ICMMoveWithSemanticContent(ICMMove.PER, content="content", polarity=ICMMove.POS), False),
+        (ICMMove(ICMMove.UND, polarity=ICMMove.INT), False),
+        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False)
+    ])  # yapf: disable
+    def test_is_grounding_move(self, move, expected_result):
+        self.given_move(move)
+        self.when_calling_is_grounding_move()
+        self.then_result_is(expected_result)
+
+    def given_move(self, move):
+        self._move = move
+
+    def when_calling_is_grounding_move(self):
+        self._actual_result = self._move.is_grounding_proposition()
+
+    def then_result_is(self, expected_result):
+        assert self._actual_result == expected_result
