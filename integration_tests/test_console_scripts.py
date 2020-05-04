@@ -238,11 +238,8 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     }
 
     @pytest.mark.parametrize(
-        "ConfigClass,command", [
-            (BackendConfig, "create-backend-config my_ddd"),
-            (DddConfig, "create-ddd-config"),
-            (DeploymentsConfig, "create-deployments-config")
-        ]
+        "ConfigClass,command", [(BackendConfig, "create-backend-config my_ddd"), (DddConfig, "create-ddd-config"),
+                                (DeploymentsConfig, "create-deployments-config")]
     )
     def test_create_config_without_path(self, ConfigClass, command):
         self._when_running_command(f"tala {command}")
@@ -253,11 +250,8 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
         assert expected_config == actual_config
 
     @pytest.mark.parametrize(
-        "ConfigClass,command", [
-            (BackendConfig, "create-backend-config my_ddd"),
-            (DddConfig, "create-ddd-config"),
-            (DeploymentsConfig, "create-deployments-config")
-        ]
+        "ConfigClass,command", [(BackendConfig, "create-backend-config my_ddd"), (DddConfig, "create-ddd-config"),
+                                (DeploymentsConfig, "create-deployments-config")]
     )
     def test_create_config_with_path(self, ConfigClass, command):
         self._when_running_command(f"tala {command} --filename my_ddd.config.json")
@@ -280,11 +274,13 @@ class TestConfigFileIntegration(ConsoleScriptTestCase):
     def _given_config_was_created_with(self, command):
         self._run_command(command)
 
-    @pytest.mark.parametrize("command", [
-        "create-backend-config mock_ddd",
-        "create-ddd-config",
-        "create-deployments-config",
-    ])
+    @pytest.mark.parametrize(
+        "command", [
+            "create-backend-config mock_ddd",
+            "create-ddd-config",
+            "create-deployments-config",
+        ]
+    )
     def test_config_file_not_overwritten(self, command):
         self._given_file_contains("test.config.json", "unmodified_mock_content")
         self._when_running_command("tala {} --filename test.config.json".format(command))
@@ -359,9 +355,7 @@ class TestVerifyIntegration(ConsoleScriptTestCase):
         )
 
     def _given_enabled_rasa(self):
-        self._set_in_config_file(
-            Path(DddConfig.default_name()), "rasa_nlu", {"eng": {"url": "mock-url", "config": {}}}
-        )
+        self._set_in_config_file(Path(DddConfig.default_name()), "rasa_nlu", {"eng": {"url": "mock-url", "config": {}}})
 
     def test_stderr_when_verifying_boilerplate_ddd(self):
         self._given_created_ddd_in_a_target_dir()
@@ -470,18 +464,18 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             self._given_ddd_verifies_successfully()
             self._when_running_command("tala generate rasa test_ddd eng")
         self._then_stdout_matches(
-            'language: "en"\n'
-            '\n'
-            'pipeline: "spacy_sklearn"\n'
-            '\n'
-            r'data: |\n'
-            '  ## intent:test_ddd:action::call\n'
-            '  - make a call\n'
-            '  \n'
-            '  ## intent:NEGATIVE\n'
-            '  - aboard\n'
-            '  - about\n'
-        )
+            r'''language: "en"
+
+pipeline: "spacy_sklearn"
+
+data: \|
+  ## intent:test_ddd:action::call
+  - make a call
+  
+  ## intent:NEGATIVE
+  - aboard
+  - about
+''')  # yapf: disable  # noqa: W293
 
     def _given_ddd_verifies_successfully(self):
         self._run_tala_with(["verify"])
@@ -577,46 +571,46 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             self._given_ddd_verifies_successfully()
             self._when_running_command("tala generate rasa test_ddd eng")
         self._then_stdout_matches(
-            'language: "en"\n'
-            '\n'
-            'pipeline: "spacy_sklearn"\n'
-            '\n'
-            r'data: |\n'
-            '  ## intent:test_ddd:action::buy\n'
-            '  - buy apples\n'
-            '  - buy 0 apples\n'
-            '  - buy 99 apples\n'
-            '  - buy 1224 apples\n'
-            '  - buy a hundred and fifty seven apples\n'
-            '  - buy three apples\n'
-            '  - buy two thousand fifteen apples\n'
-            '  \n'
-            '  ## intent:test_ddd:question::phone_number_of_contact\n'
-            '  - tell me a phone number\n'
-            r'  - what is [John](sort.contact)\'s number\n'
-            '  \n'
-            '  ## intent:test_ddd:answer\n'
-            '  - 0\n'
-            '  - 99\n'
-            '  - 1224\n'
-            '  - a hundred and fifty seven\n'
-            '  - three\n'
-            '  - two thousand fifteen\n'
-            r'  - [John](sort.contact)\n'
-            '  \n'
-            '  ## intent:test_ddd:answer_negation\n'
-            '  - not 0\n'
-            '  - not 99\n'
-            '  - not 1224\n'
-            '  - not a hundred and fifty seven\n'
-            '  - not three\n'
-            '  - not two thousand fifteen\n'
-            r'  - not [John](sort.contact)\n'
-            '  \n'
-            '  ## intent:NEGATIVE\n'
-            '  - aboard\n'
-            '  - about\n'
-        )
+            r'''language: "en"
+
+pipeline: "spacy_sklearn"
+
+data: \|
+  ## intent:test_ddd:action::buy
+  - buy apples
+  - buy 0 apples
+  - buy 99 apples
+  - buy 1224 apples
+  - buy a hundred and fifty seven apples
+  - buy three apples
+  - buy two thousand fifteen apples
+  
+  ## intent:test_ddd:question::phone_number_of_contact
+  - tell me a phone number
+  - what is \[John\]\(test_ddd.sort.contact\)'s number
+  
+  ## intent:test_ddd:answer
+  - 0
+  - 99
+  - 1224
+  - a hundred and fifty seven
+  - three
+  - two thousand fifteen
+  - \[John\]\(test_ddd.sort.contact\)
+  
+  ## intent:test_ddd:answer_negation
+  - not 0
+  - not 99
+  - not 1224
+  - not a hundred and fifty seven
+  - not three
+  - not two thousand fifteen
+  - not \[John\]\(test_ddd.sort.contact\)
+  
+  ## intent:NEGATIVE
+  - aboard
+  - about
+''')  # yapf: disable  # noqa: W293
 
 
 class TestGenerateAlexaIntegration(ConsoleScriptTestCase):

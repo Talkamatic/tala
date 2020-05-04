@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
 - The argument `ddd` for the command `tala create-backend-config` is now required and passed positionally, instead of optionally.
 - Most fields in config files are now optional instead of required. The only required fields are `ddds`, `active_ddd` and `supported_languages` for backend configs, as well as `use_rgl` for DDD configs.
+- `tala generate rasa` now adds the DDD name to entity names when generating samples with custom sortal and propositional entities. This is needed to support a new TDM-Rasa integration upstream. Example: `my_ddd.sort.my_sort`.
 
 ### Fixed
 - Running `tala generate` on a language that is not supported by the DDD now renders a helpful error message.

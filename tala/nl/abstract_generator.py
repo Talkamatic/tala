@@ -32,10 +32,10 @@ class AbstractGenerator(object):
     def generate(self):
         raise NotImplementedError()
 
-    def _create_intent_samples(self, grammar, intent):
+    def _create_intent_samples(self, grammar, ddd, intent):
         raise NotImplementedError()
 
-    def _create_sortal_answer_samples(self, grammar, sort, intent_templates):
+    def _create_sortal_answer_samples(self, grammar, ddd, sort, intent_templates):
         raise NotImplementedError()
 
     def _format_action(self, name):
@@ -52,41 +52,42 @@ class AbstractGenerator(object):
             )
 
         grammar = self._ddd.grammars[self._language_code]
+        ddd = self._ddd.name
 
         intent_generators = [
-            self._examples_of_actions(grammar),
-            self._examples_of_questions(grammar),
-            self._examples_of_answers(grammar),
-            self._examples_of_answer_negations(grammar),
+            self._examples_of_actions(grammar, ddd),
+            self._examples_of_questions(grammar, ddd),
+            self._examples_of_answers(grammar, ddd),
+            self._examples_of_answer_negations(grammar, ddd),
         ]
 
         for generated_intents in intent_generators:
             for generated_intent in generated_intents:
                 yield generated_intent
 
-    def _examples_of_actions(self, grammar):
+    def _examples_of_actions(self, grammar, ddd):
         for action in self._ddd.ontology.get_ddd_specific_actions():
-            yield self._generated_action_intent_for(grammar, action)
+            yield self._generated_action_intent_for(grammar, ddd, action)
 
-    def _generated_action_intent_for(self, grammar, action):
+    def _generated_action_intent_for(self, grammar, ddd, action):
         def samples(requests):
             for request in requests:
-                for sample in self._create_intent_samples(grammar, request):
+                for sample in self._create_intent_samples(grammar, ddd, request):
                     yield sample
 
         intent = self._format_action(action)
         requests = list(grammar.requests_of_action(action))
         return GeneratedIntent(intent, requests, list(samples(requests)))
 
-    def _examples_of_questions(self, grammar):
+    def _examples_of_questions(self, grammar, ddd):
         for resolve_goal in self._ddd.domain.get_all_resolve_goals():
             question = resolve_goal.get_question()
-            yield self._generated_question_intent_for(grammar, question)
+            yield self._generated_question_intent_for(grammar, ddd, question)
 
-    def _generated_question_intent_for(self, grammar, question):
+    def _generated_question_intent_for(self, grammar, ddd, question):
         def samples(questions):
             for question in questions:
-                for sample in self._create_intent_samples(grammar, question):
+                for sample in self._create_intent_samples(grammar, ddd, question):
                     yield sample
 
         predicate = question.get_predicate().get_name()
@@ -94,16 +95,16 @@ class AbstractGenerator(object):
         questions = list(grammar.questions_of_predicate(predicate))
         return GeneratedIntent(intent, questions, list(samples(questions)))
 
-    def _examples_of_answers(self, grammar):
+    def _examples_of_answers(self, grammar, ddd):
         def samples_from_sorts(sorts):
             for sort in sorts:
                 templates = list(self._language_examples.answer_templates)
-                for sample in self._create_sortal_answer_samples(grammar, sort, templates):
+                for sample in self._create_sortal_answer_samples(grammar, ddd, sort, templates):
                     yield sample
 
         def samples_from_explicit_answers(answers):
             for answer in answers:
-                for sample in self._create_intent_samples(grammar, answer):
+                for sample in self._create_intent_samples(grammar, ddd, answer):
                     yield sample
 
         def answers_from_sorts(sorts):
@@ -116,11 +117,11 @@ class AbstractGenerator(object):
         samples = list(samples_from_sorts(sorts)) + list(samples_from_explicit_answers(explicit_answers))
         yield GeneratedIntent(ANSWER_INTENT, answers, samples)
 
-    def _examples_of_answer_negations(self, grammar):
+    def _examples_of_answer_negations(self, grammar, ddd):
         def generate_samples(sorts):
             for sort in sorts:
                 templates = list(self._language_examples.answer_negation_templates)
-                for sample in self._create_sortal_answer_samples(grammar, sort, templates):
+                for sample in self._create_sortal_answer_samples(grammar, ddd, sort, templates):
                     yield sample
 
         def answers_from_sorts(sorts):

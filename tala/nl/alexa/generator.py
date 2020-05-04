@@ -138,7 +138,7 @@ class AlexaGenerator(AbstractGenerator):
             raise SortNotSupportedException(message)
         return self._sortal_entity_name(sort_name)
 
-    def _create_intent_samples(self, grammar, intent):
+    def _create_intent_samples(self, grammar, ddd, intent):
         head = intent.text_chunks[0]
         texts = intent.text_chunks[1:]
         return self._examples_with_individuals(grammar, texts, intent.required_entities, [head])
@@ -164,7 +164,7 @@ class AlexaGenerator(AbstractGenerator):
         new_examples = [new_example(example, identifier, tail) for example in examples_so_far]
         return self._examples_with_individuals(grammar, text_chunks[1:], required_entities[1:], new_examples)
 
-    def _create_sortal_answer_samples(self, grammar, sort, intent_templates):
+    def _create_sortal_answer_samples(self, grammar, ddd, sort, intent_templates):
         for template in intent_templates:
             entity = self._sortal_entity_name(sort.get_name())
             if sort.is_builtin():
