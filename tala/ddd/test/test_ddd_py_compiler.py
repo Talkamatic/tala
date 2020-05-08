@@ -251,7 +251,7 @@ class TestPlanCompilation(DddPyCompilerTestCase):
         self._when_compile_plan_with_attribute("postplan", ["forget_all"])
         self._then_result_has_plan_with_attribute("postplan", Plan([ForgetAllPlanItem()]))
 
-    def test_postconds(self):
+    def test_downdate_conditions(self):
         self._given_compiled_ontology(
             predicates={"dest_city": "city"}, sorts={"city": {}}, individuals={"gothenburg": "city"}
         )

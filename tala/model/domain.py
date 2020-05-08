@@ -179,22 +179,22 @@ class Domain(AsJSONMixin):
     def get_all_resolve_goals(self):
         return [x for x in self.plans if x.is_resolve_goal()]
 
-    def get_postconds(self, goal):
+    def get_downdate_conditions(self, goal):
         if self.has_goal(goal):
-            for postcond in self.get_goal_attribute(goal, 'postconds'):
-                yield postcond
-            for postcond in self._implicit_postconds_for_service_action_invocations(goal):
-                yield postcond
-            for postcond in self._implicit_postconds_for_handle_goal(goal):
-                yield postcond
+            for downdate_condition in self.get_goal_attribute(goal, 'postconds'):
+                yield downdate_condition
+            for downdate_condition in self._implicit_downdate_conditions_for_service_action_invocations(goal):
+                yield downdate_condition
+            for downdate_condition in self._implicit_downdate_conditions_for_handle_goal(goal):
+                yield downdate_condition
 
-    def _implicit_postconds_for_service_action_invocations(self, goal):
+    def _implicit_downdate_conditions_for_service_action_invocations(self, goal):
         plan = self.get_plan(goal)
         for item in plan:
             if item.is_invoke_service_action_plan_item() and item.should_downdate_plan():
                 yield ServiceActionTerminatedProposition(self.ontology.name, item.get_service_action())
 
-    def _implicit_postconds_for_handle_goal(self, goal):
+    def _implicit_downdate_conditions_for_handle_goal(self, goal):
         if goal.is_handle_goal():
             yield ServiceActionTerminatedProposition(self.ontology.name, goal.get_device_event())
 

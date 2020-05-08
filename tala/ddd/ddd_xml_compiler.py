@@ -14,11 +14,11 @@ from tala.model.speaker import Speaker
 from tala.model.plan import Plan
 from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem, AssumePlanItem
 from tala.model.predicate import Predicate
-from tala.model.proposition import GoalProposition, PropositionSet
-from tala.model.proposition import PredicateProposition
+from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition
+from tala.model import condition
 from tala.model.question import AltQuestion, YesNoQuestion
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
-from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort
+from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort, BOOLEAN
 from tala.nl.gf import rgl_grammar_entry_types as rgl_types
 from tala.nl.gf.grammar_entry_types import Node, Constants
 import tala.ddd.schemas
@@ -279,7 +279,10 @@ class DomainCompiler(XmlCompiler):
             plan, element, "gui_context", "gui_context", self._compile_gui_context
         )
         self._compile_plan_element_with_multiple_children(
-            plan, element, "postconds", "postcond", self._compile_proposition_child_of
+            plan, element, "postconds", "downdate_condition", self._compile_downdate_condition
+        )
+        self._compile_plan_element_with_multiple_children(
+            plan, element, "postconds", "postcond", self._compile_deprecated_postconds
         )
         self._compile_plan_element_with_multiple_children(
             plan, element, "superactions", "superaction", self._compile_superaction
@@ -357,7 +360,9 @@ class DomainCompiler(XmlCompiler):
         elif element.localName == "invoke_service_action":
             return self._compile_invoke_service_action_element(element)
         elif element.localName == "dev_perform":
-            warnings.warn("<dev_perform> is deprecated. Use <invoke_service_action> instead.")
+            warnings.warn(
+                "<dev_perform> is deprecated. Use <invoke_service_action> instead.",
+                DeprecationWarning)
             return self._compile_deprecated_dev_perform_element(element)
         elif element.localName == "jumpto":
             return self._compile_jumpto_element(element)
@@ -378,17 +383,14 @@ class DomainCompiler(XmlCompiler):
         return QuestionRaisingPlanItem(self._domain_name, item_type, question)
 
     def _compile_if_element(self, element):
-        condition = self._compile_condition(element)
+        condition = self._compile_condition_element(element)
         consequent = self._compile_if_then_child_plan(element, "then")
         alternative = self._compile_if_then_child_plan(element, "else")
         return IfThenElse(condition, consequent, alternative)
 
-    def _compile_condition(self, element):
+    def _compile_condition_element(self, element):
         condition_element = self._get_single_child_element(element, ["condition"])
-        if len(condition_element.childNodes) == 1:
-            return self._compile_proposition_child_of(condition_element)
-        else:
-            raise DddXmlCompilerException("expected condition to contain a single child element")
+        return self._compile_proposition_child_of(condition_element)
 
     def _get_single_child_element(self, node, allowed_names):
         child_elements = [child for child in node.childNodes if child.localName in allowed_names]
@@ -415,7 +417,8 @@ class DomainCompiler(XmlCompiler):
         return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
 
     def _compile_deprecated_dev_query_element(self, element):
-        warnings.warn('<dev_query> is deprecated. Use <invoke_service_query> instead.')
+        warnings.warn(
+            '<dev_query> is deprecated. Use <invoke_service_query> instead.', DeprecationWarning)
         question = self._compile_question(element)
         self._check_deprecation_of_device(question, element, "dev_query")
         return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
@@ -440,7 +443,7 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_invoke_service_action_or_deprecated_dev_perform_element(self, element, action_attribute):
         def fail(action, device):
-            message = "Attribute 'device=\"%s\"' is not supported in " "<invoke_service_action name='%s'>. " "Use 'service_interface.xml' instead." % (
+            message = "Attribute 'device=\"%s\"' is not supported in <invoke_service_action name='%s'>. Use 'service_interface.xml' instead." % (
                 device, action
             )
             raise UnexpectedAttributeException(message)
@@ -511,6 +514,28 @@ class DomainCompiler(XmlCompiler):
         else:
             individual = None
         return PredicateProposition(predicate, individual)
+
+    def _compile_deprecated_postconds(self, element):
+        warnings.warn("<postcond> is deprecated. Use <downdate_condition> instead.",
+                      DeprecationWarning)
+        return self._compile_proposition_child_of(element)
+
+    def _compile_downdate_condition(self, element):
+        child = self._get_single_child_element(element, ["has_value", "is_shared_fact"])
+        if child.localName == "has_value":
+            return self._compile_has_value_condition(child)
+        elif child.localName == "is_shared_fact":
+            return self._compile_is_shared_fact_condition(child)
+
+    def _compile_has_value_condition(self, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        predicate = self._ontology.get_predicate(predicate_name)
+        return condition.HasValue(predicate)
+
+    def _compile_is_shared_fact_condition(self, element):
+        child = self._get_single_child_element(element, ["proposition"])
+        proposition = self._compile_predicate_proposition(child)
+        return condition.IsSharedFact(proposition)
 
     def _compile_perform_proposition(self, element):
         action_name = self._get_mandatory_attribute(element, "action")

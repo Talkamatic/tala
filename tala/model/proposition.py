@@ -126,6 +126,9 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     def is_incompatible_with(self, other):
         return False
 
+    def is_true_given(self, facts):
+        return self in facts
+
     def __repr__(self):
         return "%s%s" % (Proposition.__name__, (self._type, self._polarity))
 
@@ -198,8 +201,11 @@ class PredicateProposition(PropositionWithSemanticContent):
             raise MissingIndividualException(f"Expected an individual but got none for {self!r}")
         return AnswerMove(self)
 
-    def getPredicate(self):
+    def get_predicate(self):
         return self.predicate
+
+    def getPredicate(self):
+        return self.get_predicate()
 
     def getArgument(self):
         return self.individual
