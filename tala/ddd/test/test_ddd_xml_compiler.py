@@ -12,6 +12,7 @@ from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
 from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
+from tala.model import condition
 from tala.model.predicate import Predicate
 from tala.model.sort import CustomSort, RealSort, UndefinedSort
 from tala.nl.gf import rgl_grammar_entry_types as rgl_types
@@ -65,7 +66,7 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
 </domain>""" % (key, value)
         )
 
-    def _when_compile_plan_with_content(self, xml):
+    def _when_compile_goal_with_content(self, xml):
         self._when_compile_domain(
             """
 <domain name="Domain">
@@ -111,8 +112,8 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
     def _mock_warnings(self):
         return patch("%s.warnings" % tala.ddd.ddd_xml_compiler.__name__)
 
-    def _then_warning_is_issued(self, mocked_warnings, expected_message):
-        mocked_warnings.warn.assert_called_once_with(expected_message)
+    def _then_warning_is_issued(self, mocked_warnings, expected_message, expected_class):
+        mocked_warnings.warn.assert_called_once_with(expected_message, expected_class)
 
 
 class TestOntologyCompiler(DddXmlCompilerTestCase):
@@ -225,7 +226,7 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
         )
 
 
-class TestPlanCompilation(DddXmlCompilerTestCase):
+class TestGoalCompilation(DddXmlCompilerTestCase):
     def test_plan_for_perform_goal(self):
         self._given_compiled_ontology()
 
@@ -324,7 +325,7 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._when_compile_plan_with_content(
+        self._when_compile_goal_with_content(
             """
 <preferred>
   <proposition predicate="dest_city" value="paris"/>
@@ -340,7 +341,7 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
   <action name="apply_for_membership"/>
 </ontology>"""
         )
-        self._when_compile_plan_with_content("""
+        self._when_compile_goal_with_content("""
 <preferred/>
 """)
         self._then_result_has_plan_with_attribute("preferred", True)
@@ -377,12 +378,12 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
   <predicate name="price" sort="real"/>
 </ontology>"""
         )
-        self._when_compile_plan_with_content('<gui_context predicate="price" />')
+        self._when_compile_goal_with_content('<gui_context predicate="price" />')
         self._then_result_has_plan_with_attribute("gui_context", [self._ontology.get_predicate("price")])
 
     def test_postplan(self):
         self._given_compiled_ontology()
-        self._when_compile_plan_with_content('<postplan><forget_all/></postplan>')
+        self._when_compile_goal_with_content('<postplan><forget_all/></postplan>')
         self._then_result_has_plan_with_attribute("postplan", Plan([ForgetAllPlanItem()]))
 
     def test_postcond_with_whitespace(self):
@@ -394,7 +395,7 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._when_compile_plan_with_content(
+        self._when_compile_goal_with_content(
             """
 <postcond>
   <proposition predicate="dest_city" value="paris"/>
@@ -411,8 +412,57 @@ class TestPlanCompilation(DddXmlCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._when_compile_plan_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
+        self._when_compile_goal_with_content(
+            '<postcond><proposition predicate="dest_city" value="paris"/></postcond>'
+        )
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
+
+    def test_postcond_with_multiple_propositions(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <predicate name="dept_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <individual name="gothenburg" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<postcond>
+  <proposition predicate="dept_city" value="gothenburg"/>
+</postcond>
+<postcond>
+  <proposition predicate="dest_city" value="paris"/>
+</postcond>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [
+                self._parse("dept_city(gothenburg)"),
+                self._parse("dest_city(paris)"),
+            ]
+        )
+
+    def test_postcond_deprecation_warning(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
+            '<postcond><proposition predicate="dest_city" value="paris"/></postcond>',
+            "<postcond> is deprecated. Use <downdate_condition> instead."
+        )
+
+    def _when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
+            self, goal_xml, expected_warning_message):
+        with self._mock_warnings() as mocked_warnings:
+            self._when_compile_goal_with_content(goal_xml)
+            self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
 
 
 class TestDomainCompiler(DddXmlCompilerTestCase):
@@ -508,6 +558,90 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         )
 
         self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {"graphical_type": "list"}})
+
+    def test_downdate_condition_for_has_value(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <has_value predicate="dest_city"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds",
+                                                  [condition.HasValue(self._parse("dest_city"))])
+
+    def test_downdate_condition_for_boolean_has_value(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="need_visa" sort="boolean"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <has_value predicate="need_visa"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds",
+                                                  [condition.HasValue(self._parse("need_visa"))])
+
+    def test_downdate_condition_with_is_shared_fact(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_shared_fact>
+    <proposition predicate="dest_city" value="paris"/>
+  </is_shared_fact>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.IsSharedFact(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_with_multiple_conditions(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <predicate name="dept_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <individual name="gothenburg" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_shared_fact>
+    <proposition predicate="dest_city" value="paris"/>
+  </is_shared_fact>
+</downdate_condition>
+<downdate_condition>
+  <is_shared_fact>
+    <proposition predicate="dept_city" value="gothenburg"/>
+  </is_shared_fact>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [
+                condition.IsSharedFact(self._parse("dest_city(paris)")),
+                condition.IsSharedFact(self._parse("dept_city(gothenburg)"))]
+        )
 
     def test_schema_violation_yields_exception(self):
         self._given_compiled_ontology('<ontology name="Ontology"/>')
@@ -1118,7 +1252,7 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
     def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(self, plan_xml, expected_warning_message):
         with self._mock_warnings() as mocked_warnings:
             self._when_compile_domain_with_plan(plan_xml)
-            self._then_warning_is_issued(mocked_warnings, expected_warning_message)
+            self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
 
     def test_jumpto(self):
         self._given_compiled_ontology()
