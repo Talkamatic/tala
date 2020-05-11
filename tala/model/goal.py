@@ -1,3 +1,4 @@
+from tala.model.move import RequestMove, AskMove
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -91,6 +92,9 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         except AttributeError:
             return False
 
+    def as_move(self):
+        raise NotImplementedError()
+
 
 class PerformGoal(GoalWithSemanticContent):
     def __init__(self, action):
@@ -112,6 +116,9 @@ class PerformGoal(GoalWithSemanticContent):
 
     def __str__(self):
         return "perform(%s)" % self.get_action()
+
+    def as_move(self):
+        return RequestMove(self.get_content())
 
 
 class ResolveGoal(GoalWithSemanticContent):
@@ -143,6 +150,9 @@ class ResolveGoal(GoalWithSemanticContent):
             result += ", %s" % unicodify(self._background)
         result += ")"
         return result
+
+    def as_move(self):
+        return AskMove(self.get_content())
 
 
 class HandleGoal(Goal, OntologySpecificSemanticObject):

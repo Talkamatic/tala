@@ -1,6 +1,7 @@
 import copy
 
 from tala.model.error import OntologyError
+from tala.model.move import AnswerMove
 from tala.model.polarity import Polarity
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -8,6 +9,14 @@ from tala.utils.unicodify import unicodify
 
 
 class PropositionsFromDifferentOntologiesException(Exception):
+    pass
+
+
+class UnexpectedGoalException(Exception):
+    pass
+
+
+class MissingIndividualException(Exception):
     pass
 
 
@@ -184,6 +193,11 @@ class PredicateProposition(PropositionWithSemanticContent):
             raise OntologyError(("Sortal mismatch between predicate %s " + "(sort %s) and individual %s (sort %s)") %
                                 (predicate, predicate.getSort(), individual, individual.getSort()))
 
+    def as_move(self):
+        if self.individual is None:
+            raise MissingIndividualException(f"Expected an individual but got none for {self!r}")
+        return AnswerMove(self)
+
     def getPredicate(self):
         return self.predicate
 
@@ -242,6 +256,11 @@ class GoalProposition(PropositionWithSemanticContent):
     def __init__(self, goal, polarity=None):
         PropositionWithSemanticContent.__init__(self, Proposition.GOAL, goal, polarity=polarity)
         self._goal = goal
+
+    def as_move(self):
+        if self._goal.is_goal_with_semantic_content():
+            return self._goal.as_move()
+        raise UnexpectedGoalException(f"Expected goal with semantic content, but got {self._goal!r}")
 
     def get_goal(self):
         return self._goal
