@@ -108,11 +108,10 @@ class RasaGenerator(AbstractGenerator):
         for sort in list(self._ddd.ontology.get_sorts().values()):
             if sort.is_builtin():
                 continue
-            entities = list(self._all_individual_grammar_entries_of_custom_sort(grammar, sort))
-            for individual_entities in entities:
-                if len(individual_entities) <= 1:
+            for individual, grammar_entries in self._all_individuals_of_custom_sort(grammar, sort):
+                if len(grammar_entries) <= 1:
                     continue
-                yield self._create_synonym_object(individual_entities[0], individual_entities[1:])
+                yield self._create_synonym_object(individual, grammar_entries)
 
     @staticmethod
     def _create_synonym_object(value, synonyms):

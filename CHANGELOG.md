@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - The argument `ddd` for the command `tala create-backend-config` is now required and passed positionally, instead of optionally.
 - Most fields in config files are now optional instead of required. The only required fields are `ddds`, `active_ddd` and `supported_languages` for backend configs, as well as `use_rgl` for DDD configs.
 - `tala generate rasa` now adds the DDD name to entity names when generating samples with custom sortal and propositional entities. This is needed to support a new TDM-Rasa integration upstream. Example: `my_ddd.sort.my_sort`.
+- `tala generate rasa` now uses the individuals' semantic name when generating synonym names instead of the first grammar entry. This is helpful for the TDM-Rasa integration upstream so that Rasa can properly return the individuals' names. Additionally, synonyms now contain the first grammar entry, which was previously part of the synonym name. Example:
+ ```md
+ ## synonyms:ddd_name:contact_john
+ - John
+ - Johnny
+ ```
+ instead of:
+ ```md
+ ## synonyms:ddd_name:John
+ - Johnny
+ ```
 
 ### Fixed
 - Running `tala generate` on a language that is not supported by the DDD now renders a helpful error message.

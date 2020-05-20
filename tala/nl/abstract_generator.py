@@ -137,3 +137,8 @@ class AbstractGenerator(object):
         individuals = self._ddd.ontology.get_individuals_of_sort(sort.get_name())
         for individual in individuals:
             yield grammar.entries_of_individual(individual)
+
+    def _all_individuals_of_custom_sort(self, grammar, sort):
+        individuals = self._ddd.ontology.get_individuals_of_sort(sort.get_name())
+        for individual in individuals:
+            yield individual, grammar.entries_of_individual(individual)
