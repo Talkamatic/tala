@@ -665,11 +665,11 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_result_matches(
-            """## synonyms:rasa_test:contact_john
+            """## synonym:rasa_test:contact_john
 - John
 - Johnny
 
-## synonyms:rasa_test:contact_lisa
+## synonym:rasa_test:contact_lisa
 - Lisa
 - Elizabeth
 """

@@ -79,7 +79,7 @@ class RasaGenerator(AbstractGenerator):
             "{% endfor %}"
             ""
             "{% for synonym_object in synonym_objects %}"
-            "## synonyms:{{ ddd }}:{{ synonym_object.value }}\n"
+            "## synonym:{{ ddd }}:{{ synonym_object.value }}\n"
             "{% for synonym in synonym_object.synonyms %}"
             "- {{ synonym }}\n"
             "{% endfor %}"
