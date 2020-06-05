@@ -9,7 +9,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - The format for domain XML files now supports the "assume_issue" plan item, for assumming an issue for the system to resolve.
 - A new plan item `<log message="message"/>` has been added to the domain langugage for allowing user defined log messages on `DEBUG` level, where `message` is a string.
 - A new plan item `<assume_system_belief>` has been added to the domain langugage. It takes as a child element a proposition. When executed, the proposition is added to the system's private beliefs and is available as a parameter for service queries and actions as well as for answers to user queries. It is also available for conditions of if/then/else elements.
-- The definition of downdate conditions for perform and handle plans has been updated. A new child element to goal `<downdate_condition>` has beed introduced, which replaces the old `<postcond>` element. The new element can take as a child either an `<is_shared_fact>` or a `<has_value>` element.
 
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
@@ -32,9 +31,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Running `tala generate` on a language that is not supported by the DDD now renders a helpful error message.
 - `tala create-ddd` now prevents illegal DDD names, avoiding errors downstream. ASCII alphanumerics and underscores are allowed.
 - Running `tala verify` on a DDD with newlines and spaces in `condition` and `forget` elements no longer generate error messages.
-
-### Deprecated
-- The `<postcond>` element has been deprecated, and `<downdate_condition>` should be used instead.
 
 ## [5.0.0] - 2019-11-28
 ### Added

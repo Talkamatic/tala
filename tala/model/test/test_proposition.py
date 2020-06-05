@@ -13,44 +13,6 @@ from tala.model.proposition import PreconfirmationProposition, ResolvednessPropo
 from tala.model.sort import StringSort, ImageSort
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.image import Image
-from tala.model.set import Set
-
-
-class TestPropositionAsCondition(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_proposition_truth_value_given_empty_facts(self):
-        self.given_a_proposition(Proposition("some_type"))
-        self.given_a_set_of_facts([])
-        self.when_proposition_evaluated_with_facts()
-        self.then_result_is(False)
-
-    def given_a_proposition(self, proposition):
-        self.proposition = proposition
-
-    def given_a_set_of_facts(self, facts):
-        self.facts = Set()
-        for fact in facts:
-            self.facts.add(fact)
-
-    def when_proposition_evaluated_with_facts(self):
-        self.result = self.proposition.is_true_given(self.facts)
-
-    def then_result_is(self, truth_value):
-        self.assertEqual(truth_value, self.result)
-
-    def test_proposition_truth_value_false_given_non_empty_facts(self):
-        self.given_a_proposition(Proposition("some_type"))
-        self.given_a_set_of_facts([Proposition("other_type")])
-        self.when_proposition_evaluated_with_facts()
-        self.then_result_is(False)
-
-    def test_proposition_truth_value_true_given_non_empty_facts_with_same_proposition(self):
-        self.given_a_proposition(Proposition("some_type"))
-        self.given_a_set_of_facts([Proposition("other_type"), Proposition("some_type")])
-        self.when_proposition_evaluated_with_facts()
-        self.then_result_is(True)
 
 
 class PropositionTests(LibTestCase, unittest.TestCase):

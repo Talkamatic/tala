@@ -366,28 +366,28 @@ class DomainTests(LibTestCase):
         actual_goals = {goal for goal in self.domain.get_plan_goal_iterator()}
         self.assertEqual(expected_goals, actual_goals)
 
-    def test_get_downdate_conditions_for_goal_with_downdate_condition(self):
-        action_with_downdate_conditions = self.buy_action
-        self.assertEqual([self.condition], list(self.domain.get_downdate_conditions(PerformGoal(action_with_downdate_conditions))))
+    def test_get_postconds_for_goal_with_postcond(self):
+        action_with_postconds = self.buy_action
+        self.assertEqual([self.condition], list(self.domain.get_postconds(PerformGoal(action_with_postconds))))
 
-    def test_get_downdate_conditions_for_goal_without_downdate_conditions(self):
-        action_without_downdate_condition = self.always_preferred_action
-        self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(action_without_downdate_condition))))
+    def test_get_postconds_for_goal_without_postconds(self):
+        action_without_postcond = self.always_preferred_action
+        self.assertEqual([], list(self.domain.get_postconds(PerformGoal(action_without_postcond))))
 
-    def test_get_downdate_conditions_returns_implicit_downdate_conditions_for_service_action_invocations_if_downdate_plan_is_true(self):
+    def test_get_postconds_returns_implicit_postconds_for_service_action_invocations_if_downdate_plan_is_true(self):
         self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "mock_service_action")],
-                         list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_true_action))))
+                         list(self.domain.get_postconds(PerformGoal(self.downdate_plan_true_action))))
 
-    def test_get_downdate_conditions_doesnt_return_implicit_downdate_conditions_for_service_action_invocations_if_not_downdating_plan(self):
-        self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_false_action))))
+    def test_get_postconds_doesnt_return_implicit_postconds_for_service_action_invocations_if_not_downdating_plan(self):
+        self.assertEqual([], list(self.domain.get_postconds(PerformGoal(self.downdate_plan_false_action))))
 
-    def test_get_downdate_conditions_considers_downdate_plan_property_for_handle_goals(self):
+    def test_get_postconds_considers_downdate_plan_property_for_handle_goals(self):
         self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "event")],
-                         list(self.domain.get_downdate_conditions(HandleGoal("mockup_ontology", "event"))))
+                         list(self.domain.get_postconds(HandleGoal("mockup_ontology", "event"))))
 
-    def test_get_downdate_conditions_for_resolve_goal(self):
+    def test_get_postconds_for_resolve_goal(self):
         resolve_goal = ResolveGoal(self.price_question, Speaker.SYS)
-        self.assertEqual([], list(self.domain.get_downdate_conditions(resolve_goal)))
+        self.assertEqual([], list(self.domain.get_postconds(resolve_goal)))
 
     def test_get_postplan_for_goal_with_postplan(self):
         action_with_postplan = self.always_preferred_action

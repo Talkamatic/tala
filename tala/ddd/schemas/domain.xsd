@@ -25,7 +25,6 @@
           <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="plan" type="plan" minOccurs="0" maxOccurs="1"/>
             <xs:element name="postcond" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="downdate_condition" type="condition" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="postplan" type="plan" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="gui_context" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="proposition" type="proposition" minOccurs="0" maxOccurs="1"/>
@@ -191,25 +190,6 @@
       <xs:element name="proposition" type="predicate_proposition"/>
     </xs:all>
     <xs:attribute name="predicate" type="xs:string"/>
-  </xs:complexType>
-
-  <xs:complexType name="condition">
-    <xs:choice minOccurs="1" maxOccurs="1">
-      <xs:element ref="has_value"/>
-      <xs:element name="is_shared_fact"/>
-    </xs:choice>
-  </xs:complexType>
-
-  <xs:element name="has_value">
-    <xs:complexType>
-      <xs:attribute name="predicate" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:complexType name="is_shared_fact">
-    <xs:choice minOccurs="1" maxOccurs="1">
-      <xs:element name="proposition" type="predicate_proposition"/>
-    </xs:choice>
   </xs:complexType>
 
   <xs:complexType name="proposition">
