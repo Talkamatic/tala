@@ -14,20 +14,16 @@ class Interpretation(EqualityMixin):
         self._moves = moves
         if modality not in Modality.SUPPORTED_MODALITIES:
             raise UnexpectedModalityException(
-                "Expected one of the supported modalities {} but got '{}'".format(
-                    Modality.SUPPORTED_MODALITIES, modality
-                )
+                f"Expected one of the supported modalities {Modality.SUPPORTED_MODALITIES} but got '{modality}'"
             )
         if utterance:
             if modality not in Modality.ALLOWS_UTTERANCE:
                 raise UnexpectedModalityException(
-                    "Expected no utterance for modality '{}' but got '{}'".format(modality, utterance)
+                    f"Expected no utterance for modality '{modality}' but got '{utterance}'"
                 )
         if not utterance:
             if modality in Modality.REQUIRES_UTTERANCE:
-                raise UnexpectedModalityException(
-                    "Expected an utterance for modality '{}' but it was missing".format(modality)
-                )
+                raise UnexpectedModalityException(f"Expected an utterance for modality '{modality}' but it was missing")
         self._modality = modality
         self._utterance = utterance
 
@@ -46,8 +42,26 @@ class Interpretation(EqualityMixin):
         # type: () -> str
         return self._utterance
 
-    def __str__(self):
-        return "{}({}, {}, {})".format(self.__class__.__name__, unicodify(self._moves), self._modality, self._utterance)
+    def as_dict(self):
+        return {
+            "modality": self.modality,
+            "moves": [move.as_dict() for move in self.moves],
+            "utterance": self.utterance,
+        }
 
     def __repr__(self):
-        return str(self)
+        return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance})"
+
+
+class InterpretationWithoutUtterance(Interpretation):
+    def __init__(self, moves, modality):
+        # type: ([UserMove], str) -> None
+        super(InterpretationWithoutUtterance, self).__init__(moves, modality)
+        self._moves = moves
+        self._modality = modality
+
+    def as_dict(self):
+        return {"modality": self.modality, "moves": [move.as_dict() for move in self.moves]}
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality})"

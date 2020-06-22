@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
+- `tala test` has been added as a console command. It currently supports running interaction tests towards DDDs deployed with the TDM pipeline.
 - Persian has been added as a new language. It is currently supported when `use_rgl` is set to `false` in the DDD config.
 - The format for domain XML files now supports the "assume_issue" plan item, for assumming an issue for the system to resolve.
 - A new plan item `<log message="message"/>` has been added to the domain langugage for allowing user defined log messages on `DEBUG` level, where `message` is a string.

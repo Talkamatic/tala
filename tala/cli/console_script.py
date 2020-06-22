@@ -5,6 +5,8 @@ import contextlib
 import os
 import sys
 import warnings
+import unittest
+import logging
 
 from pathlib import Path
 from requests.exceptions import MissingSchema
@@ -23,6 +25,10 @@ from tala.nl.alexa.generator import AlexaGenerator
 from tala.ddd.maker import utils as ddd_maker_utils
 from tala.ddd.maker.ddd_maker import DddMaker
 from tala.utils.chdir import chdir
+from tala.testing.interactions.file import InteractionTestingFile
+from tala.testing.interactions.testloader import InteractionTestingLoader
+from tala.testing.interactions.result import InteractionTestResult
+from tala.log.logger import configure_stdout_logging
 
 RASA = "rasa"
 ALEXA = "alexa"
@@ -167,6 +173,40 @@ def interact(args):
         print("Expected a URL or one of the known environments {} but got '{}'".format(environments, url))
 
 
+def test_interactions(args):
+    def _test_suites(selected_tests, test_paths, url):
+        test_files = [InteractionTestingFile.from_path(test_path) for test_path in test_paths]
+        return _test_suites_from_files(selected_tests, test_files, url)
+
+    def _test_suites_from_files(selected_tests, test_files, url):
+        suites = []
+        for file in test_files:
+            test_loader = InteractionTestingLoader(url)
+            suite = test_loader.load_interaction_tests(file, selected_tests)
+            print(("Running interactiontests from %s" % file.filename))
+            suites.append(suite)
+        return suites
+
+    def _run_tests_from_suites(suites):
+        results = []
+        runner = unittest.TextTestRunner(resultclass=InteractionTestResult)
+        successful = False
+        for suite in suites:
+            result = runner.run(suite)
+            results.append(result)
+            successful = all([result.wasSuccessful() for result in results])
+        return successful
+
+    configure_stdout_logging(args.log_level)
+    config = DeploymentsConfig(args.deployments_config)
+    url = config.get_url(args.environment_or_url)
+    suites = _test_suites(args.selected_tests, args.tests_filenames, url)
+    unittest.installHandler()
+    successful = _run_tests_from_suites(suites)
+    if not successful:
+        sys.exit(-1)
+
+
 def add_verify_subparser(subparsers):
     parser = subparsers.add_parser(
         "verify", help="verify the format of all DDDs supported by the backend, across all supported languages"
@@ -246,8 +286,7 @@ def add_version_subparser(subparsers):
     parser.set_defaults(func=version)
 
 
-def add_interact_subparser(subparsers):
-    parser = subparsers.add_parser("interact", help="start an interactive chat with a deployed DDD")
+def add_deployment_config_arguments(parser):
     parser.add_argument(
         "environment_or_url",
         help="this is either an environment, e.g. 'dev', pointing to a url in the deployments config; "
@@ -260,7 +299,23 @@ def add_interact_subparser(subparsers):
         default=None,
         help="override the default deployments config %r" % DeploymentsConfig.default_name()
     )
+
+
+def add_interact_subparser(subparsers):
+    parser = subparsers.add_parser("interact", help="start an interactive chat with a deployed DDD")
+    add_deployment_config_arguments(parser)
     parser.set_defaults(func=interact)
+
+
+def add_test_subparser(subparsers):
+    parser = subparsers.add_parser("test", help="run interaction tests")
+    add_deployment_config_arguments(parser)
+    parser.add_argument(dest="tests_filenames", nargs="+", metavar="TEST-FILE", help="specify DDD test files")
+    parser.add_argument("-t", dest="selected_tests", nargs="+", default=[], metavar="TEST", help="select test by name")
+    parser.add_argument(
+        "-l", "--log-level", nargs="?", default=logging.WARNING, metavar="LOG-LEVEL", help="select logging level"
+    )
+    parser.set_defaults(func=test_interactions)
 
 
 def format_warnings():
@@ -288,6 +343,7 @@ def main(args=None):
     add_create_deployments_config_subparser(subparsers)
     add_version_subparser(subparsers)
     add_interact_subparser(subparsers)
+    add_test_subparser(subparsers)
 
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():

@@ -30,6 +30,13 @@ class UserMove(EqualityMixin):
         # type: () -> float
         return self._understanding_confidence
 
+    def as_dict(self):
+        return {
+            "perception_confidence": self.perception_confidence,
+            "understanding_confidence": self.understanding_confidence,
+            "semantic_expression": self.semantic_expression,
+        }
+
     def __str__(self):
         return "{}({}, perception_confidence={}, understanding_confidence={})" \
             .format(self.__class__.__name__, self._semantic_expression, self._perception_confidence,
@@ -54,6 +61,14 @@ class DDDSpecificUserMove(UserMove):
     def ddd(self):
         # type: () -> Text
         return self._ddd
+
+    def as_dict(self):
+        return {
+            "ddd": self.ddd,
+            "perception_confidence": self.perception_confidence,
+            "understanding_confidence": self.understanding_confidence,
+            "semantic_expression": self.semantic_expression,
+        }
 
     def __str__(self):
         return "{}({}, perception_confidence={}, understanding_confidence={})"\

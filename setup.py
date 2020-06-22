@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.7
 
 from setuptools import find_packages, setup
 
@@ -57,6 +57,7 @@ if __name__ == "__main__":
             "prompt-toolkit==2.0.8",
             "requests==2.21.0",
             "typing==3.7.4.1",
+            "structlog==18.2.0",
         ],  # yapf: disable
         dependency_links=[],
     )

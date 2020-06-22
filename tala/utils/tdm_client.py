@@ -1,14 +1,15 @@
 import json
-from typing import Text  # noqa: F401
+from typing import Sequence, Mapping  # noqa: F401
 
 import requests
 
 from tala.model.input_hypothesis import InputHypothesis  # noqa: F401
 from tala.model.interpretation import Interpretation  # noqa: F401
+from tala.model.event_notification import EventNotification  # noqa: F401
 from tala.utils.observable import Observable
 from copy import copy
 
-PROTOCOL_VERSION = "3.1"
+PROTOCOL_VERSION = "3.3"
 
 
 class InvalidResponseError(Exception):
@@ -20,36 +21,94 @@ class TDMRuntimeException(Exception):
 
 
 class TDMClient(Observable):
-    def __init__(self, url):
-        # type: (Text) -> None
+    def __init__(self, url: str) -> None:
         super(TDMClient, self).__init__()
         self._url = url
 
-    def request_text_input(self, session, utterance, session_data=None):
-        # type: (str, str, dict) -> dict
+    def request_text_input(self, session: str, utterance: str, session_data: Mapping = None) -> Mapping:
+        def _create_text_input_request(session, utterance):
+            return {
+                "version": PROTOCOL_VERSION,
+                "session": session,
+                "request": {
+                    "natural_language_input": {
+                        "modality": "text",
+                        "utterance": utterance,
+                    }
+                }
+            }
+
         session_object = self._create_session_object(session_data, session)
-        request = self._create_text_input_request(session_object, utterance)
+        request = _create_text_input_request(session_object, utterance)
         response = self._make_request(request)
         return response
 
-    def request_speech_input(self, session, hypotheses, session_data=None):
-        # type: (str, [InputHypothesis], dict) -> dict
+    def request_speech_input(
+        self, session: str, hypotheses: Sequence[InputHypothesis], session_data: Mapping = None
+    ) -> Mapping:
+        def _create_speech_input_request(session, hypotheses):
+            return {
+                "version": PROTOCOL_VERSION,
+                "session": session,
+                "request": {
+                    "natural_language_input": {
+                        "modality": "speech",
+                        "hypotheses": [{
+                            "utterance": hypothesis.utterance,
+                            "confidence": hypothesis.confidence,
+                        } for hypothesis in hypotheses],
+                    }
+                }
+            }  # yapf: disable
+
         session_object = self._create_session_object(session_data, session)
-        request = self._create_speech_input_request(session_object, hypotheses)
+        request = _create_speech_input_request(session_object, hypotheses)
         response = self._make_request(request)
         return response
 
-    def request_semantic_input(self, session, interpretations, session_data=None):
-        # type: (str, [Interpretation], dict) -> dict
+    def request_semantic_input(
+        self, session: str, interpretations: Sequence[Interpretation], session_data: Mapping = None
+    ) -> Mapping:
+        def _create_semantic_input_request(session, interpretations):
+            return {
+                "version": PROTOCOL_VERSION,
+                "session": session,
+                "request": {
+                    "semantic_input": {
+                        "interpretations": [interpretation.as_dict() for interpretation in interpretations],
+                    }
+                }
+            }  # yapf: disable
+
         session_object = self._create_session_object(session_data, session)
-        request = self._create_semantic_input_request(session_object, interpretations)
+        request = _create_semantic_input_request(session_object, interpretations)
         response = self._make_request(request)
         return response
 
-    def request_passivity(self, session, session_data=None):
-        # type: (str, dict) -> dict
+    def request_passivity(self, session: str, session_data: Mapping = None) -> Mapping:
         session_object = self._create_session_object(session_data, session)
         request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"passivity": {}}}
+        response = self._make_request(request)
+        return response
+
+    def request_event_notification(
+        self, session: str, notification: Sequence[EventNotification], session_data: Mapping = None
+    ) -> Mapping:
+        def _create_event_notification_request(session, notification):
+            return {
+                "version": PROTOCOL_VERSION,
+                "session": session,
+                "request": {
+                    "event": {
+                        "name": notification.action,
+                        "status": notification.status,
+                        "parameters": notification.parameters
+                    }
+                }
+            }  # yapf: disable
+
+        session_object = self._create_session_object(session_data, session)
+        request = _create_event_notification_request(session_object, notification)
         response = self._make_request(request)
         return response
 
@@ -59,55 +118,7 @@ class TDMClient(Observable):
             session["session_id"] = session_id
         return session
 
-    def _create_text_input_request(self, session, utterance):
-        return {
-            "version": PROTOCOL_VERSION,
-            "session": session,
-            "request": {
-                "natural_language_input": {
-                    "modality": "text",
-                    "utterance": utterance,
-                }
-            }
-        }
-
-    def _create_speech_input_request(self, session, hypotheses):
-        return {
-            "version": PROTOCOL_VERSION,
-            "session": session,
-            "request": {
-                "natural_language_input": {
-                    "modality": "speech",
-                    "hypotheses": [{
-                        "utterance": hypothesis.utterance,
-                        "confidence": hypothesis.confidence,
-                    } for hypothesis in hypotheses],
-                }
-            }
-        }  # yapf: disable
-
-    def _create_semantic_input_request(self, session, interpretations):
-        return {
-            "version": PROTOCOL_VERSION,
-            "session": session,
-            "request": {
-                "semantic_input": {
-                    "interpretations": [{
-                        "modality": interpretation.modality,
-                        "moves": [{
-                            "ddd": move.ddd,
-                            "perception_confidence": move.perception_confidence,
-                            "understanding_confidence": move.understanding_confidence,
-                            "semantic_expression": move.semantic_expression,
-                        } for move in interpretation.moves],
-                        "utterance": interpretation.utterance,
-                    } for interpretation in interpretations],
-                }
-            }
-        }  # yapf: disable
-
-    def start_session(self, session_data=None):
-        # type: (dict) -> dict
+    def start_session(self, session_data: Mapping = None) -> Mapping:
         session_object = session_data or {}
         request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"start_session": {}}}
         response = self._make_request(request)
