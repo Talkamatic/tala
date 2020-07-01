@@ -105,6 +105,9 @@ class SystemUtteranceTurn(SystemOutputTurn):
     def utterance(self):
         return self._utterance
 
+    def __str__(self):
+        return "S>"
+
 
 class GuiOutputTurn(SystemOutputTurn):
     def __init__(self, pattern, line_number):
@@ -118,6 +121,9 @@ class GuiOutputTurn(SystemOutputTurn):
     @property
     def pattern(self):
         return self._pattern
+
+    def __str__(self):
+        return "G>"
 
 
 class EventTurn(Turn):

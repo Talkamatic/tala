@@ -54,8 +54,7 @@ class InteractionTestingTestCase(unittest.TestCase):
 
     def perform(self):
         self._logger.debug(f"Running interaction test '{self._test.name}' from file '{self._test.filename}'")
-        if len(self._test.turns) > 0:
-            self._process_first_turn(self._test.turns[0])
+        self._start_session()
         for turn in self._test.turns:
             try:
                 self._perform(turn)
@@ -76,11 +75,8 @@ class InteractionTestingTestCase(unittest.TestCase):
         else:
             raise UnsupportedTurn("Expected one of the supported turns but got '%s'." % turn)
 
-    def _process_first_turn(self, turn):
-        if turn.is_system_output_turn:
-            self._last_system_output_response = self._tdm_client.start_session()
-        elif turn.is_user_input_turn:
-            self._last_system_output_response = self._tdm_client.start_session()
+    def _start_session(self):
+        self._last_system_output_response = self._tdm_client.start_session()
 
     def _handle_system_output_turn(self, turn):
         if turn.is_system_utterance_turn:

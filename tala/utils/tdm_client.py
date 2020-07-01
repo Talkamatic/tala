@@ -92,7 +92,7 @@ class TDMClient(Observable):
         return response
 
     def request_event_notification(
-        self, session: str, notification: Sequence[EventNotification], session_data: Mapping = None
+        self, session: str, notification: EventNotification, session_data: Mapping = None
     ) -> Mapping:
         def _create_event_notification_request(session, notification):
             return {
