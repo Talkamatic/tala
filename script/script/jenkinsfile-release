@@ -39,6 +39,7 @@ pipeline {
                 docker {
                     image 'python:3.7'
                     alwaysPull true
+                    reuseNode true
                 }
             }
             steps {
