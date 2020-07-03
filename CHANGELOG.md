@@ -3,14 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [6.0.0] - 2020-07-03
 ### Added
-- `tala test` has been added as a console command. It currently supports running interaction tests towards DDDs deployed with the TDM pipeline.
+- `tala test` has been added as a console command. It lets users run interaction tests towards DDDs deployed with the TDM pipeline.
 - Persian has been added as a new language. It is currently supported when `use_rgl` is set to `false` in the DDD config.
-- The format for domain XML files now supports the "assume_issue" plan item, for assumming an issue for the system to resolve.
+- The format for domain XML files now supports the "assume_issue" plan item, for assuming an issue for the system to resolve.
 - A new plan item `<log message="message"/>` has been added to the domain langugage for allowing user defined log messages on `DEBUG` level, where `message` is a string.
-- A new plan item `<assume_system_belief>` has been added to the domain langugage. It takes as a child element a proposition. When executed, the proposition is added to the system's private beliefs and is available as a parameter for service queries and actions as well as for answers to user queries. It is also available for conditions of if/then/else elements.
-- The definition of downdate conditions for perform and handle plans has been updated. A new child element to goal `<downdate_condition>` has beed introduced, which replaces the old `<postcond>` element. The new element can take as a child either an `<is_shared_fact>` or a `<has_value>` element.
+- A new plan item `<assume_system_belief>` has been added to the domain langugage. It takes as a child element a proposition. When executed, the proposition is added to the system's private beliefs and is available as a parameter for service queries and actions as well as for answers to user queries. It is also available for conditions inside `<if>` elements.
+- The definition of downdate conditions for perform and handle plans has been updated. `<goal>` elements now has a new child `<downdate_condition>`, which replaces the previous `<postcond>` element. The new element can take as a child either an `<is_shared_fact>` or a `<has_value>` element.
 
 ### Changed
 - Python 3 is now supported. Python 2 support is dropped along with its end-of-life on Jan 1 2020.
