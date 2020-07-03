@@ -70,6 +70,8 @@ pipeline {
                 sh "docker pull talkamatic/tala:${env.COMMIT_TO_RELEASE}"
                 sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:${GIT_TAG_TO_BUILD}"
                 sh "docker push talkamatic/tala:${GIT_TAG_TO_BUILD}"
+                sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:latest"
+                sh "docker push talkamatic/tala:latest"
             }
         }
     }
