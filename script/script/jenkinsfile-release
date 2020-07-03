@@ -34,10 +34,10 @@ pipeline {
             }
         }
 
-        stage('build python3.8 wheel') {
+        stage('build python3.7 wheel') {
             agent {
                 docker {
-                    image 'python:3.8'
+                    image 'python:3.7'
                     alwaysPull true
                 }
             }
