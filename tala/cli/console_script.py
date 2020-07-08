@@ -183,7 +183,7 @@ def test_interactions(args):
         for file in test_files:
             test_loader = InteractionTestingLoader(url)
             suite = test_loader.load_interaction_tests(file, selected_tests)
-            print(("Running interactiontests from %s" % file.filename))
+            print(f"Running interaction tests from {file.filename}")
             suites.append(suite)
         return suites
 
