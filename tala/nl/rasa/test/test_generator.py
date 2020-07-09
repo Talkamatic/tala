@@ -117,7 +117,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 """
         )
 
-    def test_propositional_entities_excluded_from_requests(self):
+    def test_requests_with_propositional_entities(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with(
             sort="contact",
@@ -143,7 +143,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
             },
             requests=[
                 Request("call", ["make a call"], []),
-                Request("call", ["take a note that ", ""], [
+                Request("call", ["call ", ""], [
                     RequiredPropositionalEntity("selected_contact_to_call"),
                 ])
             ]
@@ -152,48 +152,15 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.when_generate()
         self.then_result_matches("""## intent:rasa_test:action::call
 - make a call
-
+- call [John]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [Johnny]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [约翰]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [Lisa]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [Elizabeth]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [Mary]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [Andy]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
+- call [安迪]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
 """)
-
-    @patch("{}.warnings".format(generator.__name__), autospec=True)
-    def test_requests_with_propositional_entities_issue_warning(self, mock_warnings):
-        self.given_mocked_warnings(mock_warnings)
-        self.given_ddd_name("rasa_test")
-        self.given_ontology_with(
-            sort="contact",
-            predicate="selected_contact_to_call",
-            individuals=[
-                "contact_john",
-                "contact_john_chi",
-                "contact_lisa",
-                "contact_mary",
-                "contact_andy",
-                "contact_andy_chi",
-            ]
-        )
-        self.given_actions_in_ontology({"call"})
-        self.given_mocked_grammar_with(
-            individuals={
-                "contact_john": ["John", "Johnny"],
-                "contact_john_chi": ["约翰"],
-                "contact_lisa": ["Lisa", "Elizabeth"],
-                "contact_mary": ["Mary"],
-                "contact_andy": ["Andy"],
-                "contact_andy_chi": ["安迪"],
-            },
-            requests=[
-                Request("call", ["make a call"], []),
-                Request("call", ["take a note that ", ""], [
-                    RequiredPropositionalEntity("selected_contact_to_call"),
-                ])
-            ]
-        )
-        self.given_generator()
-        self.when_generate()
-        self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate "
-            "'selected_contact_to_call'. Skipping this training data example."
-        )
 
     def test_generate_requests_with_two_answers(self):
         self.given_ddd_name("rasa_test")
@@ -354,7 +321,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
                 ]
             )
 
-    def test_propositional_entities_excluded_from_questions(self):
+    def test_questions_with_propositional_entities(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with(
             sort="contact",
@@ -384,43 +351,16 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         self.when_generate()
         self.then_result_matches("""## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
+- tell me [John]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [Johnny]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [约翰]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [Lisa]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [Elizabeth]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [Mary]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [Andy]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
+- tell me [安迪]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
 
 """)
-
-    @patch("{}.warnings".format(generator.__name__), autospec=True)
-    def test_questions_with_propositional_entities_issue_warning(self, mock_warnings):
-        self.given_mocked_warnings(mock_warnings)
-        self.given_ddd_name("rasa_test")
-        self.given_ontology_with(
-            sort="contact",
-            predicate="selected_contact_to_call",
-            individuals=[
-                "contact_john",
-                "contact_john_chi",
-                "contact_lisa",
-                "contact_mary",
-                "contact_andy",
-                "contact_andy_chi",
-            ]
-        )
-        self.given_expected_plan_questions_in_domain({"phone_number_of_contact": "contact"})
-        self.given_mocked_grammar_with(
-            individuals={
-                "contact_john": ["John", "Johnny"],
-                "contact_john_chi": ["约翰"],
-                "contact_lisa": ["Lisa", "Elizabeth"],
-                "contact_mary": ["Mary"],
-                "contact_andy": ["Andy"],
-                "contact_andy_chi": ["安迪"],
-            },
-            questions=self._questions_of_predicate(predicate="selected_contact_to_call")
-        )
-        self.given_generator()
-        self.when_generate()
-        self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate "
-            "'selected_contact_to_call'. Skipping this training data example."
-        )
 
     def test_generate_answer_intents(self):
         self.given_ddd_name("rasa_test")
@@ -552,7 +492,7 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 """
         )
 
-    def test_propositional_entities_excluded_from_answers(self):
+    def test_answers_with_propositional_entities(self):
         self.given_ddd_name("rasa_test")
         self.given_ontology_with(
             sort="contact",
@@ -589,6 +529,14 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 - [Mary](rasa_test.sort.contact)
 - [Andy](rasa_test.sort.contact)
 - [安迪](rasa_test.sort.contact)
+- my friend [John]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [Johnny]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [约翰]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [Lisa]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [Elizabeth]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [Mary]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [Andy]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
+- my friend [安迪]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact"}
 
 """
         )
@@ -602,40 +550,6 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
             yield Answer(["my friend ", ""], [
                 RequiredPropositionalEntity(predicate),
             ])
-
-    @patch("{}.warnings".format(generator.__name__), autospec=True)
-    def test_answers_with_propositional_entities_issues_warning(self, mock_warnings):
-        self.given_mocked_warnings(mock_warnings)
-        self.given_ddd_name("rasa_test")
-        self.given_ontology_with(
-            sort="contact",
-            predicate="selected_contact",
-            individuals=[
-                "contact_john",
-                "contact_john_chi",
-                "contact_lisa",
-                "contact_mary",
-                "contact_andy",
-                "contact_andy_chi",
-            ]
-        )
-        self.given_mocked_grammar_with(
-            individuals={
-                "contact_john": ["John", "Johnny"],
-                "contact_john_chi": ["约翰"],
-                "contact_lisa": ["Lisa", "Elizabeth"],
-                "contact_mary": ["Mary"],
-                "contact_andy": ["Andy"],
-                "contact_andy_chi": ["安迪"],
-            },
-            answers=list(self._answers(predicate="selected_contact"))
-        )
-        self.given_generator()
-        self.when_generate()
-        self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate 'selected_contact'."
-            " Skipping this training data example."
-        )
 
     def test_synonyms(self):
         self.given_ddd_name("rasa_test")
@@ -763,8 +677,9 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
-            " Skipping this training data example."
+            "Expected only sortal slots for built-in sort 'mock_sort' but got a propositional slot for predicate "
+            "'mock_predicate'. "
+            "Skipping this training data example."
         )
 
     def test_generate_questions(self):
@@ -827,8 +742,9 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
-            " Skipping this training data example."
+            "Expected only sortal slots for built-in sort 'mock_sort' but got a propositional slot for predicate "
+            "'mock_predicate'. "
+            "Skipping this training data example."
         )
 
     def test_generate_answer_intents(self):
@@ -882,8 +798,9 @@ class TestGeneratorWithBuiltinSorts(RasaGeneratorTestMixin):
         self.given_generator()
         self.when_generate()
         self.then_warning_is_issued(
-            "Expected only sortal slots but got a propositional slot for predicate 'mock_predicate'."
-            " Skipping this training data example."
+            "Expected only sortal slots for built-in sort 'mock_sort' but got a propositional slot for predicate "
+            "'mock_predicate'. "
+            "Skipping this training data example."
         )
 
 
@@ -920,17 +837,17 @@ class TestGeneratorWithStringSorts(RasaGeneratorTestMixin):
 - mock phrase with sortal entity [noone counts toes like an eight toed guy](rasa_test.sort.string)
 - mock phrase with sortal entity [it matters to make sense for nine of us](rasa_test.sort.string)
 - mock phrase with sortal entity [would you bring ten or none to a desert island](rasa_test.sort.string)
-- mock phrase with propositional entity [single](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [double word](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [three in one](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [hey make it four](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [the more the merrier five](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [calm down and count to six](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [bring them through to the jolly seven](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [noone counts toes like an eight toed guy](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [it matters to make sense for nine of us](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [would you bring ten or none to a desert island](rasa_test.predicate.mock_predicate)
-- mock phrase with propositional entity [mock string of predicate](rasa_test.predicate.mock_predicate)
+- mock phrase with propositional entity [single]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [double word]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [three in one]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [hey make it four]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [the more the merrier five]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [calm down and count to six]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [bring them through to the jolly seven]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [noone counts toes like an eight toed guy]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [it matters to make sense for nine of us]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [would you bring ten or none to a desert island]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
+- mock phrase with propositional entity [mock string of predicate]{"entity": "rasa_test.sort.string", "role": "rasa_test.predicate.mock_predicate"}
 """
         )
 

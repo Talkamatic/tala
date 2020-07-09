@@ -575,7 +575,7 @@ data: \|
 
 pipeline: "spacy_sklearn"
 
-data: \|
+data: |
   ## intent:test_ddd:action::buy
   - buy apples
   - buy 0 apples
@@ -587,7 +587,8 @@ data: \|
   
   ## intent:test_ddd:question::phone_number_of_contact
   - tell me a phone number
-  - what is \[John\]\(test_ddd.sort.contact\)'s number
+  - what is [John](test_ddd.sort.contact)'s number
+  - tell me [John]{"entity":"test_ddd.sort.contact" "role":"test_ddd.predicate.selected_contact"}'s number
   
   ## intent:test_ddd:answer
   - 0
@@ -596,7 +597,7 @@ data: \|
   - a hundred and fifty seven
   - three
   - two thousand fifteen
-  - \[John\]\(test_ddd.sort.contact\)
+  - [John](test_ddd.sort.contact)
   
   ## intent:test_ddd:answer_negation
   - not 0
@@ -605,7 +606,7 @@ data: \|
   - not a hundred and fifty seven
   - not three
   - not two thousand fifteen
-  - not \[John\]\(test_ddd.sort.contact\)
+  - not [John](test_ddd.sort.contact)
   
   ## intent:NEGATIVE
   - aboard

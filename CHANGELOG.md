@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- `tala generate rasa` now generates semantic roles for propositional entites of custom sorts.
+
 ## [6.0.0] - 2020-07-03
 ### Added
 - `tala test` has been added as a console command. It lets users run interaction tests towards DDDs deployed with the TDM pipeline.
