@@ -3,7 +3,7 @@ import json
 
 from tala.testing.interactions.named_test import InteractionTest
 from tala.testing.interactions.turn import UserPassivityTurn, UserMovesTurn, SystemUtteranceTurn, \
-    RecognitionHypothesesTurn, NotifyStartedTurn, GuiOutputTurn
+    RecognitionHypothesesTurn, NotifyStartedTurn, GuiOutputTurn, SystemMovesTurn
 from tala.model.event_notification import EventNotification
 
 
@@ -105,7 +105,7 @@ class InteractionTestCompiler(object):
         if type_string == "U>":
             return self._parse_user_input_turn(turn_content_as_string)
         elif type_string == "S>":
-            return self._parse_system_utterance_turn(turn_content_as_string)
+            return self._parse_system_output_turn(turn_content_as_string)
         elif type_string == "G>":
             return self._parse_gui_output_turn(turn_content_as_string)
         elif type_string == "Event>":
@@ -117,18 +117,19 @@ class InteractionTestCompiler(object):
             )
 
     def _parse_user_input_turn(self, turn_content_as_string):
-        if turn_content_as_string:
-            if self._is_moves_content_string(turn_content_as_string):
-                moves = self._parse_moves_content_string(turn_content_as_string)
-                return UserMovesTurn(moves, self._line_number)
-            else:
-                hypothesis_list = self._get_hypothesis_list(turn_content_as_string)
-                return RecognitionHypothesesTurn(hypothesis_list, self._line_number)
-        else:
+        if not turn_content_as_string:
             return UserPassivityTurn(self._line_number)
+        if self._is_moves_content_string(turn_content_as_string):
+            moves = self._parse_moves_content_string(turn_content_as_string)
+            return UserMovesTurn(moves, self._line_number)
+        hypothesis_list = self._get_hypothesis_list(turn_content_as_string)
+        return RecognitionHypothesesTurn(hypothesis_list, self._line_number)
 
-    def _parse_system_utterance_turn(self, utterance):
-        return SystemUtteranceTurn(utterance, self._line_number)
+    def _parse_system_output_turn(self, turn_content_as_string):
+        if self._is_moves_content_string(turn_content_as_string):
+            moves = self._parse_moves_content_string(turn_content_as_string)
+            return SystemMovesTurn(moves, self._line_number)
+        return SystemUtteranceTurn(turn_content_as_string, self._line_number)
 
     def _parse_gui_output_turn(self, content_as_string):
         return GuiOutputTurn(content_as_string, self._line_number)
@@ -143,8 +144,9 @@ class InteractionTestCompiler(object):
     def _parse_moves_content_string(self, string):
         m = self._moves_matcher.search(string)
         if m:
-            (move_set_as_string, ) = m.groups()
-            move_set = eval(move_set_as_string)
+            (string, ) = m.groups()
+            json_string = string.replace("'", "\"")
+            move_set = json.loads(json_string)
             return move_set
         else:
             raise ParseException(
@@ -172,9 +174,7 @@ class InteractionTestCompiler(object):
             return NotifyStartedTurn(json_dict["name"], json_dict["parameters"], self._line_number)
         else:
             raise ParseException(
-                "Expected a supported event turn on line %d in '%s' but got '%s'." (
-                    self._line_number, self._filename, string
-                )
+                f"Expected a supported event turn on line {self._line_number} in '{self._filename}' but got '{string}'."
             )
 
     @classmethod

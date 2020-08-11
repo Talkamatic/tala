@@ -81,6 +81,8 @@ class InteractionTestingTestCase(unittest.TestCase):
     def _handle_system_output_turn(self, turn):
         if turn.is_system_utterance_turn:
             self._expect_system_utterance(turn)
+        elif turn.is_system_moves_turn:
+            self._expect_system_moves(turn)
         else:
             raise UnsupportedTurn("Expected one of the supported system output turns but got '%s'." % turn)
 
@@ -118,17 +120,23 @@ class InteractionTestingTestCase(unittest.TestCase):
         if self._detected_unexpected_passivity:
             self._raise_assertion_error_for_unexpected_passivity(system_utterance_turn)
         self._has_system_output_turn_been_processed = True
-        actual_utterance = self._get_system_utterance(
-            system_utterance_turn.utterance, system_utterance_turn.line_number
-        )
+        actual_utterance = self._get_system_utterance()
         self._assert_system_utterance_matches(
             system_utterance_turn.utterance, actual_utterance, system_utterance_turn.line_number
         )
 
-    def _raise_assertion_error_for_unexpected_passivity(self, system_utterance_turn):
+    def _expect_system_moves(self, system_moves_turn):
+        self._logger.debug("%s._expect_system_moves(%s)" % (self.__class__.__name__, str(system_moves_turn)))
+        if self._detected_unexpected_passivity:
+            self._raise_assertion_error_for_unexpected_passivity(system_moves_turn)
+        self._has_system_output_turn_been_processed = True
+        actual_moves = self._get_system_moves()
+        self._assert_system_moves_equals(system_moves_turn.moves, actual_moves, system_moves_turn.line_number)
+
+    def _raise_assertion_error_for_unexpected_passivity(self, system_turn):
         raise AssertionError(
-            "\n\nOn line %d of %s,\n" % (system_utterance_turn.line_number, self._test.filename) +
-            "expected:\n  S> %s\n\n" % system_utterance_turn.utterance +
+            "\n\nOn line %d of %s,\n" % (system_turn.line_number, self._test.filename) +
+            "expected:\n  S> %s\n\n" % system_turn.output +
             "in response to\n  U>\non line %d\n\n" % self._line_number_of_unexpected_passivity +
             "but the system didn't expect user passivity."
         )
@@ -137,28 +145,24 @@ class InteractionTestingTestCase(unittest.TestCase):
         self._logger.debug("Assertion error: %s" % error_string)
         raise AssertionError(error_string)
 
-    def _get_system_utterance(self, expected_utterance, line_number):
-        def get_response():
-            try:
-                return self._last_system_output_response
-            except TDMRuntimeException as exception:
-                self._raise_and_log_assertion_error(
-                    f"On line {line_number} of {self._test.filename},\n\nexpected:\n  S> {expected_utterance}\n\nbut encountered an error:\n  '{exception}'"
-                )
-
-        self._logger.debug(
-            "%s._get_system_utterance(%s, %s)" % (self.__class__.__name__, expected_utterance, line_number)
-        )
-        response = get_response()
-
-        actual_utterance = response["output"]["utterance"]
+    def _get_system_utterance(self):
+        actual_utterance = self._last_system_output_response["output"]["utterance"]
         self._logger.debug("Got system utterance %r" % actual_utterance)
-        self._last_system_output_response = response
+        self._last_system_output_response = self._last_system_output_response
         return actual_utterance
+
+    def _get_system_moves(self):
+        actual_moves = self._last_system_output_response["output"]["moves"]
+        self._logger.debug(f"Got system moves {actual_moves!r}")
+        return actual_moves
 
     def _assert_system_utterance_matches(self, pattern, utterance, line_number):
         if not fnmatch.fnmatch(utterance, pattern):
             self._fail_with_mismatch(line_number, pattern, utterance)
+
+    def _assert_system_moves_equals(self, expected_moves, actual_moves, line_number):
+        if not expected_moves == actual_moves:
+            self._fail_with_mismatch(line_number, expected_moves, actual_moves)
 
     def _fail_with_mismatch(self, line_number, expected, actual):
         self._raise_and_log_assertion_error(

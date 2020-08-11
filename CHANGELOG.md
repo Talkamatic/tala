@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - `tala generate rasa` now generates semantic roles for propositional entites of custom sorts.
+- `tala tests` now supports system output on a semantic level. Example: `S> ['icm:acc*pos', 'ask(?X.a_question(X))']`
 
 ## [6.0.0] - 2020-07-03
 ### Added

@@ -11,7 +11,7 @@ from tala.testing.interactions import testcase
 from tala.testing.interactions.named_test import InteractionTest
 from tala.testing.interactions.testcase import InteractionTestingTestCase, UnsupportedTurn
 from tala.testing.interactions.turn import RecognitionHypothesesTurn, UserMovesTurn, \
-    SystemUtteranceTurn, GuiOutputTurn, UserPassivityTurn, NotifyStartedTurn
+    SystemUtteranceTurn, GuiOutputTurn, UserPassivityTurn, NotifyStartedTurn, SystemMovesTurn
 from tala.utils.tdm_client import TDMRuntimeException
 
 
@@ -188,6 +188,35 @@ but got:
     def given_test_with_system_utterance(self, utterance, line_number=1):
         turn = SystemUtteranceTurn(utterance, line_number)
         self.test = self._create_mock_test([turn])
+
+    @patch(f"{testcase.__name__}.TDMClient", autospec=True)
+    def test_system_moves_that_matches(self, MockTDMClient):
+        self.given_mock_tdm_client(MockTDMClient)
+        self.given_test_with_system_moves(["mock_move"])
+        self.given_tdm_client_response(moves=["mock_move"])
+        self.given_testcase()
+        self.when_performing_test()
+        self.then_test_is_successful()
+
+    def given_test_with_system_moves(self, moves, line_number=1):
+        turn = SystemMovesTurn(moves, line_number)
+        self.test = self._create_mock_test([turn])
+
+    @patch(f"{testcase.__name__}.TDMClient", autospec=True)
+    def test_system_moves_not_matching_output(self, MockTDMClient):
+        self.given_mock_tdm_client(MockTDMClient)
+        self.given_test_with_system_moves(["a_move"])
+        self.given_tdm_client_response(moves=["another_move"])
+        self.given_testcase()
+        self.when_performing_test_then_it_fails_with_message(
+            r"""On line 1 of mock_file_name,
+
+expected:
+  S> \['a_move'\]
+
+but got:
+  S> \['another_move'\]"""
+        )
 
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
     def test_passivity_after_system_utterance(self, MockTDMClient):

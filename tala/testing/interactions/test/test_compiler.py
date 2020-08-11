@@ -73,13 +73,58 @@ U>
 --- mock name
 U> ["request(make_reservation)", "answer(paris)"]
 """)
-        self.then_result_has_user_moves_turn_with_properties(["request(make_reservation)", "answer(paris)"], 2)
+        self.then_result_is_user_moves()
 
-    def then_result_has_user_moves_turn_with_properties(self, expected_moves, expected_line_number):
+    def test_moves_of_user_moves(self):
+        self.when_compile("""\
+--- mock name
+U> ["request(make_reservation)", "answer(paris)"]
+""")
+        self.then_result_has_moves(["request(make_reservation)", "answer(paris)"])
+
+    def test_properties_of_user_moves(self):
+        self.when_compile("""\
+--- mock name
+U> ["request(make_reservation)", "answer(paris)"]
+""")
+        self.then_result_has_properties(expected_line_number=2)
+
+    def then_result_is_user_moves(self):
         actual_turn = self._get_actual_single_turn_from_single_test()
         self.assertTrue(actual_turn.is_user_moves_turn)
+
+    def then_result_has_moves(self, expected_moves):
+        actual_turn = self._get_actual_single_turn_from_single_test()
         self.assertEqual(expected_moves, actual_turn.moves)
+
+    def then_result_has_properties(self, expected_line_number):
+        actual_turn = self._get_actual_single_turn_from_single_test()
         self.assertEqual(expected_line_number, actual_turn.line_number)
+
+    def test_system_moves(self):
+        self.when_compile("""\
+--- mock name
+S> ["request(make_reservation)", 'answer(paris)']
+""")
+        self.then_result_is_system_moves()
+
+    def test_moves_of_system_moves(self):
+        self.when_compile("""\
+--- mock name
+S> ["request(make_reservation)", "answer(paris)"]
+""")
+        self.then_result_has_moves(["request(make_reservation)", "answer(paris)"])
+
+    def test_properties_of_system_moves(self):
+        self.when_compile("""\
+--- mock name
+S> ["request(make_reservation)", "answer(paris)"]
+""")
+        self.then_result_has_properties(expected_line_number=2)
+
+    def then_result_is_system_moves(self):
+        actual_turn = self._get_actual_single_turn_from_single_test()
+        self.assertTrue(actual_turn.is_system_moves_turn)
 
     def test_multiple_turns(self):
         self.when_compile(

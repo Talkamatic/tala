@@ -80,11 +80,19 @@ class UserPassivityTurn(Turn):
 
 class SystemOutputTurn(Turn):
     @property
+    def output(self):
+        raise NotImplementedError()
+
+    @property
     def is_system_output_turn(self):
         return True
 
     @property
     def is_system_utterance_turn(self):
+        return False
+
+    @property
+    def is_system_moves_turn(self):
         return False
 
     @property
@@ -98,6 +106,10 @@ class SystemUtteranceTurn(SystemOutputTurn):
         self._utterance = utterance
 
     @property
+    def output(self):
+        return self.utterance
+
+    @property
     def is_system_utterance_turn(self):
         return True
 
@@ -107,6 +119,24 @@ class SystemUtteranceTurn(SystemOutputTurn):
 
     def __str__(self):
         return "S>"
+
+
+class SystemMovesTurn(SystemOutputTurn):
+    def __init__(self, moves, line_number):
+        super(SystemOutputTurn, self).__init__(line_number)
+        self._moves = moves
+
+    @property
+    def output(self):
+        return self.moves
+
+    @property
+    def is_system_moves_turn(self):
+        return True
+
+    @property
+    def moves(self):
+        return self._moves
 
 
 class GuiOutputTurn(SystemOutputTurn):
