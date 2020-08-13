@@ -1,4 +1,5 @@
 import fnmatch
+import json
 import re
 import unittest
 
@@ -8,7 +9,7 @@ from tala.model.input_hypothesis import InputHypothesis
 from tala.model.event_notification import EventNotification
 from tala.utils.tdm_client import TDMClient, TDMRuntimeException
 from tala.model.user_move import UserMove  # noqa: F401
-from tala.model.interpretation import InterpretationWithoutUtterance  # noqa: F401
+from tala.model.interpretation import InterpretationWithoutUtterance, Interpretation  # noqa: F401
 from tala.model.common import Modality
 
 
@@ -22,6 +23,14 @@ class InvalidConfidenceException(Exception):
 
 class UnsupportedTurn(Exception):
     pass
+
+
+class UnexpectedMoveFormatException(Exception):
+    pass
+
+
+SEMANTIC_EXPRESSION_PATTERN = r"[\w()?.-_]+"
+MOVE_PATTERN = rf"^Move\((?P<semantic_expression>{SEMANTIC_EXPRESSION_PATTERN}).*\)$"
 
 
 class InteractionTestingTestCase(unittest.TestCase):
@@ -90,7 +99,7 @@ class InteractionTestingTestCase(unittest.TestCase):
         self._logger.debug("Simulating user input")
         if turn.is_recognition_hypotheses_turn:
             self._handle_recognition_hypotheses(turn)
-        elif turn.is_user_moves_turn:
+        elif turn.is_user_interpretation_turn:
             self._handle_user_moves(turn)
         else:
             raise UnsupportedTurn("Expected one of the supported user input turns but got '%s'." % turn)
@@ -99,12 +108,41 @@ class InteractionTestingTestCase(unittest.TestCase):
         self._last_system_output_response = self._send_natural_language_input_request(turn.hypotheses)
 
     def _handle_user_moves(self, turn):
-        moves = [self._create_move_from_string(move_as_string) for move_as_string in turn.moves]
-        interpretations = [InterpretationWithoutUtterance(moves, Modality.OTHER)]
+        def interpretation(moves, utterance, modality):
+            if utterance:
+                modality = modality or Modality.SPEECH
+                return Interpretation(moves, modality, utterance=utterance)
+            modality = modality or Modality.OTHER
+            return InterpretationWithoutUtterance(moves, modality)
+
+        moves = [self._create_move(move_as_string) for move_as_string in turn.moves]
+        interpretations = [interpretation(moves, turn.utterance, turn.modality)]
         self._last_system_output_response = self._tdm_client.request_semantic_input(self.session_id, interpretations)
 
-    def _create_move_from_string(self, string):
-        return UserMove(string, perception_confidence=1.0, understanding_confidence=1.0)
+    def _create_move(self, move):
+        def is_semantic_expression(move):
+            if isinstance(move, str):
+                return re.match(f"^{SEMANTIC_EXPRESSION_PATTERN}$", move) is not None
+            return False
+
+        def is_move_object(move):
+            return isinstance(move, dict)
+
+        if is_move_object(move):
+            return self._move_from_dict(move)
+        if is_semantic_expression(move):
+            return UserMove(move, perception_confidence=1.0, understanding_confidence=1.0)
+        raise UnexpectedMoveFormatException(f"Expected either a semantic expression or a JSON object, but got {move}")
+
+    def _move_from_dict(self, move):
+        perception_confidence = move.get("perception_confidence", 1.0)
+        understanding_confidence = move.get("understanding_confidence", 1.0)
+        semantic_expression = move["semantic_expression"]
+        return UserMove(
+            semantic_expression,
+            perception_confidence=perception_confidence,
+            understanding_confidence=understanding_confidence
+        )
 
     def _simulate_user_passivity(self, turn):
         self._logger.debug("Simulating user passivity")
@@ -133,10 +171,15 @@ class InteractionTestingTestCase(unittest.TestCase):
         actual_moves = self._get_system_moves()
         self._assert_system_moves_equals(system_moves_turn.moves, actual_moves, system_moves_turn.line_number)
 
+    def _format_output(self, output):
+        if isinstance(output, list):
+            return json.dumps(output)
+        return output
+
     def _raise_assertion_error_for_unexpected_passivity(self, system_turn):
         raise AssertionError(
             "\n\nOn line %d of %s,\n" % (system_turn.line_number, self._test.filename) +
-            "expected:\n  S> %s\n\n" % system_turn.output +
+            "expected:\n  S> %s\n\n" % self._format_output(system_turn.output) +
             "in response to\n  U>\non line %d\n\n" % self._line_number_of_unexpected_passivity +
             "but the system didn't expect user passivity."
         )
@@ -167,7 +210,7 @@ class InteractionTestingTestCase(unittest.TestCase):
     def _fail_with_mismatch(self, line_number, expected, actual):
         self._raise_and_log_assertion_error(
             "On line %d of %s,\n\nexpected:\n  S> %s\n\nbut got:\n  S> %s" %
-            (line_number, self._test.filename, expected, actual)
+            (line_number, self._test.filename, self._format_output(expected), self._format_output(actual))
         )
 
     def _send_natural_language_input_request(self, hypotheses_tuples):
@@ -209,7 +252,8 @@ class StringComparison(object):
         return self._match
 
     def _string_matches_pattern(self, string, pattern):
-        re_pattern = '^%s$' % re.escape(pattern).replace('\*', '.*')
+        content = re.escape(pattern).replace(r'\*', '.*')
+        re_pattern = f"^{content}$"
         return re.search(re_pattern, string, re.MULTILINE | re.DOTALL)
 
     def mismatch_description(self):

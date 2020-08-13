@@ -5,12 +5,12 @@ from unittest.mock import call, Mock, patch, ANY
 from tala.model.common import Modality
 from tala.model.event_notification import EventNotification
 from tala.model.input_hypothesis import InputHypothesis
-from tala.model.interpretation import Interpretation
+from tala.model.interpretation import Interpretation, InterpretationWithoutUtterance
 from tala.model.user_move import UserMove
 from tala.testing.interactions import testcase
 from tala.testing.interactions.named_test import InteractionTest
 from tala.testing.interactions.testcase import InteractionTestingTestCase, UnsupportedTurn
-from tala.testing.interactions.turn import RecognitionHypothesesTurn, UserMovesTurn, \
+from tala.testing.interactions.turn import RecognitionHypothesesTurn, UserInterpretationTurn, \
     SystemUtteranceTurn, GuiOutputTurn, UserPassivityTurn, NotifyStartedTurn, SystemMovesTurn
 from tala.utils.tdm_client import TDMRuntimeException
 
@@ -212,10 +212,10 @@ but got:
             r"""On line 1 of mock_file_name,
 
 expected:
-  S> \['a_move'\]
+  S> \["a_move"\]
 
 but got:
-  S> \['another_move'\]"""
+  S> \["another_move"\]"""
         )
 
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
@@ -252,7 +252,7 @@ but got:
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
     def test_user_moves(self, MockTDMClient):
         self.given_mock_tdm_client(MockTDMClient)
-        self.given_test_with_user_moves(["semantic_expression_1", "semantic_expression_2"])
+        self.given_test_with_user_interpretation(["semantic_expression_1", "semantic_expression_2"])
         self.given_tdm_client_response(utterance="an utterance")
         self.given_testcase()
         self.when_performing_test()
@@ -262,15 +262,66 @@ but got:
         ])
 
     def then_requests_semantic_input(self, expected_interpretations):
-        self._mock_tdm_client.request_semantic_input(ANY, expected_interpretations)
+        self._mock_tdm_client.request_semantic_input.assert_called_with(ANY, expected_interpretations)
 
-    def given_test_with_user_moves(self, moves, line_number=1):
-        turn = UserMovesTurn(moves, line_number)
+    def given_test_with_user_interpretation(self, moves, line_number=1, utterance=None, modality=None):
+        turn = UserInterpretationTurn(moves, line_number, modality, utterance)
         self.test = self._create_mock_test([turn])
 
     def given_test_with_gui_output(self, pattern, line_number=1):
         turn = GuiOutputTurn(pattern, line_number)
         self.test = self._create_mock_test([turn])
+
+    @patch(f"{testcase.__name__}.TDMClient", autospec=True)
+    def test_json_user_moves(self, MockTDMClient):
+        self.given_mock_tdm_client(MockTDMClient)
+        self.given_test_with_user_interpretation([{
+            "semantic_expression": "semantic_expression_1",
+            "understanding_confidence": 0.12,
+            "perception_confidence": 0.11,
+        }, {
+            "semantic_expression": "semantic_expression_2",
+            "perception_confidence": 0.21,
+            "understanding_confidence": 0.22
+        }])
+        self.given_tdm_client_response(utterance="an utterance")
+        self.given_testcase()
+        self.when_performing_test()
+        self.then_requests_semantic_input([
+            InterpretationWithoutUtterance(
+                moves=[UserMove("semantic_expression_1", 0.11, 0.12),
+                       UserMove("semantic_expression_2", 0.21, 0.22)],
+                modality=Modality.OTHER,
+            )
+        ])
+
+    @patch(f"{testcase.__name__}.TDMClient", autospec=True)
+    def test_json_user_interpretation(self, MockTDMClient):
+        self.given_mock_tdm_client(MockTDMClient)
+        self.given_test_with_user_interpretation(
+            moves=[{
+                "semantic_expression": "semantic_expression_1",
+                "understanding_confidence": 0.12,
+                "perception_confidence": 0.11,
+            }, {
+                "semantic_expression": "semantic_expression_2",
+                "perception_confidence": 0.21,
+                "understanding_confidence": 0.22
+            }],
+            utterance="mock utterance",
+            modality="speech"
+        )
+        self.given_tdm_client_response(utterance="an utterance")
+        self.given_testcase()
+        self.when_performing_test()
+        self.then_requests_semantic_input([
+            Interpretation(
+                moves=[UserMove("semantic_expression_1", 0.11, 0.12),
+                       UserMove("semantic_expression_2", 0.21, 0.22)],
+                modality=Modality.SPEECH,
+                utterance="mock utterance",
+            )
+        ])
 
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
     def test_notify_started(self, MockTDMClient):

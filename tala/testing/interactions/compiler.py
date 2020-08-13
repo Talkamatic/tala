@@ -2,7 +2,7 @@ import re
 import json
 
 from tala.testing.interactions.named_test import InteractionTest
-from tala.testing.interactions.turn import UserPassivityTurn, UserMovesTurn, SystemUtteranceTurn, \
+from tala.testing.interactions.turn import UserPassivityTurn, UserInterpretationTurn, SystemUtteranceTurn, \
     RecognitionHypothesesTurn, NotifyStartedTurn, GuiOutputTurn, SystemMovesTurn
 from tala.model.event_notification import EventNotification
 
@@ -15,9 +15,9 @@ class InteractionTestCompiler(object):
     VALID_TURN_TYPES = ["U>", "S>", "G>", "Event>"]
 
     _turn_matcher = re.compile('^(%s) ?(.*)$' % "|".join(VALID_TURN_TYPES), re.MULTILINE | re.DOTALL)
-    _moves_matcher = re.compile('(\[.*\])$')
-    _utterance_string_and_confidence_matcher = re.compile('(.+) (\$\w+|\d*\.\d+)?$')
-    _hypothesis_split_re = re.compile('\s*\|\s*')
+    _moves_matcher = re.compile(r'([\[{].*[\]}])$')
+    _utterance_string_and_confidence_matcher = re.compile(r'(.+) (\$\w+|\d*\.\d+)?$')
+    _hypothesis_split_re = re.compile(r'\s*\|\s*')
 
     def compile_interaction_tests(self, filename, file_):
         self._filename = filename
@@ -120,14 +120,14 @@ class InteractionTestCompiler(object):
         if not turn_content_as_string:
             return UserPassivityTurn(self._line_number)
         if self._is_moves_content_string(turn_content_as_string):
-            moves = self._parse_moves_content_string(turn_content_as_string)
-            return UserMovesTurn(moves, self._line_number)
+            moves, utterance, modality = self._parse_moves_content_string(turn_content_as_string)
+            return UserInterpretationTurn(moves, self._line_number, utterance=utterance, modality=modality)
         hypothesis_list = self._get_hypothesis_list(turn_content_as_string)
         return RecognitionHypothesesTurn(hypothesis_list, self._line_number)
 
     def _parse_system_output_turn(self, turn_content_as_string):
         if self._is_moves_content_string(turn_content_as_string):
-            moves = self._parse_moves_content_string(turn_content_as_string)
+            moves, utterance, modality = self._parse_moves_content_string(turn_content_as_string)
             return SystemMovesTurn(moves, self._line_number)
         return SystemUtteranceTurn(turn_content_as_string, self._line_number)
 
@@ -142,17 +142,38 @@ class InteractionTestCompiler(object):
         return self._moves_matcher.search(string)
 
     def _parse_moves_content_string(self, string):
+        def create_result(moves, utterance=None, modality=None):
+            return moves, utterance, modality
+
+        def extract(json_value):
+            if isinstance(json_value, list):
+                return create_result(moves=json_value)
+            if isinstance(json_value, dict):
+                interpretation = json_value
+                return create_result(
+                    interpretation["moves"],
+                    interpretation.get("utterance"),
+                    interpretation.get("modality")
+                )  # yapf: disable
+            raise RuntimeError(f"Expected a list or dict but got {json_value!r}")
+
         m = self._moves_matcher.search(string)
-        if m:
-            (string, ) = m.groups()
-            json_string = string.replace("'", "\"")
-            move_set = json.loads(json_string)
-            return move_set
-        else:
+        if not m:
             raise ParseException(
-                "Expected a list of moves on regex format '%s' on line %d in '%s' but got '%s'." %
-                (self._moves_matcher, self._line_number, self._filename, string)
+                "Expected a list of moves or an interpretation object on line %d in '%s' but got '%s'." %
+                (self._line_number, self._filename, string)
             )
+        (string, ) = m.groups()
+        try:
+            json_value = json.loads(string)
+        except json.decoder.JSONDecodeError as exception:
+            raise ParseException(
+                f"Expected valid JSON on line {self._line_number} of '{self._filename}' "
+                f"but encountered a decoding error.\n\n"
+                f"  Line {self._line_number}: {string}\n\n"
+                f"  Error: '{exception}'"
+            )
+        return extract(json_value)
 
     def _parse_hypothesis_as_string(self, unicode_string):
         m = self._utterance_string_and_confidence_matcher.search(unicode_string)

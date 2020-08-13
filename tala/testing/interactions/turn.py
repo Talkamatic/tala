@@ -36,7 +36,7 @@ class UserInputTurn(Turn):
         return False
 
     @property
-    def is_user_moves_turn(self):
+    def is_user_interpretation_turn(self):
         return False
 
     @property
@@ -58,18 +58,28 @@ class RecognitionHypothesesTurn(UserInputTurn):
         return self._hypotheses
 
 
-class UserMovesTurn(UserInputTurn):
-    def __init__(self, moves, line_number):
-        super(UserMovesTurn, self).__init__(line_number)
+class UserInterpretationTurn(UserInputTurn):
+    def __init__(self, moves, line_number, modality=None, utterance=None):
+        super(UserInterpretationTurn, self).__init__(line_number)
         self._moves = moves
+        self._modality = modality
+        self._utterance = utterance
 
     @property
-    def is_user_moves_turn(self):
+    def is_user_interpretation_turn(self):
         return True
 
     @property
     def moves(self):
         return self._moves
+
+    @property
+    def modality(self):
+        return self._modality
+
+    @property
+    def utterance(self):
+        return self._utterance
 
 
 class UserPassivityTurn(Turn):

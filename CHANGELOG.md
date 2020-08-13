@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - `tala generate rasa` now generates semantic roles for propositional entites of custom sorts.
-- `tala tests` now supports system output on a semantic level. Example: `S> ['icm:acc*pos', 'ask(?X.a_question(X))']`
+- `tala test` now supports interaction tests with system output on a semantic level. Example: `S> ["icm:acc*pos", "ask(?X.a_question(X))"]`.
+- `tala test` now supports interaction tests with rich moves in semantic user input. In addition to the existing plain semantic expressions (`U> ["request(call)", "answer(contact_john)"]`), it now also supports JSON objects that include perception and understanding confidence. Example: `U> [{"semantic_expression": "request(call)", "understanding_confidence": 0.55, "perception_confidence": 0.79}]`.
+- `tala test` now supports interaction tests with interpretations as semantic user input: `U> {"moves": ["request(call)", "answer(contact_john)"], "utterance": "an utterance", "modality": "speech"}`, where the `"moves"` field can contain either plain semantic expression or the new JSON objects.
+
+### Changed
+- Semantic interactions, from both the user and system, in interaction tests used with `tala test` now need to comply with JSON. Most notably, this means that `"` need to be used for strings, whereas previously both `"` and `'` were accepted.
+
+### Fixed
+- A code injection loophole in interaction tests has been plugged.  
 
 ## [6.0.0] - 2020-07-03
 ### Added

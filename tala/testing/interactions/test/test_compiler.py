@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import json
+import pytest
 import unittest
 from io import StringIO
 
 from mock import patch, ANY, call
 
 from tala.testing.interactions import compiler
-from tala.testing.interactions.compiler import InteractionTestCompiler
+from tala.testing.interactions.compiler import InteractionTestCompiler, ParseException
 
 TESTS_FILENAME = "tdm/test/test_interactiontest.txt"
 
@@ -73,7 +75,7 @@ U>
 --- mock name
 U> ["request(make_reservation)", "answer(paris)"]
 """)
-        self.then_result_is_user_moves()
+        self.then_result_is_user_interpretation()
 
     def test_moves_of_user_moves(self):
         self.when_compile("""\
@@ -82,29 +84,138 @@ U> ["request(make_reservation)", "answer(paris)"]
 """)
         self.then_result_has_moves(["request(make_reservation)", "answer(paris)"])
 
-    def test_properties_of_user_moves(self):
+    def test_rich_user_moves(self):
+        self.when_compile(
+            """\
+--- mock name
+U> [{"semantic_expression": "request(make_reservation)", "understanding_confidence": 0.12, "perception_confidence": 0.23}, {"semantic_expression": "answer(paris)", "understanding_confidence": 0.45, "perception_confidence": 0.67}]
+"""
+        )
+        self.then_result_has_moves([{
+            "semantic_expression": "request(make_reservation)",
+            "understanding_confidence": 0.12,
+            "perception_confidence": 0.23
+        }, {
+            "semantic_expression": "answer(paris)",
+            "understanding_confidence": 0.45,
+            "perception_confidence": 0.67
+        }])
+
+    def test_line_number_of_user_moves(self):
         self.when_compile("""\
 --- mock name
 U> ["request(make_reservation)", "answer(paris)"]
 """)
-        self.then_result_has_properties(expected_line_number=2)
+        self.then_result_has_line_number(2)
 
-    def then_result_is_user_moves(self):
+    def test_utterance_of_user_moves(self):
+        self.when_compile("""\
+--- mock name
+U> ["request(make_reservation)", "answer(paris)"]
+""")
+
+        self.then_result_has_utterance(None)
+
+    def test_modality_of_user_moves(self):
+        self.when_compile("""\
+--- mock name
+U> ["request(make_reservation)", "answer(paris)"]
+""")
+
+        self.then_result_has_modality(None)
+
+    def test_user_interpretation(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}
+"""
+        )
+        self.then_result_is_user_interpretation()
+
+    @patch(f"{compiler.__name__}.json", autospec=True)
+    def test_invalid_json(self, mock_json):
+        self.given_json_loads_raises_decode_error(mock_json, "the error", doc="doc", pos=0)
+        self.when_compile_then_exception_is_raised(
+            string="""\
+--- mock name
+U> {"moves": []}
+""",
+            expected_exception_class=ParseException,
+            expected_message=r"Expected valid JSON on line 2 of 'mock_test_file.txt' but encountered a decoding error."
+            r"\n\n  Line 2: {\"moves\": \[\]}\n\n  Error: 'the error: line 1 column 1 \(char 0\)'"
+        )
+
+    def given_json_loads_raises_decode_error(self, mock_json, *args, **kwargs):
+        mock_json.decoder.JSONDecodeError = json.decoder.JSONDecodeError
+        mock_json.loads.side_effect = json.decoder.JSONDecodeError(*args, **kwargs)
+
+    def when_compile_then_exception_is_raised(self, string, expected_exception_class, expected_message):
+        with pytest.raises(expected_exception_class, match=expected_message):
+            self.when_compile(string)
+
+    def test_moves_of_user_interpretation(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}
+"""
+        )
+        self.then_result_has_moves(["request(make_reservation)", "answer(paris)"])
+
+    def test_line_number_of_user_interpretation(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}
+"""
+        )
+        self.then_result_has_line_number(2)
+
+    def test_utterance_of_user_interpretation(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}
+"""
+        )
+
+        self.then_result_has_utterance("an utterance")
+
+    def test_modality_of_user_interpretation(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}
+"""
+        )
+
+        self.then_result_has_modality("speech")
+
+    def then_result_is_user_interpretation(self):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_user_moves_turn)
+        self.assertTrue(actual_turn.is_user_interpretation_turn)
 
     def then_result_has_moves(self, expected_moves):
         actual_turn = self._get_actual_single_turn_from_single_test()
         self.assertEqual(expected_moves, actual_turn.moves)
 
-    def then_result_has_properties(self, expected_line_number):
+    def then_result_has_line_number(self, expected_line_number):
         actual_turn = self._get_actual_single_turn_from_single_test()
         self.assertEqual(expected_line_number, actual_turn.line_number)
+
+    def then_result_has_utterance(self, expected):
+        actual_turn = self._get_actual_single_turn_from_single_test()
+        self.assertEqual(expected, actual_turn.utterance)
+
+    def then_result_has_modality(self, expected):
+        actual_turn = self._get_actual_single_turn_from_single_test()
+        self.assertEqual(expected, actual_turn.modality)
 
     def test_system_moves(self):
         self.when_compile("""\
 --- mock name
-S> ["request(make_reservation)", 'answer(paris)']
+S> ["request(make_reservation)", "answer(paris)"]
 """)
         self.then_result_is_system_moves()
 
@@ -120,7 +231,7 @@ S> ["request(make_reservation)", "answer(paris)"]
 --- mock name
 S> ["request(make_reservation)", "answer(paris)"]
 """)
-        self.then_result_has_properties(expected_line_number=2)
+        self.then_result_has_line_number(expected_line_number=2)
 
     def then_result_is_system_moves(self):
         actual_turn = self._get_actual_single_turn_from_single_test()
@@ -139,7 +250,7 @@ U> ["request(make_reservation)", "answer(paris)"]
     def then_turns_are_system_utterance_and_user_moves(self):
         actual_test = self._result[0]
         self.assertTrue(actual_test.turns[0].is_system_output_turn)
-        self.assertTrue(actual_test.turns[1].is_user_moves_turn)
+        self.assertTrue(actual_test.turns[1].is_user_interpretation_turn)
 
     def test_system_utterance(self):
         self.when_compile("""\
