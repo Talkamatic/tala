@@ -2,6 +2,7 @@ import json
 
 from mock import patch, Mock, call
 import pytest
+from requests.exceptions import RequestException
 
 from tala.model.input_hypothesis import InputHypothesis
 from tala.model.interpretation import Interpretation
@@ -92,9 +93,7 @@ class TestTDMClient(object):
     "facts": {{}},
     "language": "eng"
   }}
-}}'''.format(
-            version=PROTOCOL_VERSION, session_id=session_id
-        )
+}}'''.format(version=PROTOCOL_VERSION, session_id=session_id)
         response.json.return_value = json.loads(json_response)
         self._mocked_requests.post.return_value = response
 
@@ -265,11 +264,19 @@ class TestTDMClient(object):
   "error": {{
     "description": "{description}"
   }}
-}}'''.format(
-            version=PROTOCOL_VERSION, description=description
-        )
+}}'''.format(version=PROTOCOL_VERSION, description=description)
         response.json.return_value = json.loads(json_response)
         self._mocked_requests.post.return_value = response
+
+    @patch("{}.requests".format(tdm_client.__name__), autospec=True)
+    def test_unexpected_status_code(self, mock_requests):
+        self._given_mocked_requests_module(mock_requests)
+        self._given_tdm_client_created_for("mock-url")
+        self._given_response_status_check_raises(RequestException, "mock-error")
+        self._when_starting_session_then_exception_was_raised(RequestException, "mock-error")
+
+    def _given_response_status_check_raises(self, ExceptionClass, message):
+        self._mocked_requests.post.return_value.raise_for_status.side_effect = ExceptionClass(message)
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_say_with_error_response(self, mock_requests):

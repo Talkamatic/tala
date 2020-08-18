@@ -127,11 +127,12 @@ class TDMClient(Observable):
     def _make_request(self, request_body):
         data_as_json = json.dumps(request_body)
         headers = {'Content-type': 'application/json'}
-        json_encoded_response = requests.post(self._url, data=data_as_json, headers=headers)
+        response_object = requests.post(self._url, data=data_as_json, headers=headers)
+        response_object.raise_for_status()
         try:
-            response = json_encoded_response.json()
+            response = response_object.json()
         except ValueError:
-            raise InvalidResponseError("Expected a valid JSON response but got %s." % json_encoded_response)
+            raise InvalidResponseError(f"Expected a valid JSON response but got '{response_object}'.")
 
         if "error" in response:
             description = response["error"]["description"]

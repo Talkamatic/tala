@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Semantic interactions, from both the user and system, in interaction tests used with `tala test` now need to comply with JSON. Most notably, this means that `"` need to be used for strings, whereas previously both `"` and `'` were accepted.
 
 ### Fixed
-- A code injection loophole in interaction tests has been plugged.  
+- A code injection loophole in interaction tests has been plugged.
+- `tala.utils.tdm_client.TDMClient` now raises a `requests.HTTPError` exception when the TDM pipeline responds with an unexpected HTTP status code.
 
 ## [6.0.0] - 2020-07-03
 ### Added
