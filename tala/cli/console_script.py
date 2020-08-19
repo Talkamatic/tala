@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 import argparse
 import contextlib
@@ -7,6 +7,9 @@ import sys
 import warnings
 import unittest
 import logging
+import time
+import random
+import signal
 
 from pathlib import Path
 from requests.exceptions import MissingSchema
@@ -30,6 +33,7 @@ from tala.testing.interactions.testloader import InteractionTestingLoader
 from tala.testing.interactions.result import InteractionTestResult
 from tala.utils.tdm_client import TDMClient
 from tala.utils.chdir import chdir
+from tala.testing.endurance.runner import EnduranceTestRunner
 
 RASA = "rasa"
 ALEXA = "alexa"
@@ -221,6 +225,31 @@ def test_interactions(args):
         sys.exit(-1)
 
 
+def endurancetest(args):
+    def on_terminate_signal(*args, **kwargs):
+        test_runner.stop()
+
+    configure_stdout_logging(args.log_level)
+    config = DeploymentsConfig(args.deployments_config)
+    url = config.get_url(args.environment_or_url)
+
+    if args.seed:
+        seed = args.seed
+    else:
+        seed = hash(time.time())
+    random.seed(seed)
+    print(f"Running endurance test with random seed {seed}")
+
+    test_runner = EnduranceTestRunner(args.tests_filenames, args.duration, url)
+
+    unittest.installHandler()
+
+    signal.signal(signal.SIGINT, on_terminate_signal)
+    signal.signal(signal.SIGTERM, on_terminate_signal)
+
+    test_runner.run()
+
+
 def add_verify_subparser(subparsers):
     parser = subparsers.add_parser(
         "verify", help="verify the format of all DDDs supported by the backend, across all supported languages"
@@ -321,15 +350,38 @@ def add_interact_subparser(subparsers):
     parser.set_defaults(func=interact)
 
 
-def add_test_subparser(subparsers):
-    parser = subparsers.add_parser("test", help="run interaction tests")
+def _add_test_arguments(parser):
     add_deployment_config_arguments(parser)
     parser.add_argument(dest="tests_filenames", nargs="+", metavar="TEST-FILE", help="specify DDD test files")
     parser.add_argument("-t", dest="selected_tests", nargs="+", default=[], metavar="TEST", help="select test by name")
     parser.add_argument(
         "-l", "--log-level", nargs="?", default=logging.WARNING, metavar="LOG-LEVEL", help="select logging level"
     )
+
+
+def add_test_subparser(subparsers):
+    parser = subparsers.add_parser("test", help="run interaction tests")
+    _add_test_arguments(parser)
     parser.set_defaults(func=test_interactions)
+
+
+def add_endurancetest_subparser(subparsers):
+    parser = subparsers.add_parser(
+        "endurancetest",
+        help="run the provided interaction tests in a random sequence on a single backend until they fail, error or "
+        "until the duration elapses. The tests succeed when the duration has elapsed and no failure or error has "
+        "been found."
+    )
+    _add_test_arguments(parser)
+    parser.add_argument(
+        "--duration",
+        default=0,
+        type=int,
+        metavar="SECONDS",
+        help="run until the duration has elapsed; if duration is 0, run forever"
+    )
+    parser.add_argument("--seed", type=int, metavar="INTEGER", help="random seed")
+    parser.set_defaults(func=endurancetest)
 
 
 def format_warnings():
@@ -358,6 +410,7 @@ def main(args=None):
     add_version_subparser(subparsers)
     add_interact_subparser(subparsers)
     add_test_subparser(subparsers)
+    add_endurancetest_subparser(subparsers)
 
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():

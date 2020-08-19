@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [7.0.0] - 2020-08-27
 ### Added
+- `tala endurancetest` has been added as a console command. It lets users run endurance tests towards DDDs deployed with the TDM pipeline.
 - `tala generate rasa` now generates semantic roles for propositional entites of custom sorts.
 - `tala test` now supports interaction tests with system output on a semantic level. Example: `S> ["icm:acc*pos", "ask(?X.a_question(X))"]`.
 - `tala test` now supports interaction tests with rich moves in semantic user input. In addition to the existing plain semantic expressions (`U> ["request(call)", "answer(contact_john)"]`), it now also supports JSON objects that include perception and understanding confidence. Example: `U> [{"semantic_expression": "request(call)", "understanding_confidence": 0.55, "perception_confidence": 0.79}]`.
