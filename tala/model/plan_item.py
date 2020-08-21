@@ -31,6 +31,7 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
     TYPE_EMIT_MOVE = "emit_move"
     TYPE_HANDLE = "handle"
     TYPE_LOG = "log"
+    TYPE_GET_DONE = "get_done"
 
     def __init__(self, type):
         SemanticObject.__init__(self)
@@ -476,3 +477,13 @@ class LogPlanItem(PlanItem):
 
     def __str__(self):
         return f"log_plan_item('{self.message}')"
+
+
+class GetDonePlanItem(PlanItem):
+    def __init__(self, action):
+        PlanItem.__init__(self, PlanItem.TYPE_GET_DONE)
+        self._action = action
+
+    @property
+    def action(self):
+        return self._action
