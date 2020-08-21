@@ -73,6 +73,7 @@
       <xs:element name="raise" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="bind" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_service_action" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="get_done" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="dev_perform" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="dev_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_issue" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
@@ -137,6 +138,17 @@
       <xs:attribute name="postconfirm" type="xs:boolean"/>
       <xs:attribute name="downdate_plan" type="xs:boolean" default="true"/>
       <xs:attribute name="device" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="get_done">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        This is for getting actions done in general, also by users
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="action" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 

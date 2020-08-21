@@ -13,7 +13,7 @@ from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan
-from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem, AssumePlanItem
+from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem, AssumePlanItem, GetDonePlanItem
 from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition
 from tala.model import condition
@@ -360,6 +360,8 @@ class DomainCompiler(XmlCompiler):
             return self._compile_deprecated_dev_query_element(element)
         elif element.localName == "invoke_service_action":
             return self._compile_invoke_service_action_element(element)
+        elif element.localName == "get_done":
+            return self._compile_get_done_element(element)
         elif element.localName == "dev_perform":
             warnings.warn(
                 "<dev_perform> is deprecated. Use <invoke_service_action> instead.",
@@ -465,6 +467,10 @@ class DomainCompiler(XmlCompiler):
         return InvokeServiceActionPlanItem(
             self._ontology.name, action, preconfirm=preconfirm, postconfirm=postconfirm, downdate_plan=downdate_plan
         )
+
+    def _compile_get_done_element(self, element):
+        action = self._get_mandatory_attribute(element, "action")
+        return GetDonePlanItem(self._ontology.name, action)
 
     def _compile_jumpto_element(self, element):
         goal = self._compile_goal(element)
