@@ -2,6 +2,7 @@ import unittest
 
 from tala.ddd.parser import Parser, ParseError
 from tala.model.action import Action
+from tala.model.action_status import Done
 from tala.model.domain import Domain
 from tala.model.goal import PerformGoal, ResolveGoal, HandleGoal
 from tala.model.individual import Individual, Yes, No
@@ -454,6 +455,10 @@ class ParserTests(unittest.TestCase):
             )
         )
         self.assertEqual(expected_object, object)
+
+    def test_report_move_with_done(self):
+        self._when_parse("report(done)")
+        self._then_result_is(ReportMove(Done()))
 
     def test_prereport_move(self):
         object = self.parser.parse("prereport(MakeReservation, [dest_city(paris), dest_city(london)])")

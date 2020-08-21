@@ -2,6 +2,7 @@ import copy
 import re
 
 from tala.ddd.utils import CacheMethod
+from tala.model.action_status import Done
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition
@@ -64,6 +65,7 @@ class Parser:
             self._parse_service_result_proposition,
             self._parse_successful_service_action,
             self._parse_failed_service_action,
+            self._parse_action_status,
             self._parse_decorated_icm_move,
             self._parse_icm_move,
             self._parse_proposition,
@@ -296,9 +298,9 @@ class Parser:
     def _parse_report_move(self, string):
         m = re.search('^report\((.*)\)$', string)
         if m:
-            report_proposition_string = m.group(1)
-            report_proposition = self._parse(report_proposition_string)
-            return ReportMove(report_proposition)
+            content_string = m.group(1)
+            content = self._parse(content_string)
+            return ReportMove(content)
         raise ParseFailure()
 
     def _parse_service_result_proposition(self, string):
@@ -320,6 +322,11 @@ class Parser:
         if m:
             (failure_reason, ) = m.groups()
             return FailedServiceAction(failure_reason)
+        raise ParseFailure()
+
+    def _parse_action_status(self, string):
+        if string == "done":
+            return Done()
         raise ParseFailure()
 
     def _parse_prereport_move(self, string):
