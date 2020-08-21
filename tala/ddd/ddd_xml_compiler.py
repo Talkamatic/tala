@@ -18,6 +18,7 @@ from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition
 from tala.model import condition
 from tala.model.question import AltQuestion, YesNoQuestion
+from tala.model.action import Action
 from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort, BOOLEAN
 from tala.nl.gf import rgl_grammar_entry_types as rgl_types
@@ -469,8 +470,9 @@ class DomainCompiler(XmlCompiler):
         )
 
     def _compile_get_done_element(self, element):
-        action = self._get_mandatory_attribute(element, "action")
-        return GetDonePlanItem(self._ontology.name, action)
+        action_string = self._get_mandatory_attribute(element, "action")
+        action = Action(action_string, self._ontology.name)
+        return GetDonePlanItem(action)
 
     def _compile_jumpto_element(self, element):
         goal = self._compile_goal(element)

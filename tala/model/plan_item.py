@@ -479,11 +479,6 @@ class LogPlanItem(PlanItem):
         return f"log_plan_item('{self.message}')"
 
 
-class GetDonePlanItem(PlanItem):
+class GetDonePlanItem(PlanItemWithSemanticContent):
     def __init__(self, action):
-        PlanItem.__init__(self, PlanItem.TYPE_GET_DONE)
-        self._action = action
-
-    @property
-    def action(self):
-        return self._action
+        PlanItemWithSemanticContent.__init__(self, PlanItem.TYPE_GET_DONE, action)
