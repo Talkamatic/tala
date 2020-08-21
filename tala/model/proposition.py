@@ -37,6 +37,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     SERVICE_ACTION_TERMINATED = "SERVICE_ACTION_TERMINATED"
     PROPOSITION_SET = "PROPOSITION_SET"
     KNOWLEDGE_PRECONDITION = "KNOWLEDGE_PRECONDITION"
+    ACTION_STATUS = "ACTION_STATUS"
 
     def __init__(self, type, polarity=None):
         SemanticObject.__init__(self)
@@ -713,3 +714,27 @@ class KnowledgePreconditionProposition(PropositionWithSemanticContent):
 
     def __hash__(self):
         return hash(self.embedded_question)
+
+
+class ActionStatusProposition(PropositionWithSemanticContent):
+    def __init__(self, action, status):
+        PropositionWithSemanticContent.__init__(self, Proposition.ACTION_STATUS, action)
+        self._status = status
+
+    @property
+    def status(self):
+        return self._status
+
+    def __eq__(self, other):
+        try:
+            return (other.content == self.content and
+                    other.status == self.status and
+                    self.get_type() == other.get_type())
+        except AttributeError:
+            return False
+
+    def __str__(self):
+        return f"action_status({self.content}, {self.status})"
+
+    def __hash__(self):
+        return hash(self.content, self.status)

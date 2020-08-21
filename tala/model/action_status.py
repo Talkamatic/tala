@@ -7,3 +7,6 @@ class Done(SemanticObject):
 
     def as_semantic_expression(self):
         return "done"
+
+    def __str__(self):
+        return "done"
