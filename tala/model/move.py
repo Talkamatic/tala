@@ -502,9 +502,13 @@ class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
 
 
 class ReportMove(MoveWithSemanticContent):
-    def __init__(self, report_proposition):
-        self.report_proposition = report_proposition
-        MoveWithSemanticContent.__init__(self, Move.REPORT, report_proposition)
+    def __init__(self, content):
+        self._content = content
+        MoveWithSemanticContent.__init__(self, Move.REPORT, content)
+
+    @property
+    def content(self):
+        return self._content
 
     def as_semantic_expression(self):
         return f"report({self._content.as_semantic_expression()})"
@@ -513,7 +517,7 @@ class ReportMove(MoveWithSemanticContent):
         return True
 
     def _get_expression(self, include_attributes):
-        string = "report(%s" % unicodify(self.report_proposition)
+        string = "report(%s" % unicodify(self.content)
         if self._background:
             string += ", %s" % unicodify(self._background)
         if include_attributes:
@@ -522,7 +526,7 @@ class ReportMove(MoveWithSemanticContent):
         return string
 
     def class_internal_move_content_equals(self, other):
-        return (self.report_proposition == other.report_proposition)
+        return (self.content == other.content)
 
 
 class PrereportMove(Move, OntologySpecificSemanticObject):
