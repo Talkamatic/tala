@@ -306,7 +306,7 @@ class DomainCompiler(XmlCompiler):
         if goal_type == "perform":
             action_name = self._get_mandatory_attribute(element, "action")
             action = self._ontology.create_action(action_name)
-            return PerformGoal(action)
+            return PerformGoal(action, Speaker.SYS)
         elif goal_type == "resolve":
             question = self._compile_question(element, "question_type")
             return ResolveGoal(question, Speaker.SYS)

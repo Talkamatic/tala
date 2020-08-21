@@ -97,9 +97,9 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
 
 
 class PerformGoal(GoalWithSemanticContent):
-    def __init__(self, action):
+    def __init__(self, action, target=Speaker.SYS):
         assert action.is_action()
-        GoalWithSemanticContent.__init__(self, self.PERFORM_GOAL, Speaker.SYS, action)
+        GoalWithSemanticContent.__init__(self, self.PERFORM_GOAL, target, action)
 
     def is_perform_goal(self):
         return True
