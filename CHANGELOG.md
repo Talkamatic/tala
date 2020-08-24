@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [7.0.0] - 2020-08-27
 ### Added
 - `tala generate rasa` now generates semantic roles for propositional entites of custom sorts.
 - `tala test` now supports interaction tests with system output on a semantic level. Example: `S> ["icm:acc*pos", "ask(?X.a_question(X))"]`.
