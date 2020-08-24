@@ -1076,7 +1076,14 @@ class ParserTests(unittest.TestCase):
         expected_move = self._move_factory.createAnswerMove(individual)
         self.assertEqual(expected_move, move)
 
-    def test_predicate_proposition_with_string_individual(self):
+    def test_predicate_proposition_with_string_individual_in_single_quotes(self):
+        object = self.parser.parse("number_to_call('070123456')")
+        expected_object = PredicateProposition(
+            self.predicate_number_to_call, self.ontology.create_individual('"070123456"')
+        )
+        self.assertEqual(expected_object, object)
+
+    def test_predicate_proposition_with_string_individual_in_double_quotes(self):
         object = self.parser.parse('number_to_call("070123456")')
         expected_object = PredicateProposition(
             self.predicate_number_to_call, self.ontology.create_individual('"070123456"')
@@ -1173,4 +1180,4 @@ class ParserTests(unittest.TestCase):
     def test_move_with_knowledge_precondition_question(self):
         string = "ask(?know_answer(?X.dest_city(X)))"
         expected_object = AskMove(KnowledgePreconditionQuestion(self.dest_city_question))
-        self.assertEquals(expected_object, self.parser.parse(string))
+        self.assertEqual(expected_object, self.parser.parse(string))

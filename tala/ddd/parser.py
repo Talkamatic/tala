@@ -138,12 +138,12 @@ class Parser:
         raise ParseFailure()
 
     def _parse_decorated_non_icm_move(self, string):
-        m = re.search('^Move\((.*)\)$', string)
+        m = re.search(r'^Move\((.*)\)$', string)
         if m:
             move_and_maybe_realization_data_string = m.group(1)
             move, rest = self._parse_incrementally(move_and_maybe_realization_data_string)
             if rest:
-                m = re.search('^, (.*)$', rest)
+                m = re.search(r'^, (.*)$', rest)
                 if m:
                     realization_data_string = m.group(1)
                     realization_data = self._parse_realization_data(realization_data_string)
@@ -180,7 +180,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_basic_move(self, string):
-        matcher = re.search('^(greet|mute|unmute|quit)$', string)
+        matcher = re.search(r'^(greet|mute|unmute|quit)$', string)
         if matcher:
             move_type_string = matcher.group(1)
             if move_type_string == "greet":
@@ -195,7 +195,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_set(self, string):
-        m = re.search('^\{(.*)\}$', string)
+        m = re.search(r'^\{(.*)\}$', string)
         if m:
             if m.group(1) == "":
                 return Set()
@@ -209,9 +209,9 @@ class Parser:
             raise ParseFailure()
 
     def _parse_string(self, string):
-        m = re.search('^"[^"]*"$', string)
+        m = re.search(r'^(["\'])(?P<string>[^\1]*)\1$', string)
         if m:
-            return string
+            return m.group("string")
         else:
             raise ParseFailure()
 
@@ -261,7 +261,7 @@ class Parser:
         raise ParseFailure()
 
     def _check_if_deprecated_action_proposition(self, string):
-        m = re.search('^action\((\w+)\)$', string)
+        m = re.search(r'^action\((\w+)\)$', string)
         if m:
             action_name = m.group(1)
             raise ParseError(
@@ -270,7 +270,7 @@ class Parser:
             )
 
     def _check_if_deprecated_issue_proposition(self, string):
-        m = re.search('^issue\((.+)\)$', string)
+        m = re.search(r'^issue\((.+)\)$', string)
         if m:
             issue_name = m.group(1)
             raise ParseError(
@@ -279,7 +279,7 @@ class Parser:
             )
 
     def _parse_preconfirmation_proposition(self, string):
-        m = re.search('^(~?)preconfirmed\((?P<action>\w+), (\[[^\]]*\])\)$', string)
+        m = re.search(r'^(~?)preconfirmed\((?P<action>\w+), (\[[^\]]*\])\)$', string)
         if m:
             (polarity_str, action_value, parameter_string) = (m.group(1), m.group("action"), m.group(3))
             polarity = self._parse_polarity(polarity_str)
@@ -288,7 +288,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_prereport_proposition(self, string):
-        m = re.search('^prereported\((?P<action>\w+), (\[[^\]]*\])\)$', string)
+        m = re.search(r'^prereported\((?P<action>\w+), (\[[^\]]*\])\)$', string)
         if m:
             (action_value, parameter_string) = (m.group("action"), m.group(2))
             parameter_list = self._parse_proposition_list(parameter_string)
@@ -296,7 +296,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_report_move(self, string):
-        m = re.search('^report\((.*)\)$', string)
+        m = re.search(r'^report\((.*)\)$', string)
         if m:
             content_string = m.group(1)
             content = self._parse(content_string)
@@ -304,7 +304,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_service_result_proposition(self, string):
-        m = re.search('^ServiceResultProposition\((\w+), (\[[^\]]*\]), (.+)\)$', string)
+        m = re.search(r'^ServiceResultProposition\((\w+), (\[[^\]]*\]), (.+)\)$', string)
         if m:
             (action_value, parameter_string, action_outcome_string) = m.groups()
             parameter_list = self._parse_proposition_list(parameter_string)
@@ -318,7 +318,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_failed_service_action(self, string):
-        m = re.search('^FailedServiceAction\((\w+)\)$', string)
+        m = re.search(r'^FailedServiceAction\((\w+)\)$', string)
         if m:
             (failure_reason, ) = m.groups()
             return FailedServiceAction(failure_reason)
@@ -330,7 +330,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_prereport_move(self, string):
-        m = re.search('^prereport\((\w+), (\[[^\]]*\])\)$', string)
+        m = re.search(r'^prereport\((\w+), (\[[^\]]*\])\)$', string)
         if m:
             (action_value, arguments_string) = m.groups()
             arguments_list = self._parse_proposition_list(arguments_string)
@@ -338,7 +338,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_ask_move(self, string):
-        m = re.search('^ask\((.+)\)', string)
+        m = re.search(r'^ask\((.+)\)', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -347,7 +347,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_question(self, string):
-        m = re.search('^\?(.*)$', string)
+        m = re.search(r'^\?(.*)$', string)
         if m:
             question_content_string = m.group(1)
             question_content = self.parse(question_content_string)
@@ -395,7 +395,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_lambda_abstracted_predicate_proposition(self, string):
-        m = re.search('^X\.(.+)\(X\)$', string)
+        m = re.search(r'^X\.(.+)\(X\)$', string)
         if m:
             predicate_name = m.group(1)
             if predicate_name == "action":
@@ -406,7 +406,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_answer_move(self, string):
-        m = re.search('^answer\((.+)\)', string)
+        m = re.search(r'^answer\((.+)\)', string)
         if m:
             answer_string = m.group(1)
             answer = self.parse(answer_string)
@@ -416,7 +416,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_decorated_icm_move(self, string):
-        m = re.search('^ICMMove\(([^,]+)((, *)(.+))?\)$', string)
+        m = re.search(r'^ICMMove\(([^,]+)((, *)(.+))?\)$', string)
         if m:
             icm_string = m.group(1)
             realization_data_string = m.group(4)
@@ -438,11 +438,11 @@ class Parser:
         return realization_data
 
     def _get_next_realization_data(self, string):
-        m = re.search('^(?P<key>[^=]+)=(?P<value>[^=]+) *\, *(?P<rest>[^=]+=.*)$', string)
+        m = re.search(r'^(?P<key>[^=]+)=(?P<value>[^=]+) *\, *(?P<rest>[^=]+=.*)$', string)
         if m:
             rest = m.group('rest')
         else:
-            m = re.search('^(?P<key>[^=]+)=(?P<value>.+)$', string)
+            m = re.search(r'^(?P<key>[^=]+)=(?P<value>.+)$', string)
             rest = ""
         if m:
             key = m.group('key')
@@ -462,7 +462,7 @@ class Parser:
             raise ParseFailure()
 
     def _strip_quotes(self, string):
-        m = re.search('^"([^"]*)"$', string)
+        m = re.search(r'^"([^"]*)"$', string)
         if m:
             return m.group(1)
         else:
@@ -473,7 +473,7 @@ class Parser:
                 raise ParseFailure()
 
     def _parse_icm_move(self, string):
-        m = re.search('^icm:', string)
+        m = re.search(r'^icm:', string)
         if m:
             try:
                 return self._parse_reraise_or_accommodate_or_resume_icm(string)
@@ -507,7 +507,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_loadplan_icm(self, string):
-        matcher = re.search('^icm:loadplan', string)
+        matcher = re.search(r'^icm:loadplan', string)
         if matcher:
             return ICMMove(ICMMove.LOADPLAN)
         else:
@@ -529,7 +529,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_contentless_perception_or_acceptance_icm(self, string):
-        m = re.search('^icm:(per|acc)\*(pos|neg|int)$', string)
+        m = re.search(r'^icm:(per|acc)\*(pos|neg|int)$', string)
         if m:
             icm_type = m.group(1)
             polarity = m.group(2)
@@ -537,14 +537,14 @@ class Parser:
         raise ParseFailure()
 
     def _parse_contentful_perception_icm(self, string):
-        m = re.search('^icm:per\*(pos|neg|int):"([^"]*)"$', string)
+        m = re.search(r'^icm:per\*(pos|neg|int):"([^"]*)"$', string)
         if m:
             (polarity, content_string) = m.groups()
             return ICMMoveWithStringContent(ICMMove.PER, content_string, polarity=polarity)
         raise ParseFailure()
 
     def _parse_contentful_acceptance_icm(self, string):
-        m = re.search('^icm:(per|acc)\*(pos|neg|int)(:([^:]*))?$', string)
+        m = re.search(r'^icm:(per|acc)\*(pos|neg|int)(:([^:]*))?$', string)
         if m:
             (icm_type, polarity, junk, content_string) = m.groups()
             if content_string == "issue":
@@ -555,7 +555,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_understanding_icm(self, string):
-        m = re.search('^icm:(sem|und)\*(int|pos|neg)(:((.+)\*)?([^:]+))?$', string)
+        m = re.search(r'^icm:(sem|und)\*(int|pos|neg)(:((.+)\*)?([^:]+))?$', string)
         if m:
             (type, polarity, foo, foo, content_speaker, content_string) = m.groups()
             if content_string:
@@ -567,7 +567,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_resolvedness_proposition(self, string):
-        m = re.search('^resolved\((.+)\)$', string)
+        m = re.search(r'^resolved\((.+)\)$', string)
         if m:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
@@ -576,7 +576,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_knowledge_precondition_proposition(self, string):
-        m = re.search('^(~?)know_answer\((.+)\)$', string)
+        m = re.search(r'^(~?)know_answer\((.+)\)$', string)
         if m:
             polarity_string, issue_string = m.group(1), m.group(2)
             issue = self.parse(issue_string)
@@ -586,7 +586,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_request_move(self, string):
-        matcher = re.search('^request\(([^\{\}]+)\)(.*)', string)
+        matcher = re.search(r'^request\(([^\{\}]+)\)(.*)', string)
         if matcher:
             action_string = matcher.group(1)
             action = self.parse(action_string)
@@ -595,7 +595,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_findout_plan_item(self, string):
-        m = re.search('^findout\((.*)\)$', string)
+        m = re.search(r'^findout\((.*)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -604,7 +604,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_do_plan_item(self, string):
-        m = re.search('^do\((\w+)\)$', string)
+        m = re.search(r'^do\((\w+)\)$', string)
         if m:
             action_string = m.group(1)
             action = self.parse(action_string)
@@ -613,7 +613,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_bind_plan_item(self, string):
-        m = re.search('^bind\((.+)\)$', string)
+        m = re.search(r'^bind\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -628,7 +628,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_forget_plan_item(self, string):
-        m = re.search('^forget\((.+)\)$', string)
+        m = re.search(r'^forget\((.+)\)$', string)
         if m:
             proposition_string = m.group(1)
             proposition = self.parse(proposition_string)
@@ -637,7 +637,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_assume_plan_item(self, string):
-        m = re.search('^assume\((.+)\)$', string)
+        m = re.search(r'^assume\((.+)\)$', string)
         if m:
             proposition_string = m.group(1)
             proposition = self._parse_proposition(proposition_string)
@@ -646,7 +646,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_assume_shared_plan_item(self, string):
-        m = re.search('^assume_shared\((.+)\)$', string)
+        m = re.search(r'^assume_shared\((.+)\)$', string)
         if m:
             proposition_string = m.group(1)
             proposition = self._parse_proposition(proposition_string)
@@ -655,7 +655,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_assume_issue_item(self, string):
-        m = re.search('^assume_issue\((.+)\)$', string)
+        m = re.search(r'^assume_issue\((.+)\)$', string)
         if m:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
@@ -664,7 +664,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_log_item(self, string):
-        m = re.search('^log\("(.+)"\)$', string)
+        m = re.search(r'^log\("(.+)"\)$', string)
         if m:
             log_message = m.group(1)
             return LogPlanItem(log_message)
@@ -672,7 +672,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_forget_issue_plan_item(self, string):
-        m = re.search('^forget_issue\((.+)\)$', string)
+        m = re.search(r'^forget_issue\((.+)\)$', string)
         if m:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
@@ -681,7 +681,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_invoke_service_query_plan_item(self, string):
-        m = re.search('^invoke_service_query\(([^,]+)\)$', string)
+        m = re.search(r'^invoke_service_query\(([^,]+)\)$', string)
         if m:
             (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
@@ -690,7 +690,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_deprecated_dev_query_plan_item(self, string):
-        m = re.search('^dev_query\(([^,]+)\)$', string)
+        m = re.search(r'^dev_query\(([^,]+)\)$', string)
         if m:
             (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
@@ -699,7 +699,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_invoke_service_action_plan_item(self, string):
-        m = re.search('^invoke_service_action\(([^,]+), *(\{.*\})\)$', string)
+        m = re.search(r'^invoke_service_action\(([^,]+), *(\{.*\})\)$', string)
         if m:
             (service_action, params_string) = m.groups()
             params = self._parse_invoke_service_action_params(params_string)
@@ -708,7 +708,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_deprecated_dev_perform_plan_item(self, string):
-        m = re.search('^dev_perform\(([^,]+), *(\{.*\})\)$', string)
+        m = re.search(r'^dev_perform\(([^,]+), *(\{.*\})\)$', string)
         if m:
             (service_action, params_string) = m.groups()
             params = self._parse_invoke_service_action_params(params_string)
@@ -717,7 +717,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_raise_plan_item(self, string):
-        m = re.search('^raise\((.+)\)$', string)
+        m = re.search(r'^raise\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -726,7 +726,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_respond_plan_item(self, string):
-        m = re.search('^respond\((.+)\)$', string)
+        m = re.search(r'^respond\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -735,7 +735,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_resolve_goal(self, string):
-        m = re.search('^resolve\((.+)\)$', string)
+        m = re.search(r'^resolve\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -744,7 +744,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_resolve_user_goal(self, string):
-        m = re.search('^resolve_user\((.+)\)$', string)
+        m = re.search(r'^resolve_user\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -753,7 +753,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_perform_goal(self, string):
-        m = re.search('^perform\((.+)\)$', string)
+        m = re.search(r'^perform\((.+)\)$', string)
         if m:
             action_string = m.group(1)
             action = self._parse_action(action_string)
@@ -762,7 +762,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_handle_goal(self, string):
-        m = re.search('^handle\((.+)\)$', string)
+        m = re.search(r'^handle\((.+)\)$', string)
         if m:
             service_action = m.group(1)
             return HandleGoal(self.ontology_name, service_action)
@@ -770,7 +770,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_consultDB_plan_item(self, string):
-        m = re.search('^consultDB\((.+)\)$', string)
+        m = re.search(r'^consultDB\((.+)\)$', string)
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
@@ -779,7 +779,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_if_then_else_plan_item(self, string):
-        m = re.search('^if (.+) then (.*) else (.*)$', string)
+        m = re.search(r'^if (.+) then (.*) else (.*)$', string)
         if m:
             (condition_string, consequent_string, alternative_string) = m.groups()
             condition = self._parse_proposition(condition_string)
@@ -796,7 +796,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_jumpto_plan_item(self, string):
-        m = re.search('^jumpto\((.+)\)$', string)
+        m = re.search(r'^jumpto\((.+)\)$', string)
         if m:
             goal_string = m.group(1)
             goal = self._parse_goal(goal_string)
@@ -805,7 +805,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_goal_proposition(self, string):
-        m = re.search('^(~?)goal\((.+)\)$', string)
+        m = re.search(r'^(~?)goal\((.+)\)$', string)
         if m:
             (polarity_str, goal_string) = (m.group(1), m.group(2))
             polarity = self._parse_polarity(polarity_str)
@@ -814,7 +814,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_rejected_proposition(self, string):
-        m = re.search('^rejected\(([^,]+)(, *(.+))?\)$', string)
+        m = re.search(r'^rejected\(([^,]+)(, *(.+))?\)$', string)
         if m:
             (content_string, dummy, reason_string) = m.groups()
             rejected = self.parse(content_string)
@@ -822,21 +822,21 @@ class Parser:
         raise ParseFailure()
 
     def _parse_deprecated_service_action_terminated_proposition(self, string):
-        m = re.search('^service_action_terminated\((.+)\)$', string)
+        m = re.search(r'^service_action_terminated\((.+)\)$', string)
         if m:
             service_action = m.group(1)
             return ServiceActionTerminatedProposition(self.ontology_name, service_action)
         raise ParseFailure()
 
     def _parse_deprecated_service_action_started_proposition(self, string):
-        m = re.search('^service_action_started\((.+)\)$', string)
+        m = re.search(r'^service_action_started\((.+)\)$', string)
         if m:
             service_action = m.group(1)
             return ServiceActionStartedProposition(self.ontology_name, service_action)
         raise ParseFailure()
 
     def _parse_predicate_proposition(self, string):
-        m = re.search('^(~?)(\w+)(\((.*)\))$', string)
+        m = re.search(r'^(~?)(\w+)(\((.*)\))$', string)
         if m:
             (polarity_str, predicate_name, individual_string) = (m.group(1), m.group(2), m.group(4))
 
@@ -853,7 +853,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_negative_individual(self, string):
-        m = re.search('^~(\w+)$', string)
+        m = re.search(r'^~(\w+)$', string)
         if m:
             individual_value = m.group(1)
             return self.ontology.create_negative_individual(individual_value)
@@ -887,7 +887,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_individual_of_enumerated_sort(self, string):
-        m = re.search('^(.+)$', string)
+        m = re.search(r'^(.+)$', string)
         if m:
             individual_value = m.group(1)
             try:
@@ -899,7 +899,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_real_individual(self, string):
-        m = re.search('^[0-9]*\.[0-9]+$', string)
+        m = re.search(r'^[0-9]*\.[0-9]+$', string)
         if m:
             individual_value = float(string)
             return self.ontology.create_individual(individual_value)
@@ -907,7 +907,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_integer_individual(self, string):
-        m = re.search('^[0-9]+$', string)
+        m = re.search(r'^[0-9]+$', string)
         if m:
             individual_value = int(string)
             return self.ontology.create_individual(individual_value)
@@ -915,7 +915,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_individual_of_person_name_sort(self, string):
-        m = re.search('^person_name\((.+)\)$', string)
+        m = re.search(r'^person_name\((.+)\)$', string)
         if m:
             individual_value_string = m.group(1)
             individual_value = PersonName(individual_value_string)
@@ -924,7 +924,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_individual_of_datetime_sort(self, string):
-        m = re.search('^datetime\((.+)\)$', string)
+        m = re.search(r'^datetime\((.+)\)$', string)
         if m:
             individual_value_string = m.group(1)
             individual_value = DateTime(individual_value_string)
@@ -934,11 +934,11 @@ class Parser:
 
     def _parse_string_individual(self, string):
         string_content = self._parse_string(string)
-        individual = self.ontology.create_individual(string_content)
+        individual = self.ontology.create_individual(f'"{string_content}"')
         return individual
 
     def _parse_understanding_proposition(self, string):
-        m = re.search('^(\~?)und\((USR|SYS|MODEL|None),[ ]*(.+)\)$', string)
+        m = re.search(r'^(\~?)und\((USR|SYS|MODEL|None),[ ]*(.+)\)$', string)
         if m:
             negation = m.group(1)
             if negation == "":
@@ -964,7 +964,7 @@ class Parser:
             return None
 
     def _parse_yes_no_question(self, string):
-        m = re.search('^\?(\w+\(\w+\))$', string)
+        m = re.search(r'^\?(\w+\(\w+\))$', string)
         if m:
             proposition_string = m.group(1)
             proposition = self._parse_predicate_proposition(proposition_string)
@@ -973,7 +973,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_yes_or_no(self, string):
-        m = re.search('^(yes|no)$', string)
+        m = re.search(r'^(yes|no)$', string)
         if m:
             yes_no_string = m.group(1)
             if yes_no_string == "yes":
@@ -983,7 +983,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_action(self, string):
-        m = re.search('^(\w+)$', string)
+        m = re.search(r'^(\w+)$', string)
         try:
             if m:
                 action_value = m.group(1)
@@ -993,7 +993,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_predicate(self, string):
-        m = re.search('^(\w+)$', string)
+        m = re.search(r'^(\w+)$', string)
         if m:
             predicate_value = m.group(1)
             try:
@@ -1003,7 +1003,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_prop_set(self, string):
-        m = re.search('^(~?)set\((.+)\)$', string)
+        m = re.search(r'^(~?)set\((.+)\)$', string)
         if m:
             (polarity_str, alts_as_string) = m.groups()
             propositions = self._parse_proposition_list(alts_as_string)
@@ -1021,7 +1021,7 @@ class Parser:
         return propositions
 
     def _get_next_proposition(self, string):
-        m = re.search('^(?P<prop_group>([^,]+)) *\,? *(?P<rest>.*)', string)
+        m = re.search(r'^(?P<prop_group>([^,]+)) *\,? *(?P<rest>.*)', string)
         if m:
             proposition = self._parse_proposition(m.group('prop_group'))
             rest = m.group('rest')
@@ -1030,11 +1030,11 @@ class Parser:
             raise ParseFailure()
 
     def _get_next_question_param(self, string):
-        m = re.search('^(?P<key>[^=]+)=(?P<value>[^=]+) *\, *(?P<rest>[^=]+=.*)$', string)
+        m = re.search(r'^(?P<key>[^=]+)=(?P<value>[^=]+) *\, *(?P<rest>[^=]+=.*)$', string)
         if m:
             rest = m.group('rest')
         else:
-            m = re.search('^(?P<key>[^=]+)=(?P<value>.+)$', string)
+            m = re.search(r'^(?P<key>[^=]+)=(?P<value>.+)$', string)
             rest = ""
         if m:
             key = m.group('key')
@@ -1115,7 +1115,7 @@ class Parser:
             raise ParseFailure()
 
     def _parse_integer(self, string):
-        m = re.search('^[0-9]+$', string)
+        m = re.search(r'^[0-9]+$', string)
         if m:
             individual_value = int(string)
             return individual_value
@@ -1132,7 +1132,7 @@ class Parser:
         return params
 
     def _get_next_invoke_service_action_param(self, string):
-        m = re.search('^(?P<key>[^=]+)=(?P<value>[^, ]+) *\,? *(?P<rest>.*)', string)
+        m = re.search(r'^(?P<key>[^=]+)=(?P<value>[^, ]+) *\,? *(?P<rest>.*)', string)
         if m:
             key = m.group('key')
             value_as_string = m.group('value')
@@ -1158,14 +1158,14 @@ class Parser:
             raise ParseFailure()
 
     def _strip_brackets(self, bracketed_string):
-        matcher = re.search('^\[(.*)\]$', bracketed_string)
+        matcher = re.search(r'^\[(.*)\]$', bracketed_string)
         if matcher:
             return matcher.group(1)
         else:
             raise ParseError("_strip_brackets failed for '%s'" % bracketed_string)
 
     def _strip_curly_brackets(self, bracketed_string):
-        matcher = re.search('^\{(.*)\}$', bracketed_string)
+        matcher = re.search(r'^{(.*)}$', bracketed_string)
         if matcher:
             return matcher.group(1)
 

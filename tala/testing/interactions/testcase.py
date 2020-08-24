@@ -29,10 +29,6 @@ class UnexpectedMoveFormatException(Exception):
     pass
 
 
-SEMANTIC_EXPRESSION_PATTERN = r"[\w()?.-_]+"
-MOVE_PATTERN = rf"^Move\((?P<semantic_expression>{SEMANTIC_EXPRESSION_PATTERN}).*\)$"
-
-
 class InteractionTestingTestCase(unittest.TestCase):
     def __init__(self, test, environment_or_url):
         self._test = test
@@ -121,9 +117,7 @@ class InteractionTestingTestCase(unittest.TestCase):
 
     def _create_move(self, move):
         def is_semantic_expression(move):
-            if isinstance(move, str):
-                return re.match(f"^{SEMANTIC_EXPRESSION_PATTERN}$", move) is not None
-            return False
+            return isinstance(move, str)
 
         def is_move_object(move):
             return isinstance(move, dict)
