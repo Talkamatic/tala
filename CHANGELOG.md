@@ -9,13 +9,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - `tala test` now supports interaction tests with system output on a semantic level. Example: `S> ["icm:acc*pos", "ask(?X.a_question(X))"]`.
 - `tala test` now supports interaction tests with rich moves in semantic user input. In addition to the existing plain semantic expressions (`U> ["request(call)", "answer(contact_john)"]`), it now also supports JSON objects that include perception and understanding confidence. Example: `U> [{"semantic_expression": "request(call)", "understanding_confidence": 0.55, "perception_confidence": 0.79}]`.
 - `tala test` now supports interaction tests with interpretations as semantic user input: `U> {"moves": ["request(call)", "answer(contact_john)"], "utterance": "an utterance", "modality": "speech"}`, where the `"moves"` field can contain either plain semantic expression or the new JSON objects.
+- `tala.utils.tdm_client.TDMClient` has a new method `wait_to_start(timeout=3)`, which attempts to connect to TDM's `/health` endpoint up to `timeout` seconds. If it succeeds to connect, the method returns; otherwise it raises an exception.
 
 ### Changed
 - Semantic interactions, from both the user and system, in interaction tests used with `tala test` now need to comply with JSON. Most notably, this means that `"` need to be used for strings, whereas previously both `"` and `'` were accepted.
+- `tala test` now checks TDM connectivity before tests start. If a connection can not be established, it retries for up to 3 seconds before aborting.
 
 ### Fixed
 - A code injection loophole in interaction tests has been plugged.
 - `tala.utils.tdm_client.TDMClient` now raises a `requests.HTTPError` exception when the TDM pipeline responds with an unexpected HTTP status code.
+- `tala test` now properly prints its `Running tests from path/to/interaction_tests.txt` when the corresponding tests are about to start instead of in the beginning of the test session. The improvement can be noticed when running `tala test` on more than one test file at once.
 
 ## [6.0.0] - 2020-07-03
 ### Added

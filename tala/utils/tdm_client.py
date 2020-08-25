@@ -6,6 +6,7 @@ import requests
 from tala.model.input_hypothesis import InputHypothesis  # noqa: F401
 from tala.model.interpretation import Interpretation  # noqa: F401
 from tala.model.event_notification import EventNotification  # noqa: F401
+from tala.utils.await_endpoint import await_endpoint
 from tala.utils.observable import Observable
 from copy import copy
 
@@ -24,6 +25,10 @@ class TDMClient(Observable):
     def __init__(self, url: str) -> None:
         super(TDMClient, self).__init__()
         self._url = url
+
+    def wait_to_start(self, timeout=3):
+        url = self._url.replace("/interact", "/health")
+        await_endpoint(url, timeout)
 
     def request_text_input(self, session: str, utterance: str, session_data: Mapping = None) -> Mapping:
         def _create_text_input_request(session, utterance):
