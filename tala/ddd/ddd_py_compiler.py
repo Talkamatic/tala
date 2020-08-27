@@ -135,7 +135,6 @@ class DomainCompiler:
         self._compile_plan_single_attribute(plan, "dynamic_title")
         self._compile_plan_single_attribute(plan, "postplan", self._compile_plan)
         self._compile_plan_multi_attribute(plan, "superactions", self._compile_superaction)
-        self._compile_plan_multi_attribute(plan, "gui_context", self._compile_gui_context)
         self._compile_plan_multi_attribute(plan, "postconds", self._parse)
         self._compile_plan_single_attribute(plan, "io_status")
         self._compile_plan_single_attribute(plan, "restart_on_completion")
@@ -175,9 +174,6 @@ class DomainCompiler:
 
     def _compile_superaction(self, string):
         return Action(string, self._ontology.get_name())
-
-    def _compile_gui_context(self, predicate_name):
-        return self._ontology.get_predicate(predicate_name)
 
     def _select_plan_descriptor(self, key):
         value = self._plan_description[key]
@@ -333,7 +329,7 @@ class GrammarCompiler:
         self._ontology = ontology
         self._service_interface = service_interface
         module_dict = dict()
-        exec (string, module_dict)
+        exec(string, module_dict)
         return self._compile_entries_from_dict(module_dict)
 
     def _compile_entries_from_dict(self, module_dict):

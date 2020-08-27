@@ -9,9 +9,9 @@ from tala.model.interpretation import Interpretation, InterpretationWithoutUtter
 from tala.model.user_move import UserMove
 from tala.testing.interactions import testcase
 from tala.testing.interactions.named_test import InteractionTest
-from tala.testing.interactions.testcase import InteractionTestingTestCase, UnsupportedTurn
+from tala.testing.interactions.testcase import InteractionTestingTestCase
 from tala.testing.interactions.turn import RecognitionHypothesesTurn, UserInterpretationTurn, \
-    SystemUtteranceTurn, GuiOutputTurn, UserPassivityTurn, NotifyStartedTurn, SystemMovesTurn
+    SystemUtteranceTurn, UserPassivityTurn, NotifyStartedTurn, SystemMovesTurn
 from tala.utils.tdm_client import TDMRuntimeException
 
 
@@ -81,17 +81,6 @@ class TestInteractionTestingTestCase:
             "selected_interpretation": selected_interpretation,
             "expected_input": expected_input
         }
-
-    @patch(f"{testcase.__name__}.TDMClient", autospec=True)
-    def test_request_initial_system_output_if_test_has_initial_message_to_gui(self, MockTDMClient):
-        self.given_mock_tdm_client(MockTDMClient)
-        self.given_test_with_gui_output('<screen name="mock_screen_name" title="mock_screen_title" />')
-        self.given_tdm_client_response(utterance="hello")
-        self.given_testcase()
-        self.when_performing_test_then_exception_is_raised(
-            UnsupportedTurn, match="Expected one of the supported system output turns but got 'G>'"
-        )
-        self.then_starts_session()
 
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
     def test_request_initial_system_output_if_test_has_initial_user_utterance(self, MockTDMClient):
@@ -234,21 +223,6 @@ but got:
     def then_requests_passivity(self):
         self._mock_tdm_client.request_passivity.assert_called_with(ANY)
 
-    def given_test_with_gui_output_passivity_and_system_utterance(
-        self,
-        pattern,
-        line_number_of_gui_output=1,
-        line_number_of_passivity=2,
-        utterance_after_passivity="utterance after passivity",
-        line_number_of_utterance_after_passivity=3
-    ):
-        turns = [
-            GuiOutputTurn(pattern, line_number_of_gui_output),
-            UserPassivityTurn(line_number_of_passivity),
-            SystemUtteranceTurn(utterance_after_passivity, line_number_of_utterance_after_passivity)
-        ]
-        self.test = self._create_mock_test(turns)
-
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)
     def test_user_moves(self, MockTDMClient):
         self.given_mock_tdm_client(MockTDMClient)
@@ -266,10 +240,6 @@ but got:
 
     def given_test_with_user_interpretation(self, moves, line_number=1, utterance=None, modality=None):
         turn = UserInterpretationTurn(moves, line_number, modality, utterance)
-        self.test = self._create_mock_test([turn])
-
-    def given_test_with_gui_output(self, pattern, line_number=1):
-        turn = GuiOutputTurn(pattern, line_number)
         self.test = self._create_mock_test([turn])
 
     @patch(f"{testcase.__name__}.TDMClient", autospec=True)

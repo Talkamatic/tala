@@ -46,12 +46,6 @@ class InteractionTestingFile:
                     filtered_tests.append(test)
         return filtered_tests
 
-    def contain_message_to_gui(self):
-        return any([test for test in self.tests if self._contains_message_to_gui(test)])
-
-    def _contains_message_to_gui(self, test):
-        return any([turn for turn in test.turns if turn["type"] == "G>"])
-
     @staticmethod
     def _load_tests_from_file(path):
         with codecs.open(path, 'r', encoding='utf-8') as f:

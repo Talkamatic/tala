@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Removed
+- The `<goal>` element in `domain.xml` may no longer contain a `<gui_context>` element, since it's no longer supported by TDM.
+
 ## [7.0.0] - 2020-08-27
 ### Added
 - `tala endurancetest` has been added as a console command. It lets users run endurance tests towards DDDs deployed with the TDM pipeline.

@@ -369,16 +369,6 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
         self._when_compile_plan_with_attribute("io_status", "disabled")
         self._then_result_has_plan_with_attribute("io_status", Domain.DISABLED_IO_STATUS)
 
-    def test_gui_context(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_goal_with_content('<gui_context predicate="price" />')
-        self._then_result_has_plan_with_attribute("gui_context", [self._ontology.get_predicate("price")])
-
     def test_postplan(self):
         self._given_compiled_ontology()
         self._when_compile_goal_with_content('<postplan><forget_all/></postplan>')

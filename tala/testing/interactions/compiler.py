@@ -3,7 +3,7 @@ import json
 
 from tala.testing.interactions.named_test import InteractionTest
 from tala.testing.interactions.turn import UserPassivityTurn, UserInterpretationTurn, SystemUtteranceTurn, \
-    RecognitionHypothesesTurn, NotifyStartedTurn, GuiOutputTurn, SystemMovesTurn
+    RecognitionHypothesesTurn, NotifyStartedTurn, SystemMovesTurn
 from tala.model.event_notification import EventNotification
 
 
@@ -12,7 +12,7 @@ class ParseException(Exception):
 
 
 class InteractionTestCompiler(object):
-    VALID_TURN_TYPES = ["U>", "S>", "G>", "Event>"]
+    VALID_TURN_TYPES = ["U>", "S>", "Event>"]
 
     _turn_matcher = re.compile('^(%s) ?(.*)$' % "|".join(VALID_TURN_TYPES), re.MULTILINE | re.DOTALL)
     _moves_matcher = re.compile(r'([\[{].*[\]}])$')
@@ -106,8 +106,6 @@ class InteractionTestCompiler(object):
             return self._parse_user_input_turn(turn_content_as_string)
         elif type_string == "S>":
             return self._parse_system_output_turn(turn_content_as_string)
-        elif type_string == "G>":
-            return self._parse_gui_output_turn(turn_content_as_string)
         elif type_string == "Event>":
             return self._parse_event_turn(turn_content_as_string)
         else:
@@ -130,9 +128,6 @@ class InteractionTestCompiler(object):
             moves, utterance, modality = self._parse_moves_content_string(turn_content_as_string)
             return SystemMovesTurn(moves, self._line_number)
         return SystemUtteranceTurn(turn_content_as_string, self._line_number)
-
-    def _parse_gui_output_turn(self, content_as_string):
-        return GuiOutputTurn(content_as_string, self._line_number)
 
     def _get_hypothesis_list(self, string):
         strings = self._hypothesis_split_re.split(string)

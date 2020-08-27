@@ -27,7 +27,6 @@
             <xs:element name="postcond" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="downdate_condition" type="condition" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="postplan" type="plan" minOccurs="0" maxOccurs="1"/>
-            <xs:element ref="gui_context" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="proposition" type="proposition" minOccurs="0" maxOccurs="1"/>
             <xs:element name="preferred" type="proposition" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="superaction" minOccurs="0" maxOccurs="unbounded"/>
@@ -258,12 +257,6 @@
   <xs:element name="perform">
     <xs:complexType>
       <xs:attribute name="action" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="gui_context">
-    <xs:complexType>
-      <xs:attribute name="predicate" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 

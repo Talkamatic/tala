@@ -105,10 +105,6 @@ class SystemOutputTurn(Turn):
     def is_system_moves_turn(self):
         return False
 
-    @property
-    def is_gui_output_turn(self):
-        return False
-
 
 class SystemUtteranceTurn(SystemOutputTurn):
     def __init__(self, utterance, line_number):
@@ -147,23 +143,6 @@ class SystemMovesTurn(SystemOutputTurn):
     @property
     def moves(self):
         return self._moves
-
-
-class GuiOutputTurn(SystemOutputTurn):
-    def __init__(self, pattern, line_number):
-        super(SystemOutputTurn, self).__init__(line_number)
-        self._pattern = pattern
-
-    @property
-    def is_gui_output_turn(self):
-        return True
-
-    @property
-    def pattern(self):
-        return self._pattern
-
-    def __str__(self):
-        return "G>"
 
 
 class EventTurn(Turn):

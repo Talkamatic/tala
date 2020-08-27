@@ -217,9 +217,6 @@ class Domain(AsJSONMixin):
         else:
             return []
 
-    def get_gui_context(self, goal):
-        return self.get_goal_attribute(goal, 'gui_context')
-
     def restart_on_completion(self, goal):
         return self.get_goal_attribute(goal, 'restart_on_completion')
 

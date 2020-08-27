@@ -135,7 +135,6 @@ class DomainConverter(PyToXmlConverter):
         self._convert_postconds(element, self._ddd.domain.get_postconds(goal))
         if self._ddd.domain.get_postplan(goal):
             self._convert_plan(element, "postplan", self._ddd.domain.get_postplan(goal))
-        self._convert_gui_context(goal, element)
         self._convert_superactions(goal, element)
         self._root.append(element)
 
@@ -403,13 +402,6 @@ class DomainConverter(PyToXmlConverter):
             element = self._create_element(parameter)
             self._set_question_attributes(element, question)
             parent.append(element)
-
-    def _convert_gui_context(self, goal, goal_element):
-        gui_context = self._ddd.domain.get_gui_context(goal)
-        for item in gui_context:
-            predicate = item.get_name()
-            element = self._create_element("gui_context", predicate=predicate)
-            goal_element.append(element)
 
     def _convert_superactions(self, goal, goal_element):
         for superaction in self._ddd.domain.get_superactions(goal):

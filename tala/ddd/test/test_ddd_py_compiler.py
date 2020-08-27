@@ -143,8 +143,7 @@ class TestOntologyCompiler(DddPyCompilerTestCase):
             }
         )
         self._then_result_has_field(
-            "predicates",
-            {
+            "predicates", {
                 self._predicate("dest_city", sort=CustomSort(self._ontology_name, "city")),
                 self._predicate(
                     "dest_city_type", sort=CustomSort(self._ontology_name, "city"), feature_of_name="dest_city"
@@ -240,11 +239,6 @@ class TestPlanCompilation(DddPyCompilerTestCase):
         self._given_compiled_ontology()
         self._when_compile_plan_with_attribute("restart_on_completion", True)
         self._then_result_has_plan_with_attribute("restart_on_completion", True)
-
-    def test_gui_context(self):
-        self._given_compiled_ontology(predicates={"price": "real"})
-        self._when_compile_plan_with_attribute("gui_context", ["price"])
-        self._then_result_has_plan_with_attribute("gui_context", [self._ontology.get_predicate("price")])
 
     def test_postplan(self):
         self._given_compiled_ontology()

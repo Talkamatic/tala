@@ -153,59 +153,42 @@ class DomainTests(LibTestCase):
                 FindoutPlanItem(self.domain_name, self.dest_city_question),
                 FindoutPlanItem(self.domain_name, self.dept_city_question),
             ]),
-            "gui_context": [
-                self.predicate_dest_city,
-                self.predicate_dept_city,
-            ]
-        },
-                {
-                    "goal": PerformGoal(self.buy_action),
-                    "plan": Plan([FindoutPlanItem(self.domain_name, self.price_question)]),
-                    "postconds": [self.condition]
-                },
-                {
-                    "goal": PerformGoal(self.always_preferred_action),
-                    "preferred": True,
-                    "plan": Plan([]),
-                    "postplan": [FindoutPlanItem(self.domain_name, self.price_question)],
-                    "superactions": [self.buy_action]
-                },
-                {
-                    "goal": PerformGoal(self.conditionally_preferred_action),
-                    "preferred": self.condition,
-                    "plan": Plan([])
-                },
-                {
-                    "goal": PerformGoal(self.with_context_action),
-                    "plan": Plan([]),
-                    "gui_context": [self.predicate_dest_city]
-                },
-                {
-                    "goal": PerformGoal(self.with_dynamic_title_action),
-                    "plan": Plan([]),
-                    "dynamic_title": True,
-                    "gui_context": [self.predicate_dest_city]
-                },
-                {
-                    "goal": PerformGoal(self.accommodate_unrestricted_action),
-                    "plan": Plan([]),
-                    "unrestricted_accommodation": True,
-                },
-                {
-                    "goal":
-                    PerformGoal(self.downdate_plan_true_action),
-                    "plan":
-                    Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=True)]),
-                },
-                {
-                    "goal":
-                    PerformGoal(self.downdate_plan_false_action),
-                    "plan":
-                    Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=False)]),
-                }, {
-                    "goal": HandleGoal("mockup_ontology", "event"),
-                    "plan": Plan([]),
-                }]
+        }, {
+            "goal": PerformGoal(self.buy_action),
+            "plan": Plan([FindoutPlanItem(self.domain_name, self.price_question)]),
+            "postconds": [self.condition]
+        }, {
+            "goal": PerformGoal(self.always_preferred_action),
+            "preferred": True,
+            "plan": Plan([]),
+            "postplan": [FindoutPlanItem(self.domain_name, self.price_question)],
+            "superactions": [self.buy_action]
+        }, {
+            "goal": PerformGoal(self.conditionally_preferred_action),
+            "preferred": self.condition,
+            "plan": Plan([])
+        }, {
+            "goal": PerformGoal(self.with_dynamic_title_action),
+            "plan": Plan([]),
+            "dynamic_title": True,
+        }, {
+            "goal": PerformGoal(self.accommodate_unrestricted_action),
+            "plan": Plan([]),
+            "unrestricted_accommodation": True,
+        }, {
+            "goal":
+            PerformGoal(self.downdate_plan_true_action),
+            "plan":
+            Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=True)]),
+        }, {
+            "goal":
+            PerformGoal(self.downdate_plan_false_action),
+            "plan":
+            Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=False)]),
+        }, {
+            "goal": HandleGoal("mockup_ontology", "event"),
+            "plan": Plan([]),
+        }]
 
     def test_top_and_up_goals_added_implicitly_by_domain(self):
         self.given_custom_goals_without_top_and_up()
@@ -314,7 +297,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
-            PerformGoal(self.with_context_action),
             PerformGoal(self.up_action),
             PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
@@ -332,7 +314,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
-            PerformGoal(self.with_context_action),
             PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.downdate_plan_true_action),
@@ -354,7 +335,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
-            PerformGoal(self.with_context_action),
             PerformGoal(self.up_action),
             PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
@@ -368,17 +348,22 @@ class DomainTests(LibTestCase):
 
     def test_get_downdate_conditions_for_goal_with_downdate_condition(self):
         action_with_downdate_conditions = self.buy_action
-        self.assertEqual([self.condition], list(self.domain.get_downdate_conditions(PerformGoal(action_with_downdate_conditions))))
+        self.assertEqual([self.condition],
+                         list(self.domain.get_downdate_conditions(PerformGoal(action_with_downdate_conditions))))
 
     def test_get_downdate_conditions_for_goal_without_downdate_conditions(self):
         action_without_downdate_condition = self.always_preferred_action
         self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(action_without_downdate_condition))))
 
-    def test_get_downdate_conditions_returns_implicit_downdate_conditions_for_service_action_invocations_if_downdate_plan_is_true(self):
+    def test_get_downdate_conditions_returns_implicit_downdate_conditions_for_service_action_invocations_if_downdate_plan_is_true(
+        self
+    ):
         self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "mock_service_action")],
                          list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_true_action))))
 
-    def test_get_downdate_conditions_doesnt_return_implicit_downdate_conditions_for_service_action_invocations_if_not_downdating_plan(self):
+    def test_get_downdate_conditions_doesnt_return_implicit_downdate_conditions_for_service_action_invocations_if_not_downdating_plan(
+        self
+    ):
         self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_false_action))))
 
     def test_get_downdate_conditions_considers_downdate_plan_property_for_handle_goals(self):
@@ -436,24 +421,8 @@ class DomainTests(LibTestCase):
 
         self.domain.is_depending_on(non_sortal_question, non_sortal_question)
 
-    def test_get_gui_context_for_issue_goal_with_context(self):
-        expected_result = [self.predicate_dest_city, self.predicate_dept_city]
-        self.assertEqual(expected_result, self.domain.get_gui_context(ResolveGoal(self.price_question, Speaker.SYS)))
-
     def test_goal_with_dynamic_title_has_dynamic_title(self):
         self.assertTrue(self.domain.has_dynamic_title(PerformGoal(self.with_dynamic_title_action)))
-
-    def test_goal_without_dynamic_title_has_no_dynamic_title(self):
-        self.assertFalse(self.domain.has_dynamic_title(PerformGoal(self.with_context_action)))
-
-    def test_get_gui_context_for_action_goal_with_context(self):
-        expected_result = [self.predicate_dest_city]
-        self.assertEqual(expected_result, self.domain.get_gui_context(PerformGoal(self.with_context_action)))
-
-    def test_get_gui_context_for_goal_without_context(self):
-        expected_result = []
-        goal_without_context = self.buy_action
-        self.assertEqual(expected_result, self.domain.get_gui_context(PerformGoal(goal_without_context)))
 
     def test_get_resolving_answers(self):
         question = self.dest_city_question
@@ -564,20 +533,19 @@ class DominatesTests(LibTestCase):
                     GoalProposition(ResolveGoal(self.dominated_issue, Speaker.SYS))
                 ])
             ]
-        },
-                 {
-                     "goal": PerformGoal(self.dominated_action),
-                     "plan": [self._findout_with_alts([GoalProposition(PerformGoal(self.super_dominated_action))])]
-                 }, {
-                     "goal": PerformGoal(self.super_dominated_action),
-                     "plan": []
-                 }, {
-                     "goal": ResolveGoal(self.dominated_issue, Speaker.SYS),
-                     "plan": []
-                 }, {
-                     "goal": PerformGoal(self.non_dominated_action),
-                     "plan": []
-                 }]
+        }, {
+            "goal": PerformGoal(self.dominated_action),
+            "plan": [self._findout_with_alts([GoalProposition(PerformGoal(self.super_dominated_action))])]
+        }, {
+            "goal": PerformGoal(self.super_dominated_action),
+            "plan": []
+        }, {
+            "goal": ResolveGoal(self.dominated_issue, Speaker.SYS),
+            "plan": []
+        }, {
+            "goal": PerformGoal(self.non_dominated_action),
+            "plan": []
+        }]
 
         self.domain = Domain(self.DDD_NAME, self.domain_name, self.ontology, plans=plans)
 

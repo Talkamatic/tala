@@ -285,9 +285,6 @@ class DomainCompiler(XmlCompiler):
             plan["alternatives_predicate"] = element.getAttribute("alternatives_predicate")
         self._compile_plan(plan, element, "postplan")
         self._compile_plan_element_with_multiple_children(
-            plan, element, "gui_context", "gui_context", self._compile_gui_context
-        )
-        self._compile_plan_element_with_multiple_children(
             plan, element, "postconds", "downdate_condition", self._compile_downdate_condition
         )
         self._compile_plan_element_with_multiple_children(
@@ -371,9 +368,7 @@ class DomainCompiler(XmlCompiler):
         elif element.localName == "get_done":
             return self._compile_get_done_element(element)
         elif element.localName == "dev_perform":
-            warnings.warn(
-                "<dev_perform> is deprecated. Use <invoke_service_action> instead.",
-                DeprecationWarning)
+            warnings.warn("<dev_perform> is deprecated. Use <invoke_service_action> instead.", DeprecationWarning)
             return self._compile_deprecated_dev_perform_element(element)
         elif element.localName == "jumpto":
             return self._compile_jumpto_element(element)
@@ -428,8 +423,7 @@ class DomainCompiler(XmlCompiler):
         return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
 
     def _compile_deprecated_dev_query_element(self, element):
-        warnings.warn(
-            '<dev_query> is deprecated. Use <invoke_service_query> instead.', DeprecationWarning)
+        warnings.warn('<dev_query> is deprecated. Use <invoke_service_query> instead.', DeprecationWarning)
         question = self._compile_question(element)
         self._check_deprecation_of_device(question, element, "dev_query")
         return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
@@ -532,8 +526,7 @@ class DomainCompiler(XmlCompiler):
         return PredicateProposition(predicate, individual)
 
     def _compile_deprecated_postconds(self, element):
-        warnings.warn("<postcond> is deprecated. Use <downdate_condition> instead.",
-                      DeprecationWarning)
+        warnings.warn("<postcond> is deprecated. Use <downdate_condition> instead.", DeprecationWarning)
         return self._compile_proposition_child_of(element)
 
     def _compile_downdate_condition(self, element):
@@ -603,9 +596,6 @@ class DomainCompiler(XmlCompiler):
             raise DddXmlCompilerException("Expected at most one child for %s, found %s." % (element, child_nodes))
         elif len(child_nodes) == 1:
             plan[attribute_name] = compilation_method(child_nodes[0])
-
-    def _compile_gui_context(self, node):
-        return self._ontology.get_predicate(node.getAttribute("predicate"))
 
     def _compile_superaction(self, node):
         return self._ontology.create_action(node.getAttribute("name"))
@@ -694,15 +684,10 @@ class DomainCompiler(XmlCompiler):
         if len(child_nodes) > 0:
             result[parameter_name] = [self._compile_predicate(node) for node in child_nodes]
 
-    def _compile_ask_feature_parameter(self,
-                                       parent,
-                                       element_name,
-                                       parameter_name, result):
+    def _compile_ask_feature_parameter(self, parent, element_name, parameter_name, result):
         child_nodes = self._find_child_nodes(parent, element_name)
         if len(child_nodes) > 0:
-            result[parameter_name] = [
-                self._compile_ask_feature_node(node)
-                for node in child_nodes]
+            result[parameter_name] = [self._compile_ask_feature_node(node) for node in child_nodes]
 
     def _compile_ask_feature_node(self, node):
         predicate_name = self._get_mandatory_attribute(node, "predicate")

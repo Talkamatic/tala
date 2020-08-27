@@ -20,11 +20,8 @@ class FileParsingTest(unittest.TestCase):
         self.assertEqual(True, InteractionTestCompiler._is_turn("U> ['answer(yes)']"))
         self.assertEqual(True, InteractionTestCompiler._is_turn("U> hello there $CHECK"))
         self.assertEqual(True, InteractionTestCompiler._is_turn("S> hello there"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("G> <sdfkjsdf>"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("G> <a>\n<b>\n</a>"))
         self.assertEqual(False, InteractionTestCompiler._is_turn(""))
         self.assertEqual(False, InteractionTestCompiler._is_turn("sdflkjsdf"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("G> "))
 
 
 class CompilationTests(unittest.TestCase):
@@ -292,47 +289,6 @@ U> first hypothesis 0.6 | second hypothesis 0.5
 """)
         self.then_result_has_recognition_hypotheses_turn_with_properties([("first hypothesis", "0.6"),
                                                                           ("second hypothesis", "0.5")], 2)
-
-    def test_gui_output_single_line(self):
-        self.when_compile("""\
---- mock name
-G> <single_line_xml />
-""")
-        self.then_result_has_gui_output_turn_with_properties("<single_line_xml />", 2)
-
-    def then_result_has_gui_output_turn_with_properties(self, expected_pattern, expected_line_number):
-        actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_gui_output_turn)
-        self.assertEqual(expected_pattern, actual_turn.pattern)
-        self.assertEqual(expected_line_number, actual_turn.line_number)
-
-    def test_gui_output_multiple_lines(self):
-        self.when_compile("""\
---- mock name
-G> <multi_line_xml>\\
-<some_content />\\
-</multi_line_xml>
-""")
-        self.then_result_has_gui_output_turn_with_properties("<multi_line_xml>\n<some_content />\n</multi_line_xml>", 4)
-
-    def test_gui_output_with_line_comment(self):
-        self.when_compile(
-            """\
---- mock name
-G> <multi_line_xml>\\
-#<commented_line />\\
-<some_content />\\
-</multi_line_xml>
-"""
-        )
-        self.then_result_has_gui_output_turn_with_properties("<multi_line_xml>\n<some_content />\n</multi_line_xml>", 5)
-
-    def test_empty_gui_output(self):
-        self.when_compile("""\
---- mock name
-G>
-""")
-        self.then_result_has_gui_output_turn_with_properties("", 2)
 
     def test_notify_started(self):
         self.when_compile(
