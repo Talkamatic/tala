@@ -289,6 +289,7 @@ class ICMMove(Move):
     ACCOMMODATE = "accommodate"
     LOADPLAN = "loadplan"
     RESUME = "resume"
+    REPORT_INFERENCE = "report_inference"
 
     INT = "int"
     POS = "pos"
