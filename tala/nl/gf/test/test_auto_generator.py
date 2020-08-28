@@ -566,25 +566,6 @@ class TestPredicate(AutoGeneratorTestCase):
         self.assert_natural_language_contains_linearization('price = ss (("price information"));')
 
 
-class TestTitle(AutoGeneratorTestCase):
-    def test_issue_title(self):
-        self.given_grammar([
-            Node(Constants.ISSUE_TITLE, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["Price Information"])])
-        ])
-        self.when_generating()
-        self.assert_abstract_contains_function('price_title : SysTitle;')
-        self.assert_semantic_contains_linearization('price_title = issueTitle price;')
-        self.assert_natural_language_contains_linearization('price_title = ss "Price Information";')
-
-    def test_action_title(self):
-        self.given_compulsory_grammar_for_app()
-        self.given_grammar([Node(Constants.ACTION_TITLE, {"action": "top"}, [Node(Constants.ITEM, {}, ["Main Menu"])])])
-        self.when_generating()
-        self.assert_abstract_contains_function('top_title : SysTitle;')
-        self.assert_semantic_contains_linearization('top_title = actionTitle (pp "top");')
-        self.assert_natural_language_contains_linearization('top_title = ss "Main Menu";')
-
-
 class test_parameterized_sys_form_answer(AutoGeneratorTestCase):
     def test_in_middle(self):
         self.given_form(

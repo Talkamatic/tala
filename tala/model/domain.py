@@ -220,9 +220,6 @@ class Domain(AsJSONMixin):
     def restart_on_completion(self, goal):
         return self.get_goal_attribute(goal, 'restart_on_completion')
 
-    def has_dynamic_title(self, goal):
-        return self.get_goal_attribute(goal, 'dynamic_title')
-
     def get_reraise_on_resume(self, goal):
         reraise_on_resume = self.get_goal_attribute(goal, "reraise_on_resume")
         if reraise_on_resume == []:

@@ -121,8 +121,6 @@ class DomainConverter(PyToXmlConverter):
     def _convert_goal(self, goal):
         element = self._create_element("goal")
         self._set_goal_attributes(element, goal)
-        if self._ddd.domain.has_dynamic_title(goal):
-            self._set_attributes(element, dynamic_title="true")
         if self._ddd.domain.goal_allows_accommodation_without_feedback(goal):
             self._set_attributes(element, accommodate_without_feedback="true")
         if self._ddd.domain.restart_on_completion(goal):
@@ -438,8 +436,6 @@ class GrammarConverter(PyToXmlConverter):
             Constants.PRECONFIRM: self._convert_preconfirm_node,
             Constants.SLOT: self._convert_slot_node,
             Constants.NP: self._convert_np_node,
-            Constants.ACTION_TITLE: self._convert_action_title_node,
-            Constants.ISSUE_TITLE: self._convert_issue_title_node,
             Constants.SYS_QUESTION: self._convert_sys_question_node,
             Constants.USER_QUESTION: self._convert_user_question_node,
             Constants.INDIVIDUAL: self._convert_individual,
@@ -564,14 +560,6 @@ class GrammarConverter(PyToXmlConverter):
     def _convert_np_node(self, node, parent):
         self._write('\n')
         self._write_element(node, 2)
-
-    def _convert_action_title_node(self, node, parent):
-        attributes = {"type": "action", "action": node.parameters["action"]}
-        self._write_element(node, 1, attributes, "title")
-
-    def _convert_issue_title_node(self, node, parent):
-        attributes = {"type": "question", "predicate": node.parameters["predicate"]}
-        self._write_element(node, 1, attributes, "title")
 
     def _convert_sys_question_node(self, node, parent):
         attributes = {"type": "wh_question", "predicate": node.parameters["predicate"], "speaker": "system"}

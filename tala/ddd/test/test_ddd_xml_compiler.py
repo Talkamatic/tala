@@ -349,11 +349,6 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
         self._when_compile_plan_with_attribute("accommodate_without_feedback", "true")
         self._then_result_has_plan_with_attribute("accommodate_without_feedback", True)
 
-    def test_dynamic_title(self):
-        self._given_compiled_ontology()
-        self._when_compile_plan_with_attribute("dynamic_title", "true")
-        self._then_result_has_plan_with_attribute("dynamic_title", True)
-
     def test_restart_on_completion(self):
         self._given_compiled_ontology()
         self._when_compile_plan_with_attribute("restart_on_completion", "true")
@@ -720,18 +715,12 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
         self._when_compile_domain(
             """
 <domain name="Domain">
-  <parameters question_type="wh_question" predicate="product_to_add">
-    <label_question type="wh_question" predicate="product_tag"/>
-    <label_question type="wh_question" predicate="product_title"/>
-  </parameters>
+  <parameters question_type="wh_question" predicate="product_to_add"/>
 </domain>"""
         )
 
         self._then_result_has_field(
-            "parameters", {
-                self._parse("?X.product_to_add(X)"):
-                self._parser.parse_parameters("{label_questions=[?X.product_tag(X), ?X.product_title(X)]}")
-            }
+            "parameters", {self._parse("?X.product_to_add(X)"): self._parser.parse_parameters("{}")}
         )
 
     def test_background_for_wh_question(self):
@@ -1909,33 +1898,6 @@ class TestGrammarCompiler(DddXmlCompilerTestCase):
                 Constants.NEGATIVE_SYS_ANSWER, {"predicate": "qualified"},
                 [Node(Constants.ITEM, {}, ["you are not qualified"])]
             )
-        ])
-
-    def test_action_title(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar("""
-<grammar>
-  <title type="action" action="top">main menu</title>
-</grammar>""")
-        self._then_grammar_is([
-            Node(Constants.ACTION_TITLE, {"action": "top"}, [Node(Constants.ITEM, {}, ["main menu"])])
-        ])
-
-    def test_issue_title(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <title type="question" predicate="price">price information</title>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(Constants.ISSUE_TITLE, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
         ])
 
     def test_validity(self):

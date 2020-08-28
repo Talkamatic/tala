@@ -240,7 +240,6 @@ class AutoGenerator(object):
             self._generate_potential_user_question(predicate)
             self._generate_system_answer_content(predicate)
             self._generate_user_answer_content(predicate)
-            self._generate_potential_issue_title(predicate_name)
         if self._is_unknown_category_needed():
             self._generate_unknown_type()
 
@@ -256,7 +255,6 @@ class AutoGenerator(object):
     def _generate_action(self, action):
         try:
             self._generate_action_content(action)
-            self._generate_potential_action_title(action)
         except MissingEntry:
             self._missing_entry(self._missing_action, action)
 
@@ -345,25 +343,6 @@ class AutoGenerator(object):
         except MissingEntry:
             self._missing_entry(self._missing_individual, individual)
 
-    def _generate_potential_action_title(self, action):
-        form = self._get_form(Node(Constants.ACTION_TITLE, {"action": action}), optional=True)
-        if form:
-            self._generate_action_title_content(action, form)
-
-    def _generate_action_title_content(self, action, form):
-        self._write_gf(
-            function_name="%s_title" % action,
-            category="SysTitle",
-            arguments=[],
-            semantic='actionTitle (pp "%s")' % action,
-            natural_language='ss "%s"' % self._form_to_gf_string(form)
-        )
-
-    def _generate_potential_issue_title(self, predicate):
-        form = self._get_form(Node(Constants.ISSUE_TITLE, {"predicate": predicate}), optional=True)
-        if form:
-            self._generate_issue_title_content(predicate, form)
-
     def _add_function_for_unknown_category(self):
         self._abstract_gf_content.write("mkUnknown : String -> Unknown;\n")
         self._abstract_gf_content.write("unknown_string : Unknown -> Sort_string;\n")
@@ -375,11 +354,6 @@ class AutoGenerator(object):
     def _add_nl_linearization_for_unknown_category(self):
         self._natural_language_gf_content.write("""unknown_string unknown = unknown;\n""")
         self._natural_language_gf_content.write("""mkUnknown string = string;\n""")
-
-    def _generate_issue_title_content(self, predicate, form):
-        self._abstract_gf_content.write("%s_title : SysTitle;\n" % predicate)
-        self._semantic_gf_content.write('%s_title = issueTitle %s;\n' % (predicate, predicate))
-        self._natural_language_gf_content.write('%s_title = ss "%s";\n' % (predicate, self._form_to_gf_string(form)))
 
     def _add_content_based_on_service_interface(self):
         for action_interface in self._ddd.service_interface.actions:
@@ -1200,8 +1174,8 @@ class AutoGenerator(object):
 
     def _get_np_action_category(self, grammatical_features):
         return "NpAction%s%s" % (
-            self._get_category_number_substring(grammatical_features["number"]),
-            self._get_category_gender_substring(grammatical_features["gender"])
+            self._get_category_number_substring(grammatical_features["number"]
+                                                ), self._get_category_gender_substring(grammatical_features["gender"])
         )
 
     def _get_category_gender_substring(self, gender):
@@ -1235,8 +1209,8 @@ class AutoGenerator(object):
             return 'mkverb "%s" "%s" "%s" "%s"' % (
                 self._form_to_gf_string(form.get_child(Constants.INFINITIVE).get_single_child()),
                 self._form_to_gf_string(form.get_child(Constants.IMPERATIVE).get_single_child()),
-                self._form_to_gf_string(form.get_child(Constants.ING_FORM).get_single_child()),
-                self._form_to_gf_string(form.get_child(Constants.OBJECT).get_single_child())
+                self._form_to_gf_string(form.get_child(Constants.ING_FORM).get_single_child()
+                                        ), self._form_to_gf_string(form.get_child(Constants.OBJECT).get_single_child())
             )
         else:
             gf_string = self._form_to_gf_string(form)

@@ -6,8 +6,6 @@ class Constants:
     PREDICATE = "predicate"
     USER_QUESTION = "user-question"
     SYS_QUESTION = "sys-question"
-    ISSUE_TITLE = "issue-title"
-    ACTION_TITLE = "action-title"
     ANSWER_COMBINATION = "answer-combination"
     REPORT_ENDED = "report-ended"
     REPORT_STARTED = "report-started"

@@ -132,7 +132,6 @@ class DomainCompiler:
         plan["plan"] = self._compile_plan(self._select_plan_descriptor("plan"))
         self._compile_plan_single_attribute(plan, "preferred", self._parse_boolean)
         self._compile_plan_single_attribute(plan, "accommodate_without_feedback", self._parse_boolean)
-        self._compile_plan_single_attribute(plan, "dynamic_title")
         self._compile_plan_single_attribute(plan, "postplan", self._compile_plan)
         self._compile_plan_multi_attribute(plan, "superactions", self._compile_superaction)
         self._compile_plan_multi_attribute(plan, "postconds", self._parse)
@@ -264,12 +263,10 @@ class KeyParser:
 
 class GrammarCompiler:
     PARAMETER_MAP = {
-        Constants.ACTION_TITLE: ("action", ),
         Constants.ACTION: ("name", ),
         Constants.SYS_ANSWER: ("predicate", ),
         Constants.USER_QUESTION: ("predicate", ),
         Constants.INDIVIDUAL: ("name", ),
-        Constants.ISSUE_TITLE: ("predicate", ),
         Constants.VALIDITY: ("name", ),
         Constants.SYS_QUESTION: ("predicate", ),
         Constants.REPORT_STARTED: ("action", ),
@@ -298,8 +295,6 @@ class GrammarCompiler:
         self._add_key_parser(Constants.SYS_ANSWER, "$_sys_answer", self._is_predicate)
         self._add_key_parser(Constants.POSITIVE_SYS_ANSWER, "$_positive_sys_answer", self._is_predicate)
         self._add_key_parser(Constants.NEGATIVE_SYS_ANSWER, "$_negative_sys_answer", self._is_predicate)
-        self._add_key_parser(Constants.ACTION_TITLE, "$_title", self._is_action)
-        self._add_key_parser(Constants.ISSUE_TITLE, "$_title", self._is_predicate)
         self._add_key_parser(Constants.VALIDITY, "$", self._is_validity)
         self._add_key_parser(Constants.GREETING, "greeting")
 

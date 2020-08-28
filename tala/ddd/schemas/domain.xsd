@@ -31,7 +31,6 @@
             <xs:element name="preferred" type="proposition" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="superaction" minOccurs="0" maxOccurs="unbounded"/>
           </xs:choice>
-          <xs:attribute name="dynamic_title" type="xs:boolean"/>
           <xs:attribute name="accommodate_without_feedback" type="xs:boolean"/>
           <xs:attribute name="io_status" type="io_status_type"/>
           <xs:attribute name="reraise_on_resume" type="xs:boolean"/>
@@ -281,7 +280,6 @@
             <xs:element name="resolve" type="has_question" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="perform" minOccurs="0" maxOccurs="1"/>
             <xs:element name="related_information" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="label_question" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="default" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:complexContent>

@@ -230,11 +230,6 @@ class TestPlanCompilation(DddPyCompilerTestCase):
         self._when_compile_plan_with_attribute("accommodate_without_feedback", True)
         self._then_result_has_plan_with_attribute("accommodate_without_feedback", True)
 
-    def test_dynamic_title(self):
-        self._given_compiled_ontology()
-        self._when_compile_plan_with_attribute("dynamic_title", True)
-        self._then_result_has_plan_with_attribute("dynamic_title", True)
-
     def test_restart_on_completion(self):
         self._given_compiled_ontology()
         self._when_compile_plan_with_attribute("restart_on_completion", True)
@@ -776,25 +771,6 @@ top = [NP("start view", "the start view"), "main menu"]
                 [Node(Constants.ITEM, {}, ["you are not qualified"])]
             )
         ])
-
-    def test_action_title(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar('top_title = "main menu"')
-        self._then_grammar_is([
-            Node(Constants.ACTION_TITLE, {"action": "top"}, [Node(Constants.ITEM, {}, ["main menu"])])
-        ])
-
-    def test_issue_title(self):
-        self._given_compiled_ontology(predicates={"price": "real"})
-        self._when_compile_grammar('price_title = "price information"')
-        self._then_grammar_is([
-            Node(Constants.ISSUE_TITLE, {"predicate": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
-        ])
-
-    def test_warning_for_invalid_title_key(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar('somethinginvalid_title = "foo"')
-        self._then_warning("failed to parse grammar entry key 'somethinginvalid_title'")
 
     def test_validity(self):
         self._given_compiled_ontology(predicates={"dest_city": "city"}, sorts={"city": {}})

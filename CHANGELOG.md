@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Removed
-- The `<goal>` element in `domain.xml` may no longer contain a `<gui_context>` element, since it's no longer supported by TDM.
+- Managing a GUI is no longer part of TDM's responsibilities and as a consequence several such constructs have been removed from DDD files. They include `<gui_context>` and `<label_question>` elements as well as `dynamic_title` attributes in `domain.xml`, and `<title>` elements in `grammar_x.xml`.
 
 ## [7.0.0] - 2020-08-27
 ### Added

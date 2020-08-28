@@ -54,7 +54,6 @@ class DomainTests(LibTestCase):
             "conditionally_preferred",
             "planless",
             "with_context",
-            "with_dynamic_title",
             "accommodate_unrestricted",
             "downdate_plan_true",
             "downdate_plan_false",
@@ -167,10 +166,6 @@ class DomainTests(LibTestCase):
             "goal": PerformGoal(self.conditionally_preferred_action),
             "preferred": self.condition,
             "plan": Plan([])
-        }, {
-            "goal": PerformGoal(self.with_dynamic_title_action),
-            "plan": Plan([]),
-            "dynamic_title": True,
         }, {
             "goal": PerformGoal(self.accommodate_unrestricted_action),
             "plan": Plan([]),
@@ -298,7 +293,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
             PerformGoal(self.up_action),
-            PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.top_action),
             PerformGoal(self.downdate_plan_true_action),
@@ -314,7 +308,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
-            PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
@@ -336,7 +329,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
             PerformGoal(self.up_action),
-            PerformGoal(self.with_dynamic_title_action),
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.top_action),
             PerformGoal(self.downdate_plan_true_action),
@@ -420,9 +412,6 @@ class DomainTests(LibTestCase):
         non_sortal_question = AltQuestion(city_prop_set)
 
         self.domain.is_depending_on(non_sortal_question, non_sortal_question)
-
-    def test_goal_with_dynamic_title_has_dynamic_title(self):
-        self.assertTrue(self.domain.has_dynamic_title(PerformGoal(self.with_dynamic_title_action)))
 
     def test_get_resolving_answers(self):
         question = self.dest_city_question

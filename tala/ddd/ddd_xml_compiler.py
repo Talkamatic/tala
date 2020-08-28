@@ -275,7 +275,6 @@ class DomainCompiler(XmlCompiler):
         self._compile_plan(plan, element, "plan", default=Plan([]))
         self._compile_plan_element_with_one_child(plan, element, "preferred", "preferred", self._compile_preferred)
         self._compile_plan_single_attribute(plan, element, "accommodate_without_feedback", self._parse_boolean)
-        self._compile_plan_single_attribute(plan, element, "dynamic_title", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "restart_on_completion", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "reraise_on_resume", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "io_status", self._parse_io_status)
@@ -830,8 +829,6 @@ class GrammarCompiler(XmlCompiler):
         elif element.localName == "string":
             predicate = element.getAttribute("predicate")
             return Constants.STRING, {"predicate": predicate}
-        elif element.localName == "title":
-            return self._compile_title_key(element)
         elif element.localName == "validity":
             name = element.getAttribute("name")
             return Constants.VALIDITY, {"name": name}
@@ -912,17 +909,6 @@ class GrammarCompiler(XmlCompiler):
             return Constants.REPORT_FAILED, {"action": action, "reason": reason}
         else:
             raise DddXmlCompilerException("unexpected report status %r" % status)
-
-    def _compile_title_key(self, element):
-        title_type = element.getAttribute("type")
-        if title_type == "action":
-            action = element.getAttribute("action")
-            return Constants.ACTION_TITLE, {"action": action}
-        elif title_type == "question":
-            predicate = element.getAttribute("predicate")
-            return Constants.ISSUE_TITLE, {"predicate": predicate}
-        else:
-            raise DddXmlCompilerException("unsupported title type %r" % title_type)
 
     def _unitemize(self, node):
         if isinstance(node, Node) and node.type == Constants.ITEM and len(node.children) == 1:
