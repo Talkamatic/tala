@@ -23,7 +23,6 @@ class RasaGeneratorTestMixin(GeneratorTestsMixin):
         return RasaGenerator(self._mocked_ddd, ENGLISH)
 
     def then_result_matches(self, expected_contents):
-        expected_contents = "\n  ".join(expected_contents.splitlines())
         super(RasaGeneratorTestMixin, self).then_result_matches(expected_contents)
 
 
@@ -150,7 +149,8 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches("""## intent:rasa_test:action::call
+        self.then_result_matches(
+            """## intent:rasa_test:action::call
 - make a call
 - call [John]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
 - call [Johnny]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
@@ -160,7 +160,8 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 - call [Mary]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
 - call [Andy]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
 - call [安迪]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}
-""")
+"""
+        )
 
     def test_generate_requests_with_two_answers(self):
         self.given_ddd_name("rasa_test")
@@ -349,7 +350,8 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
         )
         self.given_generator()
         self.when_generate()
-        self.then_result_matches("""## intent:rasa_test:question::phone_number_of_contact
+        self.then_result_matches(
+            """## intent:rasa_test:question::phone_number_of_contact
 - tell me a phone number
 - tell me [John]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
 - tell me [Johnny]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
@@ -360,7 +362,8 @@ class TestGeneratorWithCustomSorts(RasaGeneratorTestMixin):
 - tell me [Andy]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
 - tell me [安迪]{"entity": "rasa_test.sort.contact", "role": "rasa_test.predicate.selected_contact_to_call"}'s number
 
-""")
+"""
+        )
 
     def test_generate_answer_intents(self):
         self.given_ddd_name("rasa_test")

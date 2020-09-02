@@ -1,3 +1,4 @@
+from io import StringIO
 import warnings
 
 from jinja2 import Template
@@ -17,25 +18,17 @@ class RasaGenerator(AbstractGenerator):
     def _language(self):
         return languages.RASA_LANGUAGE[self._language_code]
 
-    @property
-    def _rasa_config_template(self):
-        return Template(
-            "language: \"{{ language }}\"\n"
-            "\n"
-            "pipeline: \"spacy_sklearn\"\n"
-            "\n"
-            "data: |\n"
-            "{% for line in data.splitlines() %}"
-            "  {{ line }}\n"
-            "{% endfor %}"
-        )
-
     def stream(self, file_object):
-        stream = self._rasa_config_template.stream(language=self._language, data=self._generate_examples())
+        stream = self._generate_examples()
         return stream.dump(file_object)
 
     def generate(self):
-        return self._rasa_config_template.render(language=self._language, data=self._generate_examples())
+        stream = self._generate_examples()
+        string = StringIO()
+        stream.dump(string)
+        result = string.getvalue()
+        string.close()
+        return result
 
     def _format_action(self, name):
         return "%s::%s" % (ACTION_INTENT, name)
@@ -53,7 +46,9 @@ class RasaGenerator(AbstractGenerator):
 
     @property
     def _propositional_entity_template(self):
-        return Template("[{{ grammar_entry }}]{\"entity\": \"{{ ddd }}.sort.{{ sort_name }}\", \"role\": \"{{ ddd }}.predicate.{{ predicate_name }}\"}")
+        return Template(
+            "[{{ grammar_entry }}]{\"entity\": \"{{ ddd }}.sort.{{ sort_name }}\", \"role\": \"{{ ddd }}.predicate.{{ predicate_name }}\"}"
+        )
 
     def _generate_examples(self):
         examples = super(RasaGenerator, self)._generate_examples()
@@ -89,7 +84,7 @@ class RasaGenerator(AbstractGenerator):
         )
         grammar = self._ddd.grammars[self._language_code]
         synonyms = self._entity_synonyms_from_custom_sorts(grammar)
-        rasa_data = data_template.render(
+        rasa_data = data_template.stream(
             ddd_examples=examples,
             general_examples=self._general_examples(),
             synonym_objects=synonyms,
@@ -151,7 +146,9 @@ class RasaGenerator(AbstractGenerator):
                 else:
                     message = (
                         "Expected only sortal slots for built-in sort '{}' but got a propositional slot for predicate '{}'. "
-                        "Skipping this training data example.".format(predicate.getSort().get_name(), predicate.get_name())
+                        "Skipping this training data example.".format(
+                            predicate.getSort().get_name(), predicate.get_name()
+                        )
                     )
                     warnings.warn(message, UserWarning)
                     raise UnexpectedPropositionalEntityEncounteredException(message)
@@ -181,28 +178,38 @@ class RasaGenerator(AbstractGenerator):
         examples = self._language_examples.get_builtin_sort_examples(sort)
         return [[entry] for entry in examples]
 
-    def _examples_from_propositional_individual(self, grammar, ddd, required_propositional_entity, example_so_far, tail):
+    def _examples_from_propositional_individual(
+        self, grammar, ddd, required_propositional_entity, example_so_far, tail
+    ):
         predicate_name = required_propositional_entity.name
         predicate = self._ddd.ontology.get_predicate(predicate_name)
         sort = predicate.getSort()
         individuals = self._individual_grammar_entries_samples(grammar, sort)
         if sort.get_name() == STRING:
             predicate_specific_samples = self._string_examples_of_predicate(grammar, predicate)
-            individuals.extend([[predicate_specific_sample] for predicate_specific_sample in predicate_specific_samples])
+            individuals.extend([[predicate_specific_sample]
+                                for predicate_specific_sample in predicate_specific_samples])
         return self._examples_from_individuals(
-            self._propositional_entity_template, ddd, individuals, example_so_far, tail, predicate_name=predicate_name,
+            self._propositional_entity_template,
+            ddd,
+            individuals,
+            example_so_far,
+            tail,
+            predicate_name=predicate_name,
             sort_name=sort.get_name()
         )
 
     def _string_examples_of_predicate(self, grammar, predicate):
         return grammar.strings_of_predicate(predicate.get_name())
 
-    def _examples_from_individuals(self, template, ddd, individuals_grammar_entries, example_so_far, tail,
-                                   predicate_name, sort_name):
+    def _examples_from_individuals(
+        self, template, ddd, individuals_grammar_entries, example_so_far, tail, predicate_name, sort_name
+    ):
         for grammar_entries in individuals_grammar_entries:
             for grammar_entry in grammar_entries:
-                entity = template.render(grammar_entry=grammar_entry, ddd=ddd, predicate_name=predicate_name,
-                                         sort_name=sort_name)
+                entity = template.render(
+                    grammar_entry=grammar_entry, ddd=ddd, predicate_name=predicate_name, sort_name=sort_name
+                )
                 example = self._extend_example(entity, example_so_far, tail)
                 yield example
 

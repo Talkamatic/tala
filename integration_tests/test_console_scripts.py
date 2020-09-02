@@ -96,6 +96,9 @@ class ConsoleScriptTestCase(TempDirTestCase):
             actual_content = f.read()
         return actual_content
 
+    def _then_stdout_contains(self, string):
+        assert string in self._stdout, f"Expected {string} in stdout but got {self._stdout}"
+
     def _then_stderr_contains(self, string):
         assert string in self._stderr
 
@@ -112,9 +115,9 @@ class ConsoleScriptTestCase(TempDirTestCase):
 
     @staticmethod
     def _assert_matches(expected_pattern, string):
-        assert re.search(expected_pattern, string) is not None, "Expected string to match '{}' but got '{}'".format(
+        assert re.search(
             expected_pattern, string
-        )
+        ) is not None, f"Expected string to match '{expected_pattern}' but got '{string}'"
 
     def _given_ontology_contains(self, new_content):
         old_content = """
@@ -464,17 +467,12 @@ class TestGenerateRASAIntegration(ConsoleScriptTestCase):
             self._given_ddd_verifies_successfully()
             self._when_running_command("tala generate rasa test_ddd eng")
         self._then_stdout_matches(
-            r'''language: "en"
+            r'''## intent:test_ddd:action::call
+- make a call
 
-pipeline: "spacy_sklearn"
-
-data: \|
-  ## intent:test_ddd:action::call
-  - make a call
-  
-  ## intent:NEGATIVE
-  - aboard
-  - about
+## intent:NEGATIVE
+- aboard
+- about
 ''')  # yapf: disable  # noqa: W293
 
     def _given_ddd_verifies_successfully(self):
@@ -570,47 +568,42 @@ data: \|
         with self._given_changed_directory_to_target_dir():
             self._given_ddd_verifies_successfully()
             self._when_running_command("tala generate rasa test_ddd eng")
-        self._then_stdout_matches(
-            r'''language: "en"
+        self._then_stdout_contains(
+            '''## intent:test_ddd:action::buy
+- buy apples
+- buy 0 apples
+- buy 99 apples
+- buy 1224 apples
+- buy a hundred and fifty seven apples
+- buy three apples
+- buy two thousand fifteen apples
 
-pipeline: "spacy_sklearn"
+## intent:test_ddd:question::phone_number_of_contact
+- tell me a phone number
+- what is [John](test_ddd.sort.contact)'s number
+- tell me [John]{"entity": "test_ddd.sort.contact", "role": "test_ddd.predicate.selected_contact"}'s number
 
-data: |
-  ## intent:test_ddd:action::buy
-  - buy apples
-  - buy 0 apples
-  - buy 99 apples
-  - buy 1224 apples
-  - buy a hundred and fifty seven apples
-  - buy three apples
-  - buy two thousand fifteen apples
-  
-  ## intent:test_ddd:question::phone_number_of_contact
-  - tell me a phone number
-  - what is [John](test_ddd.sort.contact)'s number
-  - tell me [John]{"entity":"test_ddd.sort.contact" "role":"test_ddd.predicate.selected_contact"}'s number
-  
-  ## intent:test_ddd:answer
-  - 0
-  - 99
-  - 1224
-  - a hundred and fifty seven
-  - three
-  - two thousand fifteen
-  - [John](test_ddd.sort.contact)
-  
-  ## intent:test_ddd:answer_negation
-  - not 0
-  - not 99
-  - not 1224
-  - not a hundred and fifty seven
-  - not three
-  - not two thousand fifteen
-  - not [John](test_ddd.sort.contact)
-  
-  ## intent:NEGATIVE
-  - aboard
-  - about
+## intent:test_ddd:answer
+- 0
+- 99
+- 1224
+- a hundred and fifty seven
+- three
+- two thousand fifteen
+- [John](test_ddd.sort.contact)
+
+## intent:test_ddd:answer_negation
+- not 0
+- not 99
+- not 1224
+- not a hundred and fifty seven
+- not three
+- not two thousand fifteen
+- not [John](test_ddd.sort.contact)
+
+## intent:NEGATIVE
+- aboard
+- about
 ''')  # yapf: disable  # noqa: W293
 
 

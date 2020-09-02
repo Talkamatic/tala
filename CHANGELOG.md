@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- `tala generate rasa` no longer generates the config alongside the actual markdown training data in YAML. It now only generates the pure markdown training data, requiring a config to be added in other ways. 
+
 ### Removed
 - Managing a GUI is no longer part of TDM's responsibilities and as a consequence several such constructs have been removed from DDD files. They include `<gui_context>` and `<label_question>` elements as well as `dynamic_title` attributes in `domain.xml`, and `<title>` elements in `grammar_x.xml`.
 
