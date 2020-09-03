@@ -5,27 +5,14 @@ from tala.cli import console_script
 from tala.utils.chdir import chdir
 
 
+def find_configs(path):
+    path = Path(path)
+    with chdir(path):
+        return [str(config) for config in Path(".").glob("*.json")]
+
+
 class TestDDDs(object):
-    @pytest.mark.parametrize(
-        "backend_config", [
-            "hello_world.json",
-            "http_service.config.json",
-            "incremental_search.config.json",
-            "literals_grammar.json",
-            "mockup_travel.json",
-            "partial_parsing.json",
-            "rasa_answers.config.json",
-            "rasa_for_dynamic_entities.config.json",
-            "rasa_for_rgl.config.json",
-            "rasa_for_static_entities.config.json",
-            "rasa_numbers.config.json",
-            "rasa_strings.config.json",
-            "datetime.config.json",
-            "send_to_frontend.config.json",
-            "small_grammar.json",
-            "tidePooler.json",
-        ]
-    )
+    @pytest.mark.parametrize("backend_config", find_configs("tala/ddds"))
     def test_verify_on_ddd(self, backend_config):
         with self._given_changed_to_ddd_directory():
             self._when_verifying_with(backend_config)
