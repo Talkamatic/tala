@@ -32,7 +32,7 @@ pipeline {
             ],
             serverName: 'Talkamatic',
             triggerOnEvents: [
-                changeMerged()
+                refUpdated()
             ],
             skipVote: [
               onSuccessful: false,
