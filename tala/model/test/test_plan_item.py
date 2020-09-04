@@ -163,7 +163,7 @@ class PlanItemTests(LibTestCase):
         self.assertTrue(self.service_report_item.is_service_report_plan_item())
         self.assertTrue(self.service_result_proposition, self.service_report_item.getContent())
 
-    def test_findout_equality(self):
+    def test_findout_equality(self): #/// Should allow_answer_from_pcom change equality?
         item = FindoutPlanItem(self.domain_name, self.question)
         identical_item = FindoutPlanItem(self.domain_name, self.question)
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(identical_item, item)
@@ -178,6 +178,20 @@ class PlanItemTests(LibTestCase):
         raise_plan_item = findout_plan_item.clone_as_type(PlanItem.TYPE_RAISE)
         self.assertTrue(raise_plan_item.isRaisePlanItem())
         self.assertEqual(self.question, raise_plan_item.get_question())
+
+    def test_findout_defaults_to_disallow_answer_from_pcom(self):
+        findout_plan_item = FindoutPlanItem(self.domain_name, self.question)
+        self.assertFalse(findout_plan_item.allow_answer_from_pcom)
+
+    def test_findout_supports_allow_answer_from_pcom(self):
+        findout_plan_item = FindoutPlanItem(
+            self.domain_name, self.question, allow_answer_from_pcom=True)
+        self.assertTrue(findout_plan_item.allow_answer_from_pcom)
+
+    #/// FindoutPlanItem is not used by ddd_xml_compiler. Only
+    # QuestionRaisingPlanItem is.
+    # 1. Tests?
+    # 2. Remove FindoutPlanItem?
 
 
 class InvokeServiceActionPlanItemTests(LibTestCase):

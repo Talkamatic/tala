@@ -385,7 +385,15 @@ class DomainCompiler(XmlCompiler):
     def _compile_question_raising_plan_item_element(self, item_type, element):
         question_type = self._get_mandatory_attribute(element, "type")
         question = self._compile_question(element)
-        return QuestionRaisingPlanItem(self._domain_name, item_type, question)
+        answer_from_pcom = self._get_answer_from_pcom(element)
+
+        return QuestionRaisingPlanItem(self._domain_name, item_type, question, answer_from_pcom)
+
+    def _get_answer_from_pcom(self, element):
+        answer_from_pcom = self._get_optional_attribute(element, "allow_answer_from_pcom")
+        if answer_from_pcom is None:
+            return False
+        return True
 
     def _compile_if_element(self, element):
         condition = self._compile_condition_element(element)

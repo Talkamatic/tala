@@ -86,6 +86,12 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         actual_plan = actual_plans[0]["plan"]
         assert expected_plan == actual_plan
 
+    def _then_findout_allows_pcom(self, allow):
+        plans = self._result["plans"]
+        plan = plans[0]["plan"]
+        findout = plan.top()
+        assert allow == findout.allow_answer_from_pcom
+
     def _then_result_has_plan_with_attribute(self, expected_key, expected_value):
         actual_plans = self._result["plans"]
         actual_plan = actual_plans[0]
@@ -1041,6 +1047,84 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         )
 
         self._then_result_has_plan(Plan([self._parse("%s(?goal(perform(apply_for_membership)))" % element_name)]))
+
+    def test_allow_answer_from_pcom_is_tolerated_with_findout(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<findout type="wh_question" predicate="price"
+         allow_answer_from_pcom="true"/>"""
+        )
+
+        self._then_result_has_plan(
+            Plan(
+                [self._parse("findout(?X.price(X))")]
+            )
+        )
+
+    def test_allow_answer_from_pcom_is_not_tolerated_with_raise(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<raise type="wh_question" predicate="price" allow_answer_from_pcom="true"/>',
+            ViolatesSchemaException,
+            "Expected domain.xml compliant with schema but it's in violation: Element 'raise', attribute 'allow_answer_from_pcom': The attribute 'allow_answer_from_pcom' is not allowed., line 4"
+        )
+
+    def test_allow_answer_from_pcom_is_not_tolerated_with_bind(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<bind type="wh_question" predicate="price" allow_answer_from_pcom="true"/>',
+            ViolatesSchemaException,
+            "Expected domain.xml compliant with schema but it's in violation: Element 'bind', attribute 'allow_answer_from_pcom': The attribute 'allow_answer_from_pcom' is not allowed., line 4"
+        )
+
+    def test_findout_defaults_to_disallow_answer_from_pcom(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<findout type="wh_question" predicate="price"/>"""
+        )
+
+        self._then_findout_allows_pcom(False)
+
+    def test_findout_allows_answer_from_pcom(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<findout type="wh_question" predicate="price" allow_answer_from_pcom="true"/>"""
+        )
+
+        self._then_findout_allows_pcom(True)
 
     def test_if_then_else(self):
         self._given_compiled_ontology(

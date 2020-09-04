@@ -11,15 +11,20 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
     SOURCE_DOMAIN = "domain"
     ALPHABETIC = "alphabetic"
 
-    def __init__(self, domain_name, type, content):
+    def __init__(self, domain_name, type, content, allow_pcom_answer=False):
         if not content.is_question():
             raise DomainError("cannot create QuestionRaisingPlanItem " + "from non-question %s" % content)
         self._domain_name = domain_name
+        self._allow_answer_from_pcom = allow_pcom_answer
         PlanItemWithSemanticContent.__init__(self, type, content)
 
     @property
     def domain_name(self):
         return self._domain_name
+
+    @property
+    def allow_answer_from_pcom(self):
+        return self._allow_answer_from_pcom
 
     def is_question_raising_item(self):
         return True
@@ -41,8 +46,8 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
 
 
 class FindoutPlanItem(QuestionRaisingPlanItem):
-    def __init__(self, domain_name, content):
-        QuestionRaisingPlanItem.__init__(self, domain_name, PlanItem.TYPE_FINDOUT, content)
+    def __init__(self, domain_name, content, allow_answer_from_pcom=False):
+        QuestionRaisingPlanItem.__init__(self, domain_name, PlanItem.TYPE_FINDOUT, content, allow_answer_from_pcom)
 
 
 class RaisePlanItem(QuestionRaisingPlanItem):
