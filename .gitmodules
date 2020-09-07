@@ -1,4 +1,4 @@
 [submodule "tala/ddds"]
-	path = tala/ddds
+	path = tala/tala/ddds
 	url = ../internal_ddds.git
 	branch = .
