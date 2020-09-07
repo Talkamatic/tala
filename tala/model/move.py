@@ -504,21 +504,16 @@ class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
 
 class ReportMove(MoveWithSemanticContent):
     def __init__(self, content):
-        self._content = content
         MoveWithSemanticContent.__init__(self, Move.REPORT, content)
 
-    @property
-    def content(self):
-        return self._content
-
     def as_semantic_expression(self):
-        return f"report({self._content.as_semantic_expression()})"
+        return f"report({self.get_content().as_semantic_expression()})"
 
     def is_turn_yielding(self):
         return True
 
     def _get_expression(self, include_attributes):
-        string = "report(%s" % unicodify(self.content)
+        string = "report(%s" % unicodify(self.get_content())
         if self._background:
             string += ", %s" % unicodify(self._background)
         if include_attributes:
@@ -527,7 +522,7 @@ class ReportMove(MoveWithSemanticContent):
         return string
 
     def class_internal_move_content_equals(self, other):
-        return (self.content == other.content)
+        return (self.get_content() == other.get_content())
 
 
 class PrereportMove(Move, OntologySpecificSemanticObject):

@@ -38,7 +38,7 @@ class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_getters(self):
         self.assertEqual(Move.REPORT, self.success_move.get_type())
-        self.assertEqual(self.success_result, self.success_move.content)
+        self.assertEqual(self.success_result, self.success_move.get_content())
 
     def test_str_success_move(self):
         self.assertEqual(
