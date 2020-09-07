@@ -61,7 +61,7 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'jenkinsatgerrit',
-                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
                     ]]
                 ])
                 script {
@@ -74,12 +74,13 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    dir 'tala'
                     additionalBuildArgs '--pull'
                     reuseNode true
                 }
             }
             steps {
-                sh "pip wheel --wheel-dir . --no-deps ."
+                sh "pip wheel --wheel-dir . --no-deps tala"
                 archiveArtifacts 'tala*.whl'
             }
         }
@@ -103,8 +104,10 @@ pipeline {
 
         stage('build master') {
             steps {
-                sh "docker build . --pull -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
-                sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:master"
+                dir('tala') {
+                    sh "docker build . --pull -t talkamatic/tala:${env.COMMIT_TO_RELEASE}"
+                    sh "docker tag talkamatic/tala:${env.COMMIT_TO_RELEASE} talkamatic/tala:master"
+                }
             }
         }
 
@@ -122,16 +125,19 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    dir 'tala'
                     additionalBuildArgs '--pull'
                     reuseNode true
                 }
             }
             steps {
-                sh "python setup.py build"
-                sh "flake8 ."
-                sh "pylint tala"
-                sh "py.test tala"
-                sh "py.test integration_tests"
+                dir("tala") {
+                    sh "python setup.py build"
+                    sh "flake8 ."
+                    sh "pylint tala"
+                    sh "py.test tala"
+                    sh "py.test integration_tests"
+                }
             }
         }
 

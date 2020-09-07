@@ -25,7 +25,7 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [[
                         credentialsId: 'jenkinsatgerrit',
-                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                        url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
                     ]]
                 ])
                 script {
@@ -43,7 +43,7 @@ pipeline {
                 }
             }
             steps {
-                sh "pip wheel --wheel-dir . --no-deps ."
+                sh "pip wheel --wheel-dir . --no-deps tala"
             }
         }
 
@@ -51,6 +51,7 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-release'
+                    dir 'tala'
                     additionalBuildArgs '--pull'
                     reuseNode true
                 }

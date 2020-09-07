@@ -85,7 +85,7 @@ pipeline {
                             [
                                 credentialsId: 'jenkinsatgerrit',
                                 refspec: '$GERRIT_REFSPEC',
-                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tdm'
                             ]
                         ]
                     ]
@@ -97,16 +97,19 @@ pipeline {
             agent {
                 dockerfile {
                     filename 'Dockerfile-dev'
+                    dir 'tala'
                     additionalBuildArgs '--pull'
                     reuseNode true
                 }
             }
             steps {
-                sh "python setup.py build"
-                sh "flake8 ."
-                sh "pylint tala"
-                sh "py.test tala"
-                sh "py.test integration_tests"
+                dir('tala') {
+                    sh "python setup.py build"
+                    sh "flake8 ."
+                    sh "pylint tala"
+                    sh "py.test tala"
+                    sh "py.test integration_tests"
+                }
             }
         }
     }
