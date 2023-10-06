@@ -59,8 +59,12 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
         predicate = self.get_predicate()
         return predicate.getSort()
 
-    def get_content(self):
+    @property
+    def content(self):
         return self._content
+
+    def get_content(self):
+        return self.content
 
     def get_type(self):
         return self._type

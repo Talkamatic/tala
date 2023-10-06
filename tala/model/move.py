@@ -74,6 +74,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return self._type
 
     @property
+    def type_(self):
+        return self._type
+
+    @property
     def confidence_estimates(self):
         return self._confidence_estimates
 

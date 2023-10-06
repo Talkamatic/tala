@@ -187,8 +187,8 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
 
 
 class PropositionWithSemanticContent(Proposition, SemanticObjectWithContent):
-    def __init__(self, type, content, polarity=None):
-        Proposition.__init__(self, type, polarity)
+    def __init__(self, type_, content, polarity=None):
+        Proposition.__init__(self, type_, polarity)
         SemanticObjectWithContent.__init__(self, content)
         self._content = content
 
@@ -807,6 +807,10 @@ class ActionStatusProposition(PropositionWithSemanticContent):
     @property
     def status(self):
         return self._status
+
+    @property
+    def action(self):
+        return self.content
 
     def __eq__(self, other):
         try:

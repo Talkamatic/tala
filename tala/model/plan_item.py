@@ -317,7 +317,7 @@ class RespondToThankYouPlanItem(RespondToThankYou):
     pass
 
 
-class EmitIcm(PlanItemWithSemanticContent):
+class EmitICM(PlanItemWithSemanticContent):
     def __init__(self, icm_move):
         PlanItemWithSemanticContent.__init__(self, TYPE_EMIT_ICM, content=icm_move)
 
@@ -333,7 +333,11 @@ class EmitIcm(PlanItemWithSemanticContent):
         return (icm.get_type() == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
 
 
-class EmitIcmPlanItem(EmitIcm):
+class EmitIcmPlanItem(EmitICM):
+    pass
+
+
+class EmitIcm(EmitICM):
     pass
 
 
@@ -880,9 +884,9 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
     def question(self):
         return self.getContent()
 
-    def clone_as_type(self, type):
+    def clone_as_type(self, type_):
         clone = copy.deepcopy(self)
-        clone._type = type
+        clone._type = type_
         return clone
 
     def __str__(self):
