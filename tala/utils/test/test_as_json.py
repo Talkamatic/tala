@@ -122,7 +122,7 @@ class TestConvertToJson(object):
 
 
 class TestAsJSONMixin(object):
-    def setup(self):
+    def setup_method(self):
         self._mock_convert_to_json = None
         self._as_json_mixin = None
         self._result = None

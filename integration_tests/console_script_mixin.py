@@ -53,12 +53,12 @@ class TempDirTestMixin:
             cls._uninstall_tala()
             cls._install_old_tala_from_pip()
 
-    def setup(self):
+    def setup_method(self):
         self._temp_dir = tempfile.mkdtemp(prefix="TalaIntegrationTest")
         self._working_dir = os.getcwd()
         os.chdir(self._temp_dir)
 
-    def teardown(self):
+    def teardown_method(self):
         os.chdir(self._working_dir)
         shutil.rmtree(self._temp_dir)
 
@@ -70,8 +70,8 @@ class TempDirTestMixin:
 
 
 class ConsoleScriptTestMixin(TempDirTestMixin):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self._process = None
 
     def _given_created_ddd_in_a_target_dir(self, name=None):

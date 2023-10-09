@@ -750,7 +750,7 @@ class MoveTestsFromTdmLib(LibTestCase):
 
 
 class TestICMMoves(object):
-    def setup(self):
+    def setup_method(self):
         self._move = None
         self._actual_result = None
 

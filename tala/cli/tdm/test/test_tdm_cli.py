@@ -9,7 +9,7 @@ from tala.utils.tdm_client import PROTOCOL_VERSION
 
 
 class TestTDMCLI(object):
-    def setup(self):
+    def setup_method(self):
         self._mocked_tdm_client = None
         self._MockPromptSession = None
         self._mocked_prompt_session = None

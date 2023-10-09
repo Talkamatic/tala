@@ -4,7 +4,7 @@ from tala.ddd.files import ddd_files
 
 
 class TestFiles:
-    def setup(self):
+    def setup_method(self):
         self._path = None
         self._result = None
 

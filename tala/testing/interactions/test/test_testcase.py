@@ -16,7 +16,7 @@ from tala.utils.tdm_client import TDMRuntimeException
 
 
 class TestInteractionTestingTestCase:
-    def setup(self):
+    def setup_method(self):
         self._mock_tdm_client = None
         self._responses = []
         self._response_iterator = None

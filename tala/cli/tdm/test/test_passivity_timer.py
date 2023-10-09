@@ -6,7 +6,7 @@ from tala.utils.observable import Observer
 
 
 class TestPassivityTimer(object):
-    def setup(self):
+    def setup_method(self):
         self._passivity_timer = PassivityTimer()
         self._MockTimer = None
         self._mocked_timer = None

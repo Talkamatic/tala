@@ -26,7 +26,7 @@ class TestFileParsing:
 
 
 class TestCompiler():
-    def setup(self):
+    def setup_method(self):
         self._compiler = InteractionTestCompiler()
 
     @patch("%s.InteractionTest" % compiler.__name__)

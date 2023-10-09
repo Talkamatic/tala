@@ -82,10 +82,10 @@ class ConfigTester(object):
 
 
 class TestConfig(ConfigTester):
-    def setup(self):
+    def setup_method(self):
         self.setup_configs()
 
-    def teardown(self):
+    def teardown_method(self):
         self.teardown_configs()
 
     @patch.object(Config, "fields")
@@ -206,10 +206,10 @@ class TestConfig(ConfigTester):
 
 
 class TestInheritance(ConfigTester):
-    def setup(self):
+    def setup_method(self):
         self.setup_configs()
 
-    def teardown(self):
+    def teardown_method(self):
         self.teardown_configs()
 
     @patch.object(Config, "fields")
@@ -278,10 +278,10 @@ class TestInheritance(ConfigTester):
 
 
 class TestDddConfig(ConfigTester):
-    def setup(self):
+    def setup_method(self):
         self.setup_configs()
 
-    def teardown(self):
+    def teardown_method(self):
         self.teardown_configs()
 
     def test_default_name(self):
@@ -296,10 +296,10 @@ class TestDddConfig(ConfigTester):
 
 
 class TestDeploymentsConfig(ConfigTester):
-    def setup(self):
+    def setup_method(self):
         self.setup_configs()
 
-    def teardown(self):
+    def teardown_method(self):
         self.teardown_configs()
 
     def test_default_name(self):
@@ -343,10 +343,10 @@ class TestDeploymentsConfig(ConfigTester):
 
 
 class TestBackendConfig(ConfigTester):
-    def setup(self):
+    def setup_method(self):
         self.setup_configs()
 
-    def teardown(self):
+    def teardown_method(self):
         self.teardown_configs()
 
     def test_default_name(self):

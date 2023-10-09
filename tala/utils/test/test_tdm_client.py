@@ -13,7 +13,7 @@ from tala.utils.tdm_client import TDMClient, PROTOCOL_VERSION, TDMRuntimeExcepti
 
 
 class TestTDMClient(object):
-    def setup(self):
+    def setup_method(self):
         self._mocked_requests = None
         self._tdm_client = None
         self._session = {"session-id": None}
@@ -23,13 +23,8 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._when_calling_start_session()
-        self._then_request_was_made_with(
-            "mock-url",
-            data=
-            '{{"version": "{version}", "session": {{"session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
-            .format(version=PROTOCOL_VERSION),
-            headers={'Content-type': 'application/json'}
-        )
+        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{"session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
+        self._then_request_was_made_with("mock-url", data=request_data, headers={'Content-type': 'application/json'})
 
     def _given_mocked_requests_module(self, mock_requests):
         self._mocked_requests = mock_requests
@@ -48,13 +43,8 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._when_calling_start_session(session={"key": "value"})
-        self._then_request_was_made_with(
-            "mock-url",
-            data=
-            '{{"version": "{version}", "session": {{"key": "value", "session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
-            .format(version=PROTOCOL_VERSION),
-            headers={'Content-type': 'application/json'}
-        )
+        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{"key": "value", "session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
+        self._then_request_was_made_with("mock-url", data=request_data, headers={'Content-type': 'application/json'})
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_say_with_started_session(self, mock_requests):

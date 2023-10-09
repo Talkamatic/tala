@@ -15,7 +15,7 @@ from tala.testing.utils import EqualityAssertionTestCaseMixin
 
 
 class SortTestCase(object):
-    def setup(self):
+    def setup_method(self):
         self._sort = None
         self.ontology_name = None
 
@@ -49,7 +49,7 @@ class SortTestCase(object):
 
 
 class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
-    def setup(self):
+    def setup_method(self):
         self._create_ontology()
 
     def _create_ontology(self):
@@ -124,7 +124,7 @@ class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
 
 
 class TestStringSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._create_ontology()
         self._sort = StringSort()
 
@@ -161,7 +161,7 @@ class TestStringSort(SortTestCase):
 
 
 class TestImageSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._create_ontology()
         self._sort = ImageSort()
 
@@ -237,7 +237,7 @@ class TestImageSort(SortTestCase):
 
 
 class TestWebviewSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._create_ontology()
         self._sort = WebviewSort()
 
@@ -282,7 +282,7 @@ class TestWebviewSort(SortTestCase):
 
 
 class TestBooleanSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._create_ontology()
         self._sort = BooleanSort()
 
@@ -328,7 +328,7 @@ class TestBooleanSort(SortTestCase):
 
 
 class TestIntegerSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._sort = IntegerSort()
 
     def test_normalize_base_case(self):
@@ -342,7 +342,7 @@ class TestIntegerSort(SortTestCase):
 
 
 class TestRealSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._sort = RealSort()
 
     def test_normalize_base_case(self):
@@ -356,7 +356,7 @@ class TestRealSort(SortTestCase):
 
 
 class TestDateTimeSort(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._sort = DateTimeSort()
 
     def test_normalize_base_case(self):
@@ -384,7 +384,7 @@ class TestDateTimeSort(SortTestCase):
 
 
 class TestPersonName(SortTestCase):
-    def setup(self):
+    def setup_method(self):
         self._sort = PersonNameSort()
 
     def test_normalize_base_case(self):
