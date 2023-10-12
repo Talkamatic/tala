@@ -186,17 +186,17 @@ class TestImageSort(SortTestCase):
         self.when_normalize_value(Image("http://image.com/image.png"))
         self.then_result_is(Image("http://image.com/image.png"))
 
-    @patch("%s.magic" % tala.model.sort.__name__)
+    @patch("%s.mimetypes" % tala.model.sort.__name__)
     @patch("%s.urllib" % tala.model.sort.__name__)
-    def test_normalize_dynamic_url_of_image_mime_type(self, mock_urllib, mock_magic):
-        self.given_get_mime_type_of_url_returns(mock_magic, mock_urllib, "image/jpeg")
+    def test_normalize_dynamic_url_of_image_mime_type(self, mock_urllib, mock_mimetypes):
+        self.given_get_mime_type_of_url_returns(mock_mimetypes, mock_urllib, "image/jpeg")
         self.given_urllib_parsed_path_is(mock_urllib, "/generate_image")
         self.when_normalize_value(Image("http://mock.domain/generate_image"))
         self.then_result_is(Image("http://mock.domain/generate_image"))
 
-    def given_get_mime_type_of_url_returns(self, mock_magic, mock_urllib, mime_type):
+    def given_get_mime_type_of_url_returns(self, mock_mimetypes, mock_urllib, mime_type):
         mock_urllib.request.urlretrieve.return_value = "mock_filepath", "mock_headers"
-        mock_magic.from_file.return_value = mime_type
+        mock_mimetypes.guess_type.return_value = mime_type, None
 
     def given_urllib_parsed_path_is(self, mock_urllib, path):
         mock_urllib.parse.urlparse.return_value.path = path
@@ -217,10 +217,10 @@ class TestImageSort(SortTestCase):
             "Expected an image URL but got 'http://nonimage.com/nonimage.html'."
         )
 
-    @patch("%s.magic" % tala.model.sort.__name__)
-    @patch("%s.urllib" % tala.model.sort.__name__)
-    def test_exception_when_normalize_dynamic_url_of_non_image_mime_type(self, mock_urllib, mock_magic):
-        self.given_get_mime_type_of_url_returns(mock_magic, mock_urllib, "text/html")
+    @patch(f"{tala.model.sort.__name__}.mimetypes")
+    @patch(f"{tala.model.sort.__name__}.urllib")
+    def test_exception_when_normalize_dynamic_url_of_non_image_mime_type(self, mock_urllib, mock_mimetypes):
+        self.given_get_mime_type_of_url_returns(mock_mimetypes, mock_urllib, "text/html")
         self.given_urllib_parsed_path_is(mock_urllib, "/generate_html")
         self.when_normalize_value_then_exception_is_raised(
             Image("http://mock.domain/generate_html"), InvalidValueException,
@@ -391,10 +391,13 @@ class TestPersonName(SortTestCase):
         self.when_normalize_value(PersonName("John"))
         self.then_result_is(PersonName("John"))
 
+    def test_normalize_from_string(self):
+        self.when_normalize_value("John")
+        self.then_result_is(PersonName("John"))
+
     def test_exception_when_normalize_non_person_name_value(self):
         self.when_normalize_value_then_exception_is_raised(
-            "non_person_name", InvalidValueException,
-            "Expected a person name object but got non_person_name of type str."
+            10, InvalidValueException, "Expected a person name object but got 10 of type int."
         )
 
     def test_value_as_basic_type(self):

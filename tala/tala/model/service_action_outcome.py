@@ -1,4 +1,4 @@
-class ServiceActionOutcome(object):
+class ServiceActionOutcome():
     @property
     def is_successful(self):
         raise NotImplementedError("This property needs to be implemented in a subclass")
@@ -12,6 +12,9 @@ class ServiceActionOutcome(object):
     def __ne__(self, other):
         return not (self == other)
 
+    def as_json(self):
+        return {"service_action_outcome": None}
+
 
 class SuccessfulServiceAction(ServiceActionOutcome):
     @property
@@ -20,6 +23,9 @@ class SuccessfulServiceAction(ServiceActionOutcome):
 
     def __repr__(self):
         return "%s()" % self.__class__.__name__
+
+    def as_json(self):
+        return {"service_action_outcome": True}
 
 
 class FailedServiceAction(ServiceActionOutcome):
@@ -34,6 +40,9 @@ class FailedServiceAction(ServiceActionOutcome):
     @property
     def failure_reason(self):
         return self._failure_reason
+
+    def as_json(self):
+        return {"service_action_outcome": False, "failure_reason": self.failure_reason}
 
     def __eq__(self, other):
         return super(FailedServiceAction, self).__eq__(other) and other.failure_reason == self.failure_reason

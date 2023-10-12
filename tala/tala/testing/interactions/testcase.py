@@ -2,6 +2,7 @@ import fnmatch
 import json
 import re
 import unittest
+import warnings
 
 import structlog
 
@@ -39,16 +40,34 @@ class InteractionTestingTestCase(unittest.TestCase):
         self._create_test_method(method_name)
         unittest.TestCase.__init__(self, method_name)
 
-        self._last_system_output_response = None
+        self.last_system_output_response = None
         self._detected_unexpected_passivity = False
+
+    @property
+    def last_system_output_response(self):
+        return self._last_system_output_response
+
+    @last_system_output_response.setter
+    def last_system_output_response(self, new_response):
+        def check_for_warnings():
+            if new_response is not None and "warnings" in new_response and len(new_response["warnings"]) > 0:
+                for warning in new_response["warnings"]:
+                    warnings.warn(warning)
+
+        check_for_warnings()
+        self._last_system_output_response = new_response
 
     @property
     def name(self):
         return self._test.name
 
     @property
-    def session_id(self):
-        return self._last_system_output_response["session"]["session_id"]
+    def session(self):
+        return self.last_system_output_response.get("session", None)
+
+    @property
+    def device_id(self):
+        return {"device_id": "tala"}
 
     @staticmethod
     def _ensure_name_can_be_used_as_python_method(name):
@@ -78,10 +97,16 @@ class InteractionTestingTestCase(unittest.TestCase):
         elif turn.is_event_turn:
             self._handle_event_notification(turn)
         else:
-            raise UnsupportedTurn("Expected one of the supported turns but got '%s'." % turn)
+            raise UnsupportedTurn(f"Expected one of the supported turns but got '{turn}'.")
 
     def _start_session(self):
-        self._last_system_output_response = self._tdm_client.start_session()
+        self._update_last_system_output_response(self._tdm_client.start_session(session_data=self.device_id))
+
+    def _update_last_system_output_response(self, response):
+        file = open("tala-session.state", 'w')
+        json.dump(response["session"], file)
+        file.close()
+        self.last_system_output_response = response
 
     def _handle_system_output_turn(self, turn):
         if turn.is_system_utterance_turn:
@@ -89,7 +114,7 @@ class InteractionTestingTestCase(unittest.TestCase):
         elif turn.is_system_moves_turn:
             self._expect_system_moves(turn)
         else:
-            raise UnsupportedTurn("Expected one of the supported system output turns but got '%s'." % turn)
+            raise UnsupportedTurn(f"Expected one of the supported system output turns but got '{turn}'.")
 
     def _simulate_user_input(self, turn):
         self._logger.debug("Simulating user input")
@@ -97,11 +122,13 @@ class InteractionTestingTestCase(unittest.TestCase):
             self._handle_recognition_hypotheses(turn)
         elif turn.is_user_interpretation_turn:
             self._handle_user_moves(turn)
+        elif turn.is_user_semantic_input_turn:
+            self._handle_user_interpretations(turn)
         else:
-            raise UnsupportedTurn("Expected one of the supported user input turns but got '%s'." % turn)
+            raise UnsupportedTurn(f"Expected one of the supported user input turns but got '{turn}'.")
 
     def _handle_recognition_hypotheses(self, turn):
-        self._last_system_output_response = self._send_natural_language_input_request(turn.hypotheses)
+        self._update_last_system_output_response(self._send_natural_language_input_request(turn.hypotheses))
 
     def _handle_user_moves(self, turn):
         def interpretation(moves, utterance, modality):
@@ -113,7 +140,17 @@ class InteractionTestingTestCase(unittest.TestCase):
 
         moves = [self._create_move(move_as_string) for move_as_string in turn.moves]
         interpretations = [interpretation(moves, turn.utterance, turn.modality)]
-        self._last_system_output_response = self._tdm_client.request_semantic_input(self.session_id, interpretations)
+        self._update_last_system_output_response(self._tdm_client.request_semantic_input(interpretations, self.session))
+
+    def _handle_user_interpretations(self, turn):
+        body = {
+            "session": self.session,
+            "version": "3.4",
+            "request": {
+                "semantic_input": turn.semantic_input
+            }
+        }  # yapf: deactivate
+        self._update_last_system_output_response(self._tdm_client.make_request(body))
 
     def _create_move(self, move):
         def is_semantic_expression(move):
@@ -140,15 +177,15 @@ class InteractionTestingTestCase(unittest.TestCase):
 
     def _simulate_user_passivity(self, turn):
         self._logger.debug("Simulating user passivity")
-        if self._last_system_output_response and \
-           self._last_system_output_response["output"]["expected_passivity"] is not None:
-            self._last_system_output_response = self._tdm_client.request_passivity(self.session_id)
+        if self.last_system_output_response and \
+           self.last_system_output_response["output"]["expected_passivity"] is not None:
+            self._update_last_system_output_response(self._tdm_client.request_passivity(self.session))
         else:
             self._detected_unexpected_passivity = True
             self._line_number_of_unexpected_passivity = turn.line_number
 
     def _expect_system_utterance(self, system_utterance_turn):
-        self._logger.debug("%s._expect_system_utterance(%s)" % (self.__class__.__name__, str(system_utterance_turn)))
+        self._logger.debug(f"{self.__class__.__name__}._expect_system_utterance({str(system_utterance_turn)})")
         if self._detected_unexpected_passivity:
             self._raise_assertion_error_for_unexpected_passivity(system_utterance_turn)
         self._has_system_output_turn_been_processed = True
@@ -158,7 +195,7 @@ class InteractionTestingTestCase(unittest.TestCase):
         )
 
     def _expect_system_moves(self, system_moves_turn):
-        self._logger.debug("%s._expect_system_moves(%s)" % (self.__class__.__name__, str(system_moves_turn)))
+        self._logger.debug(f"{self.__class__.__name__}._expect_system_moves({str(system_moves_turn)})")
         if self._detected_unexpected_passivity:
             self._raise_assertion_error_for_unexpected_passivity(system_moves_turn)
         self._has_system_output_turn_been_processed = True
@@ -172,24 +209,23 @@ class InteractionTestingTestCase(unittest.TestCase):
 
     def _raise_assertion_error_for_unexpected_passivity(self, system_turn):
         raise AssertionError(
-            "\n\nOn line %d of %s,\n" % (system_turn.line_number, self._test.filename) +
-            "expected:\n  S> %s\n\n" % self._format_output(system_turn.output) +
-            "in response to\n  U>\non line %d\n\n" % self._line_number_of_unexpected_passivity +
+            f"\n\nOn line {system_turn.line_number:d} of {self._test.filename},\n" +
+            f"expected:\n  S> {self._format_output(system_turn.output)}\n\n" +
+            f"in response to\n  U>\non line {self._line_number_of_unexpected_passivity:d}\n\n" +
             "but the system didn't expect user passivity."
         )
 
     def _raise_and_log_assertion_error(self, error_string):
-        self._logger.debug("Assertion error: %s" % error_string)
+        self._logger.debug(f"Assertion error: {error_string}")
         raise AssertionError(error_string)
 
     def _get_system_utterance(self):
-        actual_utterance = self._last_system_output_response["output"]["utterance"]
-        self._logger.debug("Got system utterance %r" % actual_utterance)
-        self._last_system_output_response = self._last_system_output_response
+        actual_utterance = self.last_system_output_response["output"]["utterance"]
+        self._logger.debug(f"Got system utterance {actual_utterance!r}")
         return actual_utterance
 
     def _get_system_moves(self):
-        actual_moves = self._last_system_output_response["output"]["moves"]
+        actual_moves = self.last_system_output_response["output"]["moves"]
         self._logger.debug(f"Got system moves {actual_moves!r}")
         return actual_moves
 
@@ -203,8 +239,9 @@ class InteractionTestingTestCase(unittest.TestCase):
 
     def _fail_with_mismatch(self, line_number, expected, actual):
         self._raise_and_log_assertion_error(
-            "On line %d of %s,\n\nexpected:\n  S> %s\n\nbut got:\n  S> %s" %
-            (line_number, self._test.filename, self._format_output(expected), self._format_output(actual))
+            f"On line {line_number:d} of {self._test.filename},\n\n"
+            f"expected:\n  S> {self._format_output(expected)}\n\n"
+            f"but got:\n  S> {self._format_output(actual)}"
         )
 
     def _send_natural_language_input_request(self, hypotheses_tuples):
@@ -212,7 +249,7 @@ class InteractionTestingTestCase(unittest.TestCase):
             InputHypothesis(utterance, self._parse_score(score_as_string))
             for utterance, score_as_string in hypotheses_tuples
         ]
-        return self._tdm_client.request_speech_input(self.session_id, hypotheses)
+        return self._tdm_client.request_speech_input(hypotheses, self.session)
 
     def _parse_score(self, score):
         if score is None:
@@ -225,15 +262,17 @@ class InteractionTestingTestCase(unittest.TestCase):
         explicit_score = m.group("explicit")
         if explicit_score:
             return float(explicit_score)
-        raise InvalidConfidenceException("Invalid formatting of confidence: %s" % score)
+        raise InvalidConfidenceException(f"Invalid formatting of confidence: {score}")
 
     def _handle_event_notification(self, event_turn):
         if event_turn.is_notify_started_turn:
-            self._last_system_output_response = self._tdm_client.request_event_notification(
-                self.session_id, EventNotification(event_turn.action, EventNotification.STARTED, event_turn.parameters)
+            self._update_last_system_output_response(
+                self._tdm_client.request_event_notification(
+                    EventNotification(event_turn.action, EventNotification.STARTED, event_turn.parameters), self.session
+                )
             )
         else:
-            raise UnsupportedTurn("Expected one of the supported event turns but got '%s'." % event_turn)
+            raise UnsupportedTurn(f"Expected one of the supported event turns but got '{event_turn}'.")
 
 
 class StringComparison(object):
@@ -251,16 +290,15 @@ class StringComparison(object):
         return re.search(re_pattern, string, re.MULTILINE | re.DOTALL)
 
     def mismatch_description(self):
-        return "expected:\n---\n%s\n---\nbut got:\n---\n%s" % (
-            self._mismatch_position_description_for_pattern(), self._mismatch_position_description_for_string()
-        )
+        return f"expected:\n---\n{self._mismatch_position_description_for_pattern()}\n---\n" \
+               f"but got:\n---\n{self._mismatch_position_description_for_string()}"
 
     def _mismatch_position_description_for_pattern(self):
         position = self._get_mismatch_position()
         if position > 0:
             pattern_prefix = self._pattern[0:position]
             pattern_suffix = self._pattern[position:]
-            return "%s======== HERE ========%s" % (pattern_prefix, pattern_suffix)
+            return f"{pattern_prefix}======== HERE ========{pattern_suffix}"
         else:
             return self._pattern
 
@@ -271,7 +309,7 @@ class StringComparison(object):
             if self._string_matches_pattern(self._string[0:length], self._pattern[0:position]):
                 string_prefix = self._string[0:length]
                 string_suffix = self._string[length:]
-                return "%s======== HERE? ========%s" % (string_prefix, string_suffix)
+                return f"{string_prefix}======== HERE? ========{string_suffix}"
             length = length - 1
         return self._string
 

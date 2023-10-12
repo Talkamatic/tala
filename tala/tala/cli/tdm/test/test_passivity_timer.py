@@ -12,7 +12,7 @@ class TestPassivityTimer(object):
         self._mocked_timer = None
         self._observer = None
 
-    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))
+    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))  # noqa: F522
     def test_start(self, MockTimer):
         self._given_mocked_timer(MockTimer)
         self._when_starting_timer_with(5.0)
@@ -32,7 +32,7 @@ class TestPassivityTimer(object):
         self._MockTimer.assert_called_once_with(expected_duration, function=ANY)
         self._mocked_timer.start.assert_called_once()
 
-    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))
+    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))  # noqa: F522
     def test_stop(self, MockTimer):
         self._given_mocked_timer(MockTimer)
         self._given_started_timer()
@@ -48,7 +48,7 @@ class TestPassivityTimer(object):
     def _then_timer_was_stopped(self):
         self._mocked_timer.cancel.assert_called_once()
 
-    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))
+    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))  # noqa: F522
     def test_stop_timer_when_not_started(self, MockTimer):
         self._given_mocked_timer(MockTimer)
         self._when_stopping_timer()
@@ -57,7 +57,7 @@ class TestPassivityTimer(object):
     def _then_no_exceptions_occur(self):
         pass
 
-    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))
+    @patch("{}.Timer".format(passivity_timer.__name__, autospec=True))  # noqa: F522
     def test_timer_updates_observer(self, MockTimer):
         self._given_mocked_timer(MockTimer)
         self._given_observer_added()

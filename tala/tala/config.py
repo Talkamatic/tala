@@ -1,9 +1,6 @@
 import json
 import datetime
-
 from pathlib import Path
-
-from tala.nl.languages import SUPPORTED_RASA_LANGUAGES
 
 
 class ConfigNotFoundException(Exception):
@@ -83,7 +80,9 @@ class Config(object):
                 return field_definition.default_value
             else:
                 raise MissingMandatoryConfigEntryException(
-                    f"Expected mandatory entry '{key}' but it is missing among entries {list(kwargs.keys())}.")
+                    f"Expected mandatory entry '{key}' but it is missing among entries {list(kwargs.keys())}."
+                )
+
         return {key: get_value(key, field_definition) for key, field_definition in cls.fields().items()}
 
     def read(self):
@@ -126,7 +125,8 @@ class Config(object):
             if not field_definition.optional and key not in config:
                 raise MissingMandatoryConfigEntryException(
                     f"Expected mandatory entry '{key}' in '{self._path}' but it is missing among entries "
-                    f"{list(config.keys())}.")
+                    f"{list(config.keys())}."
+                )
 
     def _potentially_update_and_backup_config(self):
         config = self._config_from_file()
@@ -139,7 +139,8 @@ class Config(object):
             self._write(config)
             raise UnexpectedConfigEntriesException(
                 f"Parameters {unexpected_entries} are unexpected in '{self._absolute_path}'. "
-                f"The config was updated and the previous config was backed up in '{self.back_up_name()}'.")
+                f"The config was updated and the previous config was backed up in '{self.back_up_name()}'."
+            )
 
     def _potentially_update_with_values_from_parent(self, config):
         parent_path = config.get("overrides")
@@ -177,6 +178,11 @@ class BackendConfig(Config):
     DEFAULT_RERANK_AMOUNT = 0.2
     DEFAULT_INACTIVE_SECONDS_ALLOWED = datetime.timedelta(hours=2).seconds
     DEFAULT_RESPONSE_TIMEOUT = 2.5
+    DEFAULT_CONFIDENCE_THRESHOLDS = {"TRUST": 0.3, "ACKNOWLEDGE": 0.15, "CHECK": 0.1}
+    DEFAULT_PREDICTION_CONFIDENCE_THRESHOLDS = {"TRUST": 1.0, "ACKNOWLEDGE": 0.8, "CHECK": 0.6}
+    DEFAULT_SHORT_TIMEOUT = 1.0
+    DEFAULT_MEDIUM_TIMEOUT = 2.0
+    DEFAULT_LONG_TIMEOUT = 5.0
 
     @staticmethod
     def default_name():
@@ -185,33 +191,41 @@ class BackendConfig(Config):
     @staticmethod
     def fields():
         return {
-            "ddds": MandatoryConfigField(),
-            "active_ddd": MandatoryConfigField(),
-            "supported_languages": MandatoryConfigField(),
-            "asr": OptionalConfigField(default_value="none"),
-            "use_recognition_profile": OptionalConfigField(default_value=False),
-            "repeat_questions": OptionalConfigField(default_value=True),
-            "use_word_list_correction": OptionalConfigField(default_value=False),
-            "rerank_amount": OptionalConfigField(default_value=BackendConfig.DEFAULT_RERANK_AMOUNT),
-            "inactive_seconds_allowed": OptionalConfigField(
-                default_value=BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED),
-            "response_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_RESPONSE_TIMEOUT)
+            "use_recognition_profile":
+            OptionalConfigField(default_value=False),
+            "ddds":
+            MandatoryConfigField(),
+            "active_ddd":
+            OptionalConfigField(default_value="none"),
+            "supported_languages":
+            OptionalConfigField(default_value="none"),
+            "asr":
+            OptionalConfigField(default_value="none"),
+            "repeat_questions":
+            OptionalConfigField(default_value=True),
+            "rerank_amount":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_RERANK_AMOUNT),
+            "inactive_seconds_allowed":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED),
+            "response_timeout":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_RESPONSE_TIMEOUT),
+            "confidence_thresholds":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_CONFIDENCE_THRESHOLDS),
+            "confidence_prediction_thresholds":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_PREDICTION_CONFIDENCE_THRESHOLDS),
+            "short_timeout":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_SHORT_TIMEOUT),
+            "medium_timeout":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_MEDIUM_TIMEOUT),
+            "long_timeout":
+            OptionalConfigField(default_value=BackendConfig.DEFAULT_LONG_TIMEOUT),
         }
-
-    def _set_default_values_for_missing_optional_entries(self, config):
-        if "use_word_list_correction" not in config:
-            config["use_word_list_correction"] = (config.get("asr") == "android")
-        super(BackendConfig, self)._set_default_values_for_missing_optional_entries(config)
 
     @classmethod
     def write_default_config(cls, ddd_name, path=None):
         path = path or cls.default_name()
         ddd_name = ddd_name or ""
-        cls._write_to_file(cls.default_config(
-            ddds=[ddd_name],
-            active_ddd=ddd_name,
-            supported_languages=["eng"]),
-            Path(path))
+        cls._write_to_file(cls.default_config(ddds=[ddd_name], active_ddd=ddd_name), Path(path))
 
     def _raise_config_not_found_exception(self):
         raise BackendConfigNotFoundException(
@@ -228,11 +242,11 @@ class DddConfig(Config):
     @staticmethod
     def fields():
         return {
-            "use_rgl": MandatoryConfigField(),
-            "use_third_party_parser": OptionalConfigField(default_value=False),
             "device_module": OptionalConfigField(default_value=None),
-            "word_list": OptionalConfigField(default_value="word_list.txt"),
             "rasa_nlu": OptionalConfigField(default_value={}),
+            "use_rgl": OptionalConfigField(default_value=False),
+            "use_third_party_parser": OptionalConfigField(default_value=False),
+            "word_list": OptionalConfigField(default_value="word_list.txt"),
         }
 
     def _raise_config_not_found_exception(self):
@@ -242,36 +256,7 @@ class DddConfig(Config):
 
     def read(self):
         config = super(DddConfig, self).read()
-        self._validate_rasa_nlu_language(config["rasa_nlu"])
-        self._validate_rasa_nlu(config["rasa_nlu"])
         return config
-
-    def _validate_rasa_nlu_language(self, config):
-        for language in list(config.keys()):
-            if language not in SUPPORTED_RASA_LANGUAGES:
-                raise UnexpectedRASALanguageException(
-                    "Expected one of the supported RASA languages {} in DDD config '{}' but got '{}'.".format(
-                        SUPPORTED_RASA_LANGUAGES, self._absolute_path, language
-                    )
-                )
-
-    def _validate_rasa_nlu(self, config):
-        def message_for_missing_entry(parameter, language):
-            return "Parameter '{parameter}' is missing from 'rasa_nlu.{language}' in DDD config '{file}'." \
-                .format(parameter=parameter, language=language, file=self._absolute_path)
-
-        def message_for_unexpected_entries(parameters, language):
-            return "Parameters {parameters} are unexpected in 'rasa_nlu.{language}' of DDD config '{file}'." \
-                .format(parameters=parameters, language=language, file=self._absolute_path)
-
-        for language, rasa_nlu in list(config.items()):
-            if "url" not in rasa_nlu:
-                raise UnexpectedConfigEntriesException(message_for_missing_entry("url", language))
-            if "config" not in rasa_nlu:
-                raise UnexpectedConfigEntriesException(message_for_missing_entry("config", language))
-            unexpecteds = set(rasa_nlu.keys()) - {"url", "config"}
-            if any(unexpecteds):
-                raise UnexpectedConfigEntriesException(message_for_unexpected_entries(list(unexpecteds), language))
 
 
 class DeploymentsConfig(Config):
@@ -281,9 +266,7 @@ class DeploymentsConfig(Config):
 
     @staticmethod
     def fields():
-        return {
-            "dev": OptionalConfigField(default_value="https://127.0.0.1:9090/interact")
-        }
+        return {"dev": OptionalConfigField(default_value="https://127.0.0.1:9090/interact")}
 
     def _raise_config_not_found_exception(self):
         message = "Expected deployments config '{}' to exist but it was not found.".format(self._absolute_path)

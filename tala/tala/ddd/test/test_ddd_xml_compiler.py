@@ -1,31 +1,30 @@
-# -*- coding: utf-8 -*-
 import pytest
 from mock import Mock, patch
 
 import tala.ddd.ddd_xml_compiler
-from tala.ddd.ddd_xml_compiler import DddXmlCompiler, DddXmlCompilerException, ViolatesSchemaException, UnexpectedAttributeException
+from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, UnexpectedAttributeException, OntologyWarning
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceEntityRecognizerInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
+from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter, ParameterField
+
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ask_feature import AskFeature
-from tala.model.device import ParameterField
+from tala.model.hint import Hint
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
+from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeDomainQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem, EndTurnPlanItem
 from tala.model import condition
 from tala.model.predicate import Predicate
-from tala.model.sort import CustomSort, RealSort, UndefinedSort
-from tala.nl.gf import rgl_grammar_entry_types as rgl_types
-from tala.nl.gf.grammar_entry_types import Node, Constants
+from tala.model.proposition import ImplicationProposition
+from tala.model.sort import CustomSort, RealSort
 
 
-class DddXmlCompilerTestCase(DddCompilerTestCase):
+class DDDXMLCompilerTestCase(DddCompilerTestCase):
     def _given_compiled_ontology(
         self, xml='<ontology name="MockupOntology"/>', domain_name="Domain", ddd_name="mock_ddd"
     ):
         self._ddd_name = ddd_name
-        ontology_args = DddXmlCompiler().compile_ontology(xml)
+        ontology_args = DDDXMLCompiler().compile_ontology(xml)
         self._ontology = Ontology(**ontology_args)
         self._parser = Parser(self._ddd_name, self._ontology, domain_name)
         self._service_interface = Mock(spec=ServiceInterface)
@@ -34,20 +33,18 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         self._compile_ontology(ontology_xml)
 
     def _compile_ontology(self, ontology_xml):
-        self._result = DddXmlCompiler().compile_ontology(ontology_xml)
+        self._result = DDDXMLCompiler().compile_ontology(ontology_xml)
         self._ontology = Ontology(**self._result)
 
     def _predicate(self, *args, **kwargs):
         return Predicate(self._ontology.name, *args, **kwargs)
 
-    def _when_compile_ontology_then_exception_is_raised(self, ontolog_xml, expected_exception, expected_message):
+    def _when_compile_ontology_then_exception_is_raised(self, ontology_xml, expected_exception, expected_message):
         with pytest.raises(expected_exception, match=expected_message):
-            self._compile_ontology(ontolog_xml)
+            self._compile_ontology(ontology_xml)
 
     def _when_compile_domain(self, domain_xml='<domain name="Domain" />'):
-        self._result = DddXmlCompiler().compile_domain(
-            self._ddd_name, domain_xml, self._ontology, self._parser, self._service_interface
-        )
+        self._result = DDDXMLCompiler().compile_domain(self._ddd_name, domain_xml, self._ontology, self._parser)
 
     def _when_compile_domain_with_plan(self, plan_xml):
         self._when_compile_domain(
@@ -100,21 +97,8 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
     def _parse(self, string):
         return self._parser.parse(string)
 
-    def _when_compile_grammar(self, *args):
-        self._compile_grammar(*args)
-
-    def _compile_grammar(self, string):
-        self._result = DddXmlCompiler().compile_grammar(string, self._ontology, self._device_handler, "eng")
-
-    def _when_compile_rgl_grammar(self, string):
-        self._result = DddXmlCompiler().compile_rgl_grammar(string, self._ontology, self._service_interface, "eng")
-
     def _then_result_is(self, expected_result):
         assert expected_result == self._result
-
-    def _then_grammar_is(self, expected_grammar_children):
-        expected_grammar_node = Node(Constants.GRAMMAR, {}, expected_grammar_children)
-        assert expected_grammar_node == self._result
 
     def _mock_warnings(self):
         return patch("%s.warnings" % tala.ddd.ddd_xml_compiler.__name__)
@@ -123,7 +107,7 @@ class DddXmlCompilerTestCase(DddCompilerTestCase):
         mocked_warnings.warn.assert_called_once_with(expected_message, expected_class)
 
 
-class TestOntologyCompiler(DddXmlCompilerTestCase):
+class TestOntologyCompiler(DDDXMLCompilerTestCase):
     def test_name(self):
         self._when_compile_ontology('<ontology name="MockupOntology"/>')
         self._then_result_has_field("name", "MockupOntology")
@@ -221,16 +205,21 @@ class TestOntologyCompiler(DddXmlCompilerTestCase):
 </ontology>""")
         self._then_result_has_field("actions", {"buy"})
 
-    def test_exception_for_undefined_sort_in_predicate(self):
-        self._when_compile_ontology_then_exception_is_raised(
+    def test_warning_for_undefined_sort_in_predicate(self):
+        self._when_compile_ontology_then_warning_is_issued(
             """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="undefined_sort"/>
-</ontology>""", UndefinedSort, "Expected a defined sort but got 'undefined_sort'."
+</ontology>""", "Expected a defined sort but got 'undefined_sort'. Adding it to the ontology as a static sort."
         )
 
+    def _when_compile_ontology_then_warning_is_issued(self, ontology_xml, expected_warning_message):
+        with self._mock_warnings() as mocked_warnings:
+            self._compile_ontology(ontology_xml)
+            self._then_warning_is_issued(mocked_warnings, expected_warning_message, OntologyWarning)
 
-class TestGoalCompilation(DddXmlCompilerTestCase):
+
+class TestGoalCompilation(DDDXMLCompilerTestCase):
     def test_plan_for_perform_goal(self):
         self._given_compiled_ontology()
 
@@ -258,6 +247,21 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
 
         self._then_result_has_field("plans", [{"goal": self._parse("resolve(?X.price(X))"), "plan": Plan([])}])
 
+    def test_plan_for_resolve_goal_for_wh_question_as_default(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain("""
+<domain name="Domain">
+  <goal type="resolve" predicate="price" />
+</domain>""")
+
+        self._then_result_has_field("plans", [{"goal": self._parse("resolve(?X.price(X))"), "plan": Plan([])}])
+
     def test_plan_for_resolve_goal_for_nullary_predicate_proposition(self):
         self._given_compiled_ontology(
             """
@@ -277,26 +281,36 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
 
         self._then_result_has_field("plans", [{"goal": self._parse("resolve(?need_visa())"), "plan": Plan([])}])
 
-    def test_plan_for_handle_goal(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_domain(
-            """
-<domain name="Domain">
-  <goal type="handle" action="MockupAction" />
-</domain>"""
-        )
-
-        self._then_result_has_field("plans", [{"goal": self._parse("handle(MockupAction)"), "plan": Plan([])}])
-
     def test_exception_raised_for_goal_without_type(self):
         self._given_compiled_ontology()
 
-        with pytest.raises(DddXmlCompilerException):
+        with pytest.raises(DDDXMLCompilerException):
             self._when_compile_domain("""
 <domain name="Domain">
   <goal />
 </domain>""")
+
+    def test_plan_stack_order_use_default_wh_question(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="city"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<findout predicate="means_of_transport" />
+<findout predicate="dest_city" />"""
+        )
+
+        self._then_result_has_plan(
+            Plan([self._parse("findout(?X.dest_city(X))"),
+                  self._parse("findout(?X.means_of_transport(X))")])
+        )
 
     def test_plan_stack_order(self):
         self._given_compiled_ontology(
@@ -319,6 +333,219 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
             Plan([self._parse("findout(?X.dest_city(X))"),
                   self._parse("findout(?X.means_of_transport(X))")])
         )
+
+    def test_query_as_complex_plan(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="means_of_travel" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <query predicate="means_of_transport" type="wh_question">
+    <implication>
+        <antecedent predicate="means_of_travel" value="train"/>
+        <consequent predicate="means_of_travel" value="train"/>
+    </implication>
+  </query>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries", [{
+                "query":
+                self._parse("?X.means_of_transport(X)"),
+                "implications":
+                [ImplicationProposition(self._parse("means_of_travel(train)"), self._parse("means_of_travel(train)"))]
+            }]
+        )
+
+    def test_query_select_at_random(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="means_of_travel" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+  <individual name="plane" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <query predicate="means_of_transport" type="wh_question">
+    <select_at_random>
+        <individual value="train"/>
+        <individual value="plane"/>
+    </select_at_random>
+  </query>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries", [{
+                "query":
+                self._parse("?X.means_of_transport(X)"),
+                "for_random_selection":
+                [self._parse("means_of_transport(train)"),
+                 self._parse("means_of_transport(plane)")]
+            }]
+        )
+
+    def test_query_enumerate(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="means_of_travel" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+  <individual name="plane" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <query predicate="means_of_transport">
+    <enumerate>
+        <individual value="train"/>
+        <individual value="plane"/>
+    </enumerate>
+  </query>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries",
+            [{
+                "query": self._parse("?X.means_of_transport(X)"),
+                "for_enumeration": [self._parse("means_of_transport(train)"),
+                                    self._parse("means_of_transport(plane)")]
+            }]
+        )
+
+    def test_query_enumerate_random(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="means_of_travel" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+  <individual name="plane" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <query predicate="means_of_transport">
+    <enumerate randomize="true">
+        <individual value="train"/>
+        <individual value="plane"/>
+    </enumerate>
+  </query>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries", [{
+                "query":
+                self._parse("?X.means_of_transport(X)"),
+                "for_random_enumeration":
+                [self._parse("means_of_transport(train)"),
+                 self._parse("means_of_transport(plane)")]
+            }]
+        )
+
+    def test_iterator(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="means_of_travel" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+  <individual name="plane" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <iterator name="some_name">
+    <enumerate>
+        <proposition predicate="means_of_transport" value="train"/>
+        <proposition predicate="means_of_travel" value="train"/>
+    </enumerate>
+  </iterator>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries",
+            [{
+                "query": "some_name",
+                "for_enumeration": [self._parse("means_of_transport(train)"),
+                                    self._parse("means_of_travel(train)")],
+                "limit": "-1"
+            }]
+        )
+
+    def test_domain_validator(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
+  <individual name="plane" sort="how"/>
+  <individual name="bike" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <validator name="ValidatorName">
+    <configuration>
+      <proposition predicate="means_of_transport" value="train"/>
+    </configuration>
+    <configuration>
+      <proposition predicate="means_of_transport" value="plane"/>
+    </configuration>
+  </validator>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "validators", [{
+                "validator": "ValidatorName",
+                "valid_configurations": [
+                    [self._parse("means_of_transport(train)")],
+                    [self._parse("means_of_transport(plane)")]
+                ]
+            }]
+        )  # yapf: disable
 
     def test_preferred_proposition(self):
         self._given_compiled_ontology(
@@ -452,8 +679,23 @@ class TestGoalCompilation(DddXmlCompilerTestCase):
             self._when_compile_goal_with_content(goal_xml)
             self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
 
+    def test_is_shared_fact_deprecation_warning(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
+            '<downdate_condition><is_shared_fact>'
+            '<proposition predicate="dest_city" value="paris"/>'
+            '</is_shared_fact></downdate_condition>', "<is_shared_fact> is deprecated."
+        )
 
-class TestDomainCompiler(DddXmlCompilerTestCase):
+
+class TestDomainCompiler(DDDXMLCompilerTestCase):
     def test_name(self):
         self._given_compiled_ontology()
         self._when_compile_domain()
@@ -547,6 +789,133 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
 
         self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {"graphical_type": "list"}})
 
+    def test_parameters_for_ynq(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+    <predicate name="need_visa" sort="boolean"/>
+    <sort name="city"/>
+    <predicate name="dest_city" sort="city"/>
+    <individual name="paris" sort="city"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+    <parameters question_type="yn_question">
+        <proposition predicate="need_visa"/>
+        <hint>
+            <inform>
+               <proposition predicate="dest_city" value="paris"/>
+            </inform>
+        </hint>
+    </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters", {
+                self._parse("?need_visa"): {
+                    "hints": [
+                        Hint([
+                            IfThenElse(
+                                condition.HasSharedValue(self._parse("dest_city")), [],
+                                [self._parse("assume(dest_city(paris))"),
+                                 self._parse("assume_issue(?X.dest_city(X))")]
+                            )
+                        ])
+                    ]
+                }
+            }
+        )
+
+    def test_parameters_for_ynq_alternative_syntax(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+    <predicate name="need_visa" sort="boolean"/>
+    <sort name="city"/>
+    <predicate name="dest_city" sort="city"/>
+    <individual name="paris" sort="city"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+    <parameters question_type="yn_question" predicate="need_visa">
+        <hint>
+            <inform>
+               <proposition predicate="dest_city" value="paris"/>
+            </inform>
+        </hint>
+    </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters", {
+                self._parse("?need_visa"): {
+                    "hints": [
+                        Hint([
+                            IfThenElse(
+                                condition.HasSharedValue(self._parse("dest_city")), [],
+                                [self._parse("assume(dest_city(paris))"),
+                                 self._parse("assume_issue(?X.dest_city(X))")]
+                            )
+                        ])
+                    ]
+                }
+            }
+        )
+
+    def test_mitigation_parameter(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+  <action name="mitigate_search_for_price"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="price" on_zero_hits_action="mitigate_search_for_price"/>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters", {
+                self._parse("?X.price(X)"):
+                self._parser.parse_parameters("{on_zero_hits_action=mitigate_search_for_price}")
+            }
+        )
+
+    def test_too_many_hits_mitigation_parameter(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+  <action name="mitigate_search_for_price"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="price" on_too_many_hits_action="mitigate_search_for_price"/>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters", {
+                self._parse("?X.price(X)"):
+                self._parser.parse_parameters("{on_too_many_hits_action=mitigate_search_for_price}")
+            }
+        )
+
     def test_downdate_condition_for_has_value(self):
         self._given_compiled_ontology(
             """
@@ -578,7 +947,7 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("need_visa"))])
 
-    def test_downdate_condition_with_is_shared_fact(self):
+    def test_downdate_condition_with_is_true(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -590,13 +959,121 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_shared_fact>
+  <is_true>
     <proposition predicate="dest_city" value="paris"/>
-  </is_shared_fact>
+  </is_true>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds", [condition.IsTrue(self._parse("dest_city(paris)"))])
+
+    def test_downdate_condition_with_is_shared_commitment(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_shared_commitment predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsSharedFact(self._parse("dest_city(paris)"))]
+            "postconds", [condition.IsSharedCommitment(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_with_is_private_belief(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_private_belief predicate="dest_city" value="paris"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.IsPrivateBelief(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_with_is_private_belief_or_shared_commitment(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_private_belief_or_shared_commitment predicate="dest_city" value="paris"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.IsPrivateBeliefOrSharedCommitment(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_with_has_shared_value(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <has_shared_value predicate="dest_city"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds", [condition.HasSharedValue(self._parse("dest_city"))])
+
+    def test_downdate_condition_with_has_private_value(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <has_private_value predicate="dest_city"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute("postconds", [condition.HasPrivateValue(self._parse("dest_city"))])
+
+    def test_downdate_condition_with_has_shared_or_private_value(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <has_shared_or_private_value predicate="dest_city"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.HasSharedOrPrivateValue(self._parse("dest_city"))]
         )
 
     def test_downdate_condition_with_multiple_conditions(self):
@@ -613,21 +1090,20 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_shared_fact>
+  <is_true>
     <proposition predicate="dest_city" value="paris"/>
-  </is_shared_fact>
+  </is_true>
 </downdate_condition>
 <downdate_condition>
-  <is_shared_fact>
+  <is_true>
     <proposition predicate="dept_city" value="gothenburg"/>
-  </is_shared_fact>
+  </is_true>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [
-                condition.IsSharedFact(self._parse("dest_city(paris)")),
-                condition.IsSharedFact(self._parse("dept_city(gothenburg)"))
-            ]
+            "postconds",
+            [condition.IsTrue(self._parse("dest_city(paris)")),
+             condition.IsTrue(self._parse("dept_city(gothenburg)"))]
         )
 
     def test_schema_violation_yields_exception(self):
@@ -653,14 +1129,14 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
             '<assume_shared/>', ViolatesSchemaException,
-            "Element 'assume_shared': Missing child element\(s\). Expected is \( proposition \)."
+            r"Element 'assume_shared': Missing child element\(s\). Expected is \( proposition \)."
         )
 
     def test_malformed_assume_system_belief_element(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
             '<assume_system_belief/>', ViolatesSchemaException,
-            "Element 'assume_system_belief': Missing child element\(s\). Expected is \( proposition \)."
+            r"Element 'assume_system_belief': Missing child element\(s\). Expected is \( proposition \)."
         )
 
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
@@ -670,7 +1146,7 @@ class TestDomainCompiler(DddXmlCompilerTestCase):
             self._when_compile_domain_with_plan(xml)
 
 
-class TestParameterCompilation(DddXmlCompilerTestCase):
+class TestParameterCompilation(DDDXMLCompilerTestCase):
     def test_choice_parameter(self):
         self._given_compiled_ontology()
         self._when_compile_parameter_for_question("graphical_type", "list")
@@ -856,32 +1332,130 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
              }}
         )
 
-    def test_predicate_alts_parameter(self):
+    def test_hints_minimal_case(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
-  <sort name="how"/>
-  <predicate name="means_of_transport" sort="how"/>
-  <individual name="bus" sort="how"/>
-  <individual name="train" sort="how"/>
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
 </ontology>"""
         )
 
         self._when_compile_domain(
             """
 <domain name="Domain">
-  <parameters question_type="wh_question" predicate="means_of_transport">
-    <alt><proposition predicate="means_of_transport" value="bus"/></alt>
-    <alt><proposition predicate="means_of_transport" value="train"/></alt>
+  <parameters question_type="wh_question" predicate="dest_city">
+    <hint>
+        <inform>
+            <proposition predicate="dest_city" value="paris"/>
+        </inform>
+    </hint>
   </parameters>
 </domain>"""
         )
 
         self._then_result_has_field(
             "parameters", {
-                self._parse("?X.means_of_transport(X)"):
-                self._parser.parse_parameters("{alts=set([means_of_transport(bus), means_of_transport(train)])}")
+                self._parse("?X.dest_city(X)"): {
+                    "hints": [
+                        Hint([
+                            IfThenElse(
+                                condition.HasSharedValue(self._parse("dest_city")), [],
+                                [self._parse("assume(dest_city(paris))"),
+                                 self._parse("assume_issue(?X.dest_city(X))")]
+                            )
+                        ])
+                    ]
+                }
             }
+        )
+
+    def test_several_hints(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="city"/>
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+
+  <sort name="hint_sort"/>
+  <predicate name="hint_about_destination" sort="hint_sort"/>
+  <individual name="french_capital" sort="hint_sort"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="dest_city">
+    <hint>
+        <inform>
+            <proposition predicate="hint_about_destination" value="french_capital"/>
+        </inform>
+    </hint>
+    <hint>
+        <inform>
+            <proposition predicate="dest_city" value="paris"/>
+        </inform>
+    </hint>
+  </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "parameters", {
+                self._parse("?X.dest_city(X)"): {
+                    "hints": [
+                        Hint([
+                            IfThenElse(
+                                condition.HasSharedValue(self._parse("hint_about_destination")), [], [
+                                    self._parse("assume(hint_about_destination(french_capital))"),
+                                    self._parse("assume_issue(?X.hint_about_destination(X))")
+                                ]
+                            )
+                        ]),
+                        Hint([
+                            IfThenElse(
+                                condition.HasSharedValue(self._parse("dest_city")), [],
+                                [self._parse("assume(dest_city(paris))"),
+                                 self._parse("assume_issue(?X.dest_city(X))")]
+                            )
+                        ])
+                    ]
+                }
+            }
+        )
+
+    def test_person_names_as_alts(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <action name="select_person_to_call"/>
+  <predicate name="person_to_call" sort="person_name"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <goal type="perform" action="select_person_to_call">
+    <plan>
+      <findout type="alt_question">
+        <alt><proposition predicate="person_to_call" value="Anna Kronlid"/></alt>
+        <alt><proposition predicate="person_to_call" value="Fredrik Kronlid"/></alt>
+      </findout>
+    </plan>
+  </goal>
+</domain>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                self._parse(
+                    'findout(?set([person_to_call(person_name(Anna Kronlid)), person_to_call(person_name(Fredrik Kronlid))]))'
+                )
+            ])
         )
 
     def test_empty_alt_yields_exception(self):
@@ -893,7 +1467,7 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
 </ontology>"""
         )
 
-        with pytest.raises(DddXmlCompilerException):
+        with pytest.raises(DDDXMLCompilerException):
             self._when_compile_domain(
                 """
 <domain name="Domain">
@@ -959,7 +1533,7 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
 </ontology>"""
-        DddXmlCompilerTestCase._given_compiled_ontology(self, xml)
+        DDDXMLCompilerTestCase._given_compiled_ontology(self, xml)
 
     def _when_compile_parameter_for_question(self, name, value):
         self._when_compile_domain(
@@ -972,8 +1546,28 @@ class TestParameterCompilation(DddXmlCompilerTestCase):
     def _then_result_has_parameter_for_question(self, expected_name, expected_value):
         self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {expected_name: expected_value}})
 
+    def test_hints_always_relevant_parameter(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+    <sort name="city"/>
+    <predicate name="dest_city" sort="city"/>
+</ontology>"""
+        )
 
-class TestPlanItemCompilation(DddXmlCompilerTestCase):
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <parameters question_type="wh_question" predicate="dest_city">
+    <always_relevant/>
+  </parameters>
+</domain>"""
+        )
+
+        self._then_result_has_field("parameters", {self._parse("?X.dest_city(X)"): {"always_relevant": True}})
+
+
+class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS = ["findout", "raise", "bind"]
 
     @pytest.mark.parametrize("element_name", ELEMENT_NAMES_FOR_QUESTION_RAISING_PLAN_ITEMS)
@@ -1062,11 +1656,7 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
          allow_answer_from_pcom="true"/>"""
         )
 
-        self._then_result_has_plan(
-            Plan(
-                [self._parse("findout(?X.price(X))")]
-            )
-        )
+        self._then_result_has_plan(Plan([self._parse("findout(?X.price(X))")]))
 
     def test_allow_answer_from_pcom_is_not_tolerated_with_raise(self):
         self._given_compiled_ontology(
@@ -1077,8 +1667,7 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         )
 
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<raise type="wh_question" predicate="price" allow_answer_from_pcom="true"/>',
-            ViolatesSchemaException,
+            '<raise type="wh_question" predicate="price" allow_answer_from_pcom="true"/>', ViolatesSchemaException,
             "Expected domain.xml compliant with schema but it's in violation: Element 'raise', attribute 'allow_answer_from_pcom': The attribute 'allow_answer_from_pcom' is not allowed., line 4"
         )
 
@@ -1091,10 +1680,24 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         )
 
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<bind type="wh_question" predicate="price" allow_answer_from_pcom="true"/>',
-            ViolatesSchemaException,
+            '<bind type="wh_question" predicate="price" allow_answer_from_pcom="true"/>', ViolatesSchemaException,
             "Expected domain.xml compliant with schema but it's in violation: Element 'bind', attribute 'allow_answer_from_pcom': The attribute 'allow_answer_from_pcom' is not allowed., line 4"
         )
+
+    def test_findout_for_ynq(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="need_visa" sort="boolean"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan("""
+<findout type="yn_question" predicate="need_visa"/>""")
+
+        self._then_result_has_plan(Plan([
+            self._parse("findout(?need_visa())"),
+        ]))
 
     def test_findout_defaults_to_disallow_answer_from_pcom(self):
         self._given_compiled_ontology(
@@ -1104,10 +1707,8 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
 </ontology>"""
         )
 
-        self._when_compile_domain_with_plan(
-            """
-<findout type="wh_question" predicate="price"/>"""
-        )
+        self._when_compile_domain_with_plan("""
+<findout type="wh_question" predicate="price"/>""")
 
         self._then_findout_allows_pcom(False)
 
@@ -1126,18 +1727,29 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
 
         self._then_findout_allows_pcom(True)
 
-    def test_if_then_else(self):
-        self._given_compiled_ontology(
+    def test_if_then_condition_is_deprecated(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._given_plan(
             """
-<ontology name="Ontology">
-  <sort name="how"/>
-  <sort name="train_type"/>
-  <predicate name="means_of_transport" sort="how"/>
-  <predicate name="transport_train_type" sort="train_type"/>
-  <individual name="train" sort="how"/>
-</ontology>"""
+<if>
+  <condition><proposition predicate="means_of_transport" value="train"/></condition>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </then>
+  <else />
+</if>"""
         )
 
+        self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
+            self._plan,
+            '"<if><condition><proposition ..." is deprecated. Use "<if><proposition ..." without <condition> instead.'
+        )
+
+    def _given_plan(self, plan):
+        self._plan = plan
+
+    def test_if_then_condition_still_works(self):
+        self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
             """
 <if>
@@ -1152,9 +1764,264 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 IfThenElse(
-                    self._parse("means_of_transport(train)"), self._parse("findout(?X.transport_train_type(X))"), None
+                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
+        )
+
+    def test_if_then_else(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <proposition predicate="means_of_transport" value="train"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </then>
+  <else />
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def _given_compiled_ontology_for_if_then_tests(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <sort name="train_type"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <predicate name="transport_train_type" sort="train_type"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+    def test_if_then_else_has_value(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <has_value predicate="means_of_transport"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasValue(self._parse("means_of_transport")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_has_shared_value(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <has_shared_value predicate="means_of_transport"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("means_of_transport")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_has_private_value(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <has_private_value predicate="means_of_transport"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasPrivateValue(self._parse("means_of_transport")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_has_shared_or_private_value(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <has_shared_or_private_value predicate="means_of_transport"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedOrPrivateValue(self._parse("means_of_transport")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_is_shared_commitment(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <is_shared_commitment predicate="means_of_transport" value="train"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.IsSharedCommitment(self._parse("means_of_transport(train)")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_is_private_belief(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <is_private_belief predicate="means_of_transport" value="train"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.IsPrivateBelief(self._parse("means_of_transport(train)")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_is_private_belief_or_shared_commitment(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <is_private_belief_or_shared_commitment predicate="means_of_transport" value="train"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.IsPrivateBeliefOrSharedCommitment(self._parse("means_of_transport(train)")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_else_query_has_more_items(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <has_more_items predicate="means_of_transport"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.QueryHasMoreItems(self._parse("?X.means_of_transport(X)")),
+                    [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_no_else(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <proposition predicate="means_of_transport" value="train"/>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </then>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_only_else(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <proposition predicate="means_of_transport" value="train"/>
+  <else>
+    <findout type="wh_question" predicate="transport_train_type" />
+  </else>
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    self._parse("means_of_transport(train)"), [], [self._parse("findout(?X.transport_train_type(X))")]
+                )
+            ])
+        )
+
+    def test_if_then_two_then(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<if><proposition predicate="means_of_transport" value="train"/><then/><then/></if>',
+            ViolatesSchemaException, r"This element is not expected. Expected is \( else \)"
+        )
+
+    def test_if_then_two_elses(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<if><proposition predicate="means_of_transport" value="train"/><else/><else/></if>',
+            ViolatesSchemaException, "Element 'else': This element is not expected."
         )
 
     def test_forget_proposition(self):
@@ -1186,6 +2053,35 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
 
         self._then_result_has_plan(Plan([self._parse("forget(means_of_transport)")]))
 
+    def test_forget_proposition_from_com(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            '<forget_shared><proposition predicate="means_of_transport" value="train"/></forget_shared>'
+        )
+
+        self._then_result_has_plan(Plan([self._parse("forget_shared(means_of_transport(train))")]))
+
+    def test_forget_predicate_from_com(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan('<forget_shared predicate="means_of_transport"/>')
+
+        self._then_result_has_plan(Plan([self._parse("forget_shared(means_of_transport)")]))
+
     def test_forget_all(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<forget_all />')
@@ -1206,6 +2102,42 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
         self._when_compile_domain_with_plan('<invoke_service_query type="wh_question" predicate="price"/>')
         self._then_result_has_plan(
             Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+        )
+
+    def test_invoke_service_query_use_wh_question_default(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<invoke_service_query predicate="price"/>')
+        self._then_result_has_plan(
+            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+        )
+
+    def test_invoke_domain_query(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<invoke_domain_query type="wh_question" predicate="price"/>')
+        self._then_result_has_plan(
+            Plan([InvokeDomainQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+        )
+
+    def test_invoke_domain_query_use_wh_question_default(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<invoke_domain_query predicate="price"/>')
+        self._then_result_has_plan(
+            Plan([InvokeDomainQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
     def test_invoke_service_action_with_device_attribute(self):
@@ -1346,7 +2278,27 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
     def test_jumpto(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<jumpto type="perform" action="top"/>')
-        self._then_result_has_plan(Plan([self._parser.parse("jumpto(perform(top))")]))
+        self._then_result_has_plan(Plan([self._parse("jumpto(perform(top))")]))
+
+    def test_assume_issue(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<assume_issue type="wh_question" predicate="price"/>')
+        self._then_result_has_plan(Plan([self._parse("assume_issue(?X.price(X))")]))
+
+    def test_insist_assume_issue(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan('<assume_issue insist="true" type="wh_question" predicate="price"/>')
+        self._then_result_has_plan(Plan([self._parse("insist_assume_issue(?X.price(X))")]))
 
     def test_assume_shared(self):
         self._given_compiled_ontology(
@@ -1361,7 +2313,7 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
   <proposition predicate="price" value="123.0"/>
 </assume_shared>"""
         )
-        self._then_result_has_plan(Plan([self._parser.parse("assume_shared(price(123.0))")]))
+        self._then_result_has_plan(Plan([self._parse("assume_shared(price(123.0))")]))
 
     def test_assume_system_belief(self):
         self._given_compiled_ontology(
@@ -1376,1052 +2328,249 @@ class TestPlanItemCompilation(DddXmlCompilerTestCase):
   <proposition predicate="price" value="123.0"/>
 </assume_system_belief>"""
         )
-        self._then_result_has_plan(Plan([self._parser.parse("assume(price(123.0))")]))
+        self._then_result_has_plan(Plan([self._parse("assume(price(123.0))")]))
 
-
-class TestGrammarCompiler(DddXmlCompilerTestCase):
-    def test_multiple_variants(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-
-        self._when_compile_grammar(
+    def test_assume_boolean_true(self):
+        self._given_compiled_ontology(
             """
-<grammar>
-  <action name="buy">
-    <one-of>
-      <item>buy</item>
-      <item>purchase</item>
-    </one-of>
-  </action>
-</grammar>
-"""
-        )
-
-        self._then_result_is(
-            Node(
-                Constants.GRAMMAR, {}, [
-                    Node(
-                        Constants.ACTION, {"name": "buy"}, [
-                            Node(
-                                Constants.ONE_OF, {},
-                                [Node(Constants.ITEM, {}, ["buy"]),
-                                 Node(Constants.ITEM, {}, ["purchase"])]
-                            )
-                        ]
-                    )
-                ]
-            )
-        )
-
-    def test_action(self):
-        self._given_compiled_ontology("""
 <ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
+  <predicate name="yes_or_no" sort="boolean"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<assume_shared>
+  <proposition predicate="yes_or_no" value="true"/>
+</assume_shared>"""
+        )
+        self._then_result_has_plan(Plan([self._parse("assume_shared(yes_or_no())")]))
 
-        self._when_compile_grammar("""
-<grammar>
-  <action name="buy">purchase</action>
-</grammar>
+    def test_assume_boolean_false(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="yes_or_no" sort="boolean"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<assume_shared>
+  <proposition predicate="yes_or_no" value="false"/>
+</assume_shared>"""
+        )
+        self._then_result_has_plan(Plan([self._parse("assume_shared(~yes_or_no())")]))
+
+    def test_inform_syntactic_sugar(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan("""
+<inform>
+  <proposition predicate="price" value="123.0"/>
+</inform>
 """)
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("price")), [],
+                    [self._parse("assume(price(123.0))"),
+                     self._parse("assume_issue(?X.price(X))")]
+                )
+            ])
+        )
 
-        self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
-
-    def test_predicate_explicit_speaker(self):
+    def test_inform_can_insist(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
   <predicate name="price" sort="real"/>
 </ontology>"""
         )
-
-        self._when_compile_grammar(
+        self._when_compile_domain_with_plan(
             """
-<grammar>
-  <question predicate="price" speaker="all">price information</question>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(Constants.PREDICATE, {"name": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
-        ])
-
-    def test_predicate_implicit_speaker(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-
-        self._when_compile_grammar(
-            """
-<grammar>
-  <question predicate="price">price information</question>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(Constants.PREDICATE, {"name": "price"}, [Node(Constants.ITEM, {}, ["price information"])])
-        ])
-
-    def test_user_question(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-
-        self._when_compile_grammar(
-            """
-<grammar>
-  <question predicate="price" speaker="user">price for travelling to <slot sort="city"/>
-  </question>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.USER_QUESTION, {"predicate": "price"},
-                [Node(Constants.ITEM, {},
-                      ["price for travelling to ", Node(Constants.SLOT, {"sort": "city"})])]
-            )
-        ])
-
-    def test_system_question(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-
-        self._when_compile_grammar(
-            """
-<grammar>
-  <question predicate="dest_city" speaker="system">where do you want to go</question>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_QUESTION, {"predicate": "dest_city"},
-                [Node(Constants.ITEM, {}, ["where do you want to go"])]
-            )
-        ])
-
-    def test_english_noun_phrase_as_single_variant(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="top">
-    <np>
-      <indefinite>start view</indefinite>
-      <definite>the start view</definite>
-    </np>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "top"}, [
-                    Node(
-                        Constants.NP, {}, [
-                            Node(Constants.INDEFINITE, {}, ["start view"]),
-                            Node(Constants.DEFINITE, {}, ["the start view"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_english_noun_phrase_among_multiple_variants(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="top">
-    <one-of>
-      <item>
-        <np>
-          <indefinite>start view</indefinite>
-          <definite>the start view</definite>
-        </np>
-      </item>
-      <item>main menu</item>
-    </one-of>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "top"}, [
-                    Node(
-                        Constants.ONE_OF, {}, [
-                            Node(
-                                Constants.ITEM, {}, [
-                                    Node(
-                                        Constants.NP, {}, [
-                                            Node(Constants.INDEFINITE, {}, ["start view"]),
-                                            Node(Constants.DEFINITE, {}, ["the start view"])
-                                        ]
-                                    )
-                                ]
-                            ),
-                            Node(Constants.ITEM, {}, ["main menu"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_english_verb_phrase_as_single_variant(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="buy">
-    <vp>
-      <infinitive>buy</infinitive>
-      <imperative>buy</imperative>
-      <ing-form>buying</ing-form>
-      <object>a ticket</object>
-    </vp>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "buy"}, [
-                    Node(
-                        Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, ["buy"]),
-                            Node(Constants.IMPERATIVE, {}, ["buy"]),
-                            Node(Constants.ING_FORM, {}, ["buying"]),
-                            Node(Constants.OBJECT, {}, ["a ticket"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_english_verb_phrase_among_multiple_variants(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="buy">
-    <one-of>
-      <item>
-        <vp>
-          <infinitive>buy</infinitive>
-          <imperative>buy</imperative>
-          <ing-form>buying</ing-form>
-          <object>a ticket</object>
-        </vp>
-      </item>
-      <item>purchase</item>
-    </one-of>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "buy"}, [
-                    Node(
-                        Constants.ONE_OF, {}, [
-                            Node(
-                                Constants.ITEM, {}, [
-                                    Node(
-                                        Constants.VP, {}, [
-                                            Node(Constants.INFINITIVE, {}, ["buy"]),
-                                            Node(Constants.IMPERATIVE, {}, ["buy"]),
-                                            Node(Constants.ING_FORM, {}, ["buying"]),
-                                            Node(Constants.OBJECT, {}, ["a ticket"])
-                                        ]
-                                    )
-                                ]
-                            ),
-                            Node(Constants.ITEM, {}, ["purchase"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_persian_verb_phrase(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="buy">
-    <vp>
-      <infinitive>خریدن</infinitive>
-      <imperative>بخر</imperative>
-      <ing-form>میخری</ing-form>
-      <object>یک بلیط</object>
-    </vp>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "buy"}, [
-                    Node(
-                        Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, ["خریدن"]),
-                            Node(Constants.IMPERATIVE, {}, ["بخر"]),
-                            Node(Constants.ING_FORM, {}, ["میخری"]),
-                            Node(Constants.OBJECT, {}, ["یک بلیط"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_swedish_verb_phrase(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="buy">
-    <vp>
-      <infinitive>köpa</infinitive>
-      <imperative>köp</imperative>
-      <ing-form>köper</ing-form>
-      <object>en biljett</object>
-    </vp>
-  </action>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "buy"}, [
-                    Node(
-                        Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, ["köpa"]),
-                            Node(Constants.IMPERATIVE, {}, ["köp"]),
-                            Node(Constants.ING_FORM, {}, ["köper"]),
-                            Node(Constants.OBJECT, {}, ["en biljett"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_spanish_verb_phrase(self):
-        self._given_compiled_ontology("""
-    <ontology name="Ontology">
-      <action name="buy"/>
-    </ontology>""")
-        self._when_compile_grammar(
-            """
-    <grammar>
-      <action name="buy">
-        <vp>
-          <infinitive>comprar</infinitive>
-          <imperative>compra</imperative>
-          <ing-form>comprando</ing-form>
-          <object>un billete</object>
-        </vp>
-      </action>
-    </grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "buy"}, [
-                    Node(
-                        Constants.VP, {}, [
-                            Node(Constants.INFINITIVE, {}, ["comprar"]),
-                            Node(Constants.IMPERATIVE, {}, ["compra"]),
-                            Node(Constants.ING_FORM, {}, ["comprando"]),
-                            Node(Constants.OBJECT, {}, ["un billete"])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_answer_combination(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dept_city" sort="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="user">
-    <one-of>
-      <item>
-        from <slot type="individual" predicate="dept_city" /> to <slot type="individual" predicate="dest_city" />
-      </item>
-      <item>
-        from <slot type="individual" predicate="dept_city" />
-      </item>
-    </one-of>
-  </answer>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.ANSWER_COMBINATION, {}, [
-                    Node(
-                        Constants.ONE_OF, {}, [
-                            Node(
-                                Constants.ITEM, {}, [
-                                    "from ",
-                                    Node(Constants.SLOT, {"predicate": "dept_city"}), " to ",
-                                    Node(Constants.SLOT, {"predicate": "dest_city"})
-                                ]
-                            ),
-                            Node(Constants.ITEM, {},
-                                 ["from ", Node(Constants.SLOT, {"predicate": "dept_city"})])
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_report_started(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="IncomingCall" status="started">incoming call</report>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(Constants.REPORT_STARTED, {"action": "IncomingCall"}, [Node(Constants.ITEM, {}, ["incoming call"])])
-        ])
-
-    def test_report_ended(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="IncomingCall" status="ended">call ended</report>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [Node(Constants.ITEM, {}, ["call ended"])])
-        ])
-
-    def test_action_with_empty_string(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="IncomingCall" status="ended">
-  </report>
-</grammar>"""
-        )
-        self._then_grammar_is([Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [None])])
-
-    def test_report_failed(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("CancelReservation")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="CancelReservation" status="failed" reason="no_reservation_exists">there is no reservation</report>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.REPORT_FAILED, {
-                    "action": "CancelReservation",
-                    "reason": "no_reservation_exists"
-                }, [Node(Constants.ITEM, {}, ["there is no reservation"])]
-            )
-        ])
-
-    def test_individual(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <individual name="city1" sort="city"/>
-</ontology>"""
-        )
-        self._when_compile_grammar("""
-<grammar>
-  <individual name="city_1">paris</individual>
-</grammar>""")
-        self._then_grammar_is([Node(Constants.INDIVIDUAL, {"name": "city_1"}, [Node(Constants.ITEM, {}, ["paris"])])])
-
-    def test_system_answer(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system">to <slot type="individual" predicate="dest_city"/></answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(Constants.ITEM, {}, ["to ", Node(Constants.SLOT, {})])]
-            )
-        ])
-
-    def test_system_answer_without_text_elements(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system"><slot type="individual" predicate="dest_city"/></answer>
-</grammar>"""
-        )
-        self._then_grammar_is([Node(Constants.SYS_ANSWER, {"predicate": "dest_city"}, [Node(Constants.SLOT, {})])])
-
-    def test_system_answer_with_embedded_answer(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system" predicate="price">
-    the price to <slot type="individual" predicate="dest_city"/> is <slot type="individual" predicate="price"/>
-  </answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "price"}, [
-                    Node(
-                        Constants.ITEM, {}, [
-                            "the price to ",
-                            Node(Constants.SLOT, {"predicate": "dest_city"}), " is ",
-                            Node(Constants.SLOT, {})
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_positive_system_answer(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="qualified" sort="boolean"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system" predicate="qualified" polarity="positive">you are qualified</answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.POSITIVE_SYS_ANSWER, {"predicate": "qualified"},
-                [Node(Constants.ITEM, {}, ["you are qualified"])]
-            )
-        ])
-
-    def test_negative_system_answer(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="qualified" sort="boolean"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system" predicate="qualified" polarity="negative">you are not qualified</answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.NEGATIVE_SYS_ANSWER, {"predicate": "qualified"},
-                [Node(Constants.ITEM, {}, ["you are not qualified"])]
-            )
-        ])
-
-    def test_validity(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-        self._given_service_interface_with_validity("CityValidity")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <validity name="CityValidity">
-    invalid city <slot type="individual" predicate="dest_city" />
-  </validity>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.VALIDITY, {"name": "CityValidity"},
-                [Node(Constants.ITEM, {},
-                      ["invalid city ", Node(Constants.SLOT, {"predicate": "dest_city"})])]
-            )
-        ])
-
-    def test_prereport(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("MakeReservation")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="MakeReservation" status="started" source="dialogue">making the reservation</report>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.PREREPORT, {"action": "MakeReservation"},
-                [Node(Constants.ITEM, {}, ["making the reservation"])]
-            )
-        ])
-
-    def test_preconfirm(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("MakeReservation")
-        self._when_compile_grammar(
-            """
-<grammar>
-  <preconfirm action="MakeReservation">would you like to make the reservation</preconfirm>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.PRECONFIRM, {"action": "MakeReservation"},
-                [Node(Constants.ITEM, {}, ["would you like to make the reservation"])]
-            )
-        ])
-
-    def test_greeting(self):
-        self._given_compiled_ontology()
-        self._when_compile_grammar("""
-<grammar>
-  <greeting>Welcome</greeting>
-</grammar>""")
-        self._then_grammar_is([Node(Constants.GREETING, {}, [Node(Constants.ITEM, {}, ["Welcome"])])])
-
-    def test_whitespacing_for_trailing_text_node(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <answer speaker="system">
-    <slot type="individual" predicate="dest_city"/> as destination
-  </answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(Constants.ITEM, {}, [Node(Constants.SLOT, {}), " as destination"])]
-            )
-        ])
-
-    def test_whitespacing_between_slots(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="alarm_hour" sort="integer"/>
-  <predicate name="alarm_minute" sort="integer"/>
-</ontology>"""
-        )
-        self._when_compile_grammar(
-            """
-<grammar>
-  <report action="AlarmRings" status="started">
-    the time is <slot type="individual" predicate="alarm_hour"/> <slot type="individual" predicate="alarm_minute"/>
-  </report>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.REPORT_STARTED, {"action": "AlarmRings"}, [
-                    Node(
-                        Constants.ITEM, {}, [
-                            "the time is ",
-                            Node(Constants.SLOT, {"predicate": "alarm_hour"}), " ",
-                            Node(Constants.SLOT, {"predicate": "alarm_minute"})
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_unexpected_element_yields_exception(self):
-        self._given_compiled_ontology()
-        with pytest.raises(ViolatesSchemaException):
-            self._when_compile_grammar("""
-<grammar>
-  <unexpected_element/>
-</grammar>""")
-
-    def test_tolerate_comment(self):
-        self._given_compiled_ontology("""
-<ontology name="Ontology">
-  <action name="buy"/>
-</ontology>""")
-
-        self._when_compile_grammar(
-            """
-<grammar>
-  <action name="buy">purchase</action>
-  <!-- this is a comment -->
-</grammar>
+<inform insist="true">
+  <proposition predicate="price" value="123.0"/>
+</inform>
 """
         )
+        self._then_result_has_plan(
+            Plan(
+                reversed([
+                    self._parse("forget(price)"),
+                    self._parse("assume(price(123.0))"),
+                    self._parse("assume_issue(?X.price(X))")
+                ])
+            )
+        )
 
-        self._then_grammar_is([Node(Constants.ACTION, {"name": "buy"}, [Node(Constants.ITEM, {}, ["purchase"])])])
-
-    def setup(self):
-        super(TestGrammarCompiler, self).setup()
-        self._device_handler = None
-
-
-class TestRglGrammarCompiler(DddXmlCompilerTestCase):
-    def test_system_answer(self):
+    def test_inform_insist_false(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
+  <predicate name="price" sort="real"/>
 </ontology>"""
         )
-        self._when_compile_rgl_grammar(
+        self._when_compile_domain_with_plan(
             """
-<grammar>
-  <answer speaker="system" predicate="dest_city">
-    <utterance>to <individual predicate="dest_city"/></utterance>
-  </answer>
-</grammar>"""
+<inform insist="false">
+  <proposition predicate="price" value="123.0"/>
+</inform>
+"""
         )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(rgl_types.UTTERANCE, {}, ["to ", Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
-            )
-        ])
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("price")), [],
+                    [self._parse("assume(price(123.0))"),
+                     self._parse("assume_issue(?X.price(X))")]
+                )
+            ])
+        )
 
-    def test_system_answer_without_text_elements(self):
+    def test_inform_can_generate_end_turn_with_default_0(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
+  <predicate name="price" sort="real"/>
 </ontology>"""
         )
-        self._when_compile_rgl_grammar(
+        self._when_compile_domain_with_plan(
             """
-<grammar>
-  <answer speaker="system" predicate="dest_city">
-    <utterance><individual predicate="dest_city"/></utterance>
-  </answer>
-</grammar>"""
-        )
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_ANSWER, {"predicate": "dest_city"},
-                [Node(rgl_types.UTTERANCE, {}, [Node(Constants.INDIVIDUAL, {"predicate": "dest_city"})])]
-            )
-        ])
-
-    def test_action_with_noun_phrase(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <action name="top">
-    <noun-phrase>
-      <noun ref="menu"/>
-    </noun-phrase>
-  </action>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "top"},
-                [Node(rgl_types.NOUN_PHRASE, {}, [Node(rgl_types.NOUN, {"ref": "menu"})])]
-            )
-        ])
-
-    def test_lexicon_with_noun(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <lexicon>
-    <noun id="menu">
-      <singular>menu</singular>
-    </noun>
-  </lexicon>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(rgl_types.LEXICON, {}, [Node(rgl_types.NOUN, {"id": "menu"}, [Node("singular", {}, ["menu"])])])
-        ])
-
-    def test_action_with_verb_phrase(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <action name="top">
-    <verb-phrase>
-      <verb ref="restart"/>
-    </verb-phrase>
-  </action>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "top"},
-                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "restart"})])]
-            )
-        ])
-
-    def test_predicate_with_noun_phrase(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <predicate name="phone_number_of_contact">
-    <noun-phrase>
-      <noun ref="number" />
-    </noun-phrase>
-  </predicate>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.PREDICATE, {"name": "phone_number_of_contact"},
-                [Node(rgl_types.NOUN_PHRASE, {}, [Node(rgl_types.NOUN, {"ref": "number"})])]
-            )
-        ])
-
-    def test_lexicon_with_verb(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <lexicon>
-    <verb id="restart">
-      <infinitive>restart</infinitive>
-    </verb>
-  </lexicon>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                rgl_types.LEXICON, {}, [Node(rgl_types.VERB, {"id": "restart"}, [Node("infinitive", {}, ["restart"])])]
-            )
-        ])
-
-    def test_one_of_for_action(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <action name="top">
-    <one-of>
-      <item>
-        <verb-phrase>
-          <verb ref="restart"/>
-        </verb-phrase>
-      </item>
-      <item>
-        <verb-phrase>
-          <verb ref="forget"/>
-        </verb-phrase>
-      </item>
-    </one-of>
-  </action>
-</grammar>"""
-        )
-
-        self._then_grammar_is([
-            Node(
-                Constants.ACTION, {"name": "top"}, [
-                    Node(
-                        Constants.ONE_OF, {}, [
-                            Node(
-                                Constants.ITEM, {},
-                                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "restart"})])]
-                            ),
-                            Node(
-                                Constants.ITEM, {},
-                                [Node(rgl_types.VERB_PHRASE, {}, [Node(rgl_types.VERB, {"ref": "forget"})])]
-                            )
-                        ]
-                    )
-                ]
-            )
-        ])
-
-    def test_simple_request(self):
-        self._given_compiled_ontology()
-
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <request action="top"><utterance>forget everything</utterance></request>
-</grammar>
+<inform insist="false" generate_end_turn="true">
+  <proposition predicate="price" value="123.0"/>
+</inform>
 """
         )
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("price")), [], [
+                        self._parse("assume(price(123.0))"),
+                        self._parse("assume_issue(?X.price(X))"),
+                        EndTurnPlanItem(0.0)
+                    ]
+                )
+            ])
+        )
 
-        self._then_grammar_is([
-            Node(rgl_types.REQUEST, {"action": "top"}, [Node(rgl_types.UTTERANCE, {}, ["forget everything"])])
-        ])
-
-    def test_request_with_individual(self):
-        self._given_compiled_ontology("""
-<ontology>
-  <action name="call"/>
-  <sort name="contact"/>
-</ontology>
-""")
-
-        self._when_compile_rgl_grammar(
+    def test_inform_can_be_without_end_turn(self):
+        self._given_compiled_ontology(
             """
-<grammar>
-  <request action="call">
-    <utterance>call <individual sort="contact"/></utterance>
-  </request>
-</grammar>
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<inform insist="false" generate_end_turn="false">
+  <proposition predicate="price" value="123.0"/>
+</inform>
 """
         )
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("price")), [],
+                    [self._parse("assume(price(123.0))"),
+                     self._parse("assume_issue(?X.price(X))")]
+                )
+            ])
+        )
 
-        self._then_grammar_is([
-            Node(
-                rgl_types.REQUEST, {"action": "call"},
-                [Node(rgl_types.UTTERANCE, {}, ["call ", Node(Constants.INDIVIDUAL, {"sort": "contact"}, [])])]
-            )
-        ])
-
-    def test_individual_as_proper_noun(self):
+    def test_inform_can_generate_end_turn_with_custom_value(self):
         self._given_compiled_ontology(
             """
-<ontology>
-  <sort name="city"/>
-  <individual name="city1" sort="city"/>
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
 </ontology>"""
         )
-        self._when_compile_rgl_grammar(
+        self._when_compile_domain_with_plan(
             """
-<grammar>
-  <individual name="city_1">
-    <proper-noun>Paris</proper-noun>
-  </individual>
-</grammar>"""
+<inform insist="false" generate_end_turn="true" expected_passivity="1.0">
+  <proposition predicate="price" value="123.0"/>
+</inform>
+"""
         )
-        self._then_grammar_is([
-            Node(Constants.INDIVIDUAL, {"name": "city_1"}, [Node(rgl_types.PROPER_NOUN, {}, ["Paris"])])
-        ])
-
-    def test_report_ended(self):
-        self._given_compiled_ontology()
-        self._given_service_interface_with_action("IncomingCall")
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <report action="IncomingCall" status="ended"><utterance>call ended</utterance></report>
-</grammar>"""
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.HasSharedValue(self._parse("price")), [], [
+                        self._parse("assume(price(123.0))"),
+                        self._parse("assume_issue(?X.price(X))"),
+                        EndTurnPlanItem(1.0)
+                    ]
+                )
+            ])
         )
-        self._then_grammar_is([
-            Node(Constants.REPORT_ENDED, {"action": "IncomingCall"}, [Node(rgl_types.UTTERANCE, {}, ["call ended"])])
-        ])
 
-    def test_system_question(self):
+    def test_signal_action_completion(self):
+
         self._given_compiled_ontology(
             """
-<ontology>
-  <sort name="city"/>
-  <predicate name="dest_city" sort="city"/>
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan("""
+<signal_action_completion/>
+            """)
+        self._then_result_has_plan(Plan([self._parse("signal_action_completion(true)")]))
+
+    def test_signal_action_completion_with_report_parameter(self):
+
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan("""
+<signal_action_completion postconfirm="false"/>
+            """)
+        self._then_result_has_plan(Plan([self._parse("signal_action_completion(false)")]))
+
+    def test_signal_action_failure_needs_reason(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
+            '<signal_action_failure/>', ViolatesSchemaException, "The attribute 'reason' is required but missing."
+        )
+
+    def test_signal_action_failure_with_reason(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan("""
+<signal_action_failure reason="some_reason"/>
+            """)
+        self._then_result_has_plan(Plan([self._parse("signal_action_failure(some_reason)")]))
+
+    def test_change_ddd(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
 </ontology>"""
         )
 
-        self._when_compile_rgl_grammar(
-            """
-<grammar>
-  <question predicate="dest_city" speaker="system">
-    <utterance>where do you want to go</utterance>
-  </question>
-</grammar>"""
-        )
+        self._when_compile_domain_with_plan('<change_ddd name="some_ddd"/>')
 
-        self._then_grammar_is([
-            Node(
-                Constants.SYS_QUESTION, {"predicate": "dest_city"},
-                [Node(rgl_types.UTTERANCE, {}, ["where do you want to go"])]
-            )
-        ])
+        self._then_result_has_plan(Plan([self._parse("change_ddd(some_ddd)")]))
 
 
-class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
+class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     def test_action_without_parameters(self):
         self._when_compile_service_interface(
             """
@@ -2443,7 +2592,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
         ])
 
     def _when_compile_service_interface(self, device_xml):
-        self._result = DddXmlCompiler().compile_service_interface(device_xml)
+        self._result = DDDXMLCompiler().compile_service_interface(device_xml)
 
     def _then_service_interface_has_actions(self, expected_actions):
         assert self._result.actions == expected_actions
@@ -2581,9 +2730,9 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
   </action>
 </service_interface>
 """, ViolatesSchemaException,
-            "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameter', "
-            "attribute 'format': \[facet 'enumeration'\] The value 'something_else' is not an element of the set "
-            "\{'value', 'grammar_entry'\}., line 5"
+            r"Expected service_interface.xml compliant with schema but it's in violation: Element 'parameter', "
+            r"attribute 'format': \[facet 'enumeration'\] The value 'something_else' is not an element of the set "
+            r"\{'value', 'grammar_entry'\}., line 5"
         )
 
     def _when_compile_service_interface_then_exception_is_raised_matching(
@@ -2619,25 +2768,6 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 
     def _then_service_interface_has_queries(self, expected_queries):
         assert self._result.queries == expected_queries
-
-    def test_entity_recognizer_with_device_module_target(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <entity_recognizer name="ContactNameRecognizer">
-    <target>
-      <device_module device="CallDevice"/>
-    </target>
-  </entity_recognizer>
-</service_interface>
-"""
-        )
-        self._then_service_interface_has_entity_recognizers([
-            ServiceEntityRecognizerInterface("ContactNameRecognizer", target=DeviceModuleTarget("CallDevice")),
-        ])
-
-    def _then_service_interface_has_entity_recognizers(self, expected_entity_recognizers):
-        assert self._result.entity_recognizers == expected_entity_recognizers
 
     def test_validity_with_device_module_target(self):
         self._when_compile_service_interface(
@@ -2711,7 +2841,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 8"
+            r"This element is not expected. Expected is one of \( device_module, http \)., line 8"
         )
 
     def test_frontend_target_for_validator(self):
@@ -2730,22 +2860,7 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 9"
-        )
-
-    def test_frontend_target_for_entity_recognizer(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching(
-            """
-<service_interface>
-  <entity_recognizer name="ContactNameRecognizer">
-    <target>
-      <frontend/>
-    </target>
-  </entity_recognizer>
-</service_interface>
-""", ViolatesSchemaException,
-            "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            "This element is not expected. Expected is one of \( device_module, http \)., line 5"
+            r"This element is not expected. Expected is one of \( device_module, http \)., line 9"
         )
 
     def test_http_target_for_action(self):
@@ -2800,22 +2915,6 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
             )
         ])
 
-    def test_http_target_for_entity_recognizer(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <entity_recognizer name="ContactNameRecognizer">
-    <target>
-      <http endpoint="mock_endpoint"/>
-    </target>
-  </entity_recognizer>
-</service_interface>
-    """
-        )
-        self._then_service_interface_has_entity_recognizers([
-            ServiceEntityRecognizerInterface("ContactNameRecognizer", target=HttpTarget("mock_endpoint"))
-        ])
-
     def test_http_target_for_validator(self):
         self._when_compile_service_interface(
             """
@@ -2855,8 +2954,8 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
   </play_audio_action>
 </service_interface>
 """, ViolatesSchemaException,
-            "Expected service_interface.xml compliant with schema but it's in violation: Element 'parameters': "
-            "This element is not expected. Expected is \( audio_url_parameter \)., line 4"
+            r"Expected service_interface.xml compliant with schema but it's in violation: Element 'parameters': "
+            r"This element is not expected. Expected is \( audio_url_parameter \)., line 4"
         )
 
     def test_play_audio_action_with_parameters(self):
@@ -2945,6 +3044,6 @@ class TestServiceInterfaceCompiler(DddXmlCompilerTestCase):
   </play_audio_action>
 </service_interface>
 """, ViolatesSchemaException,
-            "Expected service_interface.xml compliant with schema but it's in violation: Element 'device_module': "
-            "This element is not expected. Expected is \( frontend \)., line 9"
+            r"Expected service_interface.xml compliant with schema but it's in violation: Element 'device_module': "
+            r"This element is not expected. Expected is \( frontend \)., line 9"
         )

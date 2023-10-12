@@ -2,10 +2,12 @@ import pytest
 
 from tala.model.ontology import Ontology, OntologyError, InvalidIndividualName, AmbiguousNamesException, IndividualExistsException, SortDoesNotExistException
 from tala.model.predicate import Predicate
-from tala.model.sort import RealSort, IntegerSort, ImageSort, DomainSort, CustomSort, BooleanSort, DateTimeSort, WebviewSort, StringSort, REAL, INTEGER, IMAGE, BOOLEAN, DATETIME, WEBVIEW, STRING
+from tala.model.sort import RealSort, IntegerSort, ImageSort, DomainSort, CustomSort, BooleanSort, DateTimeSort, WebviewSort, StringSort, PersonNameSort, REAL, INTEGER, IMAGE, BOOLEAN, DATETIME, WEBVIEW, STRING
 from tala.model.image import Image
 from tala.model.webview import Webview
 from tala.model.date_time import DateTime
+from tala.model.person_name import PersonName
+from tala.ddd.json_parser import JSONOntologyParser
 
 
 class TestOntology(object):
@@ -13,6 +15,9 @@ class TestOntology(object):
 
     def _given_ontology(self, **kwargs):
         self._create_ontology(**kwargs)
+        ontology_as_json = self._ontology.as_json()
+        json_parser = JSONOntologyParser()
+        self._ontology = json_parser.parse_ontology(ontology_as_json)
 
     def _when_creating_ontology(self, **kwargs):
         self._create_ontology(**kwargs)
@@ -80,7 +85,7 @@ class TestOntologyBasic(TestOntology):
     def test_actions_with_additional_action(self):
         self._given_ontology(actions={"buy"})
         self._when_get_actions_is_called()
-        self._then_result_is({"buy", "top", "up"})
+        self._then_result_is({"buy", "top", "up", "how"})
 
     def _when_get_actions_is_called(self):
         self._result = self._ontology.get_actions()
@@ -106,7 +111,7 @@ class TestOntologyBasic(TestOntology):
     def test_default_actions_included_in_get_actions(self):
         self._given_ontology()
         self._when_get_actions_is_called()
-        self._then_result_is({"top", "up"})
+        self._then_result_is({"top", "up", "how"})
 
     def test_default_actions_missing_from_get_ddd_specific_actions(self):
         self._given_ontology()
@@ -412,3 +417,15 @@ class TestDynamicOntology(TestOntology):
 
     def _then_individual_is_not_static(self, name):
         assert self._ontology.is_individual_static(name) is False
+
+    def test_create_person_name_individual(self):
+        self._given_ontology(sorts={})
+        self._when_individual_is_created("Anna Kronlid", PersonNameSort())
+        self._then_individual_is_of_right_type()
+
+    def _when_individual_is_created(self, individual_string, sort):
+        self._individual = self._ontology.create_individual(individual_string, sort)
+
+    def _then_individual_is_of_right_type(self):
+        assert self._individual.getSort() == PersonNameSort()
+        assert self._individual.getValue() == PersonName("Anna Kronlid")

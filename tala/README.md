@@ -3,7 +3,7 @@ This is a command line SDK for managing TDM-based dialogue domain descriptions (
 # Install dependencies
 Ubuntu LTS 16.04 is supported. Install non-python dependencies with `apt-get`:
 ```bash
-apt-get install libxml2-dev libxslt-dev libmagic1
+apt-get install libxml2-dev libxslt-dev
 ```
 
 # Install tala

@@ -8,6 +8,7 @@ from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
 from tala.model.sort import DomainSort, Sort
+from tala.model.polarity import Polarity
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unique import unique
 
@@ -36,7 +37,8 @@ class AmbiguousNamesException(Exception):
     pass
 
 
-individual_name_mather = re.compile("^[a-zA-Z0-9_]{1,}$")
+individual_name_matcher = re.compile(r"^[a-zA-Z0-9_\-\:]{1,}$")
+SEMANTIC_OBJECT_TYPE = "ontology"
 
 
 class DddOntology:
@@ -44,7 +46,7 @@ class DddOntology:
 
 
 class Ontology(AsJSONMixin):
-    DEFAULT_ACTIONS = {"top", "up"}
+    DEFAULT_ACTIONS = {"top", "up", "how"}
 
     def __init__(self, name, sorts, predicates, individuals, actions):
         super(Ontology, self).__init__()
@@ -63,6 +65,8 @@ class Ontology(AsJSONMixin):
     def as_dict(self):
         json = super(Ontology, self).as_dict()
         json["_original_individuals"] = "<skipped>"
+        json["semantic_object_type"] = SEMANTIC_OBJECT_TYPE
+        json["_sorts"] = [sort.as_dict() for sort in self._sorts.values() if not sort.is_builtin()]
         return json
 
     def reset(self):
@@ -87,7 +91,7 @@ class Ontology(AsJSONMixin):
         return name in self._original_individuals
 
     def _validate_individual_name(self, name):
-        if not individual_name_mather.match(name):
+        if not individual_name_matcher.match(name):
             raise InvalidIndividualName("invalid individual name %r" % name)
 
     def _validate_individual_sort(self, name, sort):
@@ -290,6 +294,6 @@ class Ontology(AsJSONMixin):
         lambda_abstracted_prop = self.create_lambda_abstracted_predicate_proposition(predicate)
         return WhQuestion(lambda_abstracted_prop)
 
-    def create_predicate_proposition(self, predicate, individual):
-        proposition = PredicateProposition(predicate, individual)
+    def create_predicate_proposition(self, predicate, individual, polarity=Polarity.POS):
+        proposition = PredicateProposition(predicate, individual, polarity)
         return proposition

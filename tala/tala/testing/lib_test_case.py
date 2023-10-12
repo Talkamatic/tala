@@ -28,8 +28,7 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.domain_name = "mockup_domain"
 
         self._create_semantic_objects()
-        self._language_code = "mocked_language"
-        self.ddd = self._create_and_add_ddd(self._language_code)
+        self.ddd = self._create_and_add_ddd()
 
     def _create_ontology(self):
         sorts = {
@@ -124,16 +123,12 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.buy_action = self.ontology.create_action("buy")
         self.top_action = self.ontology.create_action("top")
 
-    def _create_and_add_ddd(self, language):
+    def _create_and_add_ddd(self):
         return DDD(
             self.DDD_NAME,
             self.ontology,
             Domain(self.DDD_NAME, "mockup_domain", self.ontology),
-            rasa_nlu={},
             service_interface=Mock(spec=ServiceInterface),
-            grammars={language: None},
-            language_codes=[language],
-            use_rgl=False
         )
 
     def then_result_is(self, expected_result):

@@ -12,6 +12,8 @@ def convert_to_json(object_, verbose=True):
         return None
     if object_ is True or object_ is False:
         return object_
+    # if isinstance(object_, float) or isinstance(object_, int):
+    #     return object_
     if isinstance(object_, list):
         return [convert_to_json(element, verbose) for element in object_]
     if isinstance(object_, set):

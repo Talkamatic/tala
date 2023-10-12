@@ -63,24 +63,24 @@ class StackTester(EqualityAssertionTestCaseMixin):
         stack = self.create_stack()
         self.assertRaises(StackError, stack.pop)
 
-    def test_isTop_succeeds_for_latest_stacked_element(self):
+    def test_is_top_succeeds_for_latest_stacked_element(self):
         stack = self.create_stack()
         stack.push("harry")
         element = "kalle"
         stack.push(element)
-        self.assertTrue(stack.isTop(element))
+        self.assertTrue(stack.is_top(element))
 
-    def test_isTop_on_empty_stack_returns_false(self):
+    def test_is_top_on_empty_stack_returns_false(self):
         stack = self.create_stack()
         element = "kalle"
-        self.assertFalse(stack.isTop(element))
+        self.assertFalse(stack.is_top(element))
 
-    def test_isTop_for_non_top_element_returns_false(self):
+    def test_is_top_for_non_top_element_returns_false(self):
         stack = self.create_stack()
         topElement = "kalle"
         stack.push(topElement)
         testElement = "nisse"
-        self.assertFalse(stack.isTop(testElement))
+        self.assertFalse(stack.is_top(testElement))
 
     def test_iteration(self):
         stack = self.create_stack()
@@ -90,15 +90,6 @@ class StackTester(EqualityAssertionTestCaseMixin):
         for element in stack:
             list.append(element)
         self.assertEqual(["top", "bottom"], list)
-
-    def test_pushing_elem_of_correct_type_raises_no_exception(self):
-        stack = self.create_stack(contentclass=str)
-        stack.push("foo")
-
-    def test_pushing_elem_of_wrong_type_raises_exception(self):
-        stack = self.create_stack(contentclass=int)
-        with self.assertRaises(TypeError):
-            stack.push("foo")
 
     def test_delete_element(self):
         stack = self.create_stack()

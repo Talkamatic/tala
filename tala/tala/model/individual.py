@@ -2,6 +2,7 @@ import re
 
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
+from tala.model.polarity import Polarity
 
 
 class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
@@ -11,6 +12,7 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
             value = self._strip_quotes(value)
         self.value = value
         self.sort = sort
+        self.polarity = Polarity.POS
 
     def getValue(self):
         return self.value
@@ -65,6 +67,14 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
 
 class NegativeIndividual(Individual):
+    def __init__(self, ontology_name, value, sort):
+        OntologySpecificSemanticObject.__init__(self, ontology_name)
+        if sort.is_string_sort():
+            value = self._strip_quotes(value)
+        self.value = value
+        self.sort = sort
+        self.polarity = Polarity.NEG
+
     def negate(self):
         return Individual(self.ontology_name, self.value, self.sort)
 
@@ -118,6 +128,10 @@ class Yes(SemanticObject, AsSemanticExpressionMixin):
     def __hash__(self):
         return hash(str(self))
 
+    def as_dict(self):
+        result = {"semantic_object_type": "yes/no", "instance": self.YES}
+        return super().as_dict() | result
+
 
 class No(SemanticObject, AsSemanticExpressionMixin):
     NO = "no"
@@ -145,3 +159,7 @@ class No(SemanticObject, AsSemanticExpressionMixin):
 
     def __hash__(self):
         return hash(str(self))
+
+    def as_dict(self):
+        result = {"semantic_object_type": "yes/no", "instance": self.NO}
+        return super().as_dict() | result

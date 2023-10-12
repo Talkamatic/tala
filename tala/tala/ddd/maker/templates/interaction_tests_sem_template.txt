@@ -1,0 +1,2 @@
+--- main menu
+S> ["icm:loadplan", "ask(?X.goal(X))"]

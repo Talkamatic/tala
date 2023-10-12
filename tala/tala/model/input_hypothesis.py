@@ -1,11 +1,19 @@
 from typing import Text  # noqa: F401
 
+from tala.utils.as_json import AsJSONMixin
 
-class InputHypothesis(object):
+
+class InputHypothesis(AsJSONMixin):
     def __init__(self, utterance, confidence):
         # type: (Text, float) -> None
         self._utterance = utterance
         self._confidence = confidence
+
+    def as_dict(self):
+        return {
+            "utterance": self.utterance,
+            "confidence": self.confidence,
+        }
 
     @property
     def utterance(self):

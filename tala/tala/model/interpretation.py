@@ -1,5 +1,6 @@
 from tala.model.common import Modality
 from tala.model.user_move import UserMove  # noqa: F401
+from tala.utils.as_json import AsJSONMixin
 from tala.utils.equality import EqualityMixin
 from tala.utils.unicodify import unicodify
 
@@ -8,8 +9,8 @@ class UnexpectedModalityException(Exception):
     pass
 
 
-class Interpretation(EqualityMixin):
-    def __init__(self, moves, modality, utterance=None):
+class Interpretation(EqualityMixin, AsJSONMixin):
+    def __init__(self, moves, modality, utterance=None, perception_confidence=None):
         # type: ([UserMove], str, str) -> None
         self._moves = moves
         if modality not in Modality.SUPPORTED_MODALITIES:
@@ -26,6 +27,7 @@ class Interpretation(EqualityMixin):
                 raise UnexpectedModalityException(f"Expected an utterance for modality '{modality}' but it was missing")
         self._modality = modality
         self._utterance = utterance
+        self._perception_confidence = perception_confidence
 
     @property
     def moves(self):
@@ -42,6 +44,10 @@ class Interpretation(EqualityMixin):
         # type: () -> str
         return self._utterance
 
+    @property
+    def perception_confidence(self):
+        return self._perception_confidence
+
     def as_dict(self):
         return {
             "modality": self.modality,
@@ -50,7 +56,7 @@ class Interpretation(EqualityMixin):
         }
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance})"
+        return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance}, {self._perception_confidence})"
 
 
 class InterpretationWithoutUtterance(Interpretation):

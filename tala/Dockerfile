@@ -1,13 +1,11 @@
-FROM python:3.7-slim
+FROM python:3.9-slim
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   build-essential \
   git-core \
   libxml2-dev \
-  libmagic1 \
   locales \
   locales-all \
-  wget \
   libxslt-dev&& \
   apt-get upgrade -y && \
   apt-get clean && \

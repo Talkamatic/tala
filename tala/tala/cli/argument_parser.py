@@ -27,3 +27,10 @@ def add_common_backend_arguments(parser):
         help="override a DDD config",
         metavar="DDD:CONFIG"
     )
+
+
+def add_shared_frontend_and_backend_arguments(parser):
+    log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    parser.add_argument(
+        "--log-level", choices=log_levels, default="WARNING", help="include log entries with this severity and above"
+    )

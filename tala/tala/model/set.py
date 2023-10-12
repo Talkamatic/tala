@@ -3,27 +3,19 @@ from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
 class Set(AsSemanticExpressionMixin, AsJSONMixin):
-    def __init__(self, content_or_contentclass=None):
+    def __init__(self, content=None):
+        if content is None:
+            content = []
         super(Set, self).__init__()
-        if content_or_contentclass is None:
-            contentclass = None
-            initial_content = []
-        elif type(content_or_contentclass) is type:
-            contentclass = content_or_contentclass
-            initial_content = []
-        else:
-            contentclass = None
-            initial_content = content_or_contentclass
-        self.contentclass = contentclass
         self.content = []
-        for x in initial_content:
+        for x in content:
             self.add(x)
 
     def __str__(self):
         return "{" + ", ".join(map(str, self.content)) + "}"
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.content or self.contentclass or [])
+        return "%s(%s)" % (self.__class__.__name__, self.content)
 
     def as_dict(self):
         return {
@@ -32,19 +24,18 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
 
     def __eq__(self, other):
         try:
-            return self.is_subset_of(other) and other.is_subset_of(self)
+            equality = self.is_subset_of(other) and other.is_subset_of(self)
+            return equality
         except AttributeError:
+            return False
+        except TypeError:
             return False
 
     def __hash__(self):
         return hash(self.__class__.__name__) + hash(self.content)
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def add(self, element):
         if element not in self.content:
-            self._typecheck(element)
             self.content.append(element)
 
     def remove(self, element):
@@ -56,17 +47,9 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
 
     def is_subset_of(self, other):
         for item in self.content:
-            if item not in other.content:
+            if item not in other:
                 return False
         return True
-
-    def _typecheck(self, element):
-        if self.contentclass:
-            if not isinstance(element, self.contentclass):
-                raise TypeError(
-                    "object " + str(element) + " of type " + element.__class__.__name__ + " is not of type " +
-                    str(self.contentclass)
-                )
 
     def __len__(self):
         return len(self.content)

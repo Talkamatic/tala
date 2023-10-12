@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3.9
 
 from setuptools import find_packages, setup
 
@@ -15,7 +15,13 @@ def readme():
 
 if __name__ == "__main__":
     setup(
-        use_scm_version={"write_to": "tala/installed_version.py"},
+        use_scm_version={
+            "write_to": "tala/tala/installed_version.py",
+            "root": "..",
+            "relative_to": __file__,
+            "git_describe_command": "git describe --dirty --tags --long "
+                    "--exclude tdm-* --exclude *candidate* --exclude *latest* --exclude *master* ",
+        },
         setup_requires=["setuptools_scm"],
         name="tala",
         description="Design dialogue domain descriptions (DDDs) for TDM",
@@ -23,7 +29,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         classifiers=[
             "Operating System :: OS Independent",
-            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.9",
         ],
         keywords="tala tdm ddd ddds dialogue conversation AI",
         packages=find_packages(exclude=["tala/ddds", "test", "*.test", "test.*", "*.test.*"]),
@@ -37,6 +43,7 @@ if __name__ == "__main__":
                 "ddd/schemas/ontology.xsd",
                 "ddd/schemas/service_interface.xsd",
                 "ddd/schemas/domain.xsd",
+                "nl/entity_examples/*/*.csv",
             ]
         },
         scripts=[],
@@ -49,15 +56,14 @@ if __name__ == "__main__":
         author="Talkamatic",
         author_email="dev@talkamatic.se",
         install_requires=[
-            "Jinja2~=2.10",
-            "pathlib==1.0.1",
-            "lxml==4.2.5",
-            "iso8601==0.1.12",
-            "python-magic==0.4.15",
-            "prompt-toolkit==2.0.8",
-            "requests==2.21.0",
-            "typing==3.7.4.1",
-            "structlog==18.2.0",
-        ],  # yapf: disable
+            "Jinja2==3.0.1",
+            "dill==0.3.6",
+            "iso8601==0.1.14",
+            "lxml==4.6.3",
+            "prompt-toolkit==3.0.19",
+            "requests-cache==0.6.4",
+            "requests==2.26.0",
+            "structlog==21.1.0",
+        ],
         dependency_links=[],
-    )
+    )  # yapf: disable

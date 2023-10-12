@@ -40,6 +40,10 @@ class UserInputTurn(Turn):
         return False
 
     @property
+    def is_user_semantic_input_turn(self):
+        return False
+
+    @property
     def is_user_passivity_turn(self):
         return False
 
@@ -80,6 +84,20 @@ class UserInterpretationTurn(UserInputTurn):
     @property
     def utterance(self):
         return self._utterance
+
+
+class UserSemanticInputTurn(UserInputTurn):
+    def __init__(self, semantic_input, line_number):
+        super().__init__(line_number)
+        self._semantic_input = semantic_input
+
+    @property
+    def is_user_semantic_input_turn(self):
+        return True
+
+    @property
+    def semantic_input(self):
+        return self._semantic_input
 
 
 class UserPassivityTurn(Turn):

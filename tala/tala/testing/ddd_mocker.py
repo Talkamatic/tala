@@ -5,7 +5,6 @@ import tempfile
 import unittest
 
 from tala.config import BackendConfig, DddConfig
-from tala.nl import languages
 
 
 class DddMockingTestCase(unittest.TestCase):
@@ -16,8 +15,7 @@ class DddMockingTestCase(unittest.TestCase):
         self._temp_dir = os.getcwd()
         self._exception_occurred = False
         self._mock_ddd_config = DddConfig.default_config(use_rgl=True)
-        self._mock_backend_config = BackendConfig.default_config(
-            active_ddd="mockup_app", ddds=["mockup_app"], supported_languages=[languages.ENGLISH])
+        self._mock_backend_config = BackendConfig.default_config(active_ddd="mockup_app", ddds=["mockup_app"])
 
     def tearDown(self):
         os.chdir(self._working_dir)
@@ -26,7 +24,8 @@ class DddMockingTestCase(unittest.TestCase):
                 print(("NOTE: Temp dir %s kept for debugging. It needs to be deleted manually." % self._temp_dir))
             else:
                 self._delete_temp_dir()
-                print("NOTE: Temp dir deleted. To keep the temp dir for debugging, " "run again with --keep-temp-dir")
+                print("NOTE: Temp dir deleted. To keep the temp dir for debugging, "
+                      "run again with --keep-temp-dir")
         else:
             self._delete_temp_dir()
 
@@ -68,18 +67,6 @@ class MockupDomain(DddDomain):
 
     def _given_ontology_xml_file(self, path):
         content = '<ontology name="MockupOntology"/>'
-        self.create_mockup_file(path, content)
-
-    def _given_device_py_file(self, *args, **kwargs):
-        self.create_mockup_device_file(*args, **kwargs)
-
-    def create_mockup_device_file(self, path="mockup_app/device.py", content=None):
-        if content is None:
-            content = """
-from tala.model.device import DddDevice
-class MockupDevice(DddDevice):
-  pass
-"""
         self.create_mockup_file(path, content)
 
     def _given_mocked_ddd_config(self, **kwargs):

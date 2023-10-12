@@ -27,10 +27,15 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
     def is_handle_goal(self):
         return False
 
-    def get_goal_type(self):
+    def is_top_goal(self):
+        return False
+
+    @property
+    def type(self):
         return self._goal_type
 
-    def get_target(self):
+    @property
+    def target(self):
         return self._target
 
     def __ne__(self, other):
@@ -38,7 +43,7 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            return (other.get_target() == self.get_target() and other.get_goal_type() == self.get_goal_type())
+            return (other.target == self.target and other.type == self.type)
         except AttributeError:
             return False
 
@@ -56,11 +61,11 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     @staticmethod
     def goal_filter(goal_type):
-        return lambda goal: goal.get_goal_type() == goal_type
+        return lambda goal: goal.type == goal_type
 
     @staticmethod
     def goal_target_filter(target_speaker):
-        return lambda goal: goal.get_target() == target_speaker
+        return lambda goal: goal.target == target_speaker
 
 
 class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
@@ -76,21 +81,36 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         return True
 
     def __hash__(self):
-        return hash((self._goal_type, self._target, self._content))
+        try:
+            return hash((self._goal_type, self._target, self._content, self.ontology_name))
+        except NotImplementedError:
+            return hash((self._goal_type, self._target, self._content))
 
     def __repr__(self):
-        return "%s(%s, %s, %s, %s)" % (
-            GoalWithSemanticContent.__name__, self.ontology_name, self._goal_type, self._target, self._content
-        )
+        try:
+            return "%s(%s, %s, %s, %s)" % (
+                GoalWithSemanticContent.__name__, self.ontology_name, self._goal_type, self._target, self._content
+            )
+        except NotImplementedError:
+            return "%s(%s, %s, %s)" % (GoalWithSemanticContent.__name__, self._goal_type, self._target, self._content)
 
     def __eq__(self, other):
+        def ontologies_match():
+            if self.is_ontology_specific():
+                return other.is_ontology_specific() and other.ontology_name == self.ontology_name
+            else:
+                return not other.is_ontology_specific()
+
         try:
             return (
                 other.is_goal() and other.has_semantic_content() and other.get_content() == self.get_content()
-                and other.get_target() == self.get_target() and other.get_goal_type() == self.get_goal_type()
+                and other.target == self.target and other.type == self.type and ontologies_match()
             )
         except AttributeError:
-            return False
+            pass
+        except NotImplementedError:
+            pass
+        return False
 
     def as_move(self):
         raise NotImplementedError()
@@ -119,6 +139,10 @@ class PerformGoal(GoalWithSemanticContent):
 
     def as_move(self):
         return RequestMove(self.get_content())
+
+    def is_top_goal(self):
+        action = self.get_action()
+        return action.is_top_action()
 
 
 class ResolveGoal(GoalWithSemanticContent):

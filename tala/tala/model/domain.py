@@ -1,16 +1,55 @@
+import copy
+
 from tala.model.action import Action
 from tala.model.error import DomainError
 from tala.model.goal import PerformGoal, ResolveGoal
+from tala.model.question import KnowledgePreconditionQuestion
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan, InvalidPlansException
+from tala.model import plan_item
 from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
-from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
-from tala.utils.as_json import AsJSONMixin
+from tala.utils.as_json import AsJSONMixin, convert_to_json
 from tala.utils.unique import unique
+
+SEMANTIC_OBJECT_TYPE = "domain"
 
 
 class DddDomain:
     pass
+
+
+def dict_as_key_value_list(dict_):
+    return [create_json_dict(key, value) for key, value in dict_.items()]
+
+
+def create_json_dict(key, value):
+    return {"key": convert_to_json(key), "value": convert_to_json(value)}
+
+
+def queries_dict_as_list(dict_):
+    def is_iterator(query_content):
+        return "limit" in query_content
+
+    queries_list = []
+    for question, content_dict in dict_.items():
+        result_dict = {}
+        if is_iterator(content_dict):
+            result_dict = serialize_iterator(content_dict)
+        else:
+            for entry in content_dict:
+                result_dict[entry] = convert_to_json(content_dict[entry])
+        queries_list.append(result_dict)
+    return queries_list
+
+
+def serialize_iterator(iterator):
+    serialized_iterator = {}
+    for key, value in iterator.items():
+        if key in ["for_enumeration", "for_random_enumeration"]:
+            serialized_iterator[key] = [convert_to_json(item) for item in value]
+        else:
+            serialized_iterator[key] = value
+    return serialized_iterator
 
 
 class Domain(AsJSONMixin):
@@ -20,7 +59,23 @@ class Domain(AsJSONMixin):
     SILENT_IO_STATUS = "silent"
     DISABLED_IO_STATUS = "disabled"
 
-    def __init__(self, ddd_name, name, ontology, plans=[], default_questions=[], parameters={}, dependencies={}):
+    def __init__(
+            self, ddd_name, name, ontology, plans=None, default_questions=None, parameters=None,
+            validators=None, dependencies=None, queries=None
+    ):  # yapf: disable
+        if plans is None:
+            plans = []
+        if default_questions is None:
+            default_questions = []
+        if parameters is None:
+            parameters = {}
+        if validators is None:
+            validators = {}
+        if dependencies is None:
+            dependencies = {}
+        if queries is None:
+            queries = []
+
         self.ddd_name = ddd_name
         self.name = name
         self.ontology = ontology
@@ -28,6 +83,8 @@ class Domain(AsJSONMixin):
         self.parameters = parameters
         self.dependencies = dependencies
         self.plans = self._plan_list_to_dict_indexed_by_goal(plans)
+        self.queries = self._query_list_to_dict_indexed_by_question(queries)
+        self.validators = validators
         self._goals_in_defined_order = [plan["goal"] for plan in plans]
         self._add_top_plan_if_missing()
         self._add_up_plan()
@@ -35,6 +92,10 @@ class Domain(AsJSONMixin):
     def as_dict(self):
         json = super(Domain, self).as_dict()
         json["ontology"] = "<skipped>"
+        json["semantic_object_type"] = SEMANTIC_OBJECT_TYPE
+        json["parameters"] = dict_as_key_value_list(self.parameters)
+        json["dependencies"] = dict_as_key_value_list(self.dependencies)
+        json["queries"] = queries_dict_as_list(self.queries)
         return json
 
     @property
@@ -44,7 +105,7 @@ class Domain(AsJSONMixin):
     def _has_top_plan(self):
         return any([
             plan for plan in list(self.plans.values()) if (
-                plan["goal"].is_goal() and plan["goal"].get_goal_type() == PerformGoal.PERFORM_GOAL
+                plan["goal"].is_goal() and plan["goal"].type == PerformGoal.PERFORM_GOAL
                 and plan["goal"].get_action().get_value() == "top"
             )
         ])  # noqa: E127
@@ -93,7 +154,7 @@ class Domain(AsJSONMixin):
         if self.has_goal(resolve_goal):
             plan = self.get_plan(resolve_goal)
             for item in plan:
-                if item.is_question_plan_item():
+                if item.type_ in plan_item.QUESTION_TYPES:
                     if question == item.getContent():
                         return True
         return False
@@ -128,16 +189,16 @@ class Domain(AsJSONMixin):
         if self.has_goal(supergoal):
             plan = self.get_plan(supergoal)
             for item in plan:
-                if item.is_question_plan_item():
+                if item.type_ in plan_item.QUESTION_TYPES:
                     question = item.getContent()
                     if question.is_alt_question():
                         for proposition in question.get_content():
                             if proposition.is_goal_proposition():
                                 goal = proposition.get_goal()
-                            if goal == subgoal:
-                                return True
-                            elif self.dominates(goal, subgoal):
-                                return True
+                                if goal == subgoal:
+                                    return True
+                                elif self.dominates(goal, subgoal):
+                                    return True
         return False
 
     def _is_action_goal(self, goal):
@@ -191,7 +252,7 @@ class Domain(AsJSONMixin):
     def _implicit_downdate_conditions_for_service_action_invocations(self, goal):
         plan = self.get_plan(goal)
         for item in plan:
-            if item.is_invoke_service_action_plan_item() and item.should_downdate_plan():
+            if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.should_downdate_plan():
                 yield ServiceActionTerminatedProposition(self.ontology.name, item.get_service_action())
 
     def _implicit_downdate_conditions_for_handle_goal(self, goal):
@@ -251,6 +312,15 @@ class Domain(AsJSONMixin):
         all_answers = answers(self.ontology.get_individuals(), predicate, question_sort)
         return unique(all_answers)
 
+    def _query_list_to_dict_indexed_by_question(self, query_list):
+        plans = {}
+        for query_info in query_list:
+            query = query_info["query"]
+            if query in plans:
+                raise InvalidPlansException(f"multiple definitions for query {query}")
+            plans[query] = query_info
+        return plans
+
     def _plan_list_to_dict_indexed_by_goal(self, plan_list):
         plans = {}
         for plan_info in plan_list:
@@ -293,6 +363,12 @@ class Domain(AsJSONMixin):
     def get_service_query(self, semantic_object):
         return self._get_parameter(semantic_object, "service_query")
 
+    def get_on_zero_hits_action(self, semantic_object):
+        return self._get_parameter(semantic_object, "on_zero_hits_action")
+
+    def get_on_too_many_hits_action(self, semantic_object):
+        return self._get_parameter(semantic_object, "on_too_many_hits_action")
+
     def get_label_questions(self, semantic_object):
         return self._get_parameter(semantic_object, "label_questions")
 
@@ -308,6 +384,9 @@ class Domain(AsJSONMixin):
     def get_ask_features(self, semantic_object):
         return self._get_parameter(semantic_object, "ask_features")
 
+    def get_hints(self, semantic_object):
+        return self._get_parameter(semantic_object, "hints")
+
     def get_related_information(self, semantic_object):
         return self._get_parameter(semantic_object, "related_information")
 
@@ -316,6 +395,12 @@ class Domain(AsJSONMixin):
 
     def get_alternatives_predicate(self, goal):
         return self._get_plan_attribute(goal, "alternatives_predicate")
+
+    def get_always_ground(self, semantic_object):
+        return self._get_parameter(semantic_object, "always_ground")
+
+    def get_is_always_relevant(self, semantic_object):
+        return self._get_parameter(semantic_object, "always_relevant")
 
     def _get_plan_attribute(self, goal, attribute):
         if goal in self.plans:
@@ -340,7 +425,7 @@ class Domain(AsJSONMixin):
 
     def question_forces_graphical_choice(self, question):
         return self.get_graphical_type(question) in [
-            QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
+            plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
         ] and not self.get_incremental(question)
 
     def _get_parameter(self, question, parameter):
@@ -350,11 +435,18 @@ class Domain(AsJSONMixin):
             return None
 
     def get_questions_in_plan(self, plan):
-        for plan_item in plan:
-            if plan_item.is_question_plan_item():
-                question = plan_item.getContent()
-                for feature_question in self.get_feature_questions_for_plan_item(question, plan_item):
+        for item in plan:
+            if item.type_ in plan_item.QUESTION_TYPES:
+                question = item.getContent()
+                for feature_question in self.get_feature_questions_for_plan_item(question, item):
                     yield feature_question
+                ask_features = self.get_ask_features(question)
+                if ask_features:
+                    for ask_feature in ask_features:
+                        feature_question = self.ontology.create_wh_question(ask_feature.name)
+                        yield feature_question
+                        if ask_feature.kpq:
+                            yield KnowledgePreconditionQuestion(feature_question)
                 yield question
 
     def get_feature_questions_for_plan_item(self, question, plan_item):
@@ -366,9 +458,37 @@ class Domain(AsJSONMixin):
                     feature_questions.append(feature_question)
         return feature_questions
 
+    def is_question_in_plan(self, question, plan):
+        return question in self.get_questions_in_plan(plan)
+
     def get_invoke_service_action_items_for_action(self, action_name):
         for goal in self.get_all_goals():
             plan = self.get_plan(goal)
             for item in plan:
-                if item.is_invoke_service_action_plan_item() and item.get_service_action() == action_name:
+                if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.get_service_action() == action_name:
                     yield item
+
+    def get_names_of_user_targeted_actions(self):
+        actions = []
+        for goal in self.get_all_goals():
+            plan = self.get_plan(goal)
+            for item in plan:
+                if item.type_ == plan_item.TYPE_GET_DONE:
+                    actions.append(item.get_content().value)
+        return actions
+
+    def get_implications_for_domain_query(self, query):
+        return self.queries[query]["implications"]
+
+    def get_propositions_for_random_selection(self, query):
+        return self.queries[query]["for_random_selection"]
+
+    def get_propositions_for_enumeration(self, query):
+        return copy.copy(self.queries[query].get("for_enumeration", []))
+
+    def get_propositions_for_random_enumeration(self, query):
+        return copy.copy(self.queries[query].get("for_random_enumeration", []))
+
+    def get_limit_for_iterator(self, query):
+        limit = self.queries[query].get("limit", -1)
+        return int(limit)

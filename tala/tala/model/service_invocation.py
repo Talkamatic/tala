@@ -7,5 +7,5 @@ class Session(namedtuple("Session", ["session_id"])):
     pass
 
 
-class Context(namedtuple("Context", ["active_ddd", "facts", "language", "invocation_id"])):
+class Context(namedtuple("Context", ["active_ddd", "facts", "invocation_id"])):
     pass

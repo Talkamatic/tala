@@ -11,6 +11,8 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     TYPE_KPQ = "KPQ"
     TYPE_CONSEQUENT = "CONSEQUENT"
 
+    TYPES = [TYPE_WH, TYPE_YESNO, TYPE_ALT, TYPE_KPQ, TYPE_CONSEQUENT]
+
     def __init__(self, type, content):
         SemanticObjectWithContent.__init__(self, content)
         self._type = type
@@ -116,5 +118,6 @@ class ConsequentQuestion(Question):
     def get_embedded_consequent_question(self):
         consequent_predicate = self.get_content().consequent_predicate
         lambda_abstracted_consequent_proposition = LambdaAbstractedPredicateProposition(
-            consequent_predicate, consequent_predicate.ontology_name)
+            consequent_predicate, consequent_predicate.ontology_name
+        )
         return WhQuestion(lambda_abstracted_consequent_proposition)

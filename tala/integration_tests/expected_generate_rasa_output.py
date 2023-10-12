@@ -1,0 +1,858 @@
+from tala.nl.languages import ENGLISH, SWEDISH, SPANISH, PERSIAN
+
+
+EXPECTED_BOILERPLATE = {
+    ENGLISH: r'''^- intent: NEGATIVE
+  examples: |
+    - aboard
+    - about
+    - above
+    - across
+    - after
+    - against
+    - along
+    - among
+    - as
+    - at
+    - on
+    - atop
+    - before
+    - behind
+    - below
+    - beneath
+    - beside
+    - between
+    - beyond
+    - but
+    - by
+    - come
+    - down
+    - during
+    - except
+    - for
+    - from
+    - in
+    - inside
+    - into
+    - less
+    - like
+    - near
+    - of
+    - off
+    - on
+    - onto
+    - opposite
+    - out
+    - outside
+    - over
+    - past
+    - save
+    - short
+    - since
+    - than
+    - then
+    - through
+    - throughout
+    - to
+    - toward
+    - under
+    - underneath
+    - unlike
+    - until
+    - up
+    - upon
+    - with
+    - within
+    - without
+    - worth
+    - is
+    - it
+    - the
+    - a
+    - am
+    - are
+    - them
+    - this
+    - that
+    - I
+    - you
+    - he
+    - she
+    - they
+    - them
+    - his
+    - her
+    - my
+    - mine
+    - their
+    - your
+    - us
+    - our
+    - how
+    - how's
+    - how is
+    - how's the
+    - how is the
+    - when
+    - when's
+    - when is
+    - when is the
+    - when's the
+    - what
+    - what is
+    - what's
+    - what's the
+    - what is the
+    - why
+    - why is
+    - why's
+    - why is the
+    - why's the
+    - do
+    - make
+    - tell
+    - start
+    - stop
+    - enable
+    - disable
+    - raise
+    - lower
+    - decrease
+    - increase
+    - act
+    - determine
+    - say
+    - ask
+    - go
+    - shoot
+    - wait
+    - hang on
+    - ok
+    - show
+    - help
+
+- intent: answer:yes
+  examples: |
+    - yes
+    - yeah
+    - yep
+    - sure
+    - ok
+    - of course
+    - very well
+    - fine
+    - right
+    - excellent
+    - okay
+    - perfect
+    - I think so
+
+- intent: answer:no
+  examples: |
+    - no
+    - nope
+    - no thanks
+    - no thank you
+    - negative
+    - don't want to
+    - don't
+    - do not
+    - please don't
+
+- intent: request:top
+  examples: |
+    - forget it
+    - never mind
+    - get me out of here
+    - start over
+    - beginning
+    - never mind that
+    - restart
+
+- intent: request:up
+  examples: |
+    - go back
+    - back
+    - previous
+    - back to the previous
+    - go to the previous
+    - go back to the previous one
+
+- intent: request:how
+  examples: |
+    - how do I do that
+    - how
+    - can you tell me how to do that
+    - I don't know how should I do that
+    - how can I do that
+
+- intent: report:done
+  examples: |
+    - I'm done
+    - done
+    - ready
+    - it's ready
+    - I'm ready
+    - completed
+    - check
+    - I have finished
+    - finished
+    - done and done
+    - it's done now
+    - okay next
+    - next
+    - next instruction
+
+- intent: icm:per\*neg
+  examples: |
+    - repeat
+    - repeat it
+    - repeat that
+    - pardon
+    - sorry
+    - can you repeat that
+    - excuse me
+    - what was that
+    - what did you say
+    - come again
+
+$''',
+    SWEDISH: r'''^- intent: NEGATIVE
+  examples: |
+    - om
+    - ovanför
+    - tvärsöver
+    - efter
+    - mot
+    - bland
+    - runt
+    - som
+    - på
+    - vid
+    - ovanpå
+    - före
+    - bakom
+    - nedan
+    - under
+    - bredvid
+    - mellan
+    - bortom
+    - men
+    - av
+    - trots
+    - ner
+    - förutom
+    - för
+    - från
+    - i
+    - inuti
+    - in i
+    - nära
+    - nästa
+    - mittemot
+    - ut
+    - utanför
+    - över
+    - per
+    - plus
+    - runt
+    - sedan
+    - än
+    - genom
+    - tills
+    - till
+    - mot
+    - olik
+    - upp
+    - via
+    - med
+    - inom
+    - utan
+    - är
+    - vara
+    - den
+    - det
+    - en
+    - ett
+    - dem
+    - denna
+    - detta
+    - jag
+    - du
+    - ni
+    - han
+    - hon
+    - hen
+    - de
+    - hans
+    - hennes
+    - hens
+    - min
+    - mina
+    - deras
+    - er
+    - din
+    - vi
+    - oss
+    - vår
+    - hur
+    - hur är
+    - när
+    - när är
+    - vad
+    - vad är
+    - varför
+    - varför är
+    - gör
+    - göra
+    - skapa
+    - berätta
+    - tala om
+    - börja
+    - starta
+    - sluta
+    - stopp
+    - stanna
+    - sätt på
+    - stäng av
+    - höj
+    - sänk
+    - öka
+    - minska
+    - agera
+    - bestäm
+    - säg
+    - fråga
+    - gå
+    - kör
+    - vänta
+    - ok
+    - visa
+    - hjälp
+
+- intent: answer:yes
+  examples: |
+    - ja
+    - javisst
+    - japp
+    - absolut
+    - det stämmer
+    - precis
+    - självklart
+    - varför inte
+    - ok
+    - okej
+    - det blir kanon
+    - perfekt
+    - det skulle jag tro
+    - ja tack
+
+- intent: answer:no
+  examples: |
+    - nej
+    - nix
+    - nähe du
+    - icke
+    - nej tack
+    - helst inte
+    - det vill jag inte
+    - det tror jag inte
+    - det skulle jag inte tro
+    - gör inte det
+    - gör det inte
+
+- intent: request:top
+  examples: |
+    - glöm alltihop
+    - jag skiter i detta
+    - ta mig härifrån
+    - börja om
+    - börja från noll
+
+- intent: request:up
+  examples: |
+    - gå tillbaka
+    - vad var den förra
+    - backa
+    - förra
+    - tillbaka
+    - ta mig tillbaka
+    - backa till förra
+
+- intent: request:how
+  examples: |
+    - hur gör jag det
+    - hur
+    - kan du tala om för mig hur man gör det
+    - hur gör man
+    - hur gör man det
+
+- intent: report:done
+  examples: |
+    - jag är klar
+    - klar
+    - färdig
+    - nu är det gjort
+    - jag har gjort klart
+    - slutfört
+    - det var det
+    - nu är det klart
+    - det är färdigt
+    - okej nästa
+    - nästa
+    - nästa instruktion
+    - jag är färdig
+
+- intent: icm:per\*neg
+  examples: |
+    - ursäkta
+    - förlåt
+    - kan du repetera det
+    - repetera
+    - repetera det
+    - upprepa
+    - upprepa vad du sa
+    - vad sa du
+    - ta det en gång till
+    - va
+
+$''',
+    SPANISH: r'''^- intent: NEGATIVE
+  examples: |
+    - a bordo
+    - acerca de
+    - arriba
+    - a través de
+    - después de
+    - en contra
+    - a lo largo de
+    - entre
+    - como
+    - en
+    - en
+    - en lo alto
+    - antes
+    - detrás
+    - abajo
+    - debajo
+    - al lado
+    - entre
+    - más allá de
+    - pero
+    - por
+    - abajo
+    - durante
+    - excepto
+    - para
+    - desde
+    - en
+    - dentro
+    - en
+    - menos
+    - como
+    - cerca
+    - de
+    - encima de
+    - sobre
+    - opuesto
+    - fuera
+    - fuera de
+    - corto
+    - desde
+    - que
+    - entonces
+    - a lo largo de
+    - hasta
+    - hacia
+    - debajo de
+    - a diferencia de
+    - hasta
+    - arriba
+    - con
+    - dentro de
+    - sin
+    - vale
+    - esse
+    - el
+    - laa
+    - soy
+    - son
+    - ellos
+    - este
+    - ese
+    - yo
+    - usted
+    - él
+    - ella
+    - ellos
+    - ellas
+    - su
+    - sus
+    - mi
+    - tu
+    - tú
+    - nosotros
+    - nosotras
+    - vosotros
+    - vosotras
+    - nuestro
+    - nuestra
+    - vuestro
+    - vuestra
+    - vuestros
+    - vuestras
+    - mío
+    - mía
+    - míos
+    - mías
+    - tuyo
+    - tuyos
+    - tuya
+    - tuyas
+    - suyo
+    - suya
+    - suyos
+    - suyas
+    - cómo
+    - cómo está
+    - cómo es
+    - cómo está el
+    - cómo es el
+    - cómo está la
+    - cómo es la
+    - cómo están los
+    - cómo están lascuándo
+    - cuándo es
+    - cuándo está
+    - cuándo es el
+    - cuándo es la
+    - cuándo son los
+    - cuándo son las
+    - cuándo está el
+    - cuándo está la
+    - cuándo están los
+    - cuándo están las
+    - qué
+    - qué es
+    - qué es la
+    - qué es el
+    - qué son los
+    - qué son las
+    - cuál
+    - cuál es
+    - cuál es la
+    - cuál es el
+    - cuáles son los
+    - cuáles son las
+    - por qué
+    - por qué es
+    - por qué está
+    - por qué es el
+    - por qué es la
+    - por qué son
+    - por qué son los
+    - por qué son las
+    - por qué está el
+    - por qué está la
+    - por qué están los
+    - por qué están las
+    - hacer
+    - decir
+    - iniciar
+    - detener
+    - habilitar
+    - deshabilitar
+    - querer
+    - dar
+    - habersubir
+    - bajar
+    - disminuir
+    - aumentar
+    - actuar
+    - determinar
+    - preguntar
+    - ir
+    - disparar
+    - esperar
+    - esperar
+    - aceptar
+    - mostrar
+    - enseñar
+    - ayudar
+
+- intent: answer:yes
+  examples: |
+    - sí
+    - claro
+    - desde luego
+    - por supuesto
+    - de acuerdo
+    - vale
+    - perfecto
+    - bien
+    - okei
+    - sip
+    - sep
+
+- intent: answer:no
+  examples: |
+    - no
+    - de ningún modo
+    - de ninguna manera
+    - en absoluto
+    - na
+    - nop
+    - ni de broma
+    - para nada
+
+- intent: request:top
+  examples: |
+    - vuelve a empezar
+    - vuelve al principio
+    - vuelve al inicio
+    - principio
+    - inicio
+    - desde el principio
+    - reinicia
+    - empieza de nuevo
+    - olvídalo
+    - olvida todo
+
+- intent: request:up
+  examples: |
+    - atrás
+    - vuelve atrás
+    - vuelve
+    - regresa
+    - vuelve una atrás
+    - quiero ir atrás
+    - quiero volver atrás
+
+- intent: request:how
+  examples: |
+    - cómo puedo hacer eso
+    - cómo
+    - cómo lo hago
+    - puedes decirme cómo hacerlo
+    - no sé hacer eso
+
+- intent: report:done
+  examples: |
+    - Ya está
+    - listo
+    - completado
+    - hecho
+    - ya he acabado
+    - acabado
+    - ya está listo
+    - ya estoy
+    - ya está hecho
+
+- intent: icm:per\*neg
+  examples: |
+    - repite
+    - puedes repetir
+    - repite por favor
+    - otra vez
+    - dilo otra vez
+    - qué
+    - cómo
+    - cómo has dicho
+    - qué has dicho
+
+$''',
+    PERSIAN: r'''^- intent: NEGATIVE
+  examples: |
+    - داخل
+    - درباره
+    - بالا
+    - در سراسر
+    - بعد
+    - علیه
+    - همراه
+    - در بین
+    - به عنوان
+    - در
+    - روی
+    - بالای
+    - قبل
+    - پشت
+    - زیر
+    - زیر
+    - کنار
+    - بین
+    - فراتر
+    - اما
+    - توسط
+    - بیا
+    - پایین
+    - هنگام
+    - به جز
+    - برای
+    - از
+    - در
+    - داخل
+    - به
+    - کمتر
+    - مانند
+    - نزدیک
+    - از
+    - خاموش
+    - روشن
+    - روی
+    - مخالف
+    - خارج
+    - بیش
+    - گذشته
+    - ذخیره
+    - کوتاه
+    - از
+    - بعد
+    - از طریق
+    - سراسر
+    - به
+    - به سمت
+    - زیر
+    - بر خلاف
+    - تا
+    - بالا
+    - بر
+    - با
+    - بدون
+    - ارزش
+    - است
+    - آن
+    - این
+    - یک
+    - من
+    - هستند
+    - آنها
+    - این
+    - آن
+    - من
+    - شما
+    - او
+    - آنها
+    - ایشان
+    - او
+    - اون
+    - مال
+    - آنها
+    - شما
+    - ما
+    - چگونه
+    - چطور
+    - چه وقت
+    - چه وقتی
+    - برای چه
+    - وقتی
+    - چه زمانی
+    - چه موقع
+    - کیچه زمانی
+    - چه
+    - برای چی
+    - چطور میشه که
+    - چی میشه که
+    - برای چه
+    - چرا
+    - انجام بده
+    - بساز
+    - بگو
+    - شروع کن
+    - متوقف کن
+    - فعال کن
+    - غیرفعال کن
+    - افزایش بده
+    - پایین بیار
+    - کاهش بده
+    - افزایش بده
+    - عمل کن
+    - تعیین کن
+    - بگو
+    - سؤال کن
+    - برو
+    - شلیک کن
+    - صبر کن
+    - متوقف شو
+    - نشون بده
+    - نمایش بده
+    - کمک کن
+
+- intent: answer:yes
+  examples: |
+    - بله
+    - آره
+    - مطمئن
+    - مطمئنم
+    - اوکی
+    - البته
+    - خیلی خوب
+    - خوبه
+    - درست
+    - درسته
+    - عالی
+    - عالیه
+    - من اینطور فکر میکنم
+
+- intent: answer:no
+  examples: |
+    - نه
+    - نه متشکرم
+    - نه ممنون
+    - نه خیلی ممنون
+    - منفی
+    - اینو نمیخوام
+    - نیمخوام
+    - نکن
+    - لطفا نکن
+
+- intent: request:top
+  examples: |
+    - فراموش کن
+    - ولش کن
+    - منو از اینجا بیرون ببر
+    - دوباره شورع کن
+    - ابتدا
+    - اینو ولش کن
+    - شروع دوباره
+
+- intent: request:up
+  examples: |
+    - برو عقب
+    - عقب
+    - قبلی
+    - برو به عقب
+    - برو به قبلی
+    - قبلیه
+
+- intent: request:how
+  examples: |
+    - چطور این کار را انجام دهم
+
+- intent: report:done
+  examples: |
+    - من تمام شدم
+    - انجام شده
+    - تکمیل شده
+    - بررسی
+    - من تمام کرده ام
+    - تمام شده
+    - انجام شده و انجام شده
+    - الان تمام شده
+
+- intent: icm:per\*neg
+  examples: |
+    - تکرار
+    - تکرار کن
+    - تکرار کنید
+    - بخشش
+    - متاسف
+    - آیا می توانید آن را تکرار کنید؟
+    - ببخشید
+    - آن چه بود
+    - چی گفتی
+    - دوباره بیا
+
+$''',
+
+}  # yapf: disable  # noqa: W293

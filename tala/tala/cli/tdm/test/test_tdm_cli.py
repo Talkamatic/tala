@@ -70,7 +70,7 @@ class TestTDMCLI(object):
         self._tdm_cli = self._create_tdm_cli()
 
     def _create_tdm_cli(self, url="mocked-url"):
-        return TDMCLI(url)
+        return TDMCLI(url, None)
 
     def _given_initiated_system_turns(self):
         self._system_turns = self._tdm_cli.system_turns()

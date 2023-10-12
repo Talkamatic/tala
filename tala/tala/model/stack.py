@@ -7,9 +7,10 @@ class StackError(Exception):
 
 
 class Stack(AsJSONMixin):
-    def __init__(self, content=set(), contentclass=None):
+    def __init__(self, content=None):
+        if content is None:
+            content = []
         super(Stack, self).__init__()
-        self.contentclass = contentclass
         self.content = list()
         for x in content:
             self.push(x)
@@ -39,7 +40,6 @@ class Stack(AsJSONMixin):
         return not (self == other)
 
     def push(self, element):
-        self._typecheck(element)
         self.content.insert(0, element)
 
     def push_stack(self, other_stack):
@@ -48,24 +48,19 @@ class Stack(AsJSONMixin):
         for element in other_stack_elements:
             self.push(element)
 
-    def _typecheck(self, element):
-        if self.contentclass:
-            if not isinstance(element, self.contentclass):
-                raise TypeError(
-                    "object " + str(element) + " of type " + element.__class__.__name__ + " is not of type " +
-                    str(self.contentclass)
-                )
-
     def top(self):
         if len(self) < 1:
             raise StackError("Cannot call 'top()' when stacksize <= 0")
         return self.content[0]
 
-    def isTop(self, element):
+    def is_top(self, element):
         try:
             return element == self.top()
         except StackError:
             return False
+
+    def isTop(self, element):
+        return self.is_top(element)
 
     def pop(self):
         if len(self) < 1:
@@ -76,6 +71,9 @@ class Stack(AsJSONMixin):
         return len(self.content)
 
     def isEmpty(self):
+        return self.is_empty()
+
+    def is_empty(self):
         return len(self) == 0
 
     def clear(self):
@@ -89,6 +87,11 @@ class Stack(AsJSONMixin):
 
 
 class StackSet(Stack):
+    def __init__(self, content=None):
+        if content is None:
+            content = []
+        super().__init__(content)
+
     def as_dict(self):
         return {
             "stackset": self.content,
@@ -99,7 +102,6 @@ class StackSet(Stack):
         return string
 
     def push(self, element):
-        self._typecheck(element)
         if element in self.content:
             self.content.remove(element)
         self.content.insert(0, element)
@@ -110,6 +112,81 @@ class StackSet(Stack):
 
     def create_view(self, philter):
         return StackSetView(self, philter)
+
+
+class QUD(AsJSONMixin):
+    def __init__(self, content=None, turn_information=None):
+        if content is None:
+            content = []
+        if turn_information is None:
+            turn_information = {}
+
+        self._stack_set = StackSet(content)
+        self._turn_information = {k: v for k, v in turn_information.items()}
+
+    def as_dict(self):
+        return {
+            "qud": {
+                "stackset": self._stack_set.content,
+                "turn_information": [{
+                    "key": k.as_dict(),
+                    "value": v
+                } for k, v in self._turn_information.items()]
+            }
+        }
+
+    def __len__(self):
+        return len(self._stack_set)
+
+    def __str__(self):
+        return str(self._stack_set)
+
+    def push(self, element, lifespan=1):
+        self._stack_set.push(element)
+        self._turn_information[element] = lifespan
+
+    def __iter__(self):
+        return self._stack_set.__iter__()
+
+    def top(self):
+        return self._stack_set.top()
+
+    def pop(self):
+        element = self._stack_set.pop()
+        del self._turn_information[element]
+        return element
+
+    def clear(self):
+        self._stack_set.clear()
+        self._turn_information = {}
+
+    def is_top(self, element):
+        return self._stack_set.is_top(element)
+
+    def is_empty(self):
+        return self._stack_set.isEmpty()
+
+    def update_turn_information(self):
+        for question in self._turn_information:
+            self._turn_information[question] = self._turn_information[question] - 1
+
+    def purge_entries(self):
+        to_remove = []
+        for entry in self._stack_set:
+            if self._turn_information[entry] < 1:
+                to_remove.append(entry)
+        for entry in to_remove:
+            self.remove(entry)
+
+    def remove(self, entry):
+        self._stack_set.remove(entry)
+        del self._turn_information[entry]
+
+    def __eq__(self, other):
+        try:
+            return list(self) == list(other)
+        except AttributeError:
+            return False
 
 
 class StackSetView:

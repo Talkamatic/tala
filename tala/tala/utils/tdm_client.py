@@ -8,9 +8,8 @@ from tala.model.interpretation import Interpretation  # noqa: F401
 from tala.model.event_notification import EventNotification  # noqa: F401
 from tala.utils.await_endpoint import await_endpoint
 from tala.utils.observable import Observable
-from copy import copy
 
-PROTOCOL_VERSION = "3.3"
+PROTOCOL_VERSION = "3.4"
 
 
 class InvalidResponseError(Exception):
@@ -30,7 +29,7 @@ class TDMClient(Observable):
         url = self._url.replace("/interact", "/health")
         await_endpoint(url, timeout)
 
-    def request_text_input(self, session: str, utterance: str, session_data: Mapping = None) -> Mapping:
+    def request_text_input(self, utterance: str, session: Mapping = None) -> Mapping:
         def _create_text_input_request(session, utterance):
             return {
                 "version": PROTOCOL_VERSION,
@@ -43,14 +42,11 @@ class TDMClient(Observable):
                 }
             }
 
-        session_object = self._create_session_object(session_data, session)
-        request = _create_text_input_request(session_object, utterance)
+        request = _create_text_input_request(session, utterance)
         response = self._make_request(request)
         return response
 
-    def request_speech_input(
-        self, session: str, hypotheses: Sequence[InputHypothesis], session_data: Mapping = None
-    ) -> Mapping:
+    def request_speech_input(self, hypotheses: Sequence[InputHypothesis], session: Mapping = None) -> Mapping:
         def _create_speech_input_request(session, hypotheses):
             return {
                 "version": PROTOCOL_VERSION,
@@ -66,14 +62,11 @@ class TDMClient(Observable):
                 }
             }  # yapf: disable
 
-        session_object = self._create_session_object(session_data, session)
-        request = _create_speech_input_request(session_object, hypotheses)
+        request = _create_speech_input_request(session, hypotheses)
         response = self._make_request(request)
         return response
 
-    def request_semantic_input(
-        self, session: str, interpretations: Sequence[Interpretation], session_data: Mapping = None
-    ) -> Mapping:
+    def request_semantic_input(self, interpretations: Sequence[Interpretation], session: Mapping = None) -> Mapping:
         def _create_semantic_input_request(session, interpretations):
             return {
                 "version": PROTOCOL_VERSION,
@@ -85,20 +78,16 @@ class TDMClient(Observable):
                 }
             }  # yapf: disable
 
-        session_object = self._create_session_object(session_data, session)
-        request = _create_semantic_input_request(session_object, interpretations)
+        request = _create_semantic_input_request(session, interpretations)
         response = self._make_request(request)
         return response
 
-    def request_passivity(self, session: str, session_data: Mapping = None) -> Mapping:
-        session_object = self._create_session_object(session_data, session)
-        request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"passivity": {}}}
+    def request_passivity(self, session: Mapping = None) -> Mapping:
+        request = {"version": PROTOCOL_VERSION, "session": session, "request": {"passivity": {}}}
         response = self._make_request(request)
         return response
 
-    def request_event_notification(
-        self, session: str, notification: EventNotification, session_data: Mapping = None
-    ) -> Mapping:
+    def request_event_notification(self, notification: EventNotification, session: Mapping = None) -> Mapping:
         def _create_event_notification_request(session, notification):
             return {
                 "version": PROTOCOL_VERSION,
@@ -112,22 +101,20 @@ class TDMClient(Observable):
                 }
             }  # yapf: disable
 
-        session_object = self._create_session_object(session_data, session)
-        request = _create_event_notification_request(session_object, notification)
+        request = _create_event_notification_request(session, notification)
         response = self._make_request(request)
         return response
-
-    def _create_session_object(self, session_data=None, session_id=None):
-        session = copy(session_data) if session_data else {}
-        if session_id:
-            session["session_id"] = session_id
-        return session
 
     def start_session(self, session_data: Mapping = None) -> Mapping:
         session_object = session_data or {}
+        if "session_id" not in session_object:
+            session_object["session_id"] = "mock-id-this-should-not-appear-in-production"
         request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"start_session": {}}}
         response = self._make_request(request)
         return response
+
+    def make_request(self, *args, **kwargs):
+        return self._make_request(*args, **kwargs)
 
     def _make_request(self, request_body):
         data_as_json = json.dumps(request_body)

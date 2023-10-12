@@ -2,25 +2,125 @@ import copy
 
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unicodify import unicodify
+from tala.utils.equality import EqualityMixin
 
 
 class OpenQueueError(Exception):
     pass
 
 
+class Interpretation(AsJSONMixin, EqualityMixin):
+    def __init__(self, moves, utterance, default_perception_confidence):
+        self._moves = moves
+        self._utterance = utterance
+        self._default_perception_confidence = default_perception_confidence
+
+    def as_dict(self):
+        return self._moves.as_dict()
+
+    def enqueue(self, element):
+        self._moves.enqueue(element)
+
+    def enqueue_first(self, element):
+        self._moves.enqueue_first(element)
+
+    def first(self, element):
+        self._moves.first(element)
+
+    def is_first(self, element):
+        self._moves.is_first(element)
+
+    def last(self, element):
+        self._moves.last(element)
+
+    def dequeue(self):
+        self._moves.dequeue()
+
+    def remove(self, element):
+        self._moves.remove(element)
+
+    def remove_if_exists(self, element):
+        self._moves.remove_if_exists(element)
+
+    def clear(self):
+        self._moves.clear()
+
+    def shift(self):
+        self._moves.shift()
+
+    def init_shift(self):
+        self._moves.init_shift()
+
+    def cancel_shift(self):
+        self._moves.cancel_shift()
+
+    def fully_shifted(self):
+        self._moves.fully_shifted()
+
+    def is_shift_initialised(self):
+        self._moves.is_shifted_initiated()
+
+    def __len__(self):
+        return len(self._moves)
+
+    def __iter__(self):
+        return iter(self._moves)
+
+    def __getitem__(self, index):
+        return self._moves[index]
+
+    def __str__(self):
+        string = f'Interpretation({unicodify(self._moves)}, {unicodify(self.average_perception_confidence)})'
+        return string
+
+    def __repr__(self):
+        string = f'Interpretation({self._moves}, {self.average_perception_confidence})'
+        return string
+
+    @property
+    def utterance(self):
+        return self._utterance
+
+    @property
+    def average_weighted_confidence(self):
+        return sum([move.weighted_confidence for move in self._moves]) / len(self._moves)
+
+    @property
+    def average_perception_confidence(self):
+        if self._moves:
+            return sum([move.perception_confidence for move in self._moves]) / len(self._moves)
+        return self._default_perception_confidence
+
+    @property
+    def average_confidence(self):
+        return sum([move.confidence for move in self._moves]) / len(self._moves)
+
+
 class OpenQueue(AsJSONMixin):
-    def __init__(self, iterable=None):
+    def __init__(self, front_content=None, back_content=None, unshifted_content=None):
+        if front_content is None:
+            front_content = []
+        if back_content is None:
+            back_content = []
         super(OpenQueue, self).__init__()
         self.front_content = []
         self.back_content = []
-        if iterable is not None:
-            for item in iterable:
-                self.front_content.append(item)
-        self._unshifted_content = None
+        for item in front_content:
+            self.front_content.append(item)
+        for item in back_content:
+            self.back_content.append(item)
+        self._unshifted_content = unshifted_content
 
     def as_dict(self):
         return {
-            "openqueue": list(object_ for object_ in self),
+            "openqueue": {
+                "front_content":
+                list(object_ for object_ in self.front_content),
+                "back_content":
+                list(object_ for object_ in self.back_content),
+                "unshifted_content":
+                list(object_ for object_ in self._unshifted_content) if self._unshifted_content else None,
+            }
         }
 
     def enqueue(self, element):
@@ -133,7 +233,10 @@ class OpenQueue(AsJSONMixin):
             if len(self) != len(other):
                 return False
 
-            if len(self) == 1:
+            if self.is_empty() and other.is_empty():
+                return True
+
+            if len(self) == 1 and len(other) == 1:
                 return self._check_single_element_equality(other)
 
             return self.front_content == other.front_content and self.back_content == other.back_content

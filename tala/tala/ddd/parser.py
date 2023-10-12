@@ -3,21 +3,25 @@ import re
 
 from tala.ddd.utils import CacheMethod
 from tala.model.action_status import Done
+from tala.model.ask_feature import AskFeature
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
 from tala.model.speaker import Speaker
 from tala.model.set import Set
-from tala.model.move import ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, GreetMove, QuitMove, MuteMove, UnmuteMove, AskMove, RequestMove, AnswerMove, ICMMoveWithStringContent
+from tala.model import move
+from tala.model.move import Move, ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, \
+    GreetMove, QuitMove, MuteMove, UnmuteMove, ThankYouMove, AskMove, RequestMove, AnswerMove, \
+    ICMMoveWithStringContent, ThankYouResponseMove
 from tala.model.ontology import OntologyError
-from tala.model.plan_item import AssumePlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, RespondPlanItem, DoPlanItem, BindPlanItem, ConsultDBPlanItem, JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, ForgetIssuePlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem
+from tala.model import plan_item
 from tala.model.polarity import Polarity
-from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition, KnowledgePreconditionProposition, ImplicationProposition
+from tala.model.proposition import GoalProposition, PropositionSet, ServiceActionStartedProposition, ServiceActionTerminatedProposition, ServiceResultProposition, ResolvednessProposition, PreconfirmationProposition, UnderstandingProposition, RejectedPropositions, PrereportProposition, PredicateProposition, KnowledgePreconditionProposition, ImplicationProposition, ActionStatusProposition
 from tala.model.question import AltQuestion, YesNoQuestion, WhQuestion, KnowledgePreconditionQuestion, ConsequentQuestion
-from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.model.person_name import PersonName
 from tala.model.date_time import DateTime
+from tala.ddd.json_parser import CheckingJSONParser, JSONParseFailure
 
 
 class ParseError(Exception):
@@ -49,16 +53,21 @@ class Parser:
             self._parse_jumpto_plan_item,
             self._parse_forget_all_plan_item,
             self._parse_forget_plan_item,
+            self._parse_forget_shared_plan_item,
             self._parse_assume_plan_item,
             self._parse_assume_shared_plan_item,
+            self._parse_action_performed_plan_item,
+            self._parse_action_aborted_plan_item,
             self._parse_goal,
             self._parse_assume_issue_item,
+            self._parse_insist_assume_issue_item,
             self._parse_log_item,
             self._parse_forget_issue_plan_item,
             self._parse_invoke_service_query_plan_item,
             self._parse_deprecated_dev_query_plan_item,
             self._parse_invoke_service_action_plan_item,
             self._parse_deprecated_dev_perform_plan_item,
+            self._parse_change_ddd_plan_item,
             self._parse_question,
             self._parse_lambda_abstracted_goal_proposition,
             self._parse_lambda_abstracted_predicate_proposition,
@@ -70,14 +79,14 @@ class Parser:
             self._parse_decorated_icm_move,
             self._parse_icm_move,
             self._parse_proposition,
-            self._parse_negative_individual,
             self._parse_yes_or_no,
             self._parse_prop_set,
             self._parse_action,
             self._parse_individual,
             self._parse_predicate,
             self._parse_string,
-        ]
+            self._parse_action_status_proposition
+        ]  # yapf: disable
 
     def clear(self):
         self._cache_method.clear()
@@ -88,6 +97,11 @@ class Parser:
         return new_instance
 
     def _cacheable_parse(self, string):
+        try:
+            json_parser = CheckingJSONParser(self._ddd_name, self.ontology, self.domain_name)
+            return json_parser.parse(string)
+        except (AttributeError, TypeError, JSONParseFailure):
+            pass
         try:
             return self._parse(string)
         except OntologyError as exception:
@@ -181,17 +195,28 @@ class Parser:
         raise ParseFailure()
 
     def _parse_basic_move(self, string):
-        matcher = re.search(r'^(greet|mute|unmute|quit)$', string)
+        matcher = re.search(
+            fr'^({Move.GREET}|{Move.INSULT}|{Move.INSULT_RESPONSE}|{Move.MUTE}|{Move.UNMUTE}|{Move.QUIT}|{Move.THANK_YOU}|{Move.THANK_YOU_RESPONSE})$',
+            string
+        )
         if matcher:
             move_type_string = matcher.group(1)
-            if move_type_string == "greet":
+            if move_type_string == Move.GREET:
                 return GreetMove()
-            elif move_type_string == "mute":
+            elif move_type_string == Move.MUTE:
                 return MuteMove()
-            elif move_type_string == "unmute":
+            elif move_type_string == Move.UNMUTE:
                 return UnmuteMove()
-            elif move_type_string == "quit":
+            elif move_type_string == Move.QUIT:
                 return QuitMove()
+            elif move_type_string == Move.THANK_YOU:
+                return ThankYouMove()
+            elif move_type_string == Move.THANK_YOU_RESPONSE:
+                return ThankYouResponseMove()
+            elif move_type_string == Move.INSULT_RESPONSE:
+                return move.InsultResponseMove()
+            elif move_type_string == Move.INSULT:
+                return move.InsultMove()
 
         raise ParseFailure()
 
@@ -334,6 +359,15 @@ class Parser:
             return Done()
         raise ParseFailure()
 
+    def _parse_action_status_proposition(self, string):
+        m = re.search(r'^action_status\((\w+), (\w+)\)$', string)
+        if m:
+            (action_name, status_name) = m.groups()
+            action = self._parse_action(action_name)
+            status = self._parse_action_status(status_name)
+            return ActionStatusProposition(action, status)
+        raise ParseFailure()
+
     def _parse_prereport_move(self, string):
         m = re.search(r'^prereport\((\w+), (\[[^\]]*\])\)$', string)
         if m:
@@ -416,13 +450,14 @@ class Parser:
             raise ParseFailure()
 
     def _parse_lambda_abstracted_implication_proposition(self, string):
-        m = re.search('^X\.implies\((.+), (.+)\(X\)\)$', string)
+        m = re.search(r'^X\.implies\((.+), (.+)\(X\)\)$', string)
         if m:
             antecedent_string, consequent_predicate_name = m.groups()
             antecedent = self._parse_proposition(antecedent_string)
             consequent_predicate = self.ontology.get_predicate(consequent_predicate_name)
             return LambdaAbstractedImplicationPropositionForConsequent(
-                antecedent, consequent_predicate, self.ontology_name)
+                antecedent, consequent_predicate, self.ontology_name
+            )
         else:
             raise ParseFailure()
 
@@ -581,9 +616,10 @@ class Parser:
             (type, polarity, foo, foo, content_speaker, content_string) = m.groups()
             if content_string:
                 content = self.parse(content_string)
-            else:
-                content = None
-            return ICMMoveWithSemanticContent(type, content, content_speaker=content_speaker, polarity=polarity)
+                return ICMMoveWithSemanticContent(type, content, content_speaker=content_speaker, polarity=polarity)
+
+            content = None
+            return ICMMove(type, polarity=polarity)
         else:
             raise ParseFailure()
 
@@ -610,7 +646,7 @@ class Parser:
         matcher = re.search(r'^request\(([^\{\}]+)\)(.*)', string)
         if matcher:
             action_string = matcher.group(1)
-            action = self.parse(action_string)
+            action = self._parse_action(action_string)
             return RequestMove(action)
         else:
             raise ParseFailure()
@@ -620,7 +656,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return FindoutPlanItem(self.domain_name, question)
+            return plan_item.Findout(self.domain_name, question)
         else:
             raise ParseFailure()
 
@@ -629,7 +665,7 @@ class Parser:
         if m:
             action_string = m.group(1)
             action = self.parse(action_string)
-            return DoPlanItem(action)
+            return plan_item.Do(action)
         else:
             raise ParseFailure()
 
@@ -638,13 +674,13 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return BindPlanItem(question)
+            return plan_item.Bind(question)
         else:
             raise ParseFailure()
 
     def _parse_forget_all_plan_item(self, string):
         if string == "forget_all":
-            return ForgetAllPlanItem()
+            return plan_item.ForgetAll()
         else:
             raise ParseFailure()
 
@@ -653,7 +689,16 @@ class Parser:
         if m:
             proposition_string = m.group(1)
             proposition = self.parse(proposition_string)
-            return ForgetPlanItem(proposition)
+            return plan_item.Forget(proposition)
+        else:
+            raise ParseFailure()
+
+    def _parse_forget_shared_plan_item(self, string):
+        m = re.search(r'^forget_shared\((.+)\)$', string)
+        if m:
+            proposition_string = m.group(1)
+            proposition = self.parse(proposition_string)
+            return plan_item.ForgetShared(proposition)
         else:
             raise ParseFailure()
 
@@ -662,7 +707,7 @@ class Parser:
         if m:
             proposition_string = m.group(1)
             proposition = self._parse_proposition(proposition_string)
-            return AssumePlanItem(proposition)
+            return plan_item.Assume(proposition)
         else:
             raise ParseFailure()
 
@@ -671,7 +716,7 @@ class Parser:
         if m:
             proposition_string = m.group(1)
             proposition = self._parse_proposition(proposition_string)
-            return AssumeSharedPlanItem(proposition)
+            return plan_item.AssumeShared(proposition)
         else:
             raise ParseFailure()
 
@@ -680,7 +725,32 @@ class Parser:
         if m:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
-            return AssumeIssuePlanItem(issue)
+            return plan_item.AssumeIssue(issue)
+        else:
+            raise ParseFailure()
+
+    def _parse_insist_assume_issue_item(self, string):
+        m = re.search(r'^insist_assume_issue\((.+)\)$', string)
+        if m:
+            issue_string = m.group(1)
+            issue = self.parse(issue_string)
+            return plan_item.AssumeIssue(issue, insist=True)
+        else:
+            raise ParseFailure()
+
+    def _parse_action_performed_plan_item(self, string):
+        if string == "signal_action_completion(true)":
+            return plan_item.GoalPerformed(True)
+        elif string == "signal_action_completion(false)":
+            return plan_item.GoalPerformed(False)
+        else:
+            raise ParseFailure()
+
+    def _parse_action_aborted_plan_item(self, string):
+        m = re.search(r'^signal_action_failure\((.+)\)$', string)
+        if m:
+            reason = m.group(1)
+            return plan_item.GoalAborted(reason)
         else:
             raise ParseFailure()
 
@@ -688,7 +758,15 @@ class Parser:
         m = re.search(r'^log\("(.+)"\)$', string)
         if m:
             log_message = m.group(1)
-            return LogPlanItem(log_message)
+            return plan_item.Log(log_message)
+        else:
+            raise ParseFailure()
+
+    def _parse_change_ddd_plan_item(self, string):
+        m = re.search(r'^change_ddd\((.+)\)$', string)
+        if m:
+            ddd_name = m.group(1)
+            return plan_item.ChangeDDD(ddd_name)
         else:
             raise ParseFailure()
 
@@ -697,7 +775,7 @@ class Parser:
         if m:
             issue_string = m.group(1)
             issue = self.parse(issue_string)
-            return ForgetIssuePlanItem(issue)
+            return plan_item.ForgetIssue(issue)
         else:
             raise ParseFailure()
 
@@ -706,7 +784,7 @@ class Parser:
         if m:
             (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
-            return InvokeServiceQueryPlanItem(issue, min_results=1, max_results=1)
+            return plan_item.InvokeServiceQuery(issue, min_results=1, max_results=1)
         else:
             raise ParseFailure()
 
@@ -715,7 +793,7 @@ class Parser:
         if m:
             (issue_string, ) = m.groups()
             issue = self.parse(issue_string)
-            return InvokeServiceQueryPlanItem(issue, min_results=1, max_results=1)
+            return plan_item.InvokeServiceQuery(issue, min_results=1, max_results=1)
         else:
             raise ParseFailure()
 
@@ -724,7 +802,7 @@ class Parser:
         if m:
             (service_action, params_string) = m.groups()
             params = self._parse_invoke_service_action_params(params_string)
-            return InvokeServiceActionPlanItem(self.ontology.name, service_action, **params)
+            return plan_item.InvokeServiceAction(self.ontology.name, service_action, **params)
         else:
             raise ParseFailure()
 
@@ -733,7 +811,7 @@ class Parser:
         if m:
             (service_action, params_string) = m.groups()
             params = self._parse_invoke_service_action_params(params_string)
-            return InvokeServiceActionPlanItem(self.ontology.name, service_action, **params)
+            return plan_item.InvokeServiceAction(self.ontology.name, service_action, **params)
         else:
             raise ParseFailure()
 
@@ -742,7 +820,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return RaisePlanItem(self.domain_name, question)
+            return plan_item.Raise(self.domain_name, question)
         else:
             raise ParseFailure()
 
@@ -751,7 +829,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return RespondPlanItem(question)
+            return plan_item.Respond(question)
         else:
             raise ParseFailure()
 
@@ -795,7 +873,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return ConsultDBPlanItem(question)
+            return plan_item.ConsultDB(question)
         else:
             raise ParseFailure()
 
@@ -805,14 +883,14 @@ class Parser:
             (condition_string, consequent_string, alternative_string) = m.groups()
             condition = self._parse_proposition(condition_string)
             if consequent_string != "":
-                consequent = self.parse(consequent_string)
+                consequent = [self.parse(consequent_string)]
             else:
-                consequent = None
+                consequent = []
             if alternative_string != "":
-                alternative = self.parse(alternative_string)
+                alternative = [self.parse(alternative_string)]
             else:
-                alternative = None
-            return IfThenElse(condition, consequent, alternative)
+                alternative = []
+            return plan_item.IfThenElse(condition, consequent, alternative)
         else:
             raise ParseFailure()
 
@@ -821,7 +899,7 @@ class Parser:
         if m:
             goal_string = m.group(1)
             goal = self._parse_goal(goal_string)
-            return JumpToPlanItem(goal)
+            return plan_item.JumpTo(goal)
         else:
             raise ParseFailure()
 
@@ -857,7 +935,7 @@ class Parser:
         raise ParseFailure()
 
     def _parse_implication_proposition(self, string):
-        m = re.search('^implies\((.*), (.*)\)$', string)
+        m = re.search(r'^implies\((.*), (.*)\)$', string)
         if m:
             antecedent_string, consequent_string = m.groups()
             antecedent = self._parse_proposition(antecedent_string)
@@ -882,36 +960,45 @@ class Parser:
                 return PredicateProposition(predicate, individual, polarity)
         raise ParseFailure()
 
-    def _parse_negative_individual(self, string):
-        m = re.search(r'^~(\w+)$', string)
-        if m:
-            individual_value = m.group(1)
-            return self.ontology.create_negative_individual(individual_value)
-        raise ParseFailure()
-
     def _parse_individual(self, string):
+        def negate_if_negative_polarity(individual, polarity):
+            if polarity is Polarity.NEG:
+                return individual.negate()
+            else:
+                return individual
+
+        m = re.search(r'^(~?)(.+)$', string)
+        polarity_string = m.group(1)
+        individual_string = m.group(2)
+        polarity = self._parse_polarity(polarity_string)
         try:
-            return self._parse_real_individual(string)
+            individual = self._parse_real_individual(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         try:
-            return self._parse_integer_individual(string)
+            individual = self._parse_integer_individual(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         try:
-            return self._parse_string_individual(string)
+            individual = self._parse_string_individual(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         try:
-            return self._parse_individual_of_enumerated_sort(string)
+            individual = self._parse_individual_of_enumerated_sort(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         try:
-            return self._parse_individual_of_person_name_sort(string)
+            individual = self._parse_individual_of_person_name_sort(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         try:
-            return self._parse_individual_of_datetime_sort(string)
+            individual = self._parse_individual_of_datetime_sort(individual_string)
+            return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
         raise ParseFailure()
@@ -1101,11 +1188,17 @@ class Parser:
             elif key == "background":
                 return self._parse_predicate_list(string)
             elif key == "ask_features":
-                return self._parse_predicate_list(string)
+                return self._parse_ask_features(string)
             elif key == "related_information":
                 return self._parse_list_of_questions(string)
             elif key == "allow_goal_accommodation":
                 return self._parse_boolean(string)
+            elif key == "always_ground":
+                return self._parse_boolean(string)
+            elif key == "on_zero_hits_action":
+                return self._parse_action(string)
+            elif key == "on_too_many_hits_action":
+                return self._parse_action(string)
             elif key == "max_spoken_alts":
                 return self._parse_integer(string)
             elif key == "max_reported_hit_count":
@@ -1120,20 +1213,29 @@ class Parser:
         predicate_strings = [str.strip() for str in string_without_brackets.split(",")]
         return [self._parse_predicate(predicate_string) for predicate_string in predicate_strings]
 
+    def _parse_ask_features(self, string):
+        string_without_brackets = self._strip_brackets(string)
+        predicate_strings = [str.strip() for str in string_without_brackets.split(",")]
+        return [AskFeature(predicate_string) for predicate_string in predicate_strings]
+
     def _parse_findout_type(self, string):
-        if string in [QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT]:
+        if string in [
+            plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
+        ]:
             return string
         else:
             raise ParseFailure()
 
     def _parse_findout_source(self, string):
-        if string in [QuestionRaisingPlanItem.SOURCE_SERVICE, QuestionRaisingPlanItem.SOURCE_DOMAIN]:
+        if string in [
+            plan_item.QuestionRaisingPlanItem.SOURCE_SERVICE, plan_item.QuestionRaisingPlanItem.SOURCE_DOMAIN
+        ]:
             return string
         else:
             raise ParseFailure()
 
     def _parse_findout_sort_order(self, string):
-        if string in [QuestionRaisingPlanItem.ALPHABETIC]:
+        if string in [plan_item.QuestionRaisingPlanItem.ALPHABETIC]:
             return string
         else:
             raise ParseFailure()
@@ -1183,9 +1285,9 @@ class Parser:
 
     def parse_preconfirm_value(self, string):
         if string == "interrogative":
-            return InvokeServiceActionPlanItem.INTERROGATIVE
+            return plan_item.InvokeServiceAction.INTERROGATIVE
         elif string == "assertive":
-            return InvokeServiceActionPlanItem.ASSERTIVE
+            return plan_item.InvokeServiceAction.ASSERTIVE
         else:
             raise ParseFailure()
 

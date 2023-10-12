@@ -111,19 +111,6 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.assertTrue("first" in comparisonset)
         self.assertTrue("second" in comparisonset)
 
-    def testTypedSet(self):
-        testset = Set(str)
-        testset.add("foo")
-
-    def testTypedSetTypeError(self):
-        testset = Set(int)
-        exception_raised = False
-        try:
-            testset.add("foo")
-        except TypeError:
-            exception_raised = True
-        self.assertTrue(exception_raised)
-
     def testSetunicode(self):
         testset = Set()
         testset.add(MockElement("element"))

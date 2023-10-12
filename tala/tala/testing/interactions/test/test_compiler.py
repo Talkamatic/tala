@@ -13,21 +13,20 @@ from tala.testing.interactions.compiler import InteractionTestCompiler, ParseExc
 TESTS_FILENAME = "tdm/test/test_interactiontest.txt"
 
 
-class FileParsingTest(unittest.TestCase):
+class TestFileParsing:
     def test_is_turn(self):
-        self.assertEqual(True, InteractionTestCompiler._is_turn("U> "))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("S> ['ask(?X.goal(X)))']"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("U> ['answer(yes)']"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("U> hello there $CHECK"))
-        self.assertEqual(True, InteractionTestCompiler._is_turn("S> hello there"))
-        self.assertEqual(False, InteractionTestCompiler._is_turn(""))
-        self.assertEqual(False, InteractionTestCompiler._is_turn("sdflkjsdf"))
+        assert InteractionTestCompiler._is_turn("U> ")
+        assert InteractionTestCompiler._is_turn("U> ''")
+        assert InteractionTestCompiler._is_turn("S> ['ask(?X.goal(X)))']")
+        assert InteractionTestCompiler._is_turn("U> ['answer(yes)']")
+        assert InteractionTestCompiler._is_turn("U> hello there $CHECK")
+        assert InteractionTestCompiler._is_turn("S> hello there")
+        assert not InteractionTestCompiler._is_turn("")
+        assert not InteractionTestCompiler._is_turn("sdflkjsdf")
 
 
-class CompilationTests(unittest.TestCase):
-    maxDiff = None
-
-    def setUp(self):
+class TestCompiler():
+    def setup(self):
         self._compiler = InteractionTestCompiler()
 
     @patch("%s.InteractionTest" % compiler.__name__)
@@ -58,13 +57,13 @@ U>
 
     def then_result_has_user_passivity_turn_with_properties(self, expected_line_number):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_user_passivity_turn)
-        self.assertEqual(expected_line_number, actual_turn.line_number)
+        assert actual_turn.is_user_passivity_turn
+        assert expected_line_number == actual_turn.line_number
 
     def _get_actual_single_turn_from_single_test(self):
-        self.assertEqual(1, len(self._result))
+        assert 1 == len(self._result)
         actual_test = self._result[0]
-        self.assertEqual(1, len(actual_test.turns))
+        assert 1 == len(actual_test.turns)
         return actual_test.turns[0]
 
     def test_user_moves(self):
@@ -130,6 +129,19 @@ U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an ut
         )
         self.then_result_is_user_interpretation()
 
+    def test_user_interpretations(self):
+        self.when_compile(
+            """\
+--- mock name
+U> {"interpretations": [{"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an utterance", "modality": "speech"}], "entitites": []}
+"""
+        )
+        self.then_result_is_semantic_input()
+
+    def then_result_is_semantic_input(self):
+        actual_turn = self._get_actual_single_turn_from_single_test()
+        assert actual_turn.is_user_semantic_input_turn
+
     @patch(f"{compiler.__name__}.json", autospec=True)
     def test_invalid_json(self, mock_json):
         self.given_json_loads_raises_decode_error(mock_json, "the error", doc="doc", pos=0)
@@ -191,23 +203,23 @@ U> {"moves": ["request(make_reservation)", "answer(paris)"], "utterance": "an ut
 
     def then_result_is_user_interpretation(self):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_user_interpretation_turn)
+        assert actual_turn.is_user_interpretation_turn
 
     def then_result_has_moves(self, expected_moves):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertEqual(expected_moves, actual_turn.moves)
+        assert expected_moves == actual_turn.moves
 
     def then_result_has_line_number(self, expected_line_number):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertEqual(expected_line_number, actual_turn.line_number)
+        assert expected_line_number == actual_turn.line_number
 
     def then_result_has_utterance(self, expected):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertEqual(expected, actual_turn.utterance)
+        assert expected == actual_turn.utterance
 
     def then_result_has_modality(self, expected):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertEqual(expected, actual_turn.modality)
+        assert expected == actual_turn.modality
 
     def test_system_moves(self):
         self.when_compile("""\
@@ -232,7 +244,7 @@ S> ["request(make_reservation)", "answer(paris)"]
 
     def then_result_is_system_moves(self):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_system_moves_turn)
+        assert actual_turn.is_system_moves_turn
 
     def test_multiple_turns(self):
         self.when_compile(
@@ -246,8 +258,8 @@ U> ["request(make_reservation)", "answer(paris)"]
 
     def then_turns_are_system_utterance_and_user_moves(self):
         actual_test = self._result[0]
-        self.assertTrue(actual_test.turns[0].is_system_output_turn)
-        self.assertTrue(actual_test.turns[1].is_user_interpretation_turn)
+        assert actual_test.turns[0].is_system_output_turn
+        assert actual_test.turns[1].is_user_interpretation_turn
 
     def test_system_utterance(self):
         self.when_compile("""\
@@ -258,9 +270,9 @@ S> Welcome.
 
     def then_result_has_system_utterance_turn_with_properties(self, expected_utterance, expected_line_number):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_system_utterance_turn)
-        self.assertEqual(expected_utterance, actual_turn.utterance)
-        self.assertEqual(expected_line_number, actual_turn.line_number)
+        assert actual_turn.is_system_utterance_turn
+        assert expected_utterance == actual_turn.utterance
+        assert expected_line_number == actual_turn.line_number
 
     def test_single_recognition_hypothis(self):
         self.when_compile("""\
@@ -269,11 +281,19 @@ U> to paris
 """)
         self.then_result_has_recognition_hypotheses_turn_with_properties([("to paris", None)], 2)
 
+    @pytest.mark.parametrize("utterance", ["''", '""'])
+    def test_empty_user_utterance(self, utterance):
+        self.when_compile(f"""\
+--- mock name
+U> {utterance}
+""")
+        self.then_result_has_recognition_hypotheses_turn_with_properties([("", None)], 2)
+
     def then_result_has_recognition_hypotheses_turn_with_properties(self, expected_hypotheses, expected_line_number):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_recognition_hypotheses_turn)
-        self.assertEqual(expected_hypotheses, actual_turn.hypotheses)
-        self.assertEqual(expected_line_number, actual_turn.line_number)
+        assert actual_turn.is_recognition_hypotheses_turn
+        assert expected_hypotheses == actual_turn.hypotheses
+        assert expected_line_number == actual_turn.line_number
 
     def test_recognition_hypothesis_with_confidence_level(self):
         self.when_compile("""\
@@ -303,10 +323,10 @@ Event> {"name": "AlarmRings", "status": "started", "parameters": {"alarm_hour": 
         self, expected_action, expected_parameters, expected_line_number
     ):
         actual_turn = self._get_actual_single_turn_from_single_test()
-        self.assertTrue(actual_turn.is_notify_started_turn)
-        self.assertEqual(expected_action, actual_turn.action)
-        self.assertEqual(expected_parameters, actual_turn.parameters)
-        self.assertEqual(expected_line_number, actual_turn.line_number)
+        assert actual_turn.is_notify_started_turn
+        assert expected_action == actual_turn.action
+        assert expected_parameters == actual_turn.parameters
+        assert expected_line_number == actual_turn.line_number
 
     def test_unicode_strings(self):
         self.when_compile("""\
@@ -341,12 +361,7 @@ class PrettyFormattingTests(unittest.TestCase):
         self._result = InteractionTestCompiler.pretty_hypotheses(self._hypotheses)
 
     def _then_the_result_is(self, expected_result):
-        self.assertEqual(self._result, expected_result)
-
-    def test_pretty_hypothesis(self):
-        self._given_hypothesis("an utterance", 1.0)
-        self._when_formatting_hypotheses()
-        self._then_the_result_is("U> an utterance")
+        assert self._result == expected_result
 
     def test_pretty_passivity(self):
         self._when_formatting_passivity()

@@ -35,7 +35,7 @@ class TestPropositionAsCondition(unittest.TestCase):
             self.facts.add(fact)
 
     def when_proposition_evaluated_with_facts(self):
-        self.result = self.proposition.is_true_given(self.facts)
+        self.result = self.proposition.is_true_given_proposition_set(self.facts)
 
     def then_result_is(self, truth_value):
         self.assertEqual(truth_value, self.result)
@@ -322,6 +322,10 @@ class RejectionTests(LibTestCase):
         inequal_rejected_prop = RejectedPropositions(self.rejected_combination, reason="some_reason")
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(inequal_rejected_prop, self.rejected)
 
+    def test_hashable(self):
+        prop_set = {self.rejected}
+        self.assertTrue(self.rejected in prop_set)
+
 
 class PrereportPropositionTests(LibTestCase):
     def setUp(self):
@@ -599,8 +603,7 @@ class ImagePropositionTests(LibTestCase):
         map_to_show = self.ontology.get_predicate("map_to_show")
         individual = self.ontology.create_individual(Image("http://mymap.com/map.png"))
         image_proposition = PredicateProposition(map_to_show, individual)
-        self.assertEquals(
-            'map_to_show(image("http://mymap.com/map.png"))', str(image_proposition))
+        self.assertEqual('map_to_show(image("http://mymap.com/map.png"))', str(image_proposition))
 
 
 class KnowledgePreconditionPropositionTests(LibTestCase):
@@ -610,14 +613,17 @@ class KnowledgePreconditionPropositionTests(LibTestCase):
     def test_equality(self):
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(
             KnowledgePreconditionProposition("mock_question", Polarity.POS),
-            KnowledgePreconditionProposition("mock_question", Polarity.POS))
+            KnowledgePreconditionProposition("mock_question", Polarity.POS)
+        )
 
     def test_inequality_due_to_question(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
             KnowledgePreconditionProposition("mock_question_1", Polarity.POS),
-            KnowledgePreconditionProposition("mock_question_2", Polarity.POS))
+            KnowledgePreconditionProposition("mock_question_2", Polarity.POS)
+        )
 
     def test_inequality_due_to_polarity(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(
             KnowledgePreconditionProposition("mock_question", Polarity.POS),
-            KnowledgePreconditionProposition("mock_question", Polarity.NEG))
+            KnowledgePreconditionProposition("mock_question", Polarity.NEG)
+        )

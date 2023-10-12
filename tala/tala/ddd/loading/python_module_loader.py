@@ -1,12 +1,8 @@
-import imp
 import inspect
 import os
-
+from importlib.machinery import SourceFileLoader
 from tala.utils.unicodify import unicodify
-
-
-class DddLoaderException(Exception):
-    pass
+from tala.ddd.loading.ddd_loader import DddLoaderException
 
 
 class MissingModuleException(Exception):
@@ -29,7 +25,7 @@ class PythonModuleLoader(object):
         module_name = os.path.splitext(module_filename)[0]
         ddd_module_name = "%s_%s" % (self._name, module_name)
         try:
-            return imp.load_source(ddd_module_name, module_filename)
+            return SourceFileLoader(ddd_module_name, module_filename).load_module()
         except IOError:
             raise DddLoaderException("failed to load module %r from %s" % (module_filename, os.getcwd()))
 

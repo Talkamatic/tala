@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<grammar>
-  <answer speaker="user">
-    <utterance>
-      in 10 minutes
-    </utterance>
-  </answer>
-</grammar>

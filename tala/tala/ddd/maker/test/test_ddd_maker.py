@@ -33,7 +33,6 @@ class TestDddMaker(unittest.TestCase):
         self._backend_config_is_created()
         self._ddd_config_is_created()
         self._interaction_tests_are_created()
-        self._word_list_is_created()
 
     def _given_target_dir_specified(self):
         self._target_dir = "%s/mock_ddd" % self._temp_dir
@@ -65,7 +64,4 @@ class TestDddMaker(unittest.TestCase):
         self.assertTrue(os.path.exists("backend.config.json"))
 
     def _interaction_tests_are_created(self):
-        self.assertTrue(os.path.exists("ddd/test/interaction_tests_eng.txt"))
-
-    def _word_list_is_created(self):
-        self.assertTrue(os.path.exists("ddd/word_list.txt"))
+        self.assertTrue(os.path.exists("ddd/test/interaction_tests_sem.txt"))

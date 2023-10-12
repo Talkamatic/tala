@@ -1,5 +1,5 @@
 from tala.model.stack import Stack
-from tala.model.plan_item import PlanItem
+from tala.model import plan_item
 from tala.model.semantic_object import SemanticObject
 
 
@@ -8,8 +8,10 @@ class UnableToDetermineOntologyException(Exception):
 
 
 class Plan(Stack, SemanticObject):
-    def __init__(self, content=set(), contentclass=None):
-        Stack.__init__(self, content=content, contentclass=contentclass)
+    def __init__(self, content=None):
+        if content is None:
+            content = set()
+        Stack.__init__(self, content=content)
         SemanticObject.__init__(self)
 
     def is_ontology_specific(self):
@@ -50,39 +52,45 @@ class Plan(Stack, SemanticObject):
     def _flatten(self, items):
         result = []
         for item in items:
-            if item.getType() == PlanItem.TYPE_IF_THEN_ELSE:
+            if item.getType() == plan_item.TYPE_IF_THEN_ELSE:
                 if item.consequent:
-                    result.append(item.get_consequent())
+                    result.extend(self._flatten(item.get_consequent()))
                 if item.alternative:
-                    result.append(item.get_alternative())
+                    result.extend(self._flatten(item.get_alternative()))
             else:
                 result.append(item)
         return result
 
     def remove(self, item_to_remove):
+        items_to_remove = []
         for item in self.content:
             if item == item_to_remove:
-                self.content.remove(item)
-            elif item.getType() == PlanItem.TYPE_IF_THEN_ELSE:
+                items_to_remove.append(item)
+            elif item.getType() == plan_item.TYPE_IF_THEN_ELSE:
                 self.remove_nested(item_to_remove, item)
+        for item in items_to_remove:
+            self.content.remove(item)
 
-    def remove_nested(self, to_remove, plan_item):
-        if to_remove == plan_item.consequent:
-            plan_item.consequent = None
-        if to_remove == plan_item.alternative:
-            plan_item.alternative = None
+    def remove_nested(self, to_remove, item):
+        if to_remove in item.consequent:
+            item.consequent.remove(to_remove)
+        if to_remove in item.alternative:
+            item.alternative.remove(to_remove)
+        for item in item.alternative + item.consequent:
+            if item.getType() == plan_item.TYPE_IF_THEN_ELSE:
+                self.remove_nested(to_remove, item)
 
     def get_questions_in_plan_without_feature_question(self):
-        for plan_item in self:
-            if plan_item.is_question_plan_item():
-                question = plan_item.getContent()
+        for item in self:
+            if item.type_ in plan_item.QUESTION_TYPES:
+                question = item.getContent()
                 yield question
 
     def __str__(self):
         return "Plan(%s)" % self.content
 
     def __repr__(self):
-        return "%s%s" % (self.__class__.__name__, (self.content or self.contentclass, ))
+        return "%s%s" % (self.__class__.__name__, (self.content))
 
 
 class InvalidPlansException(Exception):

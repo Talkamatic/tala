@@ -11,45 +11,31 @@ import time
 import random
 import signal
 
-from pathlib import Path
+import structlog
+import json
+
 from requests.exceptions import MissingSchema
 
-from tala.backend.dependencies.for_generating import BackendDependenciesForGenerating
-from tala.cli.argument_parser import add_common_backend_arguments
 from tala.cli import console_formatting
 from tala.cli.tdm.tdm_cli import TDMCLI
 from tala.config import BackendConfig, DddConfig, DeploymentsConfig, BackendConfigNotFoundException, \
     DddConfigNotFoundException, DeploymentsConfigNotFoundException
-from tala.ddd.building.ddd_builder_for_generating import DDDBuilderForGenerating
-from tala.ddd.maker import utils as ddd_maker_utils
 from tala.ddd.maker.ddd_maker import DddMaker
 from tala import installed_version
-from tala.log.logger import configure_stdout_logging
-from tala.nl import languages
-from tala.nl.rasa.generator import RasaGenerator
-from tala.nl.alexa.generator import AlexaGenerator
+from tala.log.logger import configure_stdout_logging, configure_file_logging
+from tala.log.interaction_test_extractor import InteractionTestExtractor
 from tala.testing.interactions.file import InteractionTestingFile
 from tala.testing.interactions.testloader import InteractionTestingLoader
 from tala.testing.interactions.result import InteractionTestResult
 from tala.utils.tdm_client import TDMClient
-from tala.utils.chdir import chdir
 from tala.testing.endurance.runner import EnduranceTestRunner
-
-RASA = "rasa"
-ALEXA = "alexa"
-
-GENERATE_PLATFORMS = [RASA, ALEXA]
+from tala.cli.argument_parser import add_common_backend_arguments, add_shared_frontend_and_backend_arguments
+from tala.log.formats import VALID_TIS_LOGGING_FORMATS, TIS_LOGGING_AUTO, VALID_TIS_UPDATE_FORMATS, TIS_LOGGING_FULL
+from tala.service.constants import DEFAULT_PORT
+from tala import domain_orchestration
 
 
 class UnexpectedDDDException(Exception):
-    pass
-
-
-class UnexpectedPlatformException(Exception):
-    pass
-
-
-class UnexpectedLanguageException(Exception):
     pass
 
 
@@ -66,86 +52,62 @@ class InvalidArgumentException(Exception):
 
 
 def create_ddd(args):
-    DddMaker(args.name, use_rgl=True, target_dir=args.target_dir).make()
+    DddMaker(args.name, use_rgl=False, target_dir=args.target_dir).make()
 
 
 def create_backend_config(args):
     if os.path.exists(args.filename):
         raise ConfigAlreadyExistsException(
-            "Expected to be able to create backend config file '%s' but it already exists." % args.filename
+            f"Expected to be able to create backend config file '{args.filename}' but it already exists."
         )
     BackendConfig().write_default_config(args.ddd, args.filename)
+
+
+def configure_structlog_and_create_logger(args):
+    if args.log_to_stdout:
+        configure_stdout_logging(args.log_level)
+    else:
+        configure_file_logging(level=args.log_level)
+    return structlog.get_logger("tala")
+
+
+def create_orchestrated_domain_bundle(args):
+    odb_as_json = domain_orchestration.create_odb_as_json(
+        args.config, args.overridden_ddd_config_paths, args.should_greet, args.logged_tis_format,
+        args.tis_update_format, args.log_to_stdout, args.log_level
+    )
+    odb = domain_orchestration.OrchestratedDomainBundle(odb_as_json).as_json()
+    _store_odb(odb, args.output)
+
+
+def _store_odb(odb, output_dir):
+    print(f"storing orchestrated domain bundle in file '{output_dir}'")
+    file = open(output_dir, 'w')
+    file.write(json.dumps(odb))
+    file.close()
 
 
 def create_ddd_config(args):
     if os.path.exists(args.filename):
         raise ConfigAlreadyExistsException(
-            "Expected to be able to create DDD config file '%s' but it already exists." % args.filename
+            f"Expected to be able to create DDD config file '{args.filename}' but it already exists."
         )
-    DddConfig().write_default_config(path=args.filename, use_rgl=True)
+    DddConfig().write_default_config(path=args.filename, use_rgl=False)
 
 
 def create_deployments_config(args):
     if os.path.exists(args.filename):
         raise ConfigAlreadyExistsException(
-            "Expected to be able to create deployments config file '%s' but it already exists." % args.filename
+            f"Expected to be able to create deployments config file '{args.filename}' but it already exists."
         )
     DeploymentsConfig().write_default_config(args.filename)
-
-
-def verify(args):
-    backend_dependencies = BackendDependenciesForGenerating(args)
-
-    ddds_builder = DDDBuilderForGenerating(
-        backend_dependencies,
-        verbose=args.verbose,
-        ignore_warnings=args.ignore_warnings,
-        language_codes=args.language_codes
-    )
-    ddds_builder.verify()
-
-
-def generate(args):
-    def create_generator(ddd):
-        if args.platform == RASA:
-            return RasaGenerator(ddd, args.language)
-        elif args.platform == ALEXA:
-            return AlexaGenerator(ddd, args.language)
-        else:
-            raise UnexpectedPlatformException(
-                "Expected one of the known platforms {} but got '{}'".format(GENERATE_PLATFORMS, args.platform)
-            )
-
-    def validate(backend_dependencies, language):
-        if language not in backend_dependencies.supported_languages:
-            raise UnexpectedLanguageException(
-                f"Expected one of the supported languages "
-                f"{backend_dependencies.supported_languages} in backend config "
-                f"'{backend_dependencies.path}', but got '{language}'"
-            )
-
-    backend_dependencies = BackendDependenciesForGenerating(args)
-    validate(backend_dependencies, args.language)
-    ddd_path = Path(args.ddd)
-    if not ddd_path.exists():
-        raise UnexpectedDDDException("Expected DDD '{}' to exist but it didn't".format(args.ddd))
-    with chdir(ddd_path / "grammar"):
-        ddds = {ddd.name: ddd for ddd in backend_dependencies.ddds}
-        ddd = ddds[args.ddd]
-        generator = create_generator(ddd)
-        generator.stream(sys.stdout)
-
-
-def _check_ddds_for_word_lists(ddds):
-    for ddd in ddds:
-        ddd_maker_utils.potentially_create_word_list_boilerplate(ddd.name)
 
 
 @contextlib.contextmanager
 def _config_exception_handling():
     def generate_message(name, command_name, config):
-        return "Expected {name} config '{config}' to exist but it was not found. To create it, " \
-               "run 'tala {command} --filename {config}'.".format(name=name, command=command_name, config=config)
+        return f"Expected {name} config '{config}' to exist but it was not found. To create it, run " \
+               f"'tala {command_name} --filename {config}'."
 
     try:
         yield
@@ -167,7 +129,8 @@ def version(args):
 def interact(args):
     config = DeploymentsConfig(args.deployments_config)
     url = config.get_url(args.environment_or_url)
-    tdm_cli = TDMCLI(url)
+    resume_session = args.resume_session
+    tdm_cli = TDMCLI(url, resume_session)
 
     try:
         tdm_cli.run()
@@ -175,7 +138,7 @@ def interact(args):
         tdm_cli.stop()
     except MissingSchema:
         environments = list(config.read().keys())
-        print("Expected a URL or one of the known environments {} but got '{}'".format(environments, url))
+        print(f"Expected a URL or one of the known environments {environments} but got '{url}'")
 
 
 def test_interactions(args):
@@ -250,35 +213,11 @@ def endurancetest(args):
     test_runner.run()
 
 
-def add_verify_subparser(subparsers):
-    parser = subparsers.add_parser(
-        "verify", help="verify the format of all DDDs supported by the backend, across all supported languages"
+def extract(args):
+    extractor = InteractionTestExtractor.from_args(
+        args.log, verbose=args.verbose, full=args.full, semantic=args.semantic
     )
-    parser.set_defaults(func=verify)
-    add_common_backend_arguments(parser)
-    parser.add_argument(
-        "--languages",
-        dest="language_codes",
-        choices=languages.SUPPORTED_LANGUAGES,
-        nargs="*",
-        help="override the backend config and verify the DDDs for these languages"
-    )
-    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose")
-    parser.add_argument(
-        "--ignore-grammar-warnings",
-        dest="ignore_warnings",
-        action="store_true",
-        help="ignore warnings when compiling the grammar"
-    )
-
-
-def add_generate_subparser(subparsers):
-    parser = subparsers.add_parser("generate", help="generate training data for Rasa NLU 0.14")
-    parser.set_defaults(func=generate)
-    add_common_backend_arguments(parser)
-    parser.add_argument("platform", help="generate for this platform", choices=GENERATE_PLATFORMS)
-    parser.add_argument("ddd", help="generate for this DDD")
-    parser.add_argument("language", choices=languages.SUPPORTED_RASA_LANGUAGES, help="use the grammar of this language")
+    extractor.run()
 
 
 def add_create_ddd_subparser(subparsers):
@@ -290,6 +229,40 @@ def add_create_ddd_subparser(subparsers):
     )
 
 
+def add_create_odb_subparser(subparsers):
+    parser = subparsers.add_parser("create-odb", help="create a new ODB")
+    parser.set_defaults(func=create_orchestrated_domain_bundle)
+
+    backend_group = parser.add_argument_group("backend")
+    backend_group.add_argument("output", help="Directory where the ODB file will be stored")
+    backend_group.add_argument("--should-greet", action="store_true", default=False)
+    add_common_backend_arguments(backend_group)
+    add_shared_frontend_and_backend_arguments(backend_group)
+    logging_group = parser.add_argument_group("logging")
+    logging_group.add_argument(
+        "--log-to-stdout",
+        action="store_true",
+        default=False,
+        help="If enabled, logging is done to stdout instead of to a file"
+    )
+    logging_group.add_argument("--port", type=int, default=DEFAULT_PORT, help="listen for connections on this port")
+    choices = [TIS_LOGGING_AUTO] + VALID_TIS_LOGGING_FORMATS
+    logging_group.add_argument(
+        "--tis-format",
+        "-tf",
+        dest="logged_tis_format",
+        choices=choices,
+        default=TIS_LOGGING_AUTO,
+        help="log TIS on this format"
+    )
+    logging_group.add_argument(
+        "--tis-update-format",
+        choices=VALID_TIS_UPDATE_FORMATS,
+        default=TIS_LOGGING_FULL,
+        help="log TIS updates on this format"
+    )
+
+
 def add_create_backend_config_subparser(subparsers):
     parser = subparsers.add_parser("create-backend-config", help="create a backend config")
     parser.set_defaults(func=create_backend_config)
@@ -298,7 +271,7 @@ def add_create_backend_config_subparser(subparsers):
         "--filename",
         default=BackendConfig.default_name(),
         metavar="NAME",
-        help="filename of the backend config, e.g. %s" % BackendConfig.default_name()
+        help=f"filename of the backend config, e.g. {BackendConfig.default_name()}"
     )
 
 
@@ -309,7 +282,7 @@ def add_create_ddd_config_subparser(subparsers):
         "--filename",
         default=DddConfig.default_name(),
         metavar="NAME",
-        help="filename of the DDD config, e.g. %s" % DddConfig.default_name()
+        help=f"filename of the DDD config, e.g. {DddConfig.default_name()}"
     )
 
 
@@ -320,7 +293,7 @@ def add_create_deployments_config_subparser(subparsers):
         "--filename",
         default=DeploymentsConfig.default_name(),
         metavar="NAME",
-        help="filename of the deployments config, e.g. %s" % DeploymentsConfig.default_name()
+        help=f"filename of the deployments config, e.g. {DeploymentsConfig.default_name()}"
     )
 
 
@@ -340,7 +313,15 @@ def add_deployment_config_arguments(parser):
         "--config",
         dest="deployments_config",
         default=None,
-        help="override the default deployments config %r" % DeploymentsConfig.default_name()
+        help=f"override the default deployments config {DeploymentsConfig.default_name()!r}"
+    )
+    parser.add_argument(
+        "--resume-session",
+        dest="resume_session",
+        default=None,
+        const="tala-session.state",
+        nargs="?",
+        help="Session object to be resumed. If parameter omitted, tala will resume latest session."
     )
 
 
@@ -384,9 +365,18 @@ def add_endurancetest_subparser(subparsers):
     parser.set_defaults(func=endurancetest)
 
 
+def add_extract_subparser(subparsers):
+    parser = subparsers.add_parser("extract", help="extract interaction test from a TDM log file")
+    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="print verbose information")
+    parser.add_argument("-f", "--full", action="store_true", help="print full interpretation information")
+    parser.add_argument("-s", "--semantic", action="store_true", help="print semantic information")
+    parser.set_defaults(func=extract)
+    parser.add_argument("log", help="the TDM session log to extract from")
+
+
 def format_warnings():
     def warning_on_one_line(message, category, _filename, _lineno, _file=None, _line=None):
-        string = "%s: %s\n" % (category.__name__, message)
+        string = f"{category.__name__}: {message}\n"
         return console_formatting.bold(string)
 
     warnings.formatwarning = warning_on_one_line
@@ -401,9 +391,8 @@ def main(args=None):
     show_deprecation_warnings()
     root_parser = argparse.ArgumentParser(description="Use the Tala SDK for the Talkamatic Dialogue Manager (TDM).")
     subparsers = root_parser.add_subparsers()
-    add_verify_subparser(subparsers)
-    add_generate_subparser(subparsers)
     add_create_ddd_subparser(subparsers)
+    add_create_odb_subparser(subparsers)
     add_create_backend_config_subparser(subparsers)
     add_create_ddd_config_subparser(subparsers)
     add_create_deployments_config_subparser(subparsers)
@@ -411,6 +400,7 @@ def main(args=None):
     add_interact_subparser(subparsers)
     add_test_subparser(subparsers)
     add_endurancetest_subparser(subparsers)
+    add_extract_subparser(subparsers)
 
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():

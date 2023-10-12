@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
-from tala.model.move import Move, ICMMove, MoveException, ReportMove, ICMMoveWithSemanticContent
+from tala.model.move import Move, ICMMove, ReportMove, ICMMoveWithSemanticContent, AskMove
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -18,6 +18,12 @@ class SemanticExpressionTestMixin(object):
 
     def when_generating_semantic_expression(self):
         self._actual_result = self._move.as_semantic_expression()
+
+    def given_set_realization_data_was_called(self, **kwargs):
+        self._move.set_realization_data(**kwargs)
+
+    def when_get_semantic_expression_without_realization_data(self):
+        self._actual_result = self._move.semantic_expression_without_realization_data()
 
 
 class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
@@ -97,6 +103,14 @@ class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
             ")"
         )
 
+    def test_semantic_expression_without_realization_data(self):
+        self.given_move(self.success_move)
+        self.given_set_realization_data_was_called(speaker=Speaker.SYS, ddd_name="mock_ddd")
+        self.when_get_semantic_expression_without_realization_data()
+        self.then_result_is(
+            "report(ServiceResultProposition(BuyTrip, [dest_city(paris), dept_city(london)], SuccessfulServiceAction()))"
+        )
+
 
 class PrereportMoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
@@ -132,6 +146,12 @@ class PrereportMoveTests(LibTestCase, SemanticExpressionTestMixin):
     def test_as_semantic_expression(self):
         self.given_move(self.move)
         self.when_generating_semantic_expression()
+        self.then_result_is("prereport(BuyTrip, [dest_city(paris), dept_city(london)])")
+
+    def test_semantic_expression_without_realization_data(self):
+        self.given_move(self.move_factory.create_prereport_move(self.service_action, self.arguments))
+        self.given_set_realization_data_was_called(speaker=Speaker.SYS, ddd_name="mock_ddd")
+        self.when_get_semantic_expression_without_realization_data()
         self.then_result_is("prereport(BuyTrip, [dest_city(paris), dept_city(london)])")
 
 
@@ -399,20 +419,55 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.move_factory.create_prereport_move(service_action, parameters)
 
     def test_is_turn_yielding(self):
-        turn_yielding_moves = [self.report_move, self.icm_acc_neg, self.answer_move]
-        non_turn_yielding_moves = [self.icm_acc_pos, self.request_move, self.ask_move]
+        turn_yielding_moves = [self.report_move, self.answer_move]
+        non_turn_yielding_moves = [self.icm_acc_pos, self.icm_acc_neg, self.request_move, self.ask_move]
         for move in turn_yielding_moves:
-            self.assertTrue(move.is_turn_yielding(), "%s should be turn yielding" % move)
+            self.assertTrue(move.is_turn_yielding(), f"{move} should be turn yielding")
         for move in non_turn_yielding_moves:
-            self.assertFalse(move.is_turn_yielding(), "%s should not be turn yielding" % move)
+            self.assertFalse(move.is_turn_yielding(), f"{move} should not be turn yielding")
 
     def test_upscore(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.USR, understanding_confidence=0.5)
         move.uprank(0.2)
         self.assertEqual(0.5 * 1.2, move.weighted_understanding_confidence)
 
+    def test_set_and_get_weighted_understanding_confidence_without_setting_realization_data(self):
+        self.given_move(self.move_factory.createMove(Move.GREET, speaker=Speaker.USR, understanding_confidence=0.5))
+        self.given_weighted_understanding_confidence_was_set(0.6)
+        self.when_get_weighted_understanding_confidence()
+        self.then_result_is(0.6)
 
-class ICMMoveTests(LibTestCase):
+    def given_weighted_understanding_confidence_was_set(self, score):
+        self._move.weighted_understanding_confidence = score
+
+    def when_get_weighted_understanding_confidence(self):
+        self._actual_result = self._move.weighted_understanding_confidence
+
+    def test_set_and_get_weighted_understanding_confidence_after_setting_realization_data(self):
+        self.given_move(Move(Move.GREET))
+        self.given_set_realization_data_was_called(
+            speaker=Speaker.USR, ddd_name="mock_ddd", understanding_confidence=0.5
+        )
+        self.given_weighted_understanding_confidence_was_set(0.6)
+        self.when_get_weighted_understanding_confidence()
+        self.then_result_is(0.6)
+
+    def test_semantic_expression_without_realization_data_for_move_without_content(self):
+        self.given_move(Move(Move.GREET))
+        self.given_set_realization_data_was_called(
+            speaker=Speaker.USR, ddd_name="mock_ddd", understanding_confidence=0.5
+        )
+        self.when_get_semantic_expression_without_realization_data()
+        self.then_result_is("Move(greet)")
+
+    def test_semantic_expression_without_realization_data_for_move_with_content(self):
+        self.given_move(AskMove(self.price_question))
+        self.given_set_realization_data_was_called(speaker=Speaker.SYS, ddd_name="mock_ddd")
+        self.when_get_semantic_expression_without_realization_data()
+        self.then_result_is("Move(ask(?X.price(X)))")
+
+
+class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
@@ -599,6 +654,12 @@ class ICMMoveTests(LibTestCase):
         self.assertEqual(self.price_question, move.get_content())
         self.assertEqual(Speaker.USR, move.get_content_speaker())
 
+    def test_semantic_expression_without_realization_data(self):
+        self.given_move(self.move_factory.createIcmMove(ICMMove.SEM, polarity=ICMMove.NEG))
+        self.given_set_realization_data_was_called(speaker=Speaker.SYS, ddd_name="mock_ddd")
+        self.when_get_semantic_expression_without_realization_data()
+        self.then_result_is("ICMMove(icm:sem*neg)")
+
     def test_ddd_getter_and_setter(self):
         move = self.move_factory.createMove(Move.GREET)
         name = "mockup_ddd"
@@ -643,42 +704,6 @@ class MoveRealizationTests(LibTestCase):
         self.assertEqual(speaker, move.get_speaker())
         self.assertEqual(modality, move.get_modality())
         self.assertEqual(utterance, move.get_utterance())
-
-    def test_set_realization_data_raises_exception_if_already_set(self):
-        greet_move = self.move_factory.createMove(Move.GREET)
-        icm_move = self.move_factory.createIcmMove(ICMMove.ACC, content=ICMMove.POS)
-        for move in [greet_move, icm_move]:
-            move.set_realization_data(speaker=Speaker.SYS, ddd_name="mockup_ddd")
-            with self.assertRaisesRegex(MoveException, "realization data already set"):
-                move.set_realization_data(speaker=Speaker.SYS)
-
-    def test_realization_with_speaker_usr_and_no_score_not_allowed(self):
-        with self.assertRaisesRegex(MoveException, "understanding confidence must be supplied for user moves"):
-            self.move_factory.createMove(Move.GREET, speaker=Speaker.USR)
-        with self.assertRaises(MoveException):
-            self.move_factory.createIcmMove(ICMMove.ACC, ICMMove.POS, speaker=Speaker.USR)
-
-    def test_realization_without_speaker_not_allowed(self):
-        with self.assertRaisesRegex(MoveException, "speaker must be supplied"):
-            self.move_factory.createMove(Move.GREET, understanding_confidence=1.0)
-        with self.assertRaises(MoveException):
-            self.move_factory.createIcmMove(ICMMove.ACC, ICMMove.POS, understanding_confidence=1.0)
-
-    def test_realization_without_ddd_name_not_allowed_for_user_moves(self):
-        with self.assertRaisesRegex(MoveException, "ddd_name must be supplied"):
-            self.move_factory.createMove(Move.GREET, understanding_confidence=1.0, speaker=Speaker.USR)
-
-    def test_realization_with_speaker_sys_and_score_below_one_not_allowed(self):
-        with self.assertRaisesRegex(MoveException, "understanding confidence below 1.0 not allowed for system moves"):
-            self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS, understanding_confidence=0.5)
-        with self.assertRaises(MoveException):
-            self.move_factory.createIcmMove(
-                ICMMove.ACC, content=ICMMove.POS, speaker=Speaker.SYS, understanding_confidence=0.5
-            )
-
-    def test_realization_with_speaker_sys_and_score_one_allowed(self):
-        self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS, understanding_confidence=1.0)
-        self.move_factory.createIcmMove(ICMMove.ACC, ICMMove.POS, speaker=Speaker.SYS, understanding_confidence=1.0)
 
     def test_get_score_returns_one_for_move_with_speaker_sys(self):
         greet_move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)

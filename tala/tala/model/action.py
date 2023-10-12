@@ -3,6 +3,7 @@ from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 TOP = "top"
 UP = "up"
+HOW = "how"
 
 
 class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
@@ -13,9 +14,6 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def is_action(self):
         return True
 
-    def isRespondPlanItem(self):
-        return False
-
     def get_value(self):
         return self.value
 
@@ -24,6 +22,9 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def is_up_action(self):
         return self.value == UP
+
+    def is_how_action(self):
+        return self.value == HOW
 
     def __str__(self):
         return self.value
@@ -50,3 +51,8 @@ class TopAction(Action):
 class UpAction(Action):
     def __init__(self, ontology_name):
         Action.__init__(self, UP, ontology_name)
+
+
+class HowAction(Action):
+    def __init__(self, ontology_name):
+        Action.__init__(self, HOW, ontology_name)

@@ -38,8 +38,32 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     PROPOSITION_SET = "PROPOSITION_SET"
     KNOWLEDGE_PRECONDITION = "KNOWLEDGE_PRECONDITION"
     ACTION_STATUS = "ACTION_STATUS"
+    QUESTION_STATUS = "QUESTION_STATUS"
     IMPLICATION = "IMPLICATION"
     NUMBER_OF_ALTERNATIVES = "NUMBER_OF_ALTERNATIVES"
+
+    TYPES = [
+        UNDERSTANDING,
+        GOAL,
+        PREDICATE,
+        PRECONFIRMATION,
+        PREREPORT,
+        MUTE,
+        UNMUTE,
+        QUIT,
+        PREDICTED,
+        REJECTED,
+        RESOLVEDNESS,
+        SERVICE_RESULT,
+        SERVICE_ACTION_STARTED,
+        SERVICE_ACTION_TERMINATED,
+        PROPOSITION_SET,
+        KNOWLEDGE_PRECONDITION,
+        ACTION_STATUS,
+        QUESTION_STATUS,
+        IMPLICATION,
+        NUMBER_OF_ALTERNATIVES
+    ]  # yapf: disable
 
     def __init__(self, type, polarity=None):
         SemanticObject.__init__(self)
@@ -48,6 +72,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
             polarity = Polarity.POS
         self._polarity = polarity
         self._predicted = False
+        self._confidence_estimates = None
 
     def __eq__(self, other):
         try:
@@ -55,6 +80,17 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
             ) == other.get_polarity()
         except AttributeError:
             return False
+
+    def __hash__(self):
+        return hash((self.get_type(), self.get_polarity()))
+
+    @property
+    def confidence_estimates(self):
+        return self._confidence_estimates
+
+    @confidence_estimates.setter
+    def confidence_estimates(self, confidence):
+        self._confidence_estimates = confidence
 
     def get_polarity_prefix_string(self):
         if self._polarity == Polarity.NEG:
@@ -120,10 +156,14 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
         return self._type == Proposition.NUMBER_OF_ALTERNATIVES
 
     def get_polarity(self):
+        return self.polarity
+
+    @property
+    def polarity(self):
         return self._polarity
 
     def is_positive(self):
-        return self._polarity == Polarity.POS
+        return self.polarity == Polarity.POS
 
     def is_predicted(self):
         return self._predicted
@@ -139,7 +179,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     def is_incompatible_with(self, other):
         return False
 
-    def is_true_given(self, facts):
+    def is_true_given_proposition_set(self, facts):
         return self in facts
 
     def __repr__(self):
@@ -307,7 +347,6 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, service_action, arguments, polarity=None):
         self.service_action = service_action
         self._arguments = arguments
-        self._hash = hash((ontology_name, polarity, service_action, frozenset(arguments)))
         Proposition.__init__(self, Proposition.PRECONFIRMATION, polarity)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
@@ -319,6 +358,10 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
         for param in self._arguments:
             argument_list.append(param)
         return argument_list
+
+    @property
+    def arguments(self):
+        return self.get_arguments()
 
     def __eq__(self, other):
         try:
@@ -340,7 +383,16 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
         )
 
     def __hash__(self):
-        return self._hash
+        return hash((self.service_action, frozenset(self.arguments)))
+
+    def as_dict(self):
+        result = {
+            "arguments": [proposition for proposition in self.arguments],
+            "service_action": self.service_action,
+            "polarity": self.polarity
+        }
+        ontology_specific_dict = OntologySpecificSemanticObject.as_dict(self)
+        return ontology_specific_dict | result
 
 
 class PrereportProposition(Proposition, OntologySpecificSemanticObject):
@@ -379,6 +431,12 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
     def __str__(self):
         return "prereported(%s, %s)" % (str(self.service_action), str(self.get_arguments()))
 
+    def as_dict(self):
+        result = {
+            "argument_set": [proposition for proposition in self.argument_set],
+        }
+        return super().as_dict() | result
+
 
 class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, service_action, polarity=None):
@@ -416,12 +474,9 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
 
 
 class PredictedProposition(PropositionWithSemanticContent):
-    def __init__(self, propositional_answer, polarity=None):
-        self.predicted_proposition = propositional_answer
-        PropositionWithSemanticContent.__init__(self, Proposition.PREDICTED, propositional_answer, polarity)
-
-    def get_prediction(self):
-        return self.predicted_proposition
+    def __init__(self, prediction, polarity=None):
+        self.predicted_proposition = prediction
+        PropositionWithSemanticContent.__init__(self, Proposition.PREDICTED, prediction, polarity)
 
     def __str__(self):
         return "%spredicted(%s)" % (self.get_polarity_prefix_string(), self.predicted_proposition)
@@ -492,9 +547,15 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
     def __hash__(self):
         return hash((self.get_service_action(), self.get_result()))
 
+    def as_dict(self):
+        result = {"result": self.result.as_json(), "ontology_name": self.ontology_name}
+        return super().as_dict() | result
+
 
 class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObject):
-    def __init__(self, ontology_name, service_action, parameters=[]):
+    def __init__(self, ontology_name, service_action, parameters=None):
+        if parameters is None:
+            parameters = []
         self.service_action = service_action
         self.parameters = parameters
         Proposition.__init__(self, Proposition.SERVICE_ACTION_STARTED)
@@ -510,11 +571,22 @@ class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObjec
         except AttributeError:
             return False
 
+    def __hash__(self):
+        return hash((self.ontology_name, self.service_action, self.get_polarity()))
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __str__(self):
         return "ServiceActionStartedProposition(%s, %s)" % (self.service_action, unicodify(self.parameters))
+
+    def as_dict(self):
+        result = {
+            "service_action": self.service_action,
+            "parameters": self.parameters,
+            "ontology_name": self.ontology_name
+        }
+        return super().as_dict() | result
 
 
 class RejectedPropositions(PropositionWithSemanticContent):
@@ -546,6 +618,9 @@ class RejectedPropositions(PropositionWithSemanticContent):
             )
         except AttributeError:
             return False
+
+    def __hash__(self):
+        return hash((self.rejected_combination, self.reason_for_rejection, self.get_polarity()))
 
     def __ne__(self, other):
         return not (self == other)
@@ -735,9 +810,9 @@ class ActionStatusProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return (other.content == self.content and
-                    other.status == self.status and
-                    self.get_type() == other.get_type())
+            return (
+                other.content == self.content and other.status == self.status and self.get_type() == other.get_type()
+            )
         except AttributeError:
             return False
 
@@ -745,7 +820,31 @@ class ActionStatusProposition(PropositionWithSemanticContent):
         return f"action_status({self.content}, {self.status})"
 
     def __hash__(self):
-        return hash(self.content, self.status)
+        return hash((self.content, self.status))
+
+
+class QuestionStatusProposition(PropositionWithSemanticContent):
+    def __init__(self, question, status):
+        PropositionWithSemanticContent.__init__(self, Proposition.QUESTION_STATUS, question)
+        self._status = status
+
+    @property
+    def status(self):
+        return self._status
+
+    def __eq__(self, other):
+        try:
+            return (
+                other.content == self.content and other.status == self.status and self.get_type() == other.get_type()
+            )
+        except AttributeError:
+            return False
+
+    def __str__(self):
+        return f"question_status({self.content}, {self.status})"
+
+    def __hash__(self):
+        return hash((self.content, self.status))
 
 
 class ImplicationProposition(PropositionWithSemanticContent):

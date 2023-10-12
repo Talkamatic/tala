@@ -1,2 +1,0 @@
-DISABLED = "disabled"
-CYCLIC = "cyclic"

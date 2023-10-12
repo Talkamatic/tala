@@ -1,19 +1,21 @@
 import copy
 
+from tala.model.ask_feature import AskFeature
 from tala.model.domain import Domain
+from tala.model.action import Action
 from tala.model.goal import ResolveGoal, PerformGoal, HandleGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
 from tala.model.set import Set
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
-from tala.model.plan_item import BindPlanItem, IfThenElse, InvokeServiceActionPlanItem
+from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, QuestionRaisingPlanItem, Findout, Raise
 from tala.model.polarity import Polarity
 from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet, ServiceActionTerminatedProposition
-from tala.model.question import WhQuestion, AltQuestion
-from tala.model.question_raising_plan_item import QuestionRaisingPlanItem, FindoutPlanItem, RaisePlanItem
+from tala.model.question import WhQuestion, AltQuestion, KnowledgePreconditionQuestion
 from tala.model.sort import CustomSort, RealSort
 from tala.testing.lib_test_case import LibTestCase
+from tala.ddd.json_parser import JSONDomainParser
 
 
 class DomainTests(LibTestCase):
@@ -58,6 +60,8 @@ class DomainTests(LibTestCase):
             "downdate_plan_true",
             "downdate_plan_false",
             "event",
+            "instructional",
+            "user_targeted_action",
         }
         self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, self.actions)
 
@@ -99,6 +103,7 @@ class DomainTests(LibTestCase):
         self.proposition_not_dest_city_paris = PredicateProposition(
             self.predicate_dest_city, self.individual_paris, Polarity.NEG
         )
+        self.instructional = self.ontology.create_action("instructional")
 
     def _create_domains(self):
         self.domain_name = "mockup_domain"
@@ -127,6 +132,9 @@ class DomainTests(LibTestCase):
             dependencies=dependencies,
             parameters=parameters
         )
+        domain_as_json = self.domain.as_json()
+        json_parser = JSONDomainParser(self.ontology)
+        self.domain = json_parser.parse(domain_as_json)
 
         self.empty_domain = Domain(self.DDD_NAME, "empty_domain", self.empty_ontology)
 
@@ -149,18 +157,18 @@ class DomainTests(LibTestCase):
             ResolveGoal(self.price_question, Speaker.SYS),
             "plan":
             Plan([
-                FindoutPlanItem(self.domain_name, self.dest_city_question),
-                FindoutPlanItem(self.domain_name, self.dept_city_question),
+                Findout(self.domain_name, self.dest_city_question),
+                Findout(self.domain_name, self.dept_city_question),
             ]),
         }, {
             "goal": PerformGoal(self.buy_action),
-            "plan": Plan([FindoutPlanItem(self.domain_name, self.price_question)]),
+            "plan": Plan([Findout(self.domain_name, self.price_question)]),
             "postconds": [self.condition]
         }, {
             "goal": PerformGoal(self.always_preferred_action),
             "preferred": True,
             "plan": Plan([]),
-            "postplan": [FindoutPlanItem(self.domain_name, self.price_question)],
+            "postplan": [Findout(self.domain_name, self.price_question)],
             "superactions": [self.buy_action]
         }, {
             "goal": PerformGoal(self.conditionally_preferred_action),
@@ -171,18 +179,17 @@ class DomainTests(LibTestCase):
             "plan": Plan([]),
             "unrestricted_accommodation": True,
         }, {
-            "goal":
-            PerformGoal(self.downdate_plan_true_action),
-            "plan":
-            Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=True)]),
+            "goal": PerformGoal(self.downdate_plan_true_action),
+            "plan": Plan([InvokeServiceAction("mockup_ontology", "mock_service_action", downdate_plan=True)]),
         }, {
-            "goal":
-            PerformGoal(self.downdate_plan_false_action),
-            "plan":
-            Plan([InvokeServiceActionPlanItem("mockup_ontology", "mock_service_action", downdate_plan=False)]),
+            "goal": PerformGoal(self.downdate_plan_false_action),
+            "plan": Plan([InvokeServiceAction("mockup_ontology", "mock_service_action", downdate_plan=False)]),
         }, {
             "goal": HandleGoal("mockup_ontology", "event"),
             "plan": Plan([]),
+        }, {
+            "goal": PerformGoal(self.instructional_action),
+            "plan": Plan([GetDone(Action("user_targeted_action", "mockup_ontology"))]),
         }]
 
     def test_top_and_up_goals_added_implicitly_by_domain(self):
@@ -281,9 +288,9 @@ class DomainTests(LibTestCase):
 
     def test_get_plan_questions(self):
         self.maxDiff = None
-        expected_questions = ["?X.dept_city(X)", "?X.dest_city_type(X)", "?X.dest_city(X)", "?X.price(X)"]
+        expected_questions = set(["?X.dept_city(X)", "?X.dest_city_type(X)", "?X.dest_city(X)", "?X.price(X)"])
         actual_result = [question for question in self.domain.get_plan_questions()]
-        actual_result_strings = list(map(str, actual_result))
+        actual_result_strings = set(map(str, actual_result))
         assert expected_questions == actual_result_strings
 
     def test_get_all_goals(self):
@@ -297,7 +304,8 @@ class DomainTests(LibTestCase):
             PerformGoal(self.top_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
-            HandleGoal("mockup_ontology", "event")
+            HandleGoal("mockup_ontology", "event"),
+            PerformGoal(self.instructional),
         }
         actual_result = set(self.domain.get_all_goals())
         self.assertEqual(expected_goals, actual_result)
@@ -311,7 +319,10 @@ class DomainTests(LibTestCase):
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
-            HandleGoal("mockup_ontology", "event")
+            HandleGoal("mockup_ontology", "event"),
+            PerformGoal(self.instructional),
+            PerformGoal(self.top_action),
+            PerformGoal(self.up_action),
         ]
         actual_result = self.domain.get_all_goals_in_defined_order()
         self.assertEqual(expected_goals, actual_result)
@@ -333,6 +344,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.top_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
+            PerformGoal(self.instructional),
             HandleGoal("mockup_ontology", "event")
         }
         actual_goals = {goal for goal in self.domain.get_plan_goal_iterator()}
@@ -369,7 +381,7 @@ class DomainTests(LibTestCase):
     def test_get_postplan_for_goal_with_postplan(self):
         action_with_postplan = self.always_preferred_action
         postplan = self.domain.get_postplan(PerformGoal(action_with_postplan))
-        expected_postplan = [FindoutPlanItem(self.domain_name, self.price_question)]
+        expected_postplan = [Findout(self.domain_name, self.price_question)]
         self.assertEqual(expected_postplan, postplan)
 
     def test_get_postplan_for_goal_without_postplan(self):
@@ -460,38 +472,149 @@ class DomainTests(LibTestCase):
             Domain(self.DDD_NAME, self.domain_name, self.ontology, invalid_plans)
 
     def test_get_questions_in_plan_base_case(self):
-        plan = Plan([
-            FindoutPlanItem(self.domain_name, self.price_question),
-            RaisePlanItem(self.domain_name, self.dest_city_question)
+        self.given_plan([
+            Findout(self.domain_name, self.price_question),
+            Raise(self.domain_name, self.dest_city_question)
         ])
-        expected_questions = [self.price_question, self.dest_city_question, self.dest_city_type_question]
-        actual_result = [question for question in self.domain.get_questions_in_plan(plan)]
-        self.assertEqual(set(expected_questions), set(actual_result))
+        self.when_get_questions_in_plan()
+        self.then_result_has_elements([self.price_question, self.dest_city_question, self.dest_city_type_question])
+
+    def when_get_questions_in_plan(self):
+        self._actual_result = [question for question in self.domain.get_questions_in_plan(self._plan)]
+
+    def then_result_has_elements(self, expected_result):
+        self.assertEqual(set(expected_result), set(self._actual_result))
+
+    def given_plan(self, plan_contents):
+        self._plan = Plan(plan_contents)
 
     def test_get_questions_in_plan_supports_if_then_else(self):
-        arbitrary_condition = self.proposition_dest_city_paris
-        plan = Plan([
+        self.given_plan([
             IfThenElse(
-                arbitrary_condition, FindoutPlanItem(self.domain_name, self.price_question),
-                BindPlanItem(self.dest_city_question)
+                "mock_condition", [Findout(self.domain_name, self.price_question)], [Bind(self.dest_city_question)]
             )
         ])
-        expected_questions = [self.price_question, self.dest_city_question, self.dest_city_type_question]
-        actual_result = [question for question in self.domain.get_questions_in_plan(plan)]
-        self.assertEqual(set(expected_questions), set(actual_result))
+        self.when_get_questions_in_plan()
+        self.then_result_has_elements([self.price_question, self.dest_city_question, self.dest_city_type_question])
 
-    def test_get_questions_in_plan_include_features(self):
-        plan = Plan([FindoutPlanItem(self.domain_name, self.dest_city_question)])
-        expected_questions = [self.dest_city_question, self.dest_city_type_question]
-        actual_result = [question for question in self.domain.get_questions_in_plan(plan)]
-        self.assertEqual(set(expected_questions), set(actual_result))
+    def test_get_questions_in_plan_includes_wh_question_via_featurehood_in_ontology(self):
+        self.given_ontology(
+            sorts={CustomSort(self.ontology_name, "housing"),
+                   CustomSort(self.ontology_name, "housing_type")},
+            predicates={
+                self._create_predicate("selected_housing", CustomSort(self.ontology_name, "housing")),
+                self._create_predicate(
+                    "selected_housing_type",
+                    CustomSort(self.ontology_name, "housing_type"),
+                    feature_of_name="selected_housing"
+                )
+            }
+        )
+        self.given_domain()
+        self.given_plan([Findout(self.domain_name, self.ontology.create_wh_question("selected_housing"))])
+        self.when_get_questions_in_plan()
+        self.then_result_has_elements([
+            self.ontology.create_wh_question("selected_housing"),
+            self.ontology.create_wh_question("selected_housing_type")
+        ])
+
+    def test_get_questions_in_plan_includes_wh_question_via_ask_features_parameter(self):
+        self.given_ontology(
+            sorts={CustomSort(self.ontology_name, "housing"),
+                   CustomSort(self.ontology_name, "housing_type")},
+            predicates={
+                self._create_predicate("selected_housing", CustomSort(self.ontology_name, "housing")),
+                self._create_predicate("selected_housing_type", CustomSort(self.ontology_name, "housing_type"))
+            }
+        )
+        self.given_domain(
+            parameters={
+                self.ontology.create_wh_question("selected_housing"): {
+                    "ask_features": [AskFeature("selected_housing_type")]
+                }
+            }
+        )
+        self.given_plan([Findout(self.domain_name, self.ontology.create_wh_question("selected_housing"))])
+        self.when_get_questions_in_plan()
+        self.then_result_has_elements([
+            self.ontology.create_wh_question("selected_housing"),
+            self.ontology.create_wh_question("selected_housing_type")
+        ])
+
+    def test_get_questions_in_plan_includes_kpq_via_ask_features_parameter(self):
+        self.given_ontology(
+            sorts={CustomSort(self.ontology_name, "housing"),
+                   CustomSort(self.ontology_name, "housing_type")},
+            predicates={
+                self._create_predicate("selected_housing", CustomSort(self.ontology_name, "housing")),
+                self._create_predicate("selected_housing_type", CustomSort(self.ontology_name, "housing_type"))
+            }
+        )
+        self.given_domain(
+            parameters={
+                self.ontology.create_wh_question("selected_housing"): {
+                    "ask_features": [AskFeature("selected_housing_type", kpq=True)]
+                }
+            }
+        )
+        self.given_plan([Findout(self.domain_name, self.ontology.create_wh_question("selected_housing"))])
+        self.when_get_questions_in_plan()
+        self.then_result_has_elements([
+            self.ontology.create_wh_question("selected_housing"),
+            self.ontology.create_wh_question("selected_housing_type"),
+            KnowledgePreconditionQuestion(self.ontology.create_wh_question("selected_housing_type"))
+        ])
+
+    def given_domain(self, plans=None, default_questions=None, dependencies=None, parameters=None):
+        if plans is None:
+            plans = []
+        if default_questions is None:
+            default_questions = []
+        if dependencies is None:
+            dependencies = {}
+        if parameters is None:
+            parameters = {}
+
+        self.domain = Domain(
+            self.DDD_NAME,
+            self.domain_name,
+            self.ontology,
+            plans=plans,
+            default_questions=default_questions,
+            dependencies=dependencies,
+            parameters=parameters
+        )
+
+        domain_as_json = self.domain.as_json()
+        json_parser = JSONDomainParser(self.ontology)
+        self.domain = json_parser.parse(domain_as_json)
+
+    def given_parameters(self, parameters):
+        self.domain.parameters = parameters
+
+    def given_ontology(self, sorts=None, predicates=None, individuals=None, actions=None):
+        if sorts is None:
+            sorts = {}
+        if predicates is None:
+            predicates = {}
+        if individuals is None:
+            individuals = {}
+        if actions is None:
+            actions = {}
+        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, self.actions)
+
+    def test_get_user_targeted_actions(self):
+        expected_action_names = ["user_targeted_action"]
+        actual_result = self.domain.get_names_of_user_targeted_actions()
+        self.assertEqual(set(expected_action_names), set(actual_result))
 
 
 class DominatesTests(LibTestCase):
     def setUp(self):
         self.ontology_name = "mockup_ontology"
         actions = {
-            "dominating_action", "dominated_action", "super_dominated_action", "non_dominated_action", "planless_action"
+            "dominating_action", "dominated_action", "super_dominated_action", "non_dominated_action",
+            "planless_action", "action_w_predicate_proposition_alt_question"
         }
         sorts = set()
         predicates = {
@@ -534,6 +657,17 @@ class DominatesTests(LibTestCase):
         }, {
             "goal": PerformGoal(self.non_dominated_action),
             "plan": []
+        }, {
+            "goal":
+            PerformGoal(self.action_w_predicate_proposition_alt_question),
+            "plan": [
+                self._findout_with_alts([
+                    PredicateProposition(
+                        self._create_predicate("a_predicate", RealSort()),
+                        self.ontology.create_individual(5.0, RealSort()), self.ontology
+                    )
+                ])
+            ]
         }]
 
         self.domain = Domain(self.DDD_NAME, self.domain_name, self.ontology, plans=plans)
@@ -566,8 +700,15 @@ class DominatesTests(LibTestCase):
     def test_dominates_false_for_action_without_plan(self):
         self.assertFalse(self.domain.dominates(PerformGoal(self.planless_action), PerformGoal(self.dominated_action)))
 
+    def test_dominates_false_for_action_w_predicate_proposition_alt_question(self):
+        self.assertFalse(
+            self.domain.dominates(
+                PerformGoal(self.action_w_predicate_proposition_alt_question), PerformGoal(self.non_dominated_action)
+            )
+        )
+
     def _findout_with_alts(self, alts):
-        return FindoutPlanItem(self.domain_name, AltQuestion(PropositionSet(alts)))
+        return Findout(self.domain_name, AltQuestion(PropositionSet(alts)))
 
 
 class IOStatusTests(LibTestCase):

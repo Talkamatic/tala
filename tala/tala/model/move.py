@@ -1,4 +1,5 @@
 from tala.model.common import Modality
+from tala.model.confidence_estimate import ConfidenceEstimates
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -14,6 +15,10 @@ class MoveException(Exception):
 class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     QUIT = "quit"
     GREET = "greet"
+    THANK_YOU = "thanks"
+    THANK_YOU_RESPONSE = "thank_you_response"
+    INSULT_RESPONSE = "insult_response"
+    INSULT = "insult"
     NO_MOVE = "no_move"
     MUTE = "mute"
     UNMUTE = "unmute"
@@ -37,14 +42,12 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     ):
         SemanticObject.__init__(self)
         self._type = type
-        self._perception_confidence = None
-        self._understanding_confidence = None
-        self._weighted_understanding_confidence = None
         self._speaker = None
         self._modality = None
         self._ddd_name = None
         self._background = None
         self._utterance = None
+        self._confidence_estimates = ConfidenceEstimates()
         if (
             understanding_confidence is not None or speaker is not None or modality is not None or utterance is not None
             or ddd_name is not None or perception_confidence is not None
@@ -67,34 +70,36 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return self._type
 
     @property
-    def understanding_confidence(self):
-        return self._understanding_confidence
+    def type(self):
+        return self._type
 
     @property
-    def weighted_understanding_confidence(self):
-        return self._weighted_understanding_confidence
-
-    @weighted_understanding_confidence.setter
-    def weighted_understanding_confidence(self, confidence):
-        self._weighted_understanding_confidence = confidence
+    def confidence_estimates(self):
+        return self._confidence_estimates
 
     @property
     def perception_confidence(self):
-        return self._perception_confidence
+        return self._confidence_estimates.perception_confidence
+
+    @property
+    def understanding_confidence(self):
+        return self._confidence_estimates.understanding_confidence
+
+    @property
+    def weighted_understanding_confidence(self):
+        return self._confidence_estimates.weighted_understanding_confidence
+
+    @weighted_understanding_confidence.setter
+    def weighted_understanding_confidence(self, confidence):
+        self._confidence_estimates.weighted_understanding_confidence = confidence
 
     @property
     def confidence(self):
-        confidence_sources = [self.perception_confidence, self.weighted_understanding_confidence]
-        if None in confidence_sources:
-            return None
-        return self.perception_confidence * self.understanding_confidence
+        return self._confidence_estimates.confidence
 
     @property
     def weighted_confidence(self):
-        confidence_sources = [self.perception_confidence, self.weighted_understanding_confidence]
-        if None in confidence_sources:
-            return None
-        return self.perception_confidence * self.weighted_understanding_confidence
+        return self._confidence_estimates.weighted_confidence
 
     def get_speaker(self):
         return self._speaker
@@ -120,23 +125,16 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         ddd_name=None,
         perception_confidence=None
     ):
-        self._verify_realization_data(
-            understanding_confidence=understanding_confidence, speaker=speaker, modality=modality, ddd_name=ddd_name
+        self._confidence_estimates.set_realization_data(
+            perception_confidence=perception_confidence, understanding_confidence=understanding_confidence
         )
-        self._perception_confidence = perception_confidence
-        if self._perception_confidence is None:
-            self._perception_confidence = 1.0
-        self._understanding_confidence = understanding_confidence
-        if self._understanding_confidence is None:
-            self._understanding_confidence = 1.0
-        self._weighted_understanding_confidence = self._understanding_confidence
         self._speaker = speaker
         self._modality = modality or Modality.SPEECH
         self._utterance = utterance
         self._ddd_name = ddd_name
 
     def is_realized(self):
-        return self._understanding_confidence is not None or self._speaker is not None or self._modality is not None \
+        return self.understanding_confidence is not None or self._speaker is not None or self._modality is not None \
                or (self._speaker == Speaker.USR and self._ddd_name is not None)
 
     def _verify_realization_data(self, understanding_confidence=None, speaker=None, modality=None, ddd_name=None):
@@ -153,18 +151,18 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
             if ddd_name is None:
                 raise MoveException("ddd_name must be supplied")
         if modality not in Modality.MODALITIES:
-            raise MoveException("unsupported modality: '%s'" % modality)
+            raise MoveException(f"unsupported modality: '{modality}'")
 
     def __hash__(self):
         return hash((
-            self.__class__.__name__, self._type, self._perception_confidence, self._understanding_confidence,
-            self._weighted_understanding_confidence, self._speaker, self._utterance, self._ddd_name
+            self.__class__.__name__, self._type, self.perception_confidence, self.understanding_confidence,
+            self.weighted_understanding_confidence, self._speaker, self._utterance, self._ddd_name
         ))
 
     def __str__(self):
-        return self._get_expression(True)
+        return self._get_semantic_expression(include_attributes=True)
 
-    def _get_expression(self, include_attributes):
+    def _get_semantic_expression(self, include_attributes):
         string = "Move("
         string += self._type
         if include_attributes:
@@ -175,20 +173,18 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     def _build_string_from_attributes(self):
         string = ""
         if self._ddd_name:
-            string += ", ddd_name=%r" % self._ddd_name
+            string += f", ddd_name={self._ddd_name!r}"
         if self._speaker:
-            string += ", speaker=%s" % self._speaker
-        if self._understanding_confidence is not None:
-            string += ", understanding_confidence=%s" % self._understanding_confidence
-        if self._weighted_understanding_confidence is not None:
-            string += ", weighted_understanding_confidence=%s" % self._weighted_understanding_confidence
-        if self.perception_confidence is not None:
-            string += ", perception_confidence=%s" % self.perception_confidence
+            string += f", speaker={self._speaker}"
+        string += self._confidence_estimates.build_string_from_attributes()
         if self._modality:
-            string += ", modality=%s" % self._modality
+            string += f", modality={self._modality}"
         if self._utterance:
-            string += ", utterance=%r" % self._utterance
+            string += f", utterance={self._utterance!r}"
         return string
+
+    def semantic_expression_without_realization_data(self):
+        return self._get_semantic_expression(include_attributes=False)
 
     @staticmethod
     def _is_confidence_equal(this, other):
@@ -225,16 +221,16 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return self.get_type() == Move.ASK
 
     def is_turn_yielding(self):
-        return self.get_type() == Move.ANSWER
+        return self.get_type() in [Move.ANSWER, Move.GREET]
 
     def to_rich_string(self):
-        return "%s:%s:%s" % (str(self), self._speaker, self._understanding_confidence)
+        return f"{str(self)}:{self._speaker}:{self.understanding_confidence}"
 
     def uprank(self, amount):
-        self._weighted_understanding_confidence *= (1 + amount)
+        self._confidence_estimates.uprank(amount)
 
     def downrank(self, amount):
-        self._weighted_understanding_confidence *= (1 - amount)
+        self._confidence_estimates.downrank(amount)
 
     def set_background(self, background):
         self._background = background
@@ -242,8 +238,12 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     def as_dict(self):
         return {
             "ddd": self._ddd_name,
-            "understanding_confidence": self._understanding_confidence,
+            "speaker": self._speaker,
+            "modality": self._modality,
+            "utterance": self._utterance,
+            "understanding_confidence": self.understanding_confidence,
             "perception_confidence": self.perception_confidence,
+            "move_type": self._type
         }
 
     def as_semantic_expression(self):
@@ -256,25 +256,35 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
         SemanticObjectWithContent.__init__(self, content)
         self._content = content
 
+    @property
+    def content(self):
+        return self._content
+
     def get_content(self):
         return self._content
 
     def __hash__(self):
         return hash((
-            self.__class__.__name__, self._type, self._perception_confidence, self._understanding_confidence,
-            self._weighted_understanding_confidence, self._speaker, self._utterance, self._ddd_name
+            self.__class__.__name__, self._type, self.perception_confidence, self.understanding_confidence,
+            self.weighted_understanding_confidence, self._speaker, self._utterance, self._ddd_name
         ))
 
-    def _get_expression(self, include_attributes):
+    def _get_semantic_expression(self, include_attributes):
         string = "Move("
-        string += "%s(%s" % (self._type, str(self._content))
+        string += f"{self._type}({str(self._content)}"
         if self._background:
-            string += ", %s" % unicodify(self._background)
+            string += f", {unicodify(self._background)}"
         string += ")"
         if include_attributes:
             string += self._build_string_from_attributes()
         string += ")"
         return string
+
+    def as_dict(self):
+        result = {
+            "content": self.content.as_dict() if self.content else None,
+        }
+        return super().as_dict() | result
 
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
@@ -290,6 +300,7 @@ class ICMMove(Move):
     LOADPLAN = "loadplan"
     RESUME = "resume"
     REPORT_INFERENCE = "report_inference"
+    CARDINAL_SEQUENCING = "cardinal_sequencing"
 
     INT = "int"
     POS = "pos"
@@ -331,6 +342,9 @@ class ICMMove(Move):
     def is_question_raising(self):
         return False
 
+    def get_content(self):
+        return None
+
     def is_negative_perception_icm(self):
         if self.get_type() == ICMMove.PER:
             return self.get_polarity() == ICMMove.NEG
@@ -352,17 +366,6 @@ class ICMMove(Move):
         else:
             return False
 
-    def get_semantic_expression(self):
-        string = "ICMMove(%s" % self._icm_to_string()
-        if self._speaker:
-            string += ", speaker=%s" % self._speaker
-        if self._understanding_confidence is not None:
-            string += ", understanding_confidence=%s" % self._understanding_confidence
-        if self.perception_confidence is not None:
-            string += ", perception_confidence=%s" % self.perception_confidence
-        string += ")"
-        return string
-
     def is_negative_understanding_icm(self):
         return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.NEG)
 
@@ -375,27 +378,36 @@ class ICMMove(Move):
     def is_grounding_proposition(self):
         return False
 
-    def is_turn_yielding(self):
-        return self.get_type() == ICMMove.ACC and self._polarity == ICMMove.NEG
-
     def __str__(self):
-        string = "ICMMove(%s" % self._icm_to_string()
-        if self._speaker:
-            string += ", speaker=%s" % self._speaker
-        if self._understanding_confidence is not None:
-            string += ", understanding_confidence=%s" % self._understanding_confidence
-        if self.perception_confidence is not None:
-            string += ", perception_confidence=%s" % self.perception_confidence
+        return self.get_semantic_expression(include_attributes=True)
+
+    def get_semantic_expression(self, include_attributes=True):
+        string = f"ICMMove({self._icm_to_string()}"
+        if include_attributes:
+            if self._speaker:
+                string += f", speaker={self._speaker}"
+            if self.understanding_confidence is not None:
+                string += f", understanding_confidence={self.understanding_confidence}"
+            if self.perception_confidence is not None:
+                string += f", perception_confidence={self.perception_confidence}"
         string += ")"
         return string
 
+    def semantic_expression_without_realization_data(self):
+        return self.get_semantic_expression(include_attributes=False)
+
     def _icm_to_string(self):
         if self._type in [ICMMove.PER, ICMMove.ACC, ICMMove.UND, ICMMove.SEM]:
-            return "icm:%s*%s" % (self._type, self._polarity)
-        return "icm:%s" % self._type
+            return f"icm:{self._type}*{self._polarity}"
+        return f"icm:{self._type}"
 
     def as_semantic_expression(self):
         return self._icm_to_string()
+
+    def as_dict(self):
+        result = {"polarity": self.get_polarity()}
+
+        return super().as_dict() | result
 
 
 class IssueICMMove(ICMMove):
@@ -408,7 +420,7 @@ class IssueICMMove(ICMMove):
         return False
 
     def _icm_to_string(self):
-        return "%s:issue" % ICMMove._icm_to_string(self)
+        return f"{ICMMove._icm_to_string(self)}:issue"
 
 
 class ICMMoveWithContent(ICMMove):
@@ -423,20 +435,20 @@ class ICMMoveWithContent(ICMMove):
     def _get_checked_content_speaker(self, speaker):
         if (speaker in [Speaker.USR, Speaker.SYS, Speaker.MODEL, None]):
             return speaker
-        raise Exception("'%s' is not a valid value for content_speaker" % speaker)
+        raise Exception(f"'{speaker}' is not a valid value for content_speaker")
 
     def get_content_speaker(self):
         return self._content_speaker
 
     def _icm_to_string(self):
         if self._content_speaker is not None:
-            return "icm:%s*%s:%s*%s" % (self._type, self._polarity, self._content_speaker, self._content)
+            return f"icm:{self._type}*{self._polarity}:{self._content_speaker}*{self._content}"
 
         if self._type == ICMMove.PER:
-            return 'icm:%s*%s:"%s"' % (self._type, self._polarity, self._content)
+            return f'icm:{self._type}*{self._polarity}:"{self._content}"'
         if self._type in [ICMMove.ACC, ICMMove.UND, ICMMove.SEM]:
-            return "icm:%s*%s:%s" % (self._type, self._polarity, self._content)
-        return "icm:%s:%s" % (self._type, self._content)
+            return f"icm:{self._type}*{self._polarity}:{self._content}"
+        return f"icm:{self._type}:{self._content}"
 
     def class_internal_move_content_equals(self, other):
         return (
@@ -462,6 +474,20 @@ class ICMMoveWithContent(ICMMove):
 
     def is_grounding_proposition(self):
         return self.get_type() == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
+
+    def as_dict(self):
+        return super().as_dict() | {"content": self.get_content(), "content_speaker": self.get_content_speaker()}
+
+
+class CardinalSequencingICM(ICMMoveWithContent):
+    def __init__(self, step):
+        super().__init__(ICMMove.CARDINAL_SEQUENCING, step)
+
+    def __eq__(self, other):
+        try:
+            return self.type == other.type and self._content == other._content
+        except AttributeError:
+            return False
 
 
 class ICMMoveWithStringContent(ICMMoveWithContent):
@@ -503,8 +529,8 @@ class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
 
 
 class ReportMove(MoveWithSemanticContent):
-    def __init__(self, content):
-        MoveWithSemanticContent.__init__(self, Move.REPORT, content)
+    def __init__(self, content, *args, **kwargs):
+        MoveWithSemanticContent.__init__(self, Move.REPORT, content, *args, **kwargs)
 
     def as_semantic_expression(self):
         return f"report({self.get_content().as_semantic_expression()})"
@@ -512,10 +538,10 @@ class ReportMove(MoveWithSemanticContent):
     def is_turn_yielding(self):
         return True
 
-    def _get_expression(self, include_attributes):
-        string = "report(%s" % unicodify(self.get_content())
+    def _get_semantic_expression(self, include_attributes):
+        string = f"report({unicodify(self.get_content())}"
         if self._background:
-            string += ", %s" % unicodify(self._background)
+            string += f", {unicodify(self._background)}"
         if include_attributes:
             string += self._build_string_from_attributes()
         string += ")"
@@ -539,15 +565,30 @@ class PrereportMove(Move, OntologySpecificSemanticObject):
         return self.arguments
 
     def __str__(self):
-        return "prereport(%s, %s%s)" % (
-            self.service_action, unicodify(self.arguments), self._build_string_from_attributes()
-        )
+        return self.get_semantic_expression(include_attributes=True)
+
+    def get_semantic_expression(self, include_attributes=True):
+        string = f"prereport({self.service_action}, {unicodify(self.arguments)}"
+        if include_attributes:
+            string += self._build_string_from_attributes()
+        string += ")"
+        return string
+
+    def semantic_expression_without_realization_data(self):
+        return self.get_semantic_expression(include_attributes=False)
 
     def as_semantic_expression(self):
         return str(self)
 
     def class_internal_move_content_equals(self, other):
         return (self.service_action == other.service_action and self.arguments == other.arguments)
+
+    def as_dict(self):
+        return super().as_dict() | {
+            "arguments": self.arguments,
+            "service_action": self.service_action,
+            "ontology_name": self.ontology_name
+        }
 
 
 class NoMove(Move):
@@ -558,6 +599,26 @@ class NoMove(Move):
 class GreetMove(Move):
     def __init__(self, *args, **kwargs):
         super(GreetMove, self).__init__(Move.GREET, *args, **kwargs)
+
+
+class ThankYouMove(Move):
+    def __init__(self, *args, **kwargs):
+        super(ThankYouMove, self).__init__(Move.THANK_YOU, *args, **kwargs)
+
+
+class ThankYouResponseMove(Move):
+    def __init__(self, *args, **kwargs):
+        super(ThankYouResponseMove, self).__init__(Move.THANK_YOU_RESPONSE, *args, **kwargs)
+
+
+class InsultResponseMove(Move):
+    def __init__(self, *args, **kwargs):
+        super(InsultResponseMove, self).__init__(Move.INSULT_RESPONSE, *args, **kwargs)
+
+
+class InsultMove(Move):
+    def __init__(self, *args, **kwargs):
+        super(InsultMove, self).__init__(Move.INSULT, *args, **kwargs)
 
 
 class MuteMove(Move):

@@ -2,9 +2,25 @@ from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticO
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
+class LambdaAbstractedProposition():
+    LAMBDA_ABSTRACTED_PREDICATE_PROPOSITION = "LambdaAbstractedPredicateProposition"
+    LAMBDA_ABSTRACTED_IMPLICATION_PROPOSITION_FOR_CONSEQUENT = "LambdaAbstractedImplicationPropositionForConsequent"
+    LAMBDA_ABSTRACTED_GOAL_PROPOSITION = "LambdaAbstractedGoalProposition"
+
+    def __init__(self, type_):
+        self.type_ = type_
+
+    def as_dict(self):
+        result = {"semantic_object_type": "LambdaAbstractedProposition"}
+        return super().as_dict() | result
+
+
+class LambdaAbstractedPredicateProposition(
+    LambdaAbstractedProposition, OntologySpecificSemanticObject, AsSemanticExpressionMixin
+):
     def __init__(self, predicate, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
+        LambdaAbstractedProposition.__init__(self, self.LAMBDA_ABSTRACTED_PREDICATE_PROPOSITION)
         self.predicate = predicate
 
     def is_lambda_abstracted_predicate_proposition(self):
@@ -33,9 +49,10 @@ class LambdaAbstractedPredicateProposition(OntologySpecificSemanticObject, AsSem
         return hash((self.__class__.__name__, self.predicate))
 
 
-class LambdaAbstractedImplicationPropositionForConsequent(OntologySpecificSemanticObject):
+class LambdaAbstractedImplicationPropositionForConsequent(LambdaAbstractedProposition, OntologySpecificSemanticObject):
     def __init__(self, antecedent, consequent_predicate, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
+        LambdaAbstractedProposition.__init__(self, self.LAMBDA_ABSTRACTED_IMPLICATION_PROPOSITION_FOR_CONSEQUENT)
         self._antecedent = antecedent
         self._consequent_predicate = consequent_predicate
 
@@ -63,15 +80,19 @@ class LambdaAbstractedImplicationPropositionForConsequent(OntologySpecificSemant
         return hash((self.__class__.__name__, self.antecedent, self.consequent_predicate))
 
 
-class LambdaAbstractedGoalProposition(SemanticObject, AsSemanticExpressionMixin):
+class LambdaAbstractedGoalProposition(LambdaAbstractedProposition, SemanticObject, AsSemanticExpressionMixin):
     def __init__(self):
         SemanticObject.__init__(self)
+        LambdaAbstractedProposition.__init__(self, self.LAMBDA_ABSTRACTED_GOAL_PROPOSITION)
 
     def is_lambda_abstracted_goal_proposition(self):
         return True
 
     def __eq__(self, other):
-        return isinstance(other, LambdaAbstractedGoalProposition)
+        try:
+            return other.type_ == self.LAMBDA_ABSTRACTED_GOAL_PROPOSITION
+        except Exception:
+            return False
 
     def __ne__(self, other):
         return not (self == other)

@@ -1,9 +1,10 @@
+import contextlib
 import re
 import json
 
 from tala.testing.interactions.named_test import InteractionTest
 from tala.testing.interactions.turn import UserPassivityTurn, UserInterpretationTurn, SystemUtteranceTurn, \
-    RecognitionHypothesesTurn, NotifyStartedTurn, SystemMovesTurn
+    RecognitionHypothesesTurn, NotifyStartedTurn, SystemMovesTurn, UserSemanticInputTurn
 from tala.model.event_notification import EventNotification
 
 
@@ -16,7 +17,8 @@ class InteractionTestCompiler(object):
 
     _turn_matcher = re.compile('^(%s) ?(.*)$' % "|".join(VALID_TURN_TYPES), re.MULTILINE | re.DOTALL)
     _moves_matcher = re.compile(r'([\[{].*[\]}])$')
-    _utterance_string_and_confidence_matcher = re.compile(r'(.+) (\$\w+|\d*\.\d+)?$')
+    _utterance_matcher = re.compile(r'^([\'"]?)(?P<utterance>.*)\1$')
+    _confidence_matcher = re.compile(r'^.*\s+(?P<confidence>\$\w+|\d*\.\d+)$')
     _hypothesis_split_re = re.compile(r'\s*\|\s*')
 
     def compile_interaction_tests(self, filename, file_):
@@ -115,9 +117,18 @@ class InteractionTestCompiler(object):
             )
 
     def _parse_user_input_turn(self, turn_content_as_string):
+        def is_semantic_input():
+            with self._json_guard(turn_content_as_string):
+                content = json.loads(turn_content_as_string)
+            if isinstance(content, dict):
+                return "interpretations" in turn_content_as_string
+            return False
+
         if not turn_content_as_string:
             return UserPassivityTurn(self._line_number)
         if self._is_moves_content_string(turn_content_as_string):
+            if is_semantic_input():
+                return UserSemanticInputTurn(json.loads(turn_content_as_string), self._line_number)
             moves, utterance, modality = self._parse_moves_content_string(turn_content_as_string)
             return UserInterpretationTurn(moves, self._line_number, utterance=utterance, modality=modality)
         hypothesis_list = self._get_hypothesis_list(turn_content_as_string)
@@ -159,8 +170,14 @@ class InteractionTestCompiler(object):
                 (self._line_number, self._filename, string)
             )
         (string, ) = m.groups()
-        try:
+        with self._json_guard(string):
             json_value = json.loads(string)
+        return extract(json_value)
+
+    @contextlib.contextmanager
+    def _json_guard(self, string):
+        try:
+            yield
         except json.decoder.JSONDecodeError as exception:
             raise ParseException(
                 f"Expected valid JSON on line {self._line_number} of '{self._filename}' "
@@ -168,15 +185,22 @@ class InteractionTestCompiler(object):
                 f"  Line {self._line_number}: {string}\n\n"
                 f"  Error: '{exception}'"
             )
-        return extract(json_value)
 
-    def _parse_hypothesis_as_string(self, unicode_string):
-        m = self._utterance_string_and_confidence_matcher.search(unicode_string)
-        if m:
-            (utterance_string_unicode, confidence) = m.groups()
-            return (utterance_string_unicode, confidence)
-        else:
-            return (unicode_string, None)
+    def _parse_hypothesis_as_string(self, string):
+        def confidence():
+            match = self._confidence_matcher.search(string)
+            return match.group("confidence") if match else None
+
+        def strip_confidence():
+            confidence_part = confidence()
+            return string.replace(confidence_part, "").strip() if confidence_part else string
+
+        def utterance():
+            utterance_part = strip_confidence()
+            match = self._utterance_matcher.search(utterance_part)
+            return match.group("utterance")
+
+        return utterance(), confidence()
 
     def _parse_event_turn(self, string):
         try:
@@ -198,18 +222,40 @@ class InteractionTestCompiler(object):
         return "U>"
 
     @classmethod
+    def pretty_interpretation(cls, interpretation):
+        return f"U> {json.dumps(interpretation)}"
+
+    @classmethod
+    def pretty_semantic_input(cls, request):
+        return f"U> {json.dumps(request)}"
+
+    @classmethod
+    def pretty_semantic_expressions(cls, semantic_expressions):
+        return f"U> {json.dumps(semantic_expressions)}"
+
+    @classmethod
+    def pretty_event(cls, event_dictionary):
+        return f"Event> {json.dumps(event_dictionary)}"
+
+    @classmethod
     def pretty_system_utterance(cls, utterance):
-        return "S> %s" % utterance
+        return f"S> {utterance}"
+
+    @classmethod
+    def pretty_system_moves(cls, moves):
+        return f"S> {json.dumps(moves)}"
 
     @classmethod
     def pretty_hypotheses(cls, hypotheses):
-        hypothesis_strings = [cls._pretty_hypothesis(hypothesis) for hypothesis in hypotheses]
-        utterances_with_confidence = " | ".join(hypothesis_strings)
-        return "U> %s" % utterances_with_confidence
+        def pretty_utterance(utterance):
+            return utterance or "''"
 
-    @classmethod
-    def _pretty_hypothesis(cls, hypothesis):
-        utterance, confidence = hypothesis
-        if confidence == 1.0:
-            return utterance
-        return "%s %s" % (utterance, confidence)
+        def pretty_hypothesis(utterance, confidence):
+            utterance = pretty_utterance(utterance)
+            if str(confidence) == "1.0":
+                return utterance
+            return f"{utterance} {confidence}"
+
+        hypothesis_strings = [pretty_hypothesis(utterance, confidence) for utterance, confidence in hypotheses]
+        utterances_with_confidence = " | ".join(hypothesis_strings)
+        return f"U> {utterances_with_confidence}"

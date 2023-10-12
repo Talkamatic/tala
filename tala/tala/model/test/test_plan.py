@@ -1,8 +1,7 @@
 import unittest
 
 from tala.model.plan import Plan, UnableToDetermineOntologyException
-from tala.model.plan_item import IfThenElse
-from tala.model.question_raising_plan_item import FindoutPlanItem, RaisePlanItem
+from tala.model.plan_item import IfThenElse, Findout, Raise
 from tala.model.semantic_object import OntologySpecificSemanticObject
 from tala.testing.lib_test_case import LibTestCase
 
@@ -10,15 +9,17 @@ from tala.testing.lib_test_case import LibTestCase
 class PlanTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.findout_price = FindoutPlanItem(self.domain_name, self.price_question)
-        self.findout_dest_city = FindoutPlanItem(self.domain_name, self.dest_city_question)
-        self.consequent = RaisePlanItem(self.domain_name, self.price_question)
-        self.alternative = RaisePlanItem(self.domain_name, self.dest_city_question)
+        self.findout_price = Findout(self.domain_name, self.price_question)
+        self.findout_dest_city = Findout(self.domain_name, self.dest_city_question)
+        self.raise_price = Raise(self.domain_name, self.price_question)
+        self.raise_dest_city = Raise(self.domain_name, self.dest_city_question)
+        self.consequent = [self.raise_price]
+        self.alternative = [self.raise_dest_city]
         self.if_then_else_item = IfThenElse("mockup_condition", self.consequent, self.alternative)
 
     def test_plan_iteration_steps_into_nested_blocks(self):
         self._given_plan_with_nested_item()
-        expected_list = [self.findout_price, self.findout_dest_city, self.consequent, self.alternative]
+        expected_list = [self.findout_price, self.findout_dest_city, self.consequent[0], self.alternative[0]]
         self.assertEqual(expected_list, list(self.plan))
 
     def _given_plan_with_nested_item(self):
@@ -36,11 +37,42 @@ class PlanTests(LibTestCase):
         self._then_all_elements_but_consequent_are_left()
 
     def _when_consequent_is_removed(self):
-        self.plan.remove(self.consequent)
+        self.plan.remove(self.consequent[0])
 
     def _then_all_elements_but_consequent_are_left(self):
-        expected_list = [self.findout_price, self.findout_dest_city, self.alternative]
+        expected_list = [self.findout_price, self.findout_dest_city, self.alternative[0]]
         self.assertEqual(expected_list, list(self.plan))
+
+    def test_removal_of_plan_item_from_deeply_nested_block(self):
+        self._given_plan_with_deeply_nested_item()
+        self._when_consequent_is_removed()
+        self._then_plan_contains([self.findout_price, self.findout_dest_city, self.alternative[0]])
+
+    def _given_plan_with_deeply_nested_item(self):
+        self.nested_if_then_else = IfThenElse("outer_condition", [self.if_then_else_item], [])
+        self.plan = Plan([self.raise_dest_city, self.findout_dest_city, self.findout_price])
+
+    def _then_plan_contains(self, expected_list):
+        self.assertEqual(expected_list, list(self.plan))
+
+    def test_plan_iteration_steps_into_very_deeply_nested_blocks(self):
+        self.maxDiff = None
+        self._given_plan_with_very_deeply_nested_item()
+        expected_list = [
+            self.findout_price,
+            self.findout_dest_city,
+            self.raise_price,
+            self.raise_dest_city,
+            self.findout_dest_city,
+        ]
+        self.assertEqual(expected_list, list(self.plan))
+
+    def _given_plan_with_very_deeply_nested_item(self):
+        self.nested_if_then_else = IfThenElse("outer_condition", [self.if_then_else_item], [self.findout_dest_city])
+        self.doubly_nested_if_then_else = IfThenElse(
+            "outer_condition", [self.nested_if_then_else], [self.findout_price]
+        )
+        self.plan = Plan([self.nested_if_then_else, self.findout_dest_city, self.findout_price])
 
 
 class SemanticObjectPlanTests(unittest.TestCase):

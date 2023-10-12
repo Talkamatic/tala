@@ -1,6 +1,5 @@
 import iso8601
 import mimetypes
-import magic
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -20,6 +19,8 @@ IMAGE = "image"
 DOMAIN = "domain"
 WEBVIEW = "webview"
 PERSON_NAME = "person_name"
+
+BUILTIN_SORTS = [BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIEW, PERSON_NAME]
 
 
 class Sort(SemanticObject):
@@ -78,9 +79,6 @@ class Sort(SemanticObject):
             return (other.get_name() == self.get_name() and other.is_dynamic() == self.is_dynamic())
         except AttributeError:
             return False
-
-    def __ne__(self, other):
-        return not (self == other)
 
     def __hash__(self):
         return hash((self.get_name(), self.is_dynamic()))
@@ -155,6 +153,10 @@ class InvalidValueException(Exception):
     pass
 
 
+class BuiltinSortException(Exception):
+    pass
+
+
 class RealSort(BuiltinSort):
     def __init__(self):
         BuiltinSort.__init__(self, REAL)
@@ -212,14 +214,14 @@ class ImageSort(BuiltinSort):
 
     def _get_mime_type_from_url(self, url):
         path = urllib.parse.urlparse(url).path
-        mime_type, mime_subtype = mimetypes.guess_type(path)
+        mime_type, _ = mimetypes.guess_type(path)
         if not mime_type:
             try:
                 filepath, _ = urllib.request.urlretrieve(url)
             except IOError:
                 return None
 
-            mime_type = magic.from_file(filepath, mime=True)
+            mime_type, _ = mimetypes.guess_type(filepath)
         return mime_type
 
     def value_as_basic_type(self, value):
@@ -256,8 +258,11 @@ class BooleanSort(BuiltinSort):
     def normalize_value(self, value):
         if value is True or value is False:
             return value
-        else:
-            raise InvalidValueException("Expected a boolean value but got '%s'." % value)
+        if value == "True" or value == "true":
+            return True
+        if value == "False" or value == "false":
+            return False
+        raise InvalidValueException("Expected a boolean value but got '%s'." % value)
 
 
 class DomainSort(BuiltinSort):
@@ -295,9 +300,11 @@ class PersonNameSort(BuiltinSort):
     def normalize_value(self, value):
         if isinstance(value, PersonName):
             return value
+        if isinstance(value, str):
+            return PersonName(value)
         else:
-            raise InvalidValueException("Expected a person name object but got %s of type %s." % (
-                value, value.__class__.__name__)
+            raise InvalidValueException(
+                "Expected a person name object but got %s of type %s." % (value, value.__class__.__name__)
             )
 
     def value_as_basic_type(self, value):

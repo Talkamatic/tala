@@ -49,7 +49,7 @@ class TestInteractionTestingTestCase:
         self._mock_tdm_client.start_session.side_effect = side_effect
 
     def then_starts_session(self):
-        self._mock_tdm_client.start_session.assert_called_with()
+        self._mock_tdm_client.start_session.assert_called_with(session_data={"device_id": "tala"})
 
     def given_tdm_client_response(self, *args, **kwargs):
         self._responses.append(self._create_tdm_client_response(*args, **kwargs))  # yapf: disable
@@ -66,7 +66,7 @@ class TestInteractionTestingTestCase:
         expected_input="mock_expected_input"
     ):
         return {
-            "version": "3.3",
+            "version": "3.4",
             "session": {
                 "session_id": "mock-session-id"
             },
@@ -107,7 +107,7 @@ class TestInteractionTestingTestCase:
         self.then_requests_speech_input([InputHypothesis("mockup_utterance", 1.0)])
 
     def then_requests_speech_input(self, expected_hypotheses):
-        self._mock_tdm_client.request_speech_input.assert_called_with(ANY, expected_hypotheses)
+        self._mock_tdm_client.request_speech_input.assert_called_with(expected_hypotheses, ANY)
 
     def given_mock_backends_return_frontend_simulator(self):
         self._mock_tdm_client = self.mock_backend_factory.create.return_value
@@ -118,8 +118,8 @@ class TestInteractionTestingTestCase:
         self.test = self._create_mock_test([turn])
 
     def given_testcase(self):
-        mock_backend_dependencies = Mock()
-        self.testcase = InteractionTestingTestCase(self.test, mock_backend_dependencies)
+        mock_domain_orchestration = Mock()
+        self.testcase = InteractionTestingTestCase(self.test, mock_domain_orchestration)
 
     def when_performing_test(self):
         self.testcase.setUp()
@@ -236,7 +236,7 @@ but got:
         ])
 
     def then_requests_semantic_input(self, expected_interpretations):
-        self._mock_tdm_client.request_semantic_input.assert_called_with(ANY, expected_interpretations)
+        self._mock_tdm_client.request_semantic_input.assert_called_with(expected_interpretations, ANY)
 
     def given_test_with_user_interpretation(self, moves, line_number=1, utterance=None, modality=None):
         turn = UserInterpretationTurn(moves, line_number, modality, utterance)
@@ -302,7 +302,7 @@ but got:
         self.then_requests_event_notification(EventNotification("mock_action", EventNotification.STARTED, {}))
 
     def then_requests_event_notification(self, expected_event_notifications):
-        self._mock_tdm_client.request_event_notification.assert_called_with(ANY, expected_event_notifications)
+        self._mock_tdm_client.request_event_notification.assert_called_with(expected_event_notifications, ANY)
 
     def given_test_with_notify_started(self, action, parameters, line_number=1):
         turn = NotifyStartedTurn(action, parameters, line_number)

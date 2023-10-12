@@ -7,27 +7,26 @@ import xml.dom.minidom
 
 from lxml import etree
 
-from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceEntityRecognizerInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
+from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
 from tala.model.ask_feature import AskFeature
+from tala.model.hint import Hint
 from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.speaker import Speaker
 from tala.model.plan import Plan
-from tala.model.plan_item import JumpToPlanItem, IfThenElse, ForgetAllPlanItem, ForgetPlanItem, InvokeServiceQueryPlanItem, InvokeServiceActionPlanItem, AssumeSharedPlanItem, AssumeIssuePlanItem, LogPlanItem, AssumePlanItem, GetDonePlanItem
+from tala.model.polarity import Polarity
+from tala.model import plan_item
 from tala.model.predicate import Predicate
-from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition
+from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition, ImplicationProposition
 from tala.model import condition
 from tala.model.question import AltQuestion, YesNoQuestion
 from tala.model.action import Action
-from tala.model.question_raising_plan_item import QuestionRaisingPlanItem
+
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort, BOOLEAN
-from tala.nl.gf import rgl_grammar_entry_types as rgl_types
-from tala.nl.gf.grammar_entry_types import Node, Constants
 import tala.ddd.schemas
-from tala.ddd.maker.ddd_py_to_xml import GrammarConverter
 
 
-class DddXmlCompilerException(Exception):
+class DDDXMLCompilerException(Exception):
     pass
 
 
@@ -39,21 +38,16 @@ class UnexpectedAttributeException(Exception):
     pass
 
 
-class DddXmlCompiler(object):
+class OntologyWarning(UserWarning):
+    pass
+
+
+class DDDXMLCompiler(object):
     def compile_ontology(self, *args, **kwargs):
         return OntologyCompiler().compile(*args, **kwargs)
 
     def compile_domain(self, *args, **kwargs):
         return DomainCompiler().compile(*args, **kwargs)
-
-    def compile_grammar(self, *args, **kwargs):
-        return GrammarCompiler().compile(*args, **kwargs)
-
-    def decompile_grammar_node(self, ddd, languages, node):
-        return GrammarConverter(ddd, languages).convert_node(node)
-
-    def compile_rgl_grammar(self, *args, **kwargs):
-        return RglGrammarCompiler().compile(*args, **kwargs)
 
     def compile_service_interface(self, *args, **kwargs):
         return ServiceInterfaceCompiler().compile(*args, **kwargs)
@@ -71,7 +65,7 @@ class XmlCompiler(object):
     def _get_root_element(self, name):
         elements = self._document.getElementsByTagName(name)
         if len(elements) != 1:
-            raise DddXmlCompilerException("expected 1 %s element" % name)
+            raise DDDXMLCompilerException("expected 1 %s element" % name)
         return elements[0]
 
     def _parse_boolean(self, string):
@@ -80,17 +74,23 @@ class XmlCompiler(object):
     def _parse_integer(self, string):
         return int(string)
 
+    def _has_child_node(self, element, node_name):
+        for node in element.childNodes:
+            if node.localName == node_name:
+                return True
+        return False
+
     def _find_child_nodes(self, element, node_name):
         return [node for node in element.childNodes if node.localName == node_name]
 
     def _get_mandatory_attribute(self, element, name):
         if not element.hasAttribute(name):
-            raise DddXmlCompilerException("%s requires attribute %r" % (element, name))
+            raise DDDXMLCompilerException("%s requires attribute %r" % (element, name))
         return element.getAttribute(name)
 
-    def _get_optional_attribute(self, element, name):
+    def _get_optional_attribute(self, element, name, default=None):
         if not element.hasAttribute(name):
-            return None
+            return default
         return element.getAttribute(name)
 
     def _has_attribute(self, element, attribute):
@@ -202,7 +202,14 @@ class OntologyCompiler(XmlCompiler):
         elif BuiltinSortRepository.has_sort(name):
             return BuiltinSortRepository.get_sort(name)
         else:
-            raise UndefinedSort("Expected a defined sort but got '%s'." % name)
+            self._add_undeclared_static_sort(name)
+            return self._custom_sorts_dict[name]
+
+    def _add_undeclared_static_sort(self, name):
+        warnings.warn(
+            f"Expected a defined sort but got '{name}'. Adding it to the ontology as a static sort.", OntologyWarning
+        )
+        self._custom_sorts_dict[name] = CustomSort(self._ontology_name, name, False)
 
     def _compile_individuals(self):
         elements = self._document.getElementsByTagName("individual")
@@ -234,18 +241,20 @@ class DomainCompiler(XmlCompiler):
     def _filename(self):
         return "domain.xml"
 
-    def compile(self, ddd_name, xml_string, ontology, parser, service_interface):
+    def compile(self, ddd_name, xml_string, ontology, parser):
         self._validate(xml_string)
         self._ddd_name = ddd_name
         self._ontology = ontology
         self._parser = parser
-        self._service_interface = service_interface
         self._parse_xml(xml_string)
         self._domain_element = self._get_root_element("domain")
         self._compile_name()
         self._compile_plans()
         self._compile_default_questions()
         self._compile_parameters()
+        self._compile_domain_queries()
+        self._compile_iterators()
+        self._compile_validators()
         self._compile_dependencies()
         return {
             "ddd_name": self._ddd_name,
@@ -253,6 +262,8 @@ class DomainCompiler(XmlCompiler):
             "plans": self._plans,
             "default_questions": self._default_questions,
             "parameters": self._parameters,
+            "queries": self._queries + self._iterators,
+            "validators": self._validators,
             "dependencies": self._dependencies
         }
 
@@ -278,13 +289,12 @@ class DomainCompiler(XmlCompiler):
         self._compile_plan_single_attribute(plan, element, "restart_on_completion", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "reraise_on_resume", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "io_status", self._parse_io_status)
-        self._compile_plan_single_attribute(
-            plan, element, "max_answers", self._parse_integer)
+        self._compile_plan_single_attribute(plan, element, "max_answers", self._parse_integer)
         if element.hasAttribute("alternatives_predicate"):
             plan["alternatives_predicate"] = element.getAttribute("alternatives_predicate")
         self._compile_plan(plan, element, "postplan")
         self._compile_plan_element_with_multiple_children(
-            plan, element, "postconds", "downdate_condition", self._compile_downdate_condition
+            plan, element, "postconds", "downdate_condition", self._compile_condition
         )
         self._compile_plan_element_with_multiple_children(
             plan, element, "postconds", "postcond", self._compile_deprecated_postconds
@@ -300,9 +310,73 @@ class DomainCompiler(XmlCompiler):
             plan_items = self._compile_plan_item_nodes(plan_elements[0].childNodes)
             plan[attribute_name] = Plan(reversed(plan_items))
         elif len(plan_elements) > 1:
-            raise DddXmlCompilerException("expected max 1 %r element" % attribute_name)
+            raise DDDXMLCompilerException("expected max 1 %r element" % attribute_name)
         elif default is not None:
             plan[attribute_name] = default
+
+    def _compile_query_content(self, query, element, question):
+        def is_implication_query():
+            return self._has_child_node(element, "implication")
+
+        def is_randomized_query():
+            return self._has_child_node(element, "select_at_random")
+
+        def is_enumeration_query():
+            return self._has_child_node(element, "enumerate")
+
+        if is_implication_query():
+            self._compile_implication_query(query, element)
+        elif is_randomized_query():
+            self._compile_randomized_query(query, element)
+        elif is_enumeration_query():
+            self._compile_enumeration_query(query, element)
+        else:
+            raise DDDXMLCompilerException(f"could not compile query for question {question}")
+
+    def _compile_implication_query(self, query, element):
+        implication_elements = self._find_child_nodes(element, "implication")
+        query["implications"] = self._compile_implications(implication_elements)
+
+    def _compile_implications(self, elements):
+        implication_items = [self._compile_implication(node) for node in elements]
+        return implication_items
+
+    def _compile_implication(self, element):
+        antecedent = self._compile_antecedent_child(element)
+        consequent = self._compile_consequent_child(element)
+        return ImplicationProposition(antecedent, consequent)
+
+    def _compile_consequent_child(self, element):
+        children = self._find_child_nodes(element, "consequent")
+        return self._compile_predicate_proposition(children[0])
+
+    def _compile_antecedent_child(self, element):
+        children = self._find_child_nodes(element, "antecedent")
+        return self._compile_predicate_proposition(children[0])
+
+    def _compile_randomized_query(self, query, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        element_containing_individuals = self._get_single_child_element(element, ["select_at_random"])
+        individual_elements = self._find_child_nodes(element_containing_individuals, "individual")
+        query["for_random_selection"] = list(self._create_propositions(predicate_name, individual_elements))
+
+    def _compile_enumeration_query(self, query, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        enumerate_element = self._get_single_child_element(element, ["enumerate"])
+        randomize = self._get_optional_attribute(enumerate_element, "randomize", "false")
+        individual_elements = self._get_child_elements(enumerate_element, ["individual"])
+
+        if randomize == "true":
+            query["for_random_enumeration"] = list(self._create_propositions(predicate_name, individual_elements))
+        else:
+            query["for_enumeration"] = list(self._create_propositions(predicate_name, individual_elements))
+
+    def _create_propositions(self, predicate_name, individual_elements):
+        predicate = self._ontology.get_predicate(predicate_name)
+        for element in individual_elements:
+            individual_name = element.getAttribute("value")
+            individual = self._ontology.create_individual(individual_name, sort=predicate.getSort())
+            yield PredicateProposition(predicate, individual)
 
     def _compile_goal(self, element):
         goal_type = self._get_mandatory_attribute(element, "type")
@@ -317,10 +391,10 @@ class DomainCompiler(XmlCompiler):
             service_action = self._get_mandatory_attribute(element, "action")
             return HandleGoal(self._ontology.name, service_action)
         else:
-            raise DddXmlCompilerException("unsupported goal type %r" % goal_type)
+            raise DDDXMLCompilerException("unsupported goal type %r" % goal_type)
 
     def _compile_question(self, element, type_attribute="type"):
-        question_type = self._get_mandatory_attribute(element, type_attribute)
+        question_type = self._get_optional_attribute(element, type_attribute, "wh_question")
         if question_type == "wh_question":
             predicate = self._get_mandatory_attribute(element, "predicate")
             return self._parse("?X.%s(X)" % predicate)
@@ -331,7 +405,7 @@ class DomainCompiler(XmlCompiler):
         elif question_type == "goal":
             return self._parse("?X.goal(X)")
         else:
-            raise DddXmlCompilerException('unsupported question type %r' % question_type)
+            raise DDDXMLCompilerException('unsupported question type %r' % question_type)
 
     def _compile_alt_question(self, element):
         proposition_set = self._compile_proposition_set(element, "alt")
@@ -343,11 +417,25 @@ class DomainCompiler(XmlCompiler):
         return PropositionSet(propositions)
 
     def _compile_yn_question(self, element):
-        proposition = self._compile_proposition_child_of(element)
-        return YesNoQuestion(proposition)
+        try:
+            proposition = self._compile_proposition_child_of(element)
+            return YesNoQuestion(proposition)
+        except DDDXMLCompilerException as e:
+            pass
+        predicate = self._get_mandatory_attribute(element, "predicate")
+        return self._parse("?%s" % predicate)
 
     def _compile_plan_item_nodes(self, nodes):
-        return [self._compile_plan_item_element(node) for node in nodes if node.__class__ == xml.dom.minidom.Element]
+        def flatten(nested_list):
+            flat_list = []
+            for sublist in nested_list:
+                flat_list.extend(sublist)
+            return flat_list
+
+        plan_items = [
+            self._compile_plan_item_element(node) for node in nodes if node.__class__ == xml.dom.minidom.Element
+        ]
+        return flatten(plan_items)
 
     def _compile_plan_item_element(self, element):
         if element.localName in ["findout", "raise", "bind"]:
@@ -356,10 +444,18 @@ class DomainCompiler(XmlCompiler):
             return self._compile_if_element(element)
         elif element.localName == "forget":
             return self._compile_forget_element(element)
+        elif element.localName == "forget_shared":
+            return self._compile_forget_shared_element(element)
         elif element.localName == "forget_all":
-            return ForgetAllPlanItem()
+            return [plan_item.ForgetAll()]
         elif element.localName == "invoke_service_query":
             return self._compile_invoke_service_query_element(element)
+        elif element.localName == "invoke_domain_query":
+            return self._compile_invoke_domain_query_element(element)
+        elif element.localName == "iterate":
+            return self._compile_iterate_element(element)
+        elif element.localName == "change_ddd":
+            return self._compile_change_ddd_element(element)
         elif element.localName == "dev_query":
             return self._compile_deprecated_dev_query_element(element)
         elif element.localName == "invoke_service_action":
@@ -377,17 +473,27 @@ class DomainCompiler(XmlCompiler):
             return self._compile_assume_issue_element(element)
         elif element.localName == "assume_system_belief":
             return self._compile_assume_element(element)
+        elif element.localName == "inform":
+            return self._compile_inform_element(element)
         elif element.localName == "log":
             return self._compile_log_element(element)
+        elif element.localName == "signal_action_completion":
+            return self._compile_signal_action_completion_element(element)
+        elif element.localName == "signal_action_failure":
+            return self._compile_signal_action_failure_element(element)
+        elif element.localName == "end_turn":
+            return self._compile_end_turn_element(element)
+        elif element.localName == "reset_domain_query":
+            return self._compile_reset_domain_query_element(element)
         else:
-            raise DddXmlCompilerException("unknown plan item element %s" % element.toxml())
+            raise DDDXMLCompilerException("unknown plan item element %s" % element.toxml())
 
     def _compile_question_raising_plan_item_element(self, item_type, element):
-        question_type = self._get_mandatory_attribute(element, "type")
+        question_type = self._get_optional_attribute(element, "type", "wh_question")
         question = self._compile_question(element)
         answer_from_pcom = self._get_answer_from_pcom(element)
 
-        return QuestionRaisingPlanItem(self._domain_name, item_type, question, answer_from_pcom)
+        return [plan_item.QuestionRaisingPlanItem(self._domain_name, item_type, question, answer_from_pcom)]
 
     def _get_answer_from_pcom(self, element):
         answer_from_pcom = self._get_optional_attribute(element, "allow_answer_from_pcom")
@@ -396,44 +502,88 @@ class DomainCompiler(XmlCompiler):
         return True
 
     def _compile_if_element(self, element):
-        condition = self._compile_condition_element(element)
+        def compile_condition():
+            try:
+                return self._compile_old_condition_element(element)
+            except DDDXMLCompilerException:
+                pass
+            try:
+                return self._compile_bare_proposition_element_as_condition(element)
+            except DDDXMLCompilerException:
+                pass
+            return self._compile_condition(element)
+
+        condition = compile_condition()
         consequent = self._compile_if_then_child_plan(element, "then")
         alternative = self._compile_if_then_child_plan(element, "else")
-        return IfThenElse(condition, consequent, alternative)
+        return [plan_item.IfThenElse(condition, consequent, alternative)]
 
-    def _compile_condition_element(self, element):
+    def _compile_old_condition_element(self, element):
         condition_element = self._get_single_child_element(element, ["condition"])
-        return self._compile_proposition_child_of(condition_element)
+        proposition_child = self._compile_proposition_child_of(condition_element)
+        warnings.warn(
+            '"<if><condition><proposition ..." is deprecated. '
+            'Use "<if><proposition ..." without <condition> instead.', DeprecationWarning
+        )
+        return proposition_child
+
+    def _compile_bare_proposition_element_as_condition(self, element):
+        return self._compile_proposition_child_of(element)
 
     def _get_single_child_element(self, node, allowed_names):
         child_elements = [child for child in node.childNodes if child.localName in allowed_names]
         if len(child_elements) == 1:
             return child_elements[0]
         else:
-            raise DddXmlCompilerException(
+            raise DDDXMLCompilerException(
                 "expected exactly 1 child element among types %s in %s, was %s." %
                 (allowed_names, node.toxml(), child_elements)
             )
+
+    def _get_child_elements(self, node, allowed_names):
+        child_elements = [child for child in node.childNodes if child.localName in allowed_names]
+        return child_elements
 
     def _compile_forget_element(self, element):
         if element.getAttribute("predicate"):
             predicate_name = self._get_mandatory_attribute(element, "predicate")
             predicate = self._ontology.get_predicate(predicate_name)
-            return ForgetPlanItem(predicate)
+            return [plan_item.Forget(predicate)]
         elif len(element.childNodes) == 1:
             proposition = self._compile_proposition_child_of(element)
-            return ForgetPlanItem(proposition)
+            return [plan_item.Forget(proposition)]
+
+    def _compile_forget_shared_element(self, element):
+        if element.getAttribute("predicate"):
+            predicate_name = self._get_mandatory_attribute(element, "predicate")
+            predicate = self._ontology.get_predicate(predicate_name)
+            return [plan_item.ForgetShared(predicate)]
+        elif len(element.childNodes) == 1:
+            proposition = self._compile_proposition_child_of(element)
+            return [plan_item.ForgetShared(proposition)]
 
     def _compile_invoke_service_query_element(self, element):
         question = self._compile_question(element)
         self._check_deprecation_of_device(question, element, "invoke_service_query")
-        return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
+        return [plan_item.InvokeServiceQuery(question, min_results=1, max_results=1)]
 
     def _compile_deprecated_dev_query_element(self, element):
         warnings.warn('<dev_query> is deprecated. Use <invoke_service_query> instead.', DeprecationWarning)
         question = self._compile_question(element)
         self._check_deprecation_of_device(question, element, "dev_query")
-        return InvokeServiceQueryPlanItem(question, min_results=1, max_results=1)
+        return [plan_item.InvokeServiceQuery(question, min_results=1, max_results=1)]
+
+    def _compile_invoke_domain_query_element(self, element):
+        question = self._compile_question(element)
+        return [plan_item.InvokeDomainQuery(question, min_results=1, max_results=1)]
+
+    def _compile_iterate_element(self, element):
+        iterator_name = self._get_mandatory_attribute(element, "iterator")
+        return [plan_item.Iterate(iterator_name)]
+
+    def _compile_change_ddd_element(self, element):
+        ddd_name = self._get_mandatory_attribute(element, "name")
+        return [plan_item.ChangeDDD(ddd_name)]
 
     def _check_deprecation_of_device(self, question, element, name):
         def fail(query, device, tag_name):
@@ -473,26 +623,60 @@ class DomainCompiler(XmlCompiler):
         preconfirm = self._parse_preconfirm_value(element.getAttribute("preconfirm"))
         postconfirm = self._parse_boolean(element.getAttribute("postconfirm"))
         downdate_plan = parse_downdate_plan()
-        return InvokeServiceActionPlanItem(
-            self._ontology.name, action, preconfirm=preconfirm, postconfirm=postconfirm, downdate_plan=downdate_plan
-        )
+        return [
+            plan_item.InvokeServiceAction(
+                self._ontology.name,
+                action,
+                preconfirm=preconfirm,
+                postconfirm=postconfirm,
+                downdate_plan=downdate_plan
+            )
+        ]
 
     def _compile_get_done_element(self, element):
         action_string = self._get_mandatory_attribute(element, "action")
         action = Action(action_string, self._ontology.name)
-        return GetDonePlanItem(action)
+        step = self._get_optional_attribute(element, "step")
+        return [plan_item.GetDone(action, step)]
 
     def _compile_jumpto_element(self, element):
         goal = self._compile_goal(element)
-        return JumpToPlanItem(goal)
+        return [plan_item.JumpTo(goal)]
 
     def _compile_assume_shared_element(self, element):
         predicate_proposition = self._compile_predicate_proposition_child_of(element)
-        return AssumeSharedPlanItem(predicate_proposition)
+        return [plan_item.AssumeShared(predicate_proposition)]
 
     def _compile_assume_element(self, element):
         predicate_proposition = self._compile_predicate_proposition_child_of(element)
-        return AssumePlanItem(predicate_proposition)
+        return [plan_item.Assume(predicate_proposition)]
+
+    def _compile_inform_element(self, element):
+        def create_non_forgetting_plan():
+            cond = condition.HasSharedValue(predicate)
+            alternative = assume_prop_and_issue + generate_end_turn_plan()
+            return [plan_item.IfThenElse(cond, [], alternative)]
+
+        def create_forgetting_plan():
+            return [plan_item.Forget(predicate)] + assume_prop_and_issue + generate_end_turn_plan()
+
+        def generate_end_turn_plan():
+            if generate_end_turn:
+                return [plan_item.EndTurn(float(expected_passivity))]
+            else:
+                return []
+
+        predicate_proposition = self._compile_predicate_proposition_child_of(element)
+        predicate = predicate_proposition.get_predicate()
+        question = self._parse("?X.%s(X)" % predicate)
+        insist = self._get_optional_attribute(element, "insist")
+        generate_end_turn = self._parse_boolean(self._get_optional_attribute(element, "generate_end_turn"))
+        expected_passivity = self._get_optional_attribute(element, "expected_passivity", 0.0)
+        assume_prop_and_issue = [plan_item.Assume(predicate_proposition), plan_item.AssumeIssue(question)]
+
+        if insist == "true":
+            return create_forgetting_plan()
+        return create_non_forgetting_plan()
 
     def _compile_predicate_proposition_child_of(self, element):
         child = self._get_single_child_element(element, ["proposition"])
@@ -500,12 +684,29 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_assume_issue_element(self, element):
         question_type = self._get_mandatory_attribute(element, "type")
+        insist = self._parse_boolean(self._get_optional_attribute(element, "insist"))
         question = self._compile_question(element)
-        return AssumeIssuePlanItem(question)
+        return [plan_item.AssumeIssue(question, insist=insist)]
 
     def _compile_log_element(self, element):
         message = self._get_mandatory_attribute(element, "message")
-        return LogPlanItem(message)
+        return [plan_item.Log(message)]
+
+    def _compile_signal_action_completion_element(self, element):
+        postconfirm = self._get_optional_attribute(element, "postconfirm", default="true")
+        return [plan_item.GoalPerformed(self._parse_boolean(postconfirm))]
+
+    def _compile_signal_action_failure_element(self, element):
+        reason = self._get_mandatory_attribute(element, "reason")
+        return [plan_item.GoalAborted(reason)]
+
+    def _compile_end_turn_element(self, element):
+        timeout = self._get_mandatory_attribute(element, "expected_passivity")
+        return [plan_item.EndTurn(float(timeout))]
+
+    def _compile_reset_domain_query_element(self, element):
+        question = self._compile_question(element)
+        return [plan_item.ResetDomainQuery(question)]
 
     def _parse_preconfirm_value(self, string):
         if string == "":
@@ -524,9 +725,13 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_predicate_proposition(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
-        value = element.getAttribute("value")
         predicate = self._ontology.get_predicate(predicate_name)
+        value = element.getAttribute("value")
         if value:
+            if predicate.getSort().is_boolean_sort():
+                if self._parse_boolean(value):
+                    return PredicateProposition(predicate, polarity=Polarity.POS)
+                return PredicateProposition(predicate, polarity=Polarity.NEG)
             individual = self._ontology.create_individual(value, sort=predicate.getSort())
         else:
             individual = None
@@ -536,22 +741,91 @@ class DomainCompiler(XmlCompiler):
         warnings.warn("<postcond> is deprecated. Use <downdate_condition> instead.", DeprecationWarning)
         return self._compile_proposition_child_of(element)
 
-    def _compile_downdate_condition(self, element):
-        child = self._get_single_child_element(element, ["has_value", "is_shared_fact"])
-        if child.localName == "has_value":
+    def _compile_condition(self, element):
+        HAS_VALUE = "has_value"
+        IS_SHARED_FACT = "is_shared_fact"
+        HAS_SHARED_VALUE = "has_shared_value"
+        HAS_PRIVATE_VALUE = "has_private_value"
+        HAS_SHARED_OR_PRIVATE_VALUE = "has_shared_or_private_value"
+        IS_SHARED_COMMITMENT = "is_shared_commitment"
+        IS_PRIVATE_BELIEF = "is_private_belief"
+        IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT = "is_private_belief_or_shared_commitment"
+        IS_TRUE = "is_true"
+        QUERY_HAS_MORE_ITEMS = "has_more_items"
+
+        child = self._get_single_child_element(
+            element, [
+                HAS_VALUE, IS_SHARED_FACT, IS_TRUE, HAS_SHARED_VALUE, HAS_PRIVATE_VALUE, HAS_SHARED_OR_PRIVATE_VALUE,
+                IS_SHARED_COMMITMENT, IS_PRIVATE_BELIEF, IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT, QUERY_HAS_MORE_ITEMS
+            ]
+        )
+        if child.localName == HAS_VALUE:
+            warnings.warn("<has_value> is deprecated.", DeprecationWarning)
             return self._compile_has_value_condition(child)
-        elif child.localName == "is_shared_fact":
-            return self._compile_is_shared_fact_condition(child)
+        elif child.localName == IS_TRUE:
+            warnings.warn("<is_true> is deprecated.", DeprecationWarning)
+            return self._compile_is_true_condition(child)
+        elif child.localName == HAS_SHARED_VALUE:
+            return self._compile_has_shared_value_condition(child)
+        elif child.localName == HAS_PRIVATE_VALUE:
+            return self._compile_has_private_value_condition(child)
+        elif child.localName == HAS_SHARED_OR_PRIVATE_VALUE:
+            return self._compile_has_shared_or_private_value_condition(child)
+        elif child.localName == IS_SHARED_COMMITMENT:
+            return self._compile_is_shared_commitment_condition(child)
+        elif child.localName == IS_PRIVATE_BELIEF:
+            return self._compile_is_private_belief_condition(child)
+        elif child.localName == IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT:
+            return self._compile_is_private_belief_or_shared_commitment_condition(child)
+        elif child.localName == QUERY_HAS_MORE_ITEMS:
+            return self._compile_query_has_more_items_condition(child)
+        elif child.localName == IS_SHARED_FACT:
+            warnings.warn("<is_shared_fact> is deprecated.", DeprecationWarning)
+            return self._compile_is_true_condition(child)
 
     def _compile_has_value_condition(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
         predicate = self._ontology.get_predicate(predicate_name)
         return condition.HasValue(predicate)
 
-    def _compile_is_shared_fact_condition(self, element):
+    def _compile_has_shared_value_condition(self, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        predicate = self._ontology.get_predicate(predicate_name)
+        return condition.HasSharedValue(predicate)
+
+    def _compile_has_private_value_condition(self, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        predicate = self._ontology.get_predicate(predicate_name)
+        return condition.HasPrivateValue(predicate)
+
+    def _compile_has_shared_or_private_value_condition(self, element):
+        predicate_name = self._get_mandatory_attribute(element, "predicate")
+        predicate = self._ontology.get_predicate(predicate_name)
+        return condition.HasSharedOrPrivateValue(predicate)
+
+    def _compile_is_shared_commitment_condition(self, element):
+        proposition = self._compile_predicate_proposition(element)
+        return condition.IsSharedCommitment(proposition)
+
+    def _compile_is_private_belief_condition(self, element):
+        proposition = self._compile_predicate_proposition(element)
+        return condition.IsPrivateBelief(proposition)
+
+    def _compile_is_private_belief_or_shared_commitment_condition(self, element):
+        proposition = self._compile_predicate_proposition(element)
+        return condition.IsPrivateBeliefOrSharedCommitment(proposition)
+
+    def _compile_query_has_more_items_condition(self, element):
+        if element.hasAttribute("predicate"):
+            iterator = self._compile_question(element)
+        else:
+            iterator = self._get_optional_attribute(element, "iterator")
+        return condition.QueryHasMoreItems(iterator)
+
+    def _compile_is_true_condition(self, element):
         child = self._get_single_child_element(element, ["proposition"])
         proposition = self._compile_predicate_proposition(child)
-        return condition.IsSharedFact(proposition)
+        return condition.IsTrue(proposition)
 
     def _compile_perform_proposition(self, element):
         action_name = self._get_mandatory_attribute(element, "action")
@@ -567,23 +841,19 @@ class DomainCompiler(XmlCompiler):
         return GoalProposition(ResolveGoal(question, speaker))
 
     def _compile_if_then_child_plan(self, element, node_name):
-        nodes = self._find_child_nodes(element, node_name)
-        if len(nodes) == 0:
-            return None
-        elif len(nodes) == 1:
-            child_node = nodes[0]
-            if len(child_node.childNodes) == 0:
-                return None
+        def compile_then_or_else_node(then_or_else_node):
+            if len(then_or_else_node.childNodes) == 0:
+                return []
             else:
-                plan_items = self._compile_plan_item_nodes(child_node.childNodes)
-                if len(plan_items) == 0:
-                    return None
-                elif len(plan_items) == 1:
-                    return plan_items[0]
-                else:
-                    raise DddXmlCompilerException("if element only support single-item consequents and alternatives")
+                return self._compile_plan_item_nodes(then_or_else_node.childNodes)
+
+        then_or_else_nodes = self._find_child_nodes(element, node_name)
+        if len(then_or_else_nodes) == 0:
+            return []
+        elif len(then_or_else_nodes) == 1:
+            return compile_then_or_else_node(then_or_else_nodes[0])
         else:
-            raise DddXmlCompilerException("expected only one %r element" % node_name)
+            raise DDDXMLCompilerException("expected only one %r element" % node_name)
 
     def _compile_plan_single_attribute(self, plan, element, attribute_name, compilation_method):
         attribute = element.getAttribute(attribute_name)
@@ -600,7 +870,7 @@ class DomainCompiler(XmlCompiler):
     def _compile_plan_element_with_one_child(self, plan, element, attribute_name, node_name, compilation_method):
         child_nodes = self._find_child_nodes(element, node_name)
         if len(child_nodes) > 1:
-            raise DddXmlCompilerException("Expected at most one child for %s, found %s." % (element, child_nodes))
+            raise DDDXMLCompilerException("Expected at most one child for %s, found %s." % (element, child_nodes))
         elif len(child_nodes) == 1:
             plan[attribute_name] = compilation_method(child_nodes[0])
 
@@ -616,6 +886,18 @@ class DomainCompiler(XmlCompiler):
         elements = self._document.getElementsByTagName("parameters")
         self._parameters = dict([self._compile_parameters_element(element) for element in elements])
 
+    def _compile_domain_queries(self):
+        queries = self._document.getElementsByTagName("query")
+        self._queries = [self._compile_query_element(element) for element in queries]
+
+    def _compile_iterators(self):
+        iterators = self._document.getElementsByTagName("iterator")
+        self._iterators = [self._compile_iterator_element(element) for element in iterators]
+
+    def _compile_validators(self):
+        validators = self._document.getElementsByTagName("validator")
+        self._validators = [self._compile_validator_element(element) for element in validators]
+
     def _compile_dependencies(self):
         elements = self._document.getElementsByTagName("dependency")
         self._dependencies = dict([self._compile_dependency_element(element) for element in elements])
@@ -627,15 +909,51 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_parameters_element(self, element):
         try:
-            obj = self._compile_question(element, "question_type")
-        except DddXmlCompilerException:
-            try:
+            if not element.hasAttribute("question_type"):
                 obj = self._compile_predicate(element)
-            except DddXmlCompilerException:
-                raise DddXmlCompilerException("expected question or predicate")
-
+            else:
+                obj = self._compile_question(element, "question_type")
+        except DDDXMLCompilerException:
+            raise DDDXMLCompilerException("expected question or predicate in ", str(element))
         parameters = self._compile_question_parameters(obj, element)
         return obj, parameters
+
+    def _compile_query_element(self, element):
+        question = self._compile_question(element, "question_type")
+        query = {"query": question}
+        self._compile_query_content(query, element, question)
+        return query
+
+    def _compile_iterator_element(self, element):
+        name = self._get_mandatory_attribute(element, "name")
+        iterator = {"query": name}
+        self._compile_enumeration_iterator(iterator, element)
+        return iterator
+
+    def _compile_enumeration_iterator(self, query, element):
+        selection = self._get_single_child_element(element, ["enumerate"])
+        randomize = self._get_optional_attribute(selection, "randomize", "false")
+        limit = self._get_optional_attribute(selection, "limit", "-1")
+        query["limit"] = limit
+        if randomize == "true":
+            query["for_random_enumeration"] = self._create_proposition_children_of(selection)
+        else:
+            query["for_enumeration"] = self._create_proposition_children_of(selection)
+
+    def _create_proposition_children_of(self, parent):
+        proposition_nodes = self._find_child_nodes(parent, "proposition")
+        return [self._compile_predicate_proposition(node) for node in proposition_nodes]
+
+    def _compile_validator_element(self, element):
+        name = self._get_mandatory_attribute(element, "name")
+        validator = {"validator": name}
+        self._compile_validator(validator, element)
+        return validator
+
+    def _compile_validator(self, validator, element):
+        config_elems = self._find_child_nodes(element, "configuration")
+        configurations = [self._create_proposition_children_of(config_elem) for config_elem in config_elems]
+        validator["valid_configurations"] = configurations
 
     def _compile_question_parameters(self, question, element):
         result = self._compile_simple_parameters(element)
@@ -646,6 +964,8 @@ class DomainCompiler(XmlCompiler):
         self._compile_alts_parameter(question, element, result)
         self._compile_predicates_parameter(element, "background", "background", result)
         self._compile_ask_feature_parameter(element, "ask_feature", "ask_features", result)
+        self._compile_hint_parameter(element, "hint", "hints", result)
+        self._compile_always_relevant_parameter(element, "always_relevant", "always_relevant", result)
         return result
 
     def _compile_simple_parameters(self, element):
@@ -660,6 +980,9 @@ class DomainCompiler(XmlCompiler):
             "allow_goal_accommodation",
             "max_spoken_alts",
             "max_reported_hit_count",
+            "always_ground",
+            "on_zero_hits_action",
+            "on_too_many_hits_action",
         ]
         for name in supported_parameters:
             value_as_string = element.getAttribute(name)
@@ -679,7 +1002,7 @@ class DomainCompiler(XmlCompiler):
             node = child_nodes[0]
             result[parameter_name] = self._compile_question(node)
         elif len(child_nodes) > 1:
-            raise DddXmlCompilerException("expected max 1 %s" % parameter_name)
+            raise DDDXMLCompilerException("expected max 1 %s" % parameter_name)
 
     def _compile_questions_valued_parameter(self, element, parameter_name, node_name, result):
         child_nodes = self._find_child_nodes(element, node_name)
@@ -700,6 +1023,21 @@ class DomainCompiler(XmlCompiler):
         predicate_name = self._get_mandatory_attribute(node, "predicate")
         kpq = bool(self._get_optional_attribute(node, "kpq"))
         return AskFeature(predicate_name, kpq)
+
+    def _compile_hint_parameter(self, parent, element_name, parameter_name, result):
+        child_nodes = self._find_child_nodes(parent, element_name)
+        if len(child_nodes) > 0:
+            result[parameter_name] = [self._compile_hint_node(node) for node in child_nodes]
+
+    def _compile_hint_node(self, node):
+        inform_nodes = self._find_child_nodes(node, "inform")
+        inform = self._compile_inform_element(inform_nodes[0])
+        return Hint(inform)
+
+    def _compile_always_relevant_parameter(self, parent, element_name, parameter_name, result):
+        child_nodes = self._find_child_nodes(parent, element_name)
+        if len(child_nodes) > 0:
+            result[parameter_name] = True
 
     def _compile_predicate(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
@@ -723,330 +1061,7 @@ class DomainCompiler(XmlCompiler):
         if io_status_string in valid_io_statuses:
             return io_status_string
         else:
-            raise DddXmlCompilerException("Invalid io_status: %r" % io_status_string)
-
-
-class GrammarCompiler(XmlCompiler):
-    ELEMENT_TO_NODE = {
-        "one-of": Constants.ONE_OF,
-        "item": Constants.ITEM,
-        "np": Constants.NP,
-        "indefinite": Constants.INDEFINITE,
-        "definite": Constants.DEFINITE,
-        "vp": Constants.VP,
-        "infinitive": Constants.INFINITIVE,
-        "imperative": Constants.IMPERATIVE,
-        "ing-form": Constants.ING_FORM,
-        "object": Constants.OBJECT
-    }
-
-    def __init__(self):
-        super(GrammarCompiler, self).__init__()
-        self._current_filename = "grammar_<language>.xml"
-
-    @property
-    def _filename(self):
-        return self._current_filename
-
-    @_filename.setter
-    def _filename(self, filename):
-        self._current_filename = filename
-
-    @property
-    def _schema_name(self):
-        return "grammar.xsd"
-
-    def compile(self, xml_string, ontology, service_interface, language_code):
-        self._filename = "grammar_%s.xml" % language_code
-        self._validate(xml_string)
-        self._text_node_re = re.compile("[\t\n ]+")
-        self._parse_xml(xml_string)
-        self._grammar_node = Node(Constants.GRAMMAR, {})
-        root_element = self._get_root_element("grammar")
-        for child in self._get_child_elements(root_element):
-            self.compile_grammar_child_element(child)
-        return self._grammar_node
-
-    def _get_child_elements(self, element):
-        return [child for child in element.childNodes if child.nodeType == xml.dom.minidom.Node.ELEMENT_NODE]
-
-    def compile_grammar_child_element(self, element):
-        self.compile_grammar_entry_element(element)
-
-    def compile_grammar_entry_element(self, element):
-        node_type, parameters = self.compile_key(element)
-        compiled_children = self._compile_children(element, itemize=True)
-        if len(compiled_children) > 1:
-            unitemized_compiled_children = [self._unitemize(child) for child in compiled_children]
-            form_nodes = [Node(Constants.ITEM, {}, unitemized_compiled_children)]
-        elif len(compiled_children) == 1:
-            form_nodes = compiled_children
-        else:
-            raise DddXmlCompilerException("failed to compile grammar element %s" % element)
-        self._perform_node_type_specific_post_processing(node_type, parameters, form_nodes)
-        entry_node = Node(node_type, parameters, form_nodes)
-        self._fix_whitespacing_recurse(entry_node)
-        self._grammar_node.add_child(entry_node)
-
-    def _fix_whitespacing_recurse(self, node):
-        if isinstance(node, Node):
-            if len(node.children) > 0:
-                self._fix_text_nodes_whitespacing(node.children)
-            for child in node.children:
-                self._fix_whitespacing_recurse(child)
-
-    def _fix_text_nodes_whitespacing(self, nodes):
-        self._fix_whitespace_at_start(nodes)
-        self._fix_whitespace_at_end(nodes)
-
-    def _fix_whitespace_at_start(self, nodes):
-        if isinstance(nodes[0], str):
-            nodes[0] = nodes[0].lstrip()
-
-    def _fix_whitespace_at_end(self, nodes):
-        if isinstance(nodes[-1], str):
-            nodes[-1] = nodes[-1].rstrip()
-
-    def _perform_node_type_specific_post_processing(self, node_type, parameters, form_nodes):
-        if node_type == Constants.SYS_ANSWER:
-            self._mark_slot_as_individual(parameters["predicate"], form_nodes)
-
-    def _mark_slot_as_individual(self, predicate, nodes):
-        for node in nodes:
-            if isinstance(node, Node) and node.type == Constants.SLOT and node.parameters["predicate"] == predicate:
-                node.parameters = {}
-            elif isinstance(node, Node) and node.type == Constants.ITEM:
-                self._mark_slot_as_individual(predicate, node.children)
-
-    def compile_key(self, element):
-        if element.localName == "action":
-            name = element.getAttribute("name")
-            return Constants.ACTION, {"name": name}
-        elif element.localName == "question":
-            return self._compile_question_key(element)
-        elif element.localName == "answer":
-            return self._compile_answer_key(element)
-        elif element.localName == "report":
-            return self._compile_report_key(element)
-        elif element.localName == "preconfirm":
-            action = element.getAttribute("action")
-            return Constants.PRECONFIRM, {"action": action}
-        elif element.localName == "individual":
-            name = element.getAttribute("name")
-            return Constants.INDIVIDUAL, {"name": name}
-        elif element.localName == "string":
-            predicate = element.getAttribute("predicate")
-            return Constants.STRING, {"predicate": predicate}
-        elif element.localName == "validity":
-            name = element.getAttribute("name")
-            return Constants.VALIDITY, {"name": name}
-        elif element.localName == "greeting":
-            return Constants.GREETING, {}
-        else:
-            raise DddXmlCompilerException("unexpected grammar entry element %r" % element.localName)
-
-    def _compile_question_key(self, element):
-        predicate = element.getAttribute("predicate")
-        speaker = element.getAttribute("speaker")
-        if speaker == "system":
-            return Constants.SYS_QUESTION, {"predicate": predicate}
-        elif speaker == "user":
-            return Constants.USER_QUESTION, {"predicate": predicate}
-        elif speaker in ["", "all"]:
-            return Constants.PREDICATE, {"name": predicate}
-        else:
-            raise DddXmlCompilerException("unexpected speaker attribute %r" % speaker)
-
-    def _compile_answer_key(self, element):
-        speaker = element.getAttribute("speaker")
-        if speaker == "user":
-            return Constants.ANSWER_COMBINATION, {}
-        elif speaker == "system":
-            return self._compile_system_answer_key(element)
-        else:
-            raise DddXmlCompilerException("unsupported speaker %r" % speaker)
-
-    def _compile_system_answer_key(self, element):
-        predicate = self._get_system_answer_predicate(element)
-        node_type = self._get_system_answer_node_type(element)
-        return node_type, {"predicate": predicate}
-
-    def _get_system_answer_predicate(self, element):
-        if element.getAttribute("predicate"):
-            return element.getAttribute("predicate")
-        else:
-            return self._get_single_slot_predicate(element)
-
-    def _get_system_answer_node_type(self, element):
-        polarity = element.getAttribute("polarity")
-        if polarity == "":
-            return Constants.SYS_ANSWER
-        elif polarity == "positive":
-            return Constants.POSITIVE_SYS_ANSWER
-        elif polarity == "negative":
-            return Constants.NEGATIVE_SYS_ANSWER
-        else:
-            raise DddXmlCompilerException("unsupported polarity %r" % polarity)
-
-    def _get_single_slot_predicate(self, element):
-        compiled_children = self._compile_children(element)
-        slots = [child for child in compiled_children if isinstance(child, Node)]
-        if len(slots) == 1:
-            slot = slots[0]
-            return slot.parameters["predicate"]
-        else:
-            raise DddXmlCompilerException("expected a single slot but found %s" % element)
-
-    def _compile_report_key(self, element):
-        status = element.getAttribute("status")
-        if status == "started":
-            action = element.getAttribute("action")
-            source = element.getAttribute("source")
-            if source == "":
-                return Constants.REPORT_STARTED, {"action": action}
-            elif source == "dialogue":
-                return Constants.PREREPORT, {"action": action}
-            else:
-                raise DddXmlCompilerException("unsupported source %r" % source)
-        elif status == "ended":
-            action = element.getAttribute("action")
-            return Constants.REPORT_ENDED, {"action": action}
-        elif status == "failed":
-            action = element.getAttribute("action")
-            reason = element.getAttribute("reason")
-            return Constants.REPORT_FAILED, {"action": action, "reason": reason}
-        else:
-            raise DddXmlCompilerException("unexpected report status %r" % status)
-
-    def _unitemize(self, node):
-        if isinstance(node, Node) and node.type == Constants.ITEM and len(node.children) == 1:
-            return node.children[0]
-        else:
-            return node
-
-    def _compile_children(self, element, itemize=False):
-        compiled_children = [self.compile_form(child, itemize) for child in element.childNodes]
-        if len(compiled_children) >= 3:
-            compiled_children = self._remove_nones_except_between_slots(compiled_children)
-        return compiled_children
-
-    def _remove_nones_except_between_slots(self, nodes):
-        result = []
-        if nodes[0] is not None:
-            result.append(nodes[0])
-        for n in range(1, len(nodes) - 1):
-            if nodes[n] is None:
-                if self._is_slot(nodes[n - 1]) and self._is_slot(nodes[n + 1]):
-                    result.append(" ")
-            else:
-                result.append(nodes[n])
-        if nodes[-1] is not None:
-            result.append(nodes[-1])
-        return result
-
-    def _is_slot(self, node):
-        return node.type == Constants.SLOT
-
-    def compile_form(self, element, itemize):
-        if element.nodeType == xml.dom.minidom.Node.TEXT_NODE:
-            return self._compile_text_node(element, itemize)
-        elif element.localName == "slot":
-            return self._compile_slot_element(element)
-        elif element.localName in self.ELEMENT_TO_NODE:
-            node_type = self.ELEMENT_TO_NODE[element.localName]
-            return self._compile_element(element, node_type)
-        else:
-            raise DddXmlCompilerException("unexpected form child element %s" % element)
-
-    def _compile_text_node(self, node, itemize):
-        if node.nodeValue.strip() == "":
-            return None
-        else:
-            if itemize:
-                return Node(Constants.ITEM, {}, [node.nodeValue])
-            else:
-                return node.nodeValue
-
-    def _compile_element(self, element, node_type):
-        return Node(node_type, {}, self._compile_children(element))
-
-    def _compile_slot_element(self, element):
-        predicate = element.getAttribute("predicate")
-        sort = element.getAttribute("sort")
-        if predicate:
-            return Node(Constants.SLOT, {"predicate": predicate})
-        elif sort:
-            return Node(Constants.SLOT, {"sort": sort})
-        else:
-            raise DddXmlCompilerException("expected slot element to define predicate or sort")
-
-
-class RglGrammarCompiler(GrammarCompiler):
-    GENERICALLY_COMPILABLE_ELEMENTS = [
-        rgl_types.NOUN_PHRASE, rgl_types.VERB_PHRASE, Constants.ONE_OF, Constants.ITEM, rgl_types.PROPER_NOUN,
-        rgl_types.UTTERANCE, Constants.INDIVIDUAL
-    ]
-
-    @property
-    def _schema_name(self):
-        return "grammar_rgl.xsd"
-
-    def compile_key(self, element):
-        if element.localName == rgl_types.REQUEST:
-            action = element.getAttribute("action")
-            return rgl_types.REQUEST, {"action": action}
-        elif element.localName == Constants.PREDICATE:
-            name = element.getAttribute("name")
-            return Constants.PREDICATE, {"name": name}
-        else:
-            return GrammarCompiler.compile_key(self, element)
-
-    def compile_grammar_child_element(self, element):
-        if element.localName == "lexicon":
-            return self._compile_lexicon_element(element)
-        else:
-            return GrammarCompiler.compile_grammar_entry_element(self, element)
-
-    def _compile_lexicon_element(self, element):
-        compiled_children = [self._compile_lexicon_child(child) for child in self._get_child_elements(element)]
-        node = Node(rgl_types.LEXICON, {}, compiled_children)
-        self._grammar_node.add_child(node)
-
-    def _compile_lexicon_child(self, element):
-        return self._compile_generically(element)
-
-    def _compile_generically(self, element):
-        if element.nodeType == xml.dom.minidom.Node.TEXT_NODE:
-            return self._compile_text_node(element, itemize=False)
-        else:
-            compiled_attributes = dict(list(element.attributes.items()))
-            compiled_children = [self._compile_generically(child) for child in self._get_non_empty_child_nodes(element)]
-            return Node(element.localName, compiled_attributes, compiled_children)
-
-    def _get_non_empty_child_nodes(self, element):
-        return [child for child in element.childNodes if not self._is_empty(child)]
-
-    def _is_empty(self, node):
-        return node.nodeType == xml.dom.minidom.Node.TEXT_NODE and node.nodeValue.strip() == ""
-
-    def compile_form(self, element, itemize):
-        if element.nodeType == xml.dom.minidom.Node.TEXT_NODE:
-            return self._compile_text_node(element, itemize)
-        elif element.localName == rgl_types.NOUN:
-            return self._compile_noun_element(element)
-        elif element.localName == rgl_types.VERB:
-            return self._compile_verb_element(element)
-        elif element.localName in self.GENERICALLY_COMPILABLE_ELEMENTS:
-            node_type = element.localName
-            return self._compile_generically(element)
-        else:
-            raise DddXmlCompilerException("unexpected form child element %s" % element)
-
-    def _compile_noun_element(self, element):
-        return Node(rgl_types.NOUN, {"ref": element.getAttribute("ref")})
-
-    def _compile_verb_element(self, element):
-        return Node(rgl_types.VERB, {"ref": element.getAttribute("ref")})
+            raise DDDXMLCompilerException("Invalid io_status: %r" % io_status_string)
 
 
 class ServiceInterfaceCompiler(XmlCompiler):
@@ -1070,9 +1085,8 @@ class ServiceInterfaceCompiler(XmlCompiler):
         custom_actions = list(self._compile_actions())
         actions = play_audio_actions + custom_actions
         queries = list(self._compile_queries())
-        entity_recognizers = list(self._compile_entity_recognizers())
         validities = list(self._compile_validities())
-        return ServiceInterface(actions, queries, entity_recognizers, validities)
+        return ServiceInterface(actions, queries, validities)
 
     def _compile_play_audio_actions(self):
         elements = self._document.getElementsByTagName("play_audio_action")
@@ -1126,17 +1140,6 @@ class ServiceInterfaceCompiler(XmlCompiler):
             parameters = self._compile_parameters(element)
             query = ServiceQueryInterface(predicate, target, parameters)
             yield query
-
-    def _compile_entity_recognizers(self):
-        elements = self._document.getElementsByTagName("entity_recognizer")
-        for element in elements:
-            entity_recognizer = self._compile_entity_recognizer(element)
-            yield entity_recognizer
-
-    def _compile_entity_recognizer(self, element):
-        name = self._get_mandatory_attribute(element, "name")
-        target = self._compile_target(element)
-        return ServiceEntityRecognizerInterface(name, target)
 
     def _compile_validities(self):
         elements = self._document.getElementsByTagName("validator")

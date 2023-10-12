@@ -1,4 +1,3 @@
-from tala.model.device import ParameterField
 from tala.utils.as_json import AsJSONMixin
 
 
@@ -30,14 +29,28 @@ class UnsupportedServiceInterfaceTarget(Exception):
     pass
 
 
+class ParameterNotFoundException(Exception):
+    pass
+
+
+class ParameterField:
+    VALUE = "value"
+    GRAMMAR_ENTRY = "grammar_entry"
+
+
+SEMANTIC_OBJECT_TYPE = "service_interface"
+
+DEVICE_MODULE_TARGET = "device_module_target"
+FRONTEND_TARGET = "frontend_target"
+HTTP_TARGET = "http_target"
+
+
 class ServiceInterface(AsJSONMixin):
-    def __init__(self, actions, queries, entity_recognizers, validators):
+    def __init__(self, actions, queries, validators):
         self._validate(actions)
         self._actions = {action.name: action for action in actions}
         self._validate(queries)
         self._queries = {query.name: query for query in queries}
-        self._validate(entity_recognizers)
-        self._entity_recognizers = {recognizer.name: recognizer for recognizer in entity_recognizers}
         self._validate(validators)
         self._validators = {validator.name: validator for validator in validators}
 
@@ -94,13 +107,9 @@ class ServiceInterface(AsJSONMixin):
     def validators(self):
         return list(self._validators.values())
 
-    @property
-    def entity_recognizers(self):
-        return list(self._entity_recognizers.values())
-
     def __repr__(self):
-        return "%s(actions=%s, queries=%s, validators=%s, entity_recognizers=%s)" % (
-            self.__class__.__name__, self.actions, self.queries, self.validators, self.entity_recognizers
+        return "%s(actions=%s, queries=%s, validators=%s)" % (
+            self.__class__.__name__, self.actions, self.queries, self.validators
         )
 
     def __eq__(self, other):
@@ -110,8 +119,15 @@ class ServiceInterface(AsJSONMixin):
         return bool(
             isinstance(other, self.__class__) and has_all(self.actions, other.actions)
             and has_all(self.queries, other.queries) and has_all(self.validators, other.validators)
-            and has_all(self.entity_recognizers, other.entity_recognizers)
         )
+
+    def as_dict(self):
+        json = super(ServiceInterface, self).as_dict()
+        json["semantic_object_type"] = SEMANTIC_OBJECT_TYPE
+        json["actions"] = [value.as_json() for value in self._actions.values()]
+        json["queries"] = [value.as_json() for value in self._queries.values()]
+        json["validators"] = [value.as_json() for value in self._validators.values()]
+        return json
 
 
 class SpecificServiceInterface(AsJSONMixin):
@@ -211,7 +227,6 @@ class ServiceActionInterface(BaseActionInterface):
 
 class PlayAudioActionInterface(BaseActionInterface):
     def __init__(self, name, target, parameters, audio_url_parameter):
-        parameters = parameters + [audio_url_parameter]
         super(PlayAudioActionInterface, self).__init__(name, target, parameters, failure_reasons=[])
         self._audio_url_parameter = audio_url_parameter
 
@@ -234,6 +249,10 @@ class PlayAudioActionInterface(BaseActionInterface):
             and self.parameters == other.parameters and self.audio_url_parameter == other.audio_url_parameter
         )
 
+    @property
+    def parameters(self):
+        return self._parameters + [self._audio_url_parameter]
+
 
 class ServiceQueryInterface(ParameterizedSpecificServiceInterface):
     def __init__(self, *args, **kwargs):
@@ -245,15 +264,6 @@ class ServiceValidatorInterface(ParameterizedSpecificServiceInterface):
     def __init__(self, *args, **kwargs):
         super(ServiceValidatorInterface, self).__init__("validator", *args, **kwargs)
         self.ensure_target_is_not_frontend()
-
-
-class ServiceEntityRecognizerInterface(SpecificServiceInterface):
-    def __init__(self, *args, **kwargs):
-        super(ServiceEntityRecognizerInterface, self).__init__("entity_recognizer", *args, **kwargs)
-        self.ensure_target_is_not_frontend()
-
-    def __repr__(self):
-        return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.target)
 
 
 class ServiceImplicationInterface(SpecificServiceInterface):
@@ -313,10 +323,11 @@ class AudioURLServiceParameter(AbstractServiceParameter):
     def __init__(self, name):
         format = ParameterField.GRAMMAR_ENTRY
         super(AudioURLServiceParameter, self).__init__(name, format)
+        self._is_optional = False
 
     @property
     def is_optional(self):
-        return False
+        return self._is_optional
 
     def __repr__(self):
         return "%s(%r, format=%r)" % (self.__class__.__name__, self.name, self.format)
@@ -342,17 +353,20 @@ class ActionFailureReason(AsJSONMixin):
 
 
 class ServiceTarget(AsJSONMixin):
+    def __init__(self, target_type):
+        self.target_type = target_type
+
     @property
     def is_device_module(self):
-        return False
+        return self.target_type == DEVICE_MODULE_TARGET
 
     @property
     def is_frontend(self):
-        return False
+        return self.target_type == FRONTEND_TARGET
 
     @property
     def is_http(self):
-        return False
+        return self.target_type == HTTP_TARGET
 
     def __repr__(self):
         return "%s()" % self.__class__.__name__
@@ -366,16 +380,12 @@ class ServiceTarget(AsJSONMixin):
 
 class DeviceModuleTarget(ServiceTarget):
     def __init__(self, device):
-        super(DeviceModuleTarget, self).__init__()
+        super(DeviceModuleTarget, self).__init__(DEVICE_MODULE_TARGET)
         self._device = device
 
     @property
     def device(self):
         return self._device
-
-    @property
-    def is_device_module(self):
-        return True
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.device)
@@ -387,23 +397,18 @@ class DeviceModuleTarget(ServiceTarget):
 
 
 class FrontendTarget(ServiceTarget):
-    @property
-    def is_frontend(self):
-        return True
+    def __init__(self):
+        super(FrontendTarget, self).__init__(FRONTEND_TARGET)
 
 
 class HttpTarget(ServiceTarget):
     def __init__(self, endpoint):
-        super(HttpTarget, self).__init__()
+        super(HttpTarget, self).__init__(HTTP_TARGET)
         self._endpoint = endpoint
 
     @property
     def endpoint(self):
         return self._endpoint
-
-    @property
-    def is_http(self):
-        return True
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.endpoint)
