@@ -16,8 +16,8 @@ def readme():
 if __name__ == "__main__":
     setup(
         use_scm_version={
-            "write_to": "tala/tala/installed_version.py",
-            "root": "..",
+            "write_to": "tala/installed_version.py",
+            "root": ".",
             "relative_to": __file__,
             "git_describe_command": "git describe --dirty --tags --long "
                     "--exclude tdm-* --exclude *candidate* --exclude *latest* --exclude *master* ",
