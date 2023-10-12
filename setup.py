@@ -56,7 +56,7 @@ if __name__ == "__main__":
         author="Talkamatic",
         author_email="dev@talkamatic.se",
         install_requires=[
-            "Jinja2==3.0.1",
+            "Jinja2>=3.0.1",
             "dill==0.3.6",
             "iso8601==0.1.14",
             "lxml==4.6.3",
