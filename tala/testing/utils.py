@@ -16,7 +16,7 @@ class EqualityAssertionTestCaseMixin:
 
 
 def load_mockup_travel(component_set_loader):
-    load_internal_ddds(component_set_loader, ["mockup_travel"], "tala")
+    load_internal_ddds(component_set_loader, ["mockup_travel"], ".")
 
 
 def load_internal_ddds(component_set_loader, ddds, package, rerank_amount=None):

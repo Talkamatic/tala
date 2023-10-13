@@ -15,6 +15,44 @@ class UnexpectedContentsException(Exception):
 
 
 class TempDirTestMixin:
+    def setup_class(cls):
+        cls._get_installed_tala_version()
+        if cls.no_tala_installed() or cls.tala_version_is_standard_release():
+            cls._install_tala_as_editable()
+
+    @classmethod
+    def _get_installed_tala_version(cls):
+        try:
+            bytestring_response = subprocess.check_output("tala version", shell=True)
+            cls._tala_version = bytestring_response.decode("utf-8")
+        except subprocess.CalledProcessError:
+            cls._tala_version = None
+
+    @classmethod
+    def no_tala_installed(cls):
+        return cls._tala_version is None
+
+    @classmethod
+    def tala_version_is_editable(cls):
+        return re.match(r"^\d+\.\d+\.\d+\.dev.*$", cls._tala_version)
+
+    @classmethod
+    def tala_version_is_standard_release(cls):
+        if cls._tala_version is None:
+            return False
+        return re.match(r"^\d+\.\d+\.\d+$", cls._tala_version)
+
+    @classmethod
+    def _install_tala_as_editable(cls):
+        subprocess.check_call("pip install -e .", shell=True)
+        print("installed tala as editable")
+
+    @classmethod
+    def teardown_class(cls):
+        if cls.tala_version_is_standard_release():
+            cls._uninstall_tala()
+            cls._install_old_tala_from_pip()
+
     def setup(self):
         self._temp_dir = tempfile.mkdtemp(prefix="TalaIntegrationTest")
         self._working_dir = os.getcwd()
@@ -23,6 +61,12 @@ class TempDirTestMixin:
     def teardown(self):
         os.chdir(self._working_dir)
         shutil.rmtree(self._temp_dir)
+
+    def _uninstall_tala(self):
+        subprocess.check_call("pip uninstall tala --yes", shell=True)
+
+    def _install_old_tala_from_pip(self):
+        subprocess.check_call(f"pip install tala=={self._tala_version}", shell=True)
 
 
 class ConsoleScriptTestMixin(TempDirTestMixin):

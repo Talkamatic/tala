@@ -24,7 +24,7 @@ class TestComponentSetLoader(unittest.TestCase):
         self._MockDddLoader = None
 
     def test_ensure_ddds_loaded(self):
-        with chdir("tala/ddds"):
+        with chdir("ddds"):
             self._given_component_set_loader_created()
             self._when_ensuring_ddds_loaded_from("mockup_travel.json")
             self._then_components_are_loaded_for("mockup_travel")
@@ -44,7 +44,7 @@ class TestComponentSetLoader(unittest.TestCase):
     @patch("{}.DddConfig".format(ddd_set_loader.__name__))
     @patch("{}.ComponentLoader".format(component_set_loader.__name__))
     def test_ddd_config_override(self, MockDddLoader, MockDddConfig):
-        with chdir("tala/ddds"):
+        with chdir("ddds"):
             self._given_overridden_ddd_config_paths([OverriddenDddConfig("hello_world", "mock_config.json")])
             self._given_component_set_loader_created()
             self._when_ensuring_ddds_loaded_from("hello_world.json")
@@ -58,7 +58,7 @@ class TestComponentSetLoader(unittest.TestCase):
 
     @patch("{}.DddConfig".format(ddd_set_loader.__name__))
     def test_non_existing_ddd_in_ddd_config_override_raises_exception(self, MockDddConfig):
-        with chdir("tala/ddds"):
+        with chdir("ddds"):
             self._given_overridden_ddd_config_paths([OverriddenDddConfig("non_existing_ddd", "mock_config.json")])
             self._when_creating_ddd_set_loader_then_exception_is_raised_with_message_that_matches_regex(
                 DddNotFoundException,
@@ -72,7 +72,7 @@ class TestComponentSetLoader(unittest.TestCase):
             ComponentSetLoader(self._ddd_component_manager, self._overridden_ddd_config_paths)
 
     def test_non_existing_ddd_config_in_ddd_config_override_raises_exception(self):
-        with chdir("tala/ddds"):
+        with chdir("ddds"):
             self._given_overridden_ddd_config_paths([OverriddenDddConfig("mockup_travel", "non_existing_config.json")])
             self._when_creating_ddd_set_loader_then_exception_is_raised_with_message_that_matches_regex(
                 OverriddenDddConfigNotFoundException,
