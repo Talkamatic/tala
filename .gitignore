@@ -1,7 +1,6 @@
 tala-session.state
 tala.egg-info
 tala/installed_version.py
-
 .idea
 .eggs
 build
@@ -9,4 +8,3 @@ dist
 *.egg-info
 __pycache__
 .python_packages
-local.settings.json

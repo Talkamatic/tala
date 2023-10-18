@@ -1,0 +1,121 @@
+pipeline {
+    agent { label 'docker' }
+
+    parameters {
+        string(
+            defaultValue: 'refs/heads/master',
+            description: 'The Git reference used in checkout',
+            name: 'GERRIT_REFSPEC'
+        )
+    }
+
+    options {
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                daysToKeepStr: '',
+                numToKeepStr: '10'
+            )
+        )
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    triggers {
+        gerrit(
+            customUrl: '',
+            gerritProjects:[
+                [
+                    branches: [
+                        [
+                            compareType: 'ANT',
+                            pattern: '**'
+                        ]
+                    ],
+                    compareType: 'PLAIN',
+                    disableStrictForbiddenFileVerification: false,
+                    pattern: 'tala'
+                ]
+            ],
+            serverName: 'Talkamatic',
+            triggerOnEvents: [
+                patchsetCreated(
+                    excludeDrafts: true,
+                    excludeNoCodeChange: false,
+                    excludeTrivialRebase: false
+                )
+            ],
+            skipVote: [
+              onSuccessful: false,
+              onFailed    : false,
+              onUnstable  : false,
+              onNotBuilt  : false
+            ]
+        )
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                step([$class: 'WsCleanup'])
+                checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [
+                        $class: 'GitSCM',
+                        branches: [
+                            [name: '$GERRIT_BRANCH']
+                        ],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [[
+                                $class: 'BuildChooserSetting',
+                                buildChooser: [
+                                    $class: 'GerritTriggerBuildChooser'
+                                ]
+                            ],
+                            [
+                                $class: 'SubmoduleOption',
+                                disableSubmodules: false,
+                                parentCredentials: true
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [
+                            [
+                                credentialsId: 'jenkinsatgerrit',
+                                refspec: '$GERRIT_REFSPEC',
+                                url: 'ssh://jenkins@gerrit.talkamatic.se:29418/tala'
+                            ]
+                        ]
+                    ]
+                )
+            }
+        }
+
+        stage('install dev dependencies') {
+            agent {
+                dockerfile {
+                    filename 'Dockerfile-dev'
+                    additionalBuildArgs '--pull'
+                    reuseNode true
+                }
+            }
+            stages {
+                stage('tests') {
+                    steps {
+                        sh 'python setup.py build'
+                        sh 'py.test tala'
+                        sh 'py.test integration_tests'
+                    }
+                }
+
+                stage('pylint and flake8') {
+                    steps {
+                        sh 'pylint tala'
+                        sh 'flake8 . --exclude ddds/,.eggs/'
+                    }
+                }
+            }
+        }
+    }
+}

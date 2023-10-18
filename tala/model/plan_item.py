@@ -380,7 +380,7 @@ class IfThenElse(PlanItem):
         self._assert_ontology_integrity()
 
     def _assert_one_alternative_is_non_empty_list(self):
-        assert self.consequent is not [] or self.alternative is not [],\
+        assert self.consequent is not [] or self.alternative is not [], \
             "One of consequent (%s) and alternative (%s) must not be []" % (self.consequent, self.alternative)
 
     def _assert_ontology_integrity(self):

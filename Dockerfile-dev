@@ -15,10 +15,10 @@ ENV LANG C.UTF-8
 
 RUN pip install --upgrade pip
 
-COPY tala/dev-requirements.txt /src/
-RUN pip --no-cache-dir install -r /src/dev-requirements.txt && rm -f /src/dev-requirements.txt
+COPY requirements-dev.txt /src/
+RUN pip --no-cache-dir install -r /src/requirements-dev.txt && rm -f /src/requirements-dev.txt
 
 COPY . /src
-RUN pip install --editable /src/tala
+RUN pip install --editable /src
 
-WORKDIR /src/tala
+WORKDIR /src

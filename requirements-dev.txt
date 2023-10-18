@@ -1,0 +1,5 @@
+pytest==7.4.0
+mock==4.0.3
+flake8==6.1.0
+yapf==0.40.2
+pylint==3.0.1
