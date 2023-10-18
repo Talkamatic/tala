@@ -1,3 +1,4 @@
 [submodule "ddds"]
 	path = ddds
-	url = ssh://fredrikkronlid@192.168.3.200:29418/internal_ddds
+	url = ../internal_ddds.git
+	branch = .
