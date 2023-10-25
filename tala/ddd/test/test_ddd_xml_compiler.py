@@ -361,10 +361,12 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "queries", [{
-                "query":
-                self._parse("?X.means_of_transport(X)"),
-                "implications":
-                [ImplicationProposition(self._parse("means_of_travel(train)"), self._parse("means_of_travel(train)"))]
+                "query": self._parse("?X.means_of_transport(X)"),
+                "implications": [
+                    ImplicationProposition(
+                        self._parse("means_of_travel(train)"), self._parse("means_of_travel(train)")
+                    )
+                ]
             }]
         )
 
@@ -396,11 +398,11 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "queries", [{
-                "query":
-                self._parse("?X.means_of_transport(X)"),
-                "for_random_selection":
-                [self._parse("means_of_transport(train)"),
-                 self._parse("means_of_transport(plane)")]
+                "query": self._parse("?X.means_of_transport(X)"),
+                "for_random_selection": [
+                    self._parse("means_of_transport(train)"),
+                    self._parse("means_of_transport(plane)")
+                ]
             }]
         )
 
@@ -431,8 +433,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries",
-            [{
+            "queries", [{
                 "query": self._parse("?X.means_of_transport(X)"),
                 "for_enumeration": [self._parse("means_of_transport(train)"),
                                     self._parse("means_of_transport(plane)")]
@@ -467,11 +468,11 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "queries", [{
-                "query":
-                self._parse("?X.means_of_transport(X)"),
-                "for_random_enumeration":
-                [self._parse("means_of_transport(train)"),
-                 self._parse("means_of_transport(plane)")]
+                "query": self._parse("?X.means_of_transport(X)"),
+                "for_random_enumeration": [
+                    self._parse("means_of_transport(train)"),
+                    self._parse("means_of_transport(plane)")
+                ]
             }]
         )
 
@@ -502,8 +503,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries",
-            [{
+            "queries", [{
                 "query": "some_name",
                 "for_enumeration": [self._parse("means_of_transport(train)"),
                                     self._parse("means_of_travel(train)")],
@@ -602,6 +602,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content('<postplan><forget_all/></postplan>')
         self._then_result_has_plan_with_attribute("postplan", Plan([ForgetAllPlanItem()]))
 
+    @pytest.mark.filterwarnings("ignore:<postcond>")
     def test_postcond_with_whitespace(self):
         self._given_compiled_ontology(
             """
@@ -619,6 +620,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
+    @pytest.mark.filterwarnings("ignore:<postcond>")
     def test_postcond_for_predicate_proposition(self):
         self._given_compiled_ontology(
             """
@@ -631,6 +633,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
         self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
 
+    @pytest.mark.filterwarnings("ignore:<postcond>")
     def test_postcond_with_multiple_propositions(self):
         self._given_compiled_ontology(
             """
@@ -888,10 +891,11 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "parameters", {
-                self._parse("?X.price(X)"):
-                self._parser.parse_parameters("{on_zero_hits_action=mitigate_search_for_price}")
+                self._parse("?X.price(X)"): self._parser.parse_parameters(
+                    "{on_zero_hits_action=mitigate_search_for_price}"
+                )
             }
-        )
+        )  # yapf: disable
 
     def test_too_many_hits_mitigation_parameter(self):
         self._given_compiled_ontology(
@@ -911,11 +915,13 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "parameters", {
-                self._parse("?X.price(X)"):
-                self._parser.parse_parameters("{on_too_many_hits_action=mitigate_search_for_price}")
+                self._parse("?X.price(X)"): self._parser.parse_parameters(
+                    "{on_too_many_hits_action=mitigate_search_for_price}"
+                )
             }
-        )
+        )  # yapf: disable
 
+    @pytest.mark.filterwarnings("ignore:<has_value>")
     def test_downdate_condition_for_has_value(self):
         self._given_compiled_ontology(
             """
@@ -932,6 +938,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("dest_city"))])
 
+    @pytest.mark.filterwarnings("ignore:<has_value>")
     def test_downdate_condition_for_boolean_has_value(self):
         self._given_compiled_ontology(
             """
@@ -947,6 +954,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("need_visa"))])
 
+    @pytest.mark.filterwarnings("ignore:<is_true>")
     def test_downdate_condition_with_is_true(self):
         self._given_compiled_ontology(
             """
@@ -1076,6 +1084,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
             "postconds", [condition.HasSharedOrPrivateValue(self._parse("dest_city"))]
         )
 
+    @pytest.mark.filterwarnings("ignore:<is_true>")
     def test_downdate_condition_with_multiple_conditions(self):
         self._given_compiled_ontology(
             """
@@ -1178,10 +1187,11 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "parameters", {
-                self._parse("?X.means_of_transport(X)"):
-                self._parser.parse_parameters("{service_query=?X.available_means_of_transport(X)}")
+                self._parse("?X.means_of_transport(X)"): self._parser.parse_parameters(
+                    "{service_query=?X.available_means_of_transport(X)}"
+                )
             }
-        )
+        )  # yapf: disable
 
     def test_questions_valued_parameter(self):
         self._given_compiled_ontology(
@@ -1498,10 +1508,11 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_field(
             "parameters", {
-                self._parse("?X.goal(X)"):
-                self._parser.parse_parameters("{alts=set([goal(perform(buy)), goal(resolve(?X.price(X)))])}")
+                self._parse("?X.goal(X)"): self._parser.parse_parameters(
+                    "{alts=set([goal(perform(buy)), goal(resolve(?X.price(X)))])}"
+                )
             }
-        )
+        )  # yapf: disable
 
     def test_parameters_for_predicate(self):
         self._given_compiled_ontology(
@@ -1748,6 +1759,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def _given_plan(self, plan):
         self._plan = plan
 
+    @pytest.mark.filterwarnings('ignore:"<if>')
     def test_if_then_condition_still_works(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
@@ -1802,6 +1814,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 </ontology>"""
         )
 
+    @pytest.mark.filterwarnings('ignore:<has_value>')
     def test_if_then_else_has_value(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(

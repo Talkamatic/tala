@@ -10,7 +10,7 @@ class ActionTests(LibTestCase):
 
     def test_create(self):
         self.assertTrue(self.buy_action.is_action())
-        self.assertEqual("buy", self.buy_action.get_value())
+        self.assertEqual("buy", self.buy_action.value)
 
     def test_unicode(self):
         self.assertEqual("buy", str(self.buy_action))

@@ -531,19 +531,19 @@ class ParserTests(unittest.TestCase):
     def test_create_DoPlanItem(self):
         action = self.parse("buy")
         do_item = self.parse("do(buy)")
-        self.assertEqual(action, do_item.getContent())
+        self.assertEqual(action, do_item.content)
 
     def test_create_EmitIcmPlanItem(self):
         icm_move = self.parse("icm:und*pos:USR*goal(perform(buy))")
         item = EmitIcm(icm_move)
-        self.assertEqual(icm_move, item.getContent())
+        self.assertEqual(icm_move, item.content)
         self.assertEqual(item.type_, plan_item.TYPE_EMIT_ICM)
 
     def test_FindoutPlanItem_with_no_params(self):
         expected_item = Findout(self.domain_name, self.dest_city_question)
         item = self.parse("findout(?X.dest_city(X))")
         self.assertEqual(expected_item, item)
-        self.assertEqual(self.dest_city_question, item.getContent())
+        self.assertEqual(self.dest_city_question, item.content)
 
     def test_multiple_parameters(self):
         string = "{graphical_type=list, incremental=True}"
@@ -740,31 +740,31 @@ class ParserTests(unittest.TestCase):
         fact = self.parse("dest_city(paris)")
         item = self.parse("forget(%s)" % fact)
         self.assertEqual(item.type_, plan_item.TYPE_FORGET)
-        self.assertEqual(fact, item.getContent())
+        self.assertEqual(fact, item.content)
 
     def test_create_forget_shared(self):
         fact = self.parse("dest_city(paris)")
         item = self.parse("forget_shared(%s)" % fact)
         self.assertEqual(item.type_, plan_item.TYPE_FORGET_SHARED)
-        self.assertEqual(fact, item.getContent())
+        self.assertEqual(fact, item.content)
 
     def test_create_forget_predicate(self):
         predicate = self.parse("dest_city")
         item = self.parse("forget(%s)" % predicate)
         self.assertEqual(item.type_, plan_item.TYPE_FORGET)
-        self.assertEqual(predicate, item.getContent())
+        self.assertEqual(predicate, item.content)
 
     def test_create_forget_issue(self):
         issue = self.parse("?X.dest_city(X)")
         item = self.parse("forget_issue(%s)" % issue)
         self.assertEqual(item.type_, plan_item.TYPE_FORGET_ISSUE)
-        self.assertEqual(issue, item.getContent())
+        self.assertEqual(issue, item.content)
 
     def test_create_invoke_service_query_plan_item(self):
         issue = self.parse("?X.dest_city(X)")
         item = self.parse("invoke_service_query(%s)" % issue)
         self.assertEqual(item.type_, plan_item.TYPE_INVOKE_SERVICE_QUERY)
-        self.assertEqual(issue, item.getContent())
+        self.assertEqual(issue, item.content)
         self.assertEqual(1, item.get_min_results())
         self.assertEqual(1, item.get_max_results())
 

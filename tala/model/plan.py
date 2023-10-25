@@ -52,7 +52,7 @@ class Plan(Stack, SemanticObject):
     def _flatten(self, items):
         result = []
         for item in items:
-            if item.getType() == plan_item.TYPE_IF_THEN_ELSE:
+            if item.type_ == plan_item.TYPE_IF_THEN_ELSE:
                 if item.consequent:
                     result.extend(self._flatten(item.get_consequent()))
                 if item.alternative:
@@ -66,7 +66,7 @@ class Plan(Stack, SemanticObject):
         for item in self.content:
             if item == item_to_remove:
                 items_to_remove.append(item)
-            elif item.getType() == plan_item.TYPE_IF_THEN_ELSE:
+            elif item.type_ == plan_item.TYPE_IF_THEN_ELSE:
                 self.remove_nested(item_to_remove, item)
         for item in items_to_remove:
             self.content.remove(item)
@@ -76,14 +76,14 @@ class Plan(Stack, SemanticObject):
             item.consequent.remove(to_remove)
         if to_remove in item.alternative:
             item.alternative.remove(to_remove)
-        for item in item.alternative + item.consequent:
-            if item.getType() == plan_item.TYPE_IF_THEN_ELSE:
-                self.remove_nested(to_remove, item)
+        for sub_item in item.alternative + item.consequent:
+            if sub_item.type_ == plan_item.TYPE_IF_THEN_ELSE:
+                self.remove_nested(to_remove, sub_item)
 
     def get_questions_in_plan_without_feature_question(self):
         for item in self:
             if item.type_ in plan_item.QUESTION_TYPES:
-                question = item.getContent()
+                question = item.content
                 yield question
 
     def __str__(self):

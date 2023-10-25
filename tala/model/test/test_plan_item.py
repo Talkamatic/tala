@@ -29,11 +29,11 @@ class PlanItemTests(LibTestCase):
 
     def test_create_DoPlanItem(self):
         do_item = plan_item.Do(self.buy_action)
-        self.assertEqual(self.buy_action, do_item.getContent())
+        self.assertEqual(self.buy_action, do_item.content)
 
     def test_DoPlanItem_type(self):
         do_item = plan_item.Do(self.buy_action)
-        self.assertEqual(plan_item.TYPE_DO, do_item.getType())
+        self.assertEqual(plan_item.TYPE_DO, do_item.type_)
 
     def test_isRespondPlanItem(self):
         self.assertTrue(self.respond_plan_item.type_ == plan_item.TYPE_RESPOND)
@@ -41,14 +41,14 @@ class PlanItemTests(LibTestCase):
     def test_isFindoutPlanItem(self):
         self.assertTrue(self.findout_plan_item.type_ == plan_item.TYPE_FINDOUT)
 
-    def test_FindoutPlanItem_getContent(self):
-        self.assertEqual(self.question, self.findout_plan_item.getContent())
+    def test_FindoutPlanItem_content(self):
+        self.assertEqual(self.question, self.findout_plan_item.content)
 
     def test_isRaisePlanItem(self):
         self.assertTrue(self.raise_plan_item.type_ == plan_item.TYPE_RAISE)
 
-    def test_RaisePlanItem_getContent(self):
-        self.assertEqual(self.question, self.raise_plan_item.getContent())
+    def test_RaisePlanItem_content(self):
+        self.assertEqual(self.question, self.raise_plan_item.content)
 
     def test_FindoutPlanItem_to_string(self):
         expected_string = "findout(?X.dest_city(X))"
@@ -120,7 +120,7 @@ class PlanItemTests(LibTestCase):
         self.assertFalse(emit_item.is_turn_yielding())
 
     def test_if_then_else_getters(self):
-        self.assertEqual(plan_item.TYPE_IF_THEN_ELSE, self.if_then_else_plan_item.getType())
+        self.assertEqual(plan_item.TYPE_IF_THEN_ELSE, self.if_then_else_plan_item.type_)
         self.assertEqual(self.if_condition, self.if_then_else_plan_item.get_condition())
         self.assertEqual(self.if_consequent, self.if_then_else_plan_item.get_consequent())
         self.assertEqual(self.if_alternative, self.if_then_else_plan_item.get_alternative())
@@ -139,23 +139,23 @@ class PlanItemTests(LibTestCase):
         fact = self.proposition_dest_city_paris
         item = plan_item.Forget(fact)
         self.assertEqual(item.type_, plan_item.TYPE_FORGET)
-        self.assertEqual(fact, item.getContent())
+        self.assertEqual(fact, item.content)
 
     def test_create_forget_plan_item_predicate(self):
         predicate = self.predicate_dept_city
         item = plan_item.Forget(predicate)
         self.assertTrue(item.type_ == plan_item.TYPE_FORGET)
-        self.assertEqual(predicate, item.getContent())
+        self.assertEqual(predicate, item.content)
 
     def test_create_forget_issue_plan_item(self):
         issue = self.price_question
         item = plan_item.ForgetIssue(issue)
         self.assertTrue(item.type_ == plan_item.TYPE_FORGET_ISSUE)
-        self.assertEqual(issue, item.getContent())
+        self.assertEqual(issue, item.content)
 
     def test_service_report_plan_item(self):
         self.assertTrue(self.service_report_item.type_ == plan_item.TYPE_SERVICE_REPORT)
-        self.assertTrue(self.service_result_proposition, self.service_report_item.getContent())
+        self.assertTrue(self.service_result_proposition, self.service_report_item.content)
 
     def test_findout_equality(self):  #/// Should allow_answer_from_pcom change equality?
         item = plan_item.Findout(self.domain_name, self.question)
@@ -171,7 +171,7 @@ class PlanItemTests(LibTestCase):
         findout_plan_item = plan_item.Findout(self.domain_name, self.question)
         raise_plan_item = findout_plan_item.clone_as_type(plan_item.TYPE_RAISE)
         self.assertTrue(raise_plan_item.type_ == plan_item.TYPE_RAISE)
-        self.assertEqual(self.question, raise_plan_item.get_question())
+        self.assertEqual(self.question, raise_plan_item.question)
 
     def test_findout_defaults_to_disallow_answer_from_pcom(self):
         findout_plan_item = plan_item.Findout(self.domain_name, self.question)
@@ -193,7 +193,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
 
     def test_is_invoke_service_action_plan_item(self):
         self.given_created_service_action_plan_item()
-        self.when_call(self._plan_item.get_type)
+        self._actual_result = self._plan_item.type_
         self.then_result_is(plan_item.TYPE_INVOKE_SERVICE_ACTION)
 
     def given_created_service_action_plan_item(self, service_action="mock_service_action", **kwargs):
@@ -315,9 +315,9 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
             self._create_invoke_service_query_plan_item(min_results=min_results, max_results=max_results)
         self.assertEqual(expected_message, str(context_manager.exception))
 
-    def test_getContent(self):
+    def test_get_content(self):
         self.given_created_invoke_service_query_plan_item(issue="mock_issue")
-        self.when_call(self._plan_item.getContent)
+        self._actual_result = self._plan_item.content
         self.then_result_is("mock_issue")
 
     def test_unicode(self):

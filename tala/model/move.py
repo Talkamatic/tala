@@ -433,6 +433,10 @@ class ICMMoveWithContent(ICMMove):
         self._content = content
         self._content_speaker = self._get_checked_content_speaker(content_speaker)
 
+    @property
+    def content(self):
+        return self._content
+
     def get_content(self):
         return self._content
 
@@ -462,25 +466,21 @@ class ICMMoveWithContent(ICMMove):
 
     def is_question_raising(self):
         return (
-            self.get_type() == ICMMove.UND and self.get_content() is not None
-            and not (self.get_polarity() == ICMMove.POS and not self.get_content().is_positive())
+            self.get_type() == ICMMove.UND and self.content is not None
+            and not (self.get_polarity() == ICMMove.POS and not self.content.is_positive())
         )
 
     def is_positive_understanding_icm_with_non_neg_content(self):
-        return (
-            self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.POS and self.get_content().is_positive()
-        )
+        return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.POS and self.content.is_positive())
 
     def is_interrogative_understanding_icm_with_non_neg_content(self):
-        return (
-            self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.get_content().is_positive()
-        )
+        return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.content.is_positive())
 
     def is_grounding_proposition(self):
         return self.get_type() == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
 
     def as_dict(self):
-        return super().as_dict() | {"content": self.get_content(), "content_speaker": self.get_content_speaker()}
+        return super().as_dict() | {"content": self.content, "content_speaker": self.get_content_speaker()}
 
 
 class CardinalSequencingICM(ICMMoveWithContent):

@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.semantic_object import OntologySpecificSemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
@@ -15,6 +17,7 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         return True
 
     def get_value(self):
+        warnings.warn("Action.get_value() is deprecated. Use Action.value instead.", DeprecationWarning, stacklevel=2)
         return self.value
 
     def is_top_action(self):
@@ -34,8 +37,7 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            return other.is_action() and other.get_value() == self.get_value(
-            ) and other.ontology_name == self.ontology_name
+            return other.is_action() and other.value == self.value and other.ontology_name == self.ontology_name
         except AttributeError:
             return False
 

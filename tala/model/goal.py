@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.move import RequestMove, AskMove
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
@@ -36,6 +38,7 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     @property
     def type(self):
+        warnings.warn("Goal.type is deprecated. Use Goal.type_ instead.", DeprecationWarning, stacklevel=2)
         return self.type_
 
     @property
@@ -83,6 +86,11 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         return self._content
 
     def get_content(self):
+        warnings.warn(
+            "GoalWithSemanticContent.get_content() is deprecated. Use GoalWithSemanticContent.content instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._content
 
     def is_goal_with_semantic_content(self):
@@ -112,7 +120,7 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         try:
             return other.is_goal() \
                 and other.has_semantic_content() \
-                and other.get_content() == self.get_content() \
+                and other.content == self.content \
                 and other.target == self.target \
                 and other.type_ == self.type_ \
                 and ontologies_match()
@@ -139,16 +147,21 @@ class Perform(GoalWithSemanticContent):
         return Goal.goal_filter(PerformGoal.PERFORM_GOAL)
 
     def get_action(self):
-        return self.get_content()
+        warnings.warn("Goal.get_action() is deprecated. Use Goal.action instead.", DeprecationWarning, stacklevel=2)
+        return self.action
+
+    @property
+    def action(self):
+        return self.content
 
     def __ne__(self, other):
         return not (self == other)
 
     def __str__(self):
-        return "perform(%s)" % self.get_action()
+        return "perform(%s)" % self.action
 
     def as_move(self):
-        return RequestMove(self.get_content())
+        return RequestMove(self.content)
 
     def is_top_goal(self):
         action = self.get_action()
@@ -172,7 +185,7 @@ class Resolve(GoalWithSemanticContent):
         return self.content
 
     def get_question(self):
-        return self.get_content()
+        return self.content
 
     @staticmethod
     def filter():
@@ -194,7 +207,7 @@ class Resolve(GoalWithSemanticContent):
         return result
 
     def as_move(self):
-        return AskMove(self.get_content())
+        return AskMove(self.content)
 
 
 class ResolveGoal(Resolve):

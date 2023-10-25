@@ -31,7 +31,7 @@ def queries_dict_as_list(dict_):
         return "limit" in query_content
 
     queries_list = []
-    for question, content_dict in dict_.items():
+    for _question, content_dict in dict_.items():
         result_dict = {}
         if is_iterator(content_dict):
             result_dict = serialize_iterator(content_dict)
@@ -155,7 +155,7 @@ class Domain(AsJSONMixin):
             plan = self.get_plan(resolve_goal)
             for item in plan:
                 if item.type_ in plan_item.QUESTION_TYPES:
-                    if question == item.getContent():
+                    if question == item.content:
                         return True
         return False
 
@@ -190,7 +190,7 @@ class Domain(AsJSONMixin):
             plan = self.get_plan(supergoal)
             for item in plan:
                 if item.type_ in plan_item.QUESTION_TYPES:
-                    question = item.getContent()
+                    question = item.content
                     if question.is_alt_question():
                         for proposition in question.get_content():
                             if proposition.is_goal_proposition():
@@ -437,7 +437,7 @@ class Domain(AsJSONMixin):
     def get_questions_in_plan(self, plan):
         for item in plan:
             if item.type_ in plan_item.QUESTION_TYPES:
-                question = item.getContent()
+                question = item.content
                 for feature_question in self.get_feature_questions_for_plan_item(question, item):
                     yield feature_question
                 ask_features = self.get_ask_features(question)
@@ -474,7 +474,7 @@ class Domain(AsJSONMixin):
             plan = self.get_plan(goal)
             for item in plan:
                 if item.type_ == plan_item.TYPE_GET_DONE:
-                    actions.append(item.get_content().value)
+                    actions.append(item.content.value)
         return actions
 
     def get_implications_for_domain_query(self, query):

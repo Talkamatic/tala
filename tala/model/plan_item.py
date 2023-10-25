@@ -1,4 +1,5 @@
 import copy
+import warnings
 
 from tala.model.error import DomainError
 from tala.model.move import ICMMove
@@ -102,7 +103,7 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
         return str(self._type)
 
     def __eq__(self, other):
-        return other.is_plan_item() and self.get_type() == other.get_type()
+        return other.is_plan_item() and self.type_ == other.type_
 
     def __ne__(self, other):
         return not (self == other)
@@ -115,12 +116,16 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
         return self._type
 
     def get_type(self):
+        warnings.warn(
+            "PlanItem.get_type() is deprecated. Use PlanItem.type_ instead.", DeprecationWarning, stacklevel=2
+        )
         return self.type_
 
     def is_plan_item(self):
         return True
 
     def getType(self):
+        warnings.warn("PlanItem.getType() is deprecated. Use PlanItem.type_ instead.", DeprecationWarning, stacklevel=2)
         return self._type
 
     def is_question_raising_item(self):
@@ -131,7 +136,7 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
 
     def as_dict(self):
         return {
-            self.get_type(): None,
+            self.type_: None,
         }
 
 
@@ -177,8 +182,8 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return "%s(%s)" % (str(self._type), str(self._content))
 
     def __eq__(self, other):
-        return other is not None and other.is_plan_item() and other.has_semantic_content() and self.get_type(
-        ) == other.get_type() and self.get_content() == other.get_content()
+        return other is not None and other.is_plan_item() and other.has_semantic_content(
+        ) and self.type_ == other.type_ and self.content == other.content
 
     def __ne__(self, other):
         return not (self == other)
@@ -194,10 +199,20 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return self._content
 
     def get_content(self):
+        warnings.warn(
+            "PlanItemWithSemanticContent.get_content() is deprecated. Use PlanItemWithSemanticContent.content instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._content
 
     def getContent(self):
-        return self.get_content()
+        warnings.warn(
+            "PlanItemWithSemanticContent.getContent() is deprecated. Use PlanItemWithSemanticContent.content instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.content
 
     def as_dict(self):
         return {self.get_type(): self._content}
@@ -322,14 +337,14 @@ class EmitICM(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_EMIT_ICM, content=icm_move)
 
     def is_question_raising_item(self):
-        icm = self.getContent()
+        icm = self.content
         return (
             icm.get_type() == ICMMove.UND
             and not (icm.get_polarity() == ICMMove.POS and not icm.get_content().is_positive())
         )
 
     def is_turn_yielding(self):
-        icm = self.getContent()
+        icm = self.content
         return (icm.get_type() == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
 
 
@@ -345,8 +360,13 @@ class Bind(PlanItemWithSemanticContent):
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_BIND, content)
 
+    @property
+    def question(self):
+        return self.content
+
     def get_question(self):
-        return self.getContent()
+        warnings.warn("Bind.get_question() is deprecated. Use Bind.question instead.", DeprecationWarning, stacklevel=2)
+        return self.question
 
 
 class BindPlanItem(Bind):
@@ -429,7 +449,7 @@ class IfThenElse(PlanItem):
 
     def as_dict(self):
         return {
-            self.get_type(): {
+            self.type_: {
                 "condition": self.condition,
                 "consequent": self.consequent,
                 "alternative": self.alternative,
@@ -599,7 +619,7 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
 
     def as_dict(self):
         return {
-            self.get_type(): {
+            self.type_: {
                 "service_action": self.service_action,
                 "ontology": self.ontology_name,
                 "preconfirm": self.preconfirm,
@@ -700,7 +720,7 @@ class Log(PlanItem):
         return str(self)
 
     def as_dict(self):
-        return {self.get_type(): self.message}
+        return {self.type_: self.message}
 
 
 class LogPlanItem(Log):
@@ -715,6 +735,10 @@ class GetDone(PlanItemWithSemanticContent):
     @property
     def step(self):
         return self._step
+
+    @property
+    def action(self):
+        return self.content
 
     def as_dict(self):
         return {"step": self._step} | super().as_dict()
@@ -734,7 +758,7 @@ class GoalPerformed(PlanItem):
         return self._postconfirm
 
     def as_dict(self):
-        return {self.get_type(): self._postconfirm}
+        return {self.type_: self._postconfirm}
 
 
 class GoalPerformedPlanItem(GoalPerformed):
@@ -757,7 +781,7 @@ class GoalAborted(PlanItem):
         return f"GoalAbortedPlanItem('{self.reason}')"
 
     def as_dict(self):
-        return {self.get_type(): self._reason}
+        return {self.type_: self._reason}
 
 
 class GoalAbortedPlanItem(GoalAborted):
@@ -845,7 +869,7 @@ class ChangeDDD(PlanItem):
         return f"ChangeDDD('{self.ddd}')"
 
     def as_dict(self):
-        return {self.get_type(): self._ddd}
+        return {self.type_: self._ddd}
 
 
 class ChangeDDDPlanItem(ChangeDDD):
@@ -878,11 +902,16 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
         return True
 
     def get_question(self):
+        warnings.warn(
+            "QuestionRaisingPlanItem.get_question() is deprecated. Use QuestionRaisingPlanItem.question instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.question
 
     @property
     def question(self):
-        return self.getContent()
+        return self.content
 
     def clone_as_type(self, type_):
         clone = copy.deepcopy(self)
@@ -937,28 +966,28 @@ class QuestionRaisingPlanItemOfDomain(object):
         self._plan_item = plan_item
 
     def get_alternatives(self):
-        return self._domain.get_alternatives(self._plan_item.get_question())
+        return self._domain.get_alternatives(self._plan_item.question)
 
     def get_graphical_type(self):
-        return self._domain.get_graphical_type(self._plan_item.get_question())
+        return self._domain.get_graphical_type(self._plan_item.question)
 
     def get_incremental(self):
-        return self._domain.get_incremental(self._plan_item.get_question())
+        return self._domain.get_incremental(self._plan_item.question)
 
     def get_source(self):
-        return self._domain.get_source(self._plan_item.get_question())
+        return self._domain.get_source(self._plan_item.question)
 
     def get_format(self):
-        return self._domain.get_format(self._plan_item.get_question())
+        return self._domain.get_format(self._plan_item.question)
 
     def get_default(self):
-        return self._domain.get_default(self._plan_item.get_question())
+        return self._domain.get_default(self._plan_item.question)
 
     def get_service_query(self):
-        return self._domain.get_service_query(self._plan_item.get_question())
+        return self._domain.get_service_query(self._plan_item.question)
 
     def get_label_questions(self):
-        return self._domain.get_label_questions(self._plan_item.get_question())
+        return self._domain.get_label_questions(self._plan_item.question)
 
     def has_parameters(self):
         return (

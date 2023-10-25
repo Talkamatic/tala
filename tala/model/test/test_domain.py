@@ -153,10 +153,8 @@ class DomainTests(LibTestCase):
 
     def _create_plans(self):
         return [{
-            "goal":
-            ResolveGoal(self.price_question, Speaker.SYS),
-            "plan":
-            Plan([
+            "goal": ResolveGoal(self.price_question, Speaker.SYS),
+            "plan": Plan([
                 Findout(self.domain_name, self.dest_city_question),
                 Findout(self.domain_name, self.dept_city_question),
             ]),
@@ -215,7 +213,7 @@ class DomainTests(LibTestCase):
         self.assertIn("up", action_names)
 
     def _action_names_of_perform_goals(self, goals):
-        actions_of_perform_goals = [goal.get_content() for goal in goals if goal.is_perform_goal()]
+        actions_of_perform_goals = [goal.action for goal in goals if goal.is_perform_goal()]
         action_names = [action.value for action in actions_of_perform_goals]
         return action_names
 
@@ -637,8 +635,7 @@ class DominatesTests(LibTestCase):
             setattr(self, question_name, question)
 
         plans = [{
-            "goal":
-            PerformGoal(self.dominating_action),
+            "goal": PerformGoal(self.dominating_action),
             "plan": [
                 self._findout_with_alts([
                     GoalProposition(PerformGoal(self.dominated_action)),
@@ -658,8 +655,7 @@ class DominatesTests(LibTestCase):
             "goal": PerformGoal(self.non_dominated_action),
             "plan": []
         }, {
-            "goal":
-            PerformGoal(self.action_w_predicate_proposition_alt_question),
+            "goal": PerformGoal(self.action_w_predicate_proposition_alt_question),
             "plan": [
                 self._findout_with_alts([
                     PredicateProposition(
