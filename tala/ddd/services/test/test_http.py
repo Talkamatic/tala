@@ -1,7 +1,6 @@
 import json
 import unittest
 import requests
-from requests_cache import CachedSession
 import logging
 
 from mock import patch, Mock
@@ -27,7 +26,7 @@ from tala.http_formatting import HttpFormatter
 
 class HttpServiceClientTest(unittest.TestCase):
     def setUp(self):
-        self._requests_patcher = patch(f"{tala.ddd.services.http.__name__}", spec=CachedSession)
+        self._requests_patcher = patch(f"{tala.ddd.services.http.__name__}")
         self._mock_logger = Mock(spec=logging.Logger)
         self._mock_session = self._requests_patcher.start()
         self._mock_ddd_components = self._create_mock_ddd_components()
@@ -283,8 +282,7 @@ class HttpServiceClientTest(unittest.TestCase):
             json.dumps({
                 "status": "success",
                 "data": {
-                    "version":
-                    PROTOCOL_VERSION,
+                    "version": PROTOCOL_VERSION,
                     "result": [{
                         "value": "mock_value",
                         "confidence": "mock_confidence",

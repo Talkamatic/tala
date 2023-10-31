@@ -56,14 +56,16 @@ if __name__ == "__main__":
         author="Talkamatic",
         author_email="dev@talkamatic.se",
         install_requires=[
-            "Jinja2>=3.0.1",
-            "dill==0.3.6",
-            "iso8601==0.1.14",
-            "lxml==4.6.3",
-            "prompt-toolkit==3.0.19",
-            "requests-cache==0.6.4",
-            "requests==2.26.0",
-            "structlog==21.1.0",
+            "Jinja2>=3.0.1, <4",
+            "dill>=0.3.6",
+            "iso8601>=0.1.14",
+            "lxml>=4.6.3",
+            "prompt-toolkit>=3.0.19",
+            "requests>=2.26.0",
+            "structlog>=21.1.0",
+            "setuptools>=68.2.2",
+            "setuptools-scm>=8.0.4"
+
         ],
         dependency_links=[],
     )  # yapf: disable
