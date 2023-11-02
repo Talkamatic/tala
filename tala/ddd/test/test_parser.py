@@ -242,7 +242,7 @@ class ParserTests(unittest.TestCase):
         actions = set()
         ontology_without_real_sort = Ontology("ontology_without_real_sort", sorts, predicates, individuals, actions)
         move = Parser(self._ddd_name, ontology_without_real_sort, self.domain_name).parse("answer(1234)")
-        self.assertEqual(move.get_type(), Move.ANSWER)
+        self.assertEqual(move.type_, Move.ANSWER)
         self.assertTrue(move.get_content().is_individual())
         self.assertEqual(move.get_content().getSort().get_name(), "integer")
 
@@ -335,11 +335,11 @@ class ParserTests(unittest.TestCase):
 
     def test_create_request_move(self):
         request = self.parse("request(buy)")
-        self.assertEqual(Move.REQUEST, request.get_type())
+        self.assertEqual(Move.REQUEST, request.type_)
 
     def test_create_request_move_with_thanks_action(self):
         request = self.parse("request(thanks)")
-        self.assertEqual(Move.REQUEST, request.get_type())
+        self.assertEqual(Move.REQUEST, request.type_)
         self.assertEqual(self.thanks_action, request.get_content())
 
     def test_create_request_move_w_score_and_usr(self):
@@ -892,20 +892,20 @@ class ParserTests(unittest.TestCase):
 
     def test_unmute_move(self):
         move = self.parse("unmute")
-        self.assertEqual(Move.UNMUTE, move.get_type())
+        self.assertEqual(Move.UNMUTE, move.type_)
 
     def test_quit_move(self):
         move = self.parse("quit")
-        self.assertEqual(Move.QUIT, move.get_type())
+        self.assertEqual(Move.QUIT, move.type_)
 
     def test_contentful_reraise(self):
         move = self.parse("icm:reraise:top")
-        self.assertEqual(ICMMove.RERAISE, move.get_type())
+        self.assertEqual(ICMMove.RERAISE, move.type_)
         self.assertEqual(self.top_action, move.get_content())
 
     def test_contentless_reraise(self):
         move = self.parse("icm:reraise")
-        self.assertEqual(ICMMove.RERAISE, move.get_type())
+        self.assertEqual(ICMMove.RERAISE, move.type_)
 
     def test_reraise_with_speaker_and_score(self):
         speaker = Speaker.SYS
@@ -918,37 +918,37 @@ class ParserTests(unittest.TestCase):
 
     def test_resume(self):
         move = self.parse("icm:resume:perform(buy)")
-        self.assertEqual(ICMMove.RESUME, move.get_type())
+        self.assertEqual(ICMMove.RESUME, move.type_)
         self.assertEqual(PerformGoal(self.buy_action), move.get_content())
 
     def test_contentful_accommodate(self):
         move = self.parse("icm:accommodate:top")
-        self.assertEqual(ICMMove.ACCOMMODATE, move.get_type())
+        self.assertEqual(ICMMove.ACCOMMODATE, move.type_)
         self.assertEqual(self.top_action, move.get_content())
 
     def test_contentless_accommodate(self):
         move = self.parse("icm:accommodate")
-        self.assertEqual(ICMMove.ACCOMMODATE, move.get_type())
+        self.assertEqual(ICMMove.ACCOMMODATE, move.type_)
 
     def test_loadplan(self):
         move = self.parse("icm:loadplan")
-        self.assertTrue(move.get_type() == ICMMove.LOADPLAN)
+        self.assertTrue(move.type_ == ICMMove.LOADPLAN)
 
     def test_und_neg_without_content(self):
         icm = self.parse("icm:und*neg")
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.NEG, icm.get_polarity())
         self.assertEqual(None, icm.get_content())
 
     def test_sem_neg(self):
         icm = self.parse("icm:sem*neg")
-        self.assertEqual(ICMMove.SEM, icm.get_type())
+        self.assertEqual(ICMMove.SEM, icm.type_)
         self.assertEqual(ICMMove.NEG, icm.get_polarity())
         self.assertEqual(None, icm.get_content())
 
     def test_contentful_per_pos(self):
         icm = self.parse('icm:per*pos:"a string"')
-        self.assertEqual(ICMMove.PER, icm.get_type())
+        self.assertEqual(ICMMove.PER, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
         expected_content = 'a string'
         self.assertEqual(expected_content, icm.get_content())
@@ -956,20 +956,20 @@ class ParserTests(unittest.TestCase):
     def test_contentful_per_pos_from_stringfyed_move(self):
         move = ICMMoveWithStringContent(ICMMove.PER, content="a string", polarity=ICMMove.POS)
         icm = self.parse(str(move))
-        self.assertEqual(ICMMove.PER, icm.get_type())
+        self.assertEqual(ICMMove.PER, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
         expected_content = "a string"
         self.assertEqual(expected_content, icm.get_content())
 
     def test_und_int_usr(self):
         icm = self.parse("icm:und*int:USR*dest_city(paris)")
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.INT, icm.get_polarity())
         self.assertEqual("dest_city(paris)", str(icm.get_content()))
 
     def test_und_int_model(self):
         icm = self.parse("icm:und*int:MODEL*dest_city(paris)")
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.INT, icm.get_polarity())
         self.assertEqual(Speaker.MODEL, icm.get_content_speaker())
         self.assertEqual("dest_city(paris)", str(icm.get_content()))
@@ -1003,7 +1003,7 @@ class ParserTests(unittest.TestCase):
 
     def test_und_pos_icm_for_issue_proposition(self):
         icm = self.parse("icm:und*pos:USR*goal(resolve(?X.dest_city(X)))")
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
         self.assertEqual("goal(resolve(?X.dest_city(X)))", str(icm.get_content()))
 
@@ -1026,13 +1026,13 @@ class ParserTests(unittest.TestCase):
 
     def test_und_pos_icm_for_predicate_proposition(self):
         icm = self.parse("icm:und*pos:USR*dest_city(paris)")
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
         self.assertEqual("dest_city(paris)", str(icm.get_content()))
 
     def test_per_neg_icm(self):
         icm = self.parse("icm:per*neg")
-        self.assertEqual(ICMMove.PER, icm.get_type())
+        self.assertEqual(ICMMove.PER, icm.type_)
         self.assertEqual(ICMMove.NEG, icm.get_polarity())
 
     def test_per_neg_icm_w_speaker_and_score(self):
@@ -1044,18 +1044,18 @@ class ParserTests(unittest.TestCase):
 
     def test_acc_pos_icm_no_content(self):
         icm = self.parse("icm:acc*pos")
-        self.assertEqual(ICMMove.ACC, icm.get_type())
+        self.assertEqual(ICMMove.ACC, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
 
     def test_acc_neg_icm_for_issue(self):
         icm = self.parse("icm:acc*neg:issue")
-        self.assertEqual(ICMMove.ACC, icm.get_type())
+        self.assertEqual(ICMMove.ACC, icm.type_)
         self.assertEqual(ICMMove.NEG, icm.get_polarity())
         self.assertEqual(str(icm), "ICMMove(icm:acc*neg:issue)")
 
     def test_acc_neg_icm_for_goal_issue(self):
         icm = self.parse("icm:acc*neg:goal(perform(buy))")
-        self.assertEqual(ICMMove.ACC, icm.get_type())
+        self.assertEqual(ICMMove.ACC, icm.type_)
         self.assertEqual(ICMMove.NEG, icm.get_polarity())
         self.assertEqual(str(icm), "ICMMove(icm:acc*neg:goal(perform(buy)))")
 

@@ -43,7 +43,7 @@ class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
         )
 
     def test_getters(self):
-        self.assertEqual(Move.REPORT, self.success_move.get_type())
+        self.assertEqual(Move.REPORT, self.success_move.type_)
         self.assertEqual(self.success_result, self.success_move.get_content())
 
     def test_str_success_move(self):
@@ -121,7 +121,7 @@ class PrereportMoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.move = self.move_factory.create_prereport_move(self.service_action, self.arguments)
 
     def test_getters(self):
-        self.assertEqual(Move.PREREPORT, self.move.get_type())
+        self.assertEqual(Move.PREREPORT, self.move.type_)
         self.assertEqual(self.service_action, self.move.get_service_action())
         self.assertEqual(self.arguments, self.move.get_arguments())
 
@@ -232,7 +232,7 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
             self.ontology_name, speaker="USR", understanding_confidence=1.0, ddd_name=""
         )
         answer = move_factory.createAnswerMove(self.individual_paris)
-        self.assertEqual(Move.ANSWER, answer.get_type())
+        self.assertEqual(Move.ANSWER, answer.type_)
 
     def test_is_question_raising_true_for_ask_move(self):
         question_string = "?X.dest_city(X)"
@@ -280,7 +280,7 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_create_greet_move(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
-        self.assertEqual(Move.GREET, move.get_type())
+        self.assertEqual(Move.GREET, move.type_)
 
     def test_greet_move_to_string(self):
         move = self.move_factory.createMove(Move.GREET, speaker=Speaker.SYS)
@@ -474,7 +474,7 @@ class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_create_reraise_icm_move(self):
         move = self.move_factory.createIcmMove(ICMMove.RERAISE, content=self.ontology.create_action("top"))
-        self.assertTrue(move.get_type() == ICMMove.RERAISE)
+        self.assertTrue(move.type_ == ICMMove.RERAISE)
 
     def test_reraise_to_string(self):
         move = self.move_factory.createIcmMove(ICMMove.RERAISE, content=self.ontology.create_action("top"))
@@ -498,7 +498,7 @@ class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_create_und_int(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.INT, speaker=Speaker.SYS)
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.INT, icm.get_polarity())
 
     def test_inequality_due_to_polarity_difference(self):
@@ -614,7 +614,7 @@ class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_create_und_pos(self):
         icm = self.move_factory.createIcmMove(ICMMove.UND, polarity=ICMMove.POS, speaker=Speaker.SYS)
-        self.assertEqual(ICMMove.UND, icm.get_type())
+        self.assertEqual(ICMMove.UND, icm.type_)
         self.assertEqual(ICMMove.POS, icm.get_polarity())
 
     def test_und_pos_to_string(self):

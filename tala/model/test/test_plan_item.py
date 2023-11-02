@@ -263,7 +263,7 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
 
     def test_is_invoke_service_query_plan_item(self):
         self.given_created_invoke_service_query_plan_item()
-        self.when_call(self._plan_item.get_type)
+        self._actual_result = self._plan_item.type_
         self.then_result_is(plan_item.TYPE_INVOKE_SERVICE_QUERY)
 
     def given_created_invoke_service_query_plan_item(self, *args, **kwargs):

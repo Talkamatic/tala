@@ -164,8 +164,7 @@ class Perform(GoalWithSemanticContent):
         return RequestMove(self.content)
 
     def is_top_goal(self):
-        action = self.get_action()
-        return action.is_top_action()
+        return self.action.is_top_action()
 
 
 class PerformGoal(Perform):

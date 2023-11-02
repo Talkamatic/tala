@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.common import Modality
 from tala.model.confidence_estimate import ConfidenceEstimates
 from tala.model.speaker import Speaker
@@ -67,10 +69,12 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return True
 
     def get_type(self):
+        warnings.warn("Move.get_type() is deprecated. Use Move.type_ instead.", DeprecationWarning, stacklevel=2)
         return self._type
 
     @property
     def type(self):
+        warnings.warn("Move.type is deprecated. Use Move.type_ instead.", DeprecationWarning, stacklevel=2)
         return self._type
 
     @property
@@ -211,7 +215,7 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
 
     def move_content_equals(self, other):
         try:
-            return (self.get_type() == other.get_type() and self.class_internal_move_content_equals(other))
+            return (self.type_ == other.type_ and self.class_internal_move_content_equals(other))
         except AttributeError:
             return False
 
@@ -222,10 +226,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return False
 
     def is_question_raising(self):
-        return self.get_type() == Move.ASK
+        return self.type_ == Move.ASK
 
     def is_turn_yielding(self):
-        return self.get_type() in [Move.ANSWER, Move.GREET]
+        return self.type_ in [Move.ANSWER, Move.GREET]
 
     def to_rich_string(self):
         return f"{str(self)}:{self._speaker}:{self.understanding_confidence}"
@@ -350,13 +354,13 @@ class ICMMove(Move):
         return None
 
     def is_negative_perception_icm(self):
-        if self.get_type() == ICMMove.PER:
+        if self.type_ == ICMMove.PER:
             return self.get_polarity() == ICMMove.NEG
         else:
             return False
 
     def is_positive_acceptance_icm(self):
-        if self.get_type() == ICMMove.ACC:
+        if self.type_ == ICMMove.ACC:
             return self.get_polarity() == ICMMove.POS
         else:
             return False
@@ -365,13 +369,13 @@ class ICMMove(Move):
         return False
 
     def is_negative_acceptance_icm(self):
-        if (self.get_type() == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
+        if (self.type_ == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
             return True
         else:
             return False
 
     def is_negative_understanding_icm(self):
-        return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.NEG)
+        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.NEG)
 
     def is_positive_understanding_icm_with_non_neg_content(self):
         return False
@@ -419,7 +423,7 @@ class IssueICMMove(ICMMove):
         return True
 
     def is_negative_acceptance_issue_icm(self):
-        if (self.get_type() == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
+        if (self.type_ == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
             return True
         return False
 
@@ -466,18 +470,18 @@ class ICMMoveWithContent(ICMMove):
 
     def is_question_raising(self):
         return (
-            self.get_type() == ICMMove.UND and self.content is not None
+            self.type_ == ICMMove.UND and self.content is not None
             and not (self.get_polarity() == ICMMove.POS and not self.content.is_positive())
         )
 
     def is_positive_understanding_icm_with_non_neg_content(self):
-        return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.POS and self.content.is_positive())
+        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.POS and self.content.is_positive())
 
     def is_interrogative_understanding_icm_with_non_neg_content(self):
-        return (self.get_type() == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.content.is_positive())
+        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.content.is_positive())
 
     def is_grounding_proposition(self):
-        return self.get_type() == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
+        return self.type_ == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
 
     def as_dict(self):
         return super().as_dict() | {"content": self.content, "content_speaker": self.get_content_speaker()}

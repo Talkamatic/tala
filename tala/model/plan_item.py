@@ -153,8 +153,8 @@ class PlanItemWithContent(PlanItem):
 
     def __eq__(self, other):
         try:
-            return other is not None and other.is_plan_item() and self.get_type() == other.get_type(
-            ) and self.get_content() == other.get_content()
+            return other is not None and other.is_plan_item() and self.type_ == other.get_type() and self.get_content(
+            ) == other.get_content()
         except AttributeError:
             return False
 
@@ -166,7 +166,7 @@ class PlanItemWithContent(PlanItem):
         return self._content
 
     def as_dict(self):
-        return {self.get_type(): self._content}
+        return {self.type_: self._content}
 
 
 class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
@@ -192,6 +192,12 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return hash((self.__class__.__name__, self._type, self._content))
 
     def get_type(self):
+        warnings.warn(
+            "PlanItemWithSemanticContent.get_type() is deprecated. Use PlanItemWithSemanticContent.type_ instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         return self._type
 
     @property
@@ -215,7 +221,7 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
         return self.content
 
     def as_dict(self):
-        return {self.get_type(): self._content}
+        return {self.type_: self._content}
 
 
 class Assume(PlanItemWithSemanticContent):
@@ -339,13 +345,13 @@ class EmitICM(PlanItemWithSemanticContent):
     def is_question_raising_item(self):
         icm = self.content
         return (
-            icm.get_type() == ICMMove.UND
+            icm.type_ == ICMMove.UND
             and not (icm.get_polarity() == ICMMove.POS and not icm.get_content().is_positive())
         )
 
     def is_turn_yielding(self):
         icm = self.content
-        return (icm.get_type() == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
+        return (icm.type_ == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
 
 
 class EmitIcmPlanItem(EmitICM):
@@ -524,7 +530,7 @@ class InvokeQuery(PlanItemWithSemanticContent):
 
     def as_dict(self):
         return {
-            self.get_type(): {
+            self.type_: {
                 "issue": self._content,
                 "min_results": self._min_results,
                 "max_results": self._max_results,
@@ -693,7 +699,7 @@ class Handle(PlanItem, OntologySpecificSemanticObject):
 
     def as_dict(self):
         return {
-            self.get_type(): {
+            self.type_: {
                 "service_action": self._service_action,
                 "ontology": self.ontology_name,
             }
@@ -804,7 +810,7 @@ class EndTurn(PlanItem):
         return f"EndTurnPlanItem('{self.timeout}')"
 
     def as_dict(self):
-        return {self.get_type(): self._timeout}
+        return {self.type_: self._timeout}
 
 
 class EndTurnPlanItem(EndTurn):
@@ -827,7 +833,7 @@ class ResetDomainQuery(PlanItem):
         return f"ResetDomainQueryPlanItem('{self.query}')"
 
     def as_dict(self):
-        return {self.get_type(): self._query}
+        return {self.type_: self._query}
 
 
 class ResetDomainQueryPlanItem(ResetDomainQuery):
@@ -927,7 +933,7 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
 
     def as_dict(self):
         return {
-            self.get_type(): self._content,
+            self.type_: self._content,
             "domain_name": self._domain_name,
             "allow_answer_from_pcom": self._allow_answer_from_pcom
         }
