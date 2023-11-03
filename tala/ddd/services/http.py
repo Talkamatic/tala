@@ -118,7 +118,7 @@ class HttpServiceClient(AbstractServiceWrapper):
                 "session": session,
                 "request": {
                     "type": "query",
-                    "name": question.get_predicate().get_name(),
+                    "name": question.predicate.get_name(),
                     "parameters": self._parameter_bindings_to_json_dict(parameters, session),
                     "min_results": min_results,
                     "max_results": max_results

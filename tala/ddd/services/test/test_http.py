@@ -270,7 +270,7 @@ class HttpServiceClientTest(unittest.TestCase):
         mock_question = Mock(spec=WhQuestion)
         sort = self._mock_sort(sort_name)
         predicate = self._mock_predicate(predicate_name, sort)
-        mock_question.get_predicate.return_value = predicate
+        mock_question.predicate = predicate
         return mock_question
 
     def when_query(self, *args, **kwargs):
