@@ -179,7 +179,7 @@ class PropositionSetTests(LibTestCase):
         self.assertFalse(self.buy_action.is_proposition_set())
 
     def test_get_predicate(self):
-        self.assertEqual(self.predicate_dest_city, self.positive_prop_set.getPredicate())
+        self.assertEqual(self.predicate_dest_city, self.positive_prop_set.predicate)
 
     def test_repr(self):
         self.assertEqual(
@@ -468,8 +468,8 @@ class PredicatePropositionTests(LibTestCase):
         self.setUpLibTestCase()
 
     def test_getters(self):
-        self.assertEqual(self.predicate_dest_city, self.proposition_dest_city_paris.getPredicate())
-        self.assertEqual(self.individual_paris, self.proposition_dest_city_paris.getArgument())
+        self.assertEqual(self.predicate_dest_city, self.proposition_dest_city_paris.predicate)
+        self.assertEqual(self.individual_paris, self.proposition_dest_city_paris.individual)
 
     def test_positive_unicode(self):
         self.assertEqual("dest_city(paris)", str(self.proposition_dest_city_paris))
@@ -510,18 +510,18 @@ class PredicatePropositionTests(LibTestCase):
             individual = self.ontology.create_individual("car")
             PredicateProposition(predicate, individual)
 
-    def test_getPredicate(self):
-        self.assertEqual("dest_city", self.proposition_dest_city_paris.getPredicate().get_name())
+    def test_predicate(self):
+        self.assertEqual("dest_city", self.proposition_dest_city_paris.predicate.get_name())
 
-    def test_getArgument(self):
-        self.assertEqual("paris", self.proposition_dest_city_paris.getArgument().getValue())
+    def test_value(self):
+        self.assertEqual("paris", self.proposition_dest_city_paris.individual.value)
 
     def test_hashable(self):
         {self.proposition_dest_city_paris}
 
     def test_nullary(self):
         proposition = PredicateProposition(self.predicate_need_visa)
-        self.assertEqual(None, proposition.getArgument())
+        self.assertEqual(None, proposition.individual)
         self.assertEqual("need_visa", str(proposition))
 
     def test_is_predicate_proposition_true(self):

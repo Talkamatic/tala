@@ -36,8 +36,7 @@ class HttpFormattingTest(unittest.TestCase):
                 value="mock_individual_value",
                 value_as_json_object={"value": "mock_value"}
             ), {
-                "session_id":
-                "blah",
+                "session_id": "blah",
                 "entities": [{
                     "sort": "mock_sort",
                     "natural_language_form": "mock_grammar_entry",
@@ -79,8 +78,9 @@ class HttpFormattingTest(unittest.TestCase):
         individual = self._mock_individual(value, value_as_json_object, sort)
         mock_proposition = Mock(spec=PredicateProposition)
         mock_proposition.is_predicate_proposition.return_value = True
-        mock_proposition.getPredicate.return_value = predicate
-        mock_proposition.getArgument.return_value = individual
+        mock_proposition.predicate = predicate
+        mock_proposition.individual = individual
+        mock_proposition.sort = sort
         mock_proposition.get_polarity.return_value = polarity
         mock_proposition.confidence_estimates.perception_confidence = perception_confidence
         mock_proposition.confidence_estimates.understanding_confidence = understanding_confidence
@@ -91,7 +91,7 @@ class HttpFormattingTest(unittest.TestCase):
     def _mock_predicate(self, name, sort):
         mock_predicate = Mock(spec=Predicate)
         mock_predicate.get_name.return_value = name
-        mock_predicate.getSort.return_value = sort
+        mock_predicate.sort = sort
         return mock_predicate
 
     def _mock_sort(self, name):
@@ -101,8 +101,8 @@ class HttpFormattingTest(unittest.TestCase):
 
     def _mock_individual(self, value, value_as_json_object, sort):
         mock_individual = Mock(spec=Individual)
-        mock_individual.getSort.return_value = sort
-        mock_individual.getValue.return_value = value
+        mock_individual.sort = sort
+        mock_individual.value = value
         mock_individual.value_as_json_object.return_value = value_as_json_object
         return mock_individual
 
@@ -144,8 +144,7 @@ class HttpFormattingTest(unittest.TestCase):
                 value_as_json_object={"value": "mock_value"}
             )
         ], {
-            "session_id":
-            "blah",
+            "session_id": "blah",
             "entities": [{
                 "sort": "mock_sort",
                 "natural_language_form": "mock_grammar_entry",
@@ -192,6 +191,6 @@ class HttpFormattingTest(unittest.TestCase):
         sort = self._mock_sort(sort_name)
         predicate = self._mock_predicate(predicate_name, sort)
         mock_proposition = Mock(spec=PredicateProposition)
-        mock_proposition.getPredicate.return_value = predicate
-        mock_proposition.getArgument.return_value = None
+        mock_proposition.predicate = predicate
+        mock_proposition.value = None
         return mock_proposition

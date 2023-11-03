@@ -7,7 +7,7 @@ class HttpFormatter(object):
 
     def facts_to_json_object(self, facts, session):
         return {
-            proposition.getPredicate().get_name(): self.fact_to_json_object(proposition, session)
+            proposition.predicate.get_name(): self.fact_to_json_object(proposition, session)
             for proposition in facts
             if proposition.is_predicate_proposition() and proposition.get_polarity() == Polarity.POS
         }
@@ -22,14 +22,14 @@ class HttpFormatter(object):
 
         if proposition is None:
             return None
-        individual = proposition.getArgument()
-        if individual is None:
+
+        if proposition.individual is None:
             return None
-        value = individual.getValue()
-        value_as_json = individual.value_as_json_object()
+        value = proposition.individual.value
+        value_as_json = proposition.individual.value_as_json_object()
         grammar_entry = get_grammar_entry(value)
         resulting_dict = {
-            "sort": proposition.getPredicate().getSort().get_name(),
+            "sort": proposition.predicate.sort.get_name(),
             "grammar_entry": grammar_entry,
             "perception_confidence":
                 proposition.confidence_estimates.perception_confidence if proposition.confidence_estimates else None,

@@ -20,7 +20,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         self._utterance = utterance
         self._ddd_name = ddd_name
 
-    def createMove(
+    def create_move(
         self,
         type_,
         content=None,
@@ -65,15 +65,15 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         return Move(type_, **kwargs)
 
     def create_ask_move(self, question, speaker=None):
-        return self.createMove(Move.ASK, question, speaker=speaker)
+        return self.create_move(Move.ASK, question, speaker=speaker)
 
-    def createAnswerMove(self, answer, speaker=None):
-        return self.createMove(Move.ANSWER, answer, speaker=speaker)
+    def create_answer_move(self, answer, speaker=None):
+        return self.create_move(Move.ANSWER, answer, speaker=speaker)
 
-    def createRequestMove(self, action):
-        return self.createMove(Move.REQUEST, action, speaker=Speaker.USR, understanding_confidence=1.0)
+    def create_request_move(self, action):
+        return self.create_move(Move.REQUEST, action, speaker=Speaker.USR, understanding_confidence=1.0)
 
-    def createIcmMove(
+    def create_icm_move(
         self,
         icm_type,
         content=None,

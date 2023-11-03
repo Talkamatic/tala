@@ -93,11 +93,11 @@ class IndividualTest(IndividualTestBase):
 
     def test_create_individual(self):
         individual = self.ontology.create_individual("paris")
-        self.assertEqual("paris", individual.getValue())
+        self.assertEqual("paris", individual.value)
 
     def test_create_negative_individual(self):
         individual = self.ontology.create_negative_individual("paris")
-        self.assertEqual("paris", individual.getValue())
+        self.assertEqual("paris", individual.value)
 
     def test_create_invalid_individual(self):
         ontology_without_string_predicate = self.empty_ontology
@@ -111,7 +111,7 @@ class IndividualTest(IndividualTestBase):
 
     def test_get_sort(self):
         individual = self.ontology.create_individual("paris")
-        self.assertEqual(self.sort_city, individual.getSort())
+        self.assertEqual(self.sort_city, individual.sort)
 
     def test_equality(self):
         individual1 = self.ontology.create_individual("paris")
@@ -176,6 +176,7 @@ class IndividualTest(IndividualTestBase):
         def mock_value_as_json_object(value):
             self.assertEqual(expected_value, value)
             return value_as_json_object
+
         self._mock_sort.value_as_json_object.side_effect = mock_value_as_json_object
 
     def when_call_value_as_json_object_for_individual(self):

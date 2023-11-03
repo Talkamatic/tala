@@ -375,7 +375,7 @@ class DomainCompiler(XmlCompiler):
         predicate = self._ontology.get_predicate(predicate_name)
         for element in individual_elements:
             individual_name = element.getAttribute("value")
-            individual = self._ontology.create_individual(individual_name, sort=predicate.getSort())
+            individual = self._ontology.create_individual(individual_name, sort=predicate.sort)
             yield PredicateProposition(predicate, individual)
 
     def _compile_goal(self, element):
@@ -594,7 +594,7 @@ class DomainCompiler(XmlCompiler):
 
         device = self._get_optional_attribute(element, "device")
         if device:
-            query = question.get_predicate().get_name()
+            query = question.predicate.get_name()
             fail(query, device, name)
 
     def _compile_invoke_service_action_element(self, element):
@@ -667,7 +667,7 @@ class DomainCompiler(XmlCompiler):
                 return []
 
         predicate_proposition = self._compile_predicate_proposition_child_of(element)
-        predicate = predicate_proposition.get_predicate()
+        predicate = predicate_proposition.predicate
         question = self._parse("?X.%s(X)" % predicate)
         insist = self._get_optional_attribute(element, "insist")
         generate_end_turn = self._parse_boolean(self._get_optional_attribute(element, "generate_end_turn"))
@@ -728,11 +728,11 @@ class DomainCompiler(XmlCompiler):
         predicate = self._ontology.get_predicate(predicate_name)
         value = element.getAttribute("value")
         if value:
-            if predicate.getSort().is_boolean_sort():
+            if predicate.sort.is_boolean_sort():
                 if self._parse_boolean(value):
                     return PredicateProposition(predicate, polarity=Polarity.POS)
                 return PredicateProposition(predicate, polarity=Polarity.NEG)
-            individual = self._ontology.create_individual(value, sort=predicate.getSort())
+            individual = self._ontology.create_individual(value, sort=predicate.sort)
         else:
             individual = None
         return PredicateProposition(predicate, individual)

@@ -1,3 +1,4 @@
+import warnings
 import re
 
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
@@ -15,9 +16,15 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         self.polarity = Polarity.POS
 
     def getValue(self):
+        warnings.warn(
+            "Individual.getValue() is deprecated. Use Individual.value instead.", DeprecationWarning, stacklevel=2
+        )
         return self.value
 
     def getSort(self):
+        warnings.warn(
+            "Individual.getSort() is deprecated. Use Individual.sort instead.", DeprecationWarning, stacklevel=2
+        )
         return self.sort
 
     def is_individual(self):
@@ -29,7 +36,7 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def __eq__(self, other):
         try:
             if other.is_positive():
-                return self.getValue() == other.getValue() and self.getSort() == other.getSort()
+                return self.value == other.value and self.sort == other.sort
             else:
                 return False
         except AttributeError:
@@ -42,14 +49,14 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         return hash((self.value, self.sort))
 
     def __str__(self):
-        sort = self.getSort()
+        sort = self.sort
         if sort.is_string_sort():
-            return '"%s"' % self.getValue()
+            return '"%s"' % self.value
         else:
-            return str(self.getValue())
+            return str(self.value)
 
     def __repr__(self):
-        return "%s%s" % (self.__class__.__name__, (self.getValue(), self.getSort()))
+        return "%s%s" % (self.__class__.__name__, (self.value, self.sort))
 
     def negate(self):
         return NegativeIndividual(self.ontology_name, self.value, self.sort)
@@ -79,15 +86,15 @@ class NegativeIndividual(Individual):
         return Individual(self.ontology_name, self.value, self.sort)
 
     def __str__(self):
-        return "~%s" % self.getValue()
+        return "~%s" % self.value
 
     def __eq__(self, other):
         try:
             if other.is_positive():
                 return False
             else:
-                otherValue = other.getValue()
-                return self.getValue() == otherValue
+                otherValue = other.value
+                return self.value == otherValue
         except AttributeError:
             return False
 

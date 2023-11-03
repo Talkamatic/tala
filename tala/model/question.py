@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.semantic_object import SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -20,7 +22,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            equality = self.get_type() == other.get_type() and self.get_content() == other.get_content()
+            equality = self.type_ == other.type_ and self.content == other.content
             return equality
         except AttributeError:
             return False
@@ -55,22 +57,43 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     def is_preconfirmation_question(self):
         return (self._type == self.TYPE_YESNO and self._content.is_preconfirmation_proposition())
 
+    @property
+    def sort(self):
+        return self.predicate.sort
+
     def get_sort(self):
-        predicate = self.get_predicate()
-        return predicate.getSort()
+        warnings.warn("Question.get_sort() is deprecated. Use Question.sort instead.", DeprecationWarning, stacklevel=2)
+        return self.sort
 
     @property
     def content(self):
         return self._content
 
     def get_content(self):
+        warnings.warn(
+            "Question.get_content() is deprecated. Use Question.content instead.", DeprecationWarning, stacklevel=2
+        )
         return self.content
 
-    def get_type(self):
+    @property
+    def type_(self):
         return self._type
 
+    def get_type(self):
+        warnings.warn(
+            "Question.get_predicate() is deprecated. Use Question.predicate instead.", DeprecationWarning, stacklevel=2
+        )
+        return self.type_
+
+    @property
+    def predicate(self):
+        return self.content.predicate
+
     def get_predicate(self):
-        return self._content.getPredicate()
+        warnings.warn(
+            "Question.get_predicate() is deprecated. Use Question.predicate instead.", DeprecationWarning, stacklevel=2
+        )
+        return self.predicate
 
     def __str__(self):
         return "?" + unicodify(self._content)
@@ -95,11 +118,11 @@ class AltQuestion(Question):
             return Question.__str__(self)
 
     def _contains_single_predicate(self):
-        predicates = {alt.getPredicate() for alt in self._content if alt.is_predicate_proposition()}
+        predicates = {alt.predicate for alt in self._content if alt.is_predicate_proposition()}
         return len(predicates) == 1
 
     def _predicate(self):
-        return list(self._content)[0].getPredicate()
+        return list(self._content)[0].predicate
 
 
 class YesNoQuestion(Question):
@@ -112,7 +135,7 @@ class KnowledgePreconditionQuestion(Question):
         Question.__init__(self, Question.TYPE_KPQ, question)
 
     def __str__(self):
-        return f"?know_answer({self.get_content()})"
+        return f"?know_answer({self.content})"
 
 
 class ConsequentQuestion(Question):
@@ -120,7 +143,7 @@ class ConsequentQuestion(Question):
         Question.__init__(self, Question.TYPE_CONSEQUENT, lambda_abstracted_implication_proposition)
 
     def get_embedded_consequent_question(self):
-        consequent_predicate = self.get_content().consequent_predicate
+        consequent_predicate = self.content.consequent_predicate
         lambda_abstracted_consequent_proposition = LambdaAbstractedPredicateProposition(
             consequent_predicate, consequent_predicate.ontology_name
         )

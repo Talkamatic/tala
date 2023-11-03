@@ -367,8 +367,8 @@ class HttpServiceClientTest(unittest.TestCase):
         mock_predicate_proposition = Mock(spec=PredicateProposition)
         mock_predicate_proposition.is_predicate_proposition.return_value = True
         mock_predicate_proposition.get_polarity.return_value = polarity
-        mock_predicate_proposition.getPredicate.return_value = predicate
-        mock_predicate_proposition.getArgument.return_value = individual
+        mock_predicate_proposition.predicate = predicate
+        mock_predicate_proposition.individual = individual
         mock_predicate_proposition.confidence_estimates.perception_confidence = perception_confidence
         mock_predicate_proposition.confidence_estimates.understanding_confidence = understanding_confidence
         mock_predicate_proposition.confidence_estimates.weighted_confidence = weighted_confidence
@@ -402,7 +402,7 @@ class HttpServiceClientTest(unittest.TestCase):
     def _mock_predicate(self, name, sort):
         mock_predicate = Mock(spec=Predicate)
         mock_predicate.get_name.return_value = name
-        mock_predicate.getSort.return_value = sort
+        mock_predicate.sort = sort
         return mock_predicate
 
     def _mock_sort(self, name):
@@ -412,8 +412,8 @@ class HttpServiceClientTest(unittest.TestCase):
 
     def _mock_individual(self, value, sort):
         mock_individual = Mock(spec=Individual)
-        mock_individual.getSort.return_value = sort
-        mock_individual.getValue.return_value = value
+        mock_individual.sort = sort
+        mock_individual.value = value
         mock_individual.value_as_json_object.return_value = {"value": value}
         return mock_individual
 

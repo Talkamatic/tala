@@ -53,7 +53,7 @@ class SemanticLogic(object):
             if semantic_object.is_consequent_question():
                 ontology = self._ontology_of_semantic_object(semantic_object)
                 return ConsequentQuestionLogic(ontology, semantic_object)
-            return self.from_semantic_object(semantic_object.get_content())
+            return self.from_semantic_object(semantic_object.content)
         if semantic_object.is_proposition():
             if semantic_object.is_predicate_proposition():
                 ontology = self._ontology_of_semantic_object(semantic_object)
@@ -111,13 +111,13 @@ class LambdaAbstractedPredicatePropositionLogic(SemanticObjectAndOntologySpecifi
         is_relevant_individual = answer.is_individual() \
             and self._relevant_feature_for_individual(answer)
         is_relevant_predicate_proposition = answer.is_predicate_proposition() \
-            and answer.getPredicate().is_feature_of(self._semantic_object.predicate)
+            and answer.predicate.is_feature_of(self._semantic_object.predicate)
         return self.is_combinable_with(answer) or is_relevant_individual or is_relevant_predicate_proposition
 
     def _relevant_feature_for_individual(self, individual):
         for predicate in list(self._ontology.get_predicates().values()):
             if predicate.is_feature_of(self._semantic_object.predicate)\
-               and predicate.getSort() == individual.getSort():
+               and predicate.sort == individual.sort:
                 return predicate
 
     def is_combinable_with(self, answer):
@@ -130,8 +130,8 @@ class LambdaAbstractedPredicatePropositionLogic(SemanticObjectAndOntologySpecifi
     def combine_with(self, answer):
         if (
             answer.is_proposition() and (
-                answer.getPredicate() == self._semantic_object.getPredicate()
-                or answer.getPredicate().is_feature_of(self._semantic_object.getPredicate())
+                answer.predicate == self._semantic_object.predicate
+                or answer.predicate.is_feature_of(self._semantic_object.predicate)
             )
         ):
             return answer
@@ -141,7 +141,7 @@ class LambdaAbstractedPredicatePropositionLogic(SemanticObjectAndOntologySpecifi
                 individual = answer
             else:
                 polarity = Polarity.NEG
-                individual = Individual(answer.ontology_name, answer.getValue(), answer.getSort())
+                individual = Individual(answer.ontology_name, answer.value, answer.sort)
 
             feature_predicate = self._relevant_feature_for_individual(individual)
             if feature_predicate:
@@ -155,11 +155,11 @@ class LambdaAbstractedPredicatePropositionLogic(SemanticObjectAndOntologySpecifi
 
     def is_resolved_by(self, answer):
         try:
-            return (answer.getPredicate() == self._semantic_object.getPredicate() and answer.is_positive())
+            return (answer.predicate == self._semantic_object.predicate and answer.is_positive())
         except AttributeError:
             pass
         try:
-            return answer.getSort() == self._semantic_object.getSort() and answer.is_positive()
+            return answer.sort == self._semantic_object.sort and answer.is_positive()
         except AttributeError:
             return False
 
@@ -226,15 +226,15 @@ class PredicatePropositionLogic(PropositionLogic, SemanticObjectAndOntologySpeci
         return (
             answer.is_individual() and any([
                 predicate for predicate in list(self._ontology.get_predicates().values())
-                if predicate.is_feature_of(self._semantic_object.predicate) and predicate.getSort() == answer.getSort()
+                if predicate.is_feature_of(self._semantic_object.predicate) and predicate.sort == answer.sort
             ])
         )
 
     def is_combinable_with(self, answer):
         if answer.is_yes() or answer.is_no():
             return True
-        elif answer.is_predicate_proposition() and self._semantic_object.getPredicate() == answer.getPredicate() and \
-                self._semantic_object.getArgument() == answer.getArgument():
+        elif answer.is_predicate_proposition() and self._semantic_object.predicate == answer.predicate and \
+                self._semantic_object.individual == answer.individual:
             return True
         elif answer.is_individual() and self._is_combinable_with_individual(answer):
             return True
@@ -252,23 +252,23 @@ class PredicatePropositionLogic(PropositionLogic, SemanticObjectAndOntologySpeci
             return self._combine_with_individual(answer)
 
     def _is_combinable_with_individual(self, individual):
-        if self._semantic_object.getPredicate().getSort() == individual.getSort() \
-           and self._semantic_object.getArgument() is not None \
-           and self._semantic_object.getArgument().getValue() == individual.getValue():
+        if self._semantic_object.predicate.sort == individual.sort \
+           and self._semantic_object.individual is not None \
+           and self._semantic_object.individual.value == individual.value:
             return True
         else:
             return False
 
     def _combine_with_proposition(self, proposition):
-        if self._semantic_object.getPredicate() == proposition.getPredicate() and \
-                self._semantic_object.getArgument() == proposition.getArgument():
+        if self._semantic_object.predicate == proposition.predicate and \
+                self._semantic_object.individual == proposition.individual:
             return proposition
 
     def _combine_with_individual(self, individual):
-        argument = self._semantic_object.getArgument()
+        argument = self._semantic_object.individual
         if argument == individual:
             return self._semantic_object
-        if argument.getValue() == individual.getValue() \
+        if argument.value == individual.value \
                 and argument.is_positive() != individual.is_positive():
             return self._semantic_object.negate()
 
@@ -424,11 +424,11 @@ class KnowledgePreconditionQuestionLogic(PropositionLogic):
 
     def combine_with(self, answer):
         if answer.is_yes():
-            return KnowledgePreconditionProposition(self._semantic_object.get_content(), Polarity.POS)
+            return KnowledgePreconditionProposition(self._semantic_object.content, Polarity.POS)
         if answer.is_no():
-            return KnowledgePreconditionProposition(self._semantic_object.get_content(), Polarity.NEG)
+            return KnowledgePreconditionProposition(self._semantic_object.content, Polarity.NEG)
         try:
-            return self._semantic_logic.combine(self._semantic_object.get_content(), answer)
+            return self._semantic_logic.combine(self._semantic_object.content, answer)
         except (DomainError, OntologyError, AttributeError):
             pass
 
@@ -446,8 +446,8 @@ class ConsequentQuestionLogic(SemanticObjectAndOntologySpecificLogic):
 
     def combine_with(self, answer):
         if answer.is_proposition() and answer.is_implication_proposition() and \
-                answer.antecedent == self._semantic_object.get_content().antecedent and \
-                answer.consequent.getPredicate() == self._semantic_object.get_content().consequent_predicate:
+                answer.antecedent == self._semantic_object.content.antecedent and \
+                answer.consequent.predicate == self._semantic_object.content.consequent_predicate:
             return answer
 
     def is_combinable_with(self, answer):

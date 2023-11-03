@@ -177,41 +177,41 @@ class ParserTests(unittest.TestCase):
     def test_ShortAnswer(self):
         answer_move_from_string = self.parse("answer(paris)")
         answer = self.individual_paris
-        answer_move = self._move_factory.createAnswerMove(answer)
+        answer_move = self._move_factory.create_answer_move(answer)
         self.assertEqual(answer_move, answer_move_from_string)
 
     def test_PropositionalAnswerMove(self):
         answer_move_from_string = self.parse("answer(dest_city(paris))")
         individual = self.individual_paris
         answer = PredicateProposition(self.predicate_dest_city, individual)
-        answer_move = self._move_factory.createAnswerMove(answer)
+        answer_move = self._move_factory.create_answer_move(answer)
         self.assertEqual(answer_move, answer_move_from_string)
 
     def test_integer_short_answer(self):
         move = self.parse("answer(1234)")
-        expected_move = self._move_factory.createAnswerMove(self.integer_individual)
+        expected_move = self._move_factory.create_answer_move(self.integer_individual)
         self.assertEqual(expected_move, move)
 
     def test_negative_integer_short_answer(self):
         move = self.parse("answer(~1234)")
-        expected_move = self._move_factory.createAnswerMove(self.negative_integer_individual)
+        expected_move = self._move_factory.create_answer_move(self.negative_integer_individual)
         self.assertEqual(expected_move, move)
 
     def test_person_name_sortal_answer(self):
         move = self.parse("answer(person_name(John))")
-        expected_move = self._move_factory.createAnswerMove(self.person_name_individual)
+        expected_move = self._move_factory.create_answer_move(self.person_name_individual)
         self.assertEqual(expected_move, move)
 
     def test_negative_person_name_sortal_answer(self):
         move = self.parse("answer(~person_name(John))")
-        expected_move = self._move_factory.createAnswerMove(self.negative_person_name_individual)
+        expected_move = self._move_factory.create_answer_move(self.negative_person_name_individual)
         self.assertEqual(expected_move, move)
 
     def test_person_name_propositional_answer(self):
         move = self.parse("answer(selected_person(person_name(John)))")
         individual = self.person_name_individual
         answer = PredicateProposition(self.predicate_selected_person, individual)
-        expected_move = self._move_factory.createAnswerMove(answer)
+        expected_move = self._move_factory.create_answer_move(answer)
         self.assertEqual(expected_move, move)
 
     def test_person_name_individual(self):
@@ -220,19 +220,19 @@ class ParserTests(unittest.TestCase):
 
     def test_datetime_sortal_answer(self):
         move = self.parse("answer(datetime(2018-04-11T22:00:00.000Z))")
-        expected_move = self._move_factory.createAnswerMove(self.datetime_individual)
+        expected_move = self._move_factory.create_answer_move(self.datetime_individual)
         self.assertEqual(expected_move, move)
 
     def test_negative_datetime_sortal_answer(self):
         move = self.parse("answer(~datetime(2018-04-11T22:00:00.000Z))")
-        expected_move = self._move_factory.createAnswerMove(self.negative_datetime_individual)
+        expected_move = self._move_factory.create_answer_move(self.negative_datetime_individual)
         self.assertEqual(expected_move, move)
 
     def test_datetime_propositional_answer(self):
         move = self.parse("answer(selected_datetime(datetime(2018-04-11T22:00:00.000Z)))")
         individual = self.datetime_individual
         answer = PredicateProposition(self.predicate_selected_datetime, individual)
-        expected_move = self._move_factory.createAnswerMove(answer)
+        expected_move = self._move_factory.create_answer_move(answer)
         self.assertEqual(expected_move, move)
 
     def test_integer_short_answer_with_ontology_without_real_sort(self):
@@ -244,21 +244,21 @@ class ParserTests(unittest.TestCase):
         move = Parser(self._ddd_name, ontology_without_real_sort, self.domain_name).parse("answer(1234)")
         self.assertEqual(move.type_, Move.ANSWER)
         self.assertTrue(move.get_content().is_individual())
-        self.assertEqual(move.get_content().getSort().get_name(), "integer")
+        self.assertEqual(move.get_content().sort.get_name(), "integer")
 
     def test_float_short_answer(self):
         move = self.parse("answer(1234.0)")
-        expected_move = self._move_factory.createAnswerMove(self.real_individual)
+        expected_move = self._move_factory.create_answer_move(self.real_individual)
         self.assertEqual(expected_move, move)
 
     def test_negative_float_short_answer(self):
         move = self.parse("answer(~1234.0)")
-        expected_move = self._move_factory.createAnswerMove(self.real_negative_individual)
+        expected_move = self._move_factory.create_answer_move(self.real_negative_individual)
         self.assertEqual(expected_move, move)
 
     def test_float_answer(self):
         move = self.parse("answer(price(1234.0))")
-        expected_move = self._move_factory.createAnswerMove(self.price_proposition)
+        expected_move = self._move_factory.create_answer_move(self.price_proposition)
         self.assertEqual(expected_move, move)
 
     def test_propositional_usr_answer_move_w_score(self):
@@ -268,7 +268,7 @@ class ParserTests(unittest.TestCase):
         self._then_result_is(
             MoveFactoryWithPredefinedBoilerplate(
                 self.ontology.name, understanding_confidence=0.45, speaker=Speaker.USR, ddd_name="mockup_ddd"
-            ).createAnswerMove(PredicateProposition(self.predicate_dest_city, self.individual_paris))
+            ).create_answer_move(PredicateProposition(self.predicate_dest_city, self.individual_paris))
         )
 
     def _when_parse(self, string):
@@ -289,7 +289,7 @@ class ParserTests(unittest.TestCase):
                 understanding_confidence=0.45,
                 speaker=Speaker.USR,
                 utterance="paris"
-            ).createAnswerMove(PredicateProposition(self.predicate_dest_city, self.individual_paris))
+            ).create_answer_move(PredicateProposition(self.predicate_dest_city, self.individual_paris))
         )
 
     def test_undecorated_move_with_Move_classname(self):
@@ -345,7 +345,7 @@ class ParserTests(unittest.TestCase):
     def test_create_request_move_w_score_and_usr(self):
         score = 0.55
         speaker = Speaker.USR
-        expected_move = self._move_factory.createMove(
+        expected_move = self._move_factory.create_move(
             Move.REQUEST,
             content=Action("buy", self.ontology.get_name()),
             speaker=speaker,
@@ -1129,13 +1129,13 @@ class ParserTests(unittest.TestCase):
     def test_string_answer(self):
         move = self.parse('answer("a string")')
         individual = Individual(self.ontology_name, 'a string', StringSort())
-        expected_move = self._move_factory.createAnswerMove(individual)
+        expected_move = self._move_factory.create_answer_move(individual)
         self.assertEqual(expected_move, move)
 
     def test_negative_string_answer(self):
         move = self.parse('answer(~"a string")')
         individual = NegativeIndividual(self.ontology_name, 'a string', StringSort())
-        expected_move = self._move_factory.createAnswerMove(individual)
+        expected_move = self._move_factory.create_answer_move(individual)
         self.assertEqual(expected_move, move)
 
     def test_predicate_proposition_with_string_individual_in_single_quotes(self):

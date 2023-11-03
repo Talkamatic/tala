@@ -27,14 +27,14 @@ class WhQuestionTests(LibTestCase):
         self.assertEqual("?X.goal(X)", str(goal_question))
 
     def test_wh_question_get_content(self):
-        self.assertEqual(self.lambda_abstracted_dest_city, self.dest_city_wh_question.get_content())
+        self.assertEqual(self.lambda_abstracted_dest_city, self.dest_city_wh_question.content)
 
-    def testWhQuestionEquality(self):
+    def test_wh_question_equality(self):
         question = self.dest_city_question
         identical_question = copy.copy(self.dest_city_question)
         self.assert_eq_returns_true_and_ne_returns_false_symmetrically(question, identical_question)
 
-    def testWhQuestionNonEquality(self):
+    def test_wh_question_non_equality(self):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.dest_city_question, self.price_question)
 
     def test_is_wh_question(self):
@@ -63,11 +63,11 @@ class YesNoQuestionTests(LibTestCase):
     def test_is_question(self):
         self.assertTrue(self.question.is_question())
 
-    def testYesNoQuestionunicode(self):
+    def test_yes_no_question_unicode(self):
         question = self.ontology.create_yes_no_question("dest_city", "paris")
         self.assertEqual("?dest_city(paris)", str(question))
 
-    def testInvalidYesNoQuestion(self):
+    def test_invalid_yes_no_question(self):
         with self.assertRaises(OntologyError):
             self.ontology.create_yes_no_question("kalle", "paris")
 

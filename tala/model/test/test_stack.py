@@ -48,12 +48,12 @@ class StackTester(EqualityAssertionTestCaseMixin):
 
     def test_newly_created_stack_is_empty(self):
         stack = self.create_stack()
-        self.assertTrue(stack.isEmpty())
+        self.assertTrue(stack.is_empty())
 
     def test_non_empty_stack_is_not_empty(self):
         stack = self.create_stack()
         stack.push("randomString")
-        self.assertFalse(stack.isEmpty())
+        self.assertFalse(stack.is_empty())
 
     def test_empty_stack_not_equals_none(self):
         empty_stack = self.create_stack()

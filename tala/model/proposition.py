@@ -1,3 +1,4 @@
+import warnings
 import copy
 
 from tala.model.error import OntologyError
@@ -247,9 +248,9 @@ class PredicateProposition(PropositionWithSemanticContent):
         self.predicate = predicate
         self.individual = individual
         self._predicted = predicted
-        if individual is not None and individual.getSort() != predicate.getSort():
+        if individual is not None and individual.sort != predicate.sort:
             raise OntologyError(("Sortal mismatch between predicate %s " + "(sort %s) and individual %s (sort %s)") %
-                                (predicate, predicate.getSort(), individual, individual.getSort()))
+                                (predicate, predicate.sort, individual, individual.sort))
 
     def as_move(self):
         if self.individual is None:
@@ -257,43 +258,59 @@ class PredicateProposition(PropositionWithSemanticContent):
         return AnswerMove(self)
 
     def get_predicate(self):
+        warnings.warn(
+            "Proposition.get_predicate() is deprecated. Use Proposition.predicate instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.predicate
 
     def getPredicate(self):
+        warnings.warn(
+            "Proposition.getPredicate() is deprecated. Use Proposition.predicate instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.get_predicate()
 
     def getArgument(self):
+        warnings.warn(
+            "Proposition.getArgument() is deprecated. Use Proposition.individual instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.individual
 
     def is_incompatible_with(self, other):
         return (
             self.negate() == other or (
                 self._proposes_other_individual_of_same_predicate(other)
-                and not self.getPredicate().allows_multiple_instances()
+                and not self.predicate.allows_multiple_instances()
             ) or self._is_feature_of_the_following_negative_proposition(other)
             or (self._polarity == Polarity.NEG and self._is_feature(other))
         )
 
     def _proposes_other_individual_of_same_predicate(self, other):
-        return (
-            other.is_predicate_proposition() and self.getPredicate() == other.getPredicate() and self.is_positive()
-            and other.is_positive() and self.getArgument() != other.getArgument()
-        )
+        return other.is_predicate_proposition() \
+            and self.predicate == other.predicate \
+            and self.is_positive() \
+            and other.is_positive() \
+            and self.individual != other.individual
 
     def _is_feature_of_the_following_negative_proposition(self, other):
         return (
-            other.is_predicate_proposition() and self.predicate.is_feature_of(other.getPredicate())
+            other.is_predicate_proposition() and self.predicate.is_feature_of(other.predicate)
             and other.get_polarity() == Polarity.NEG
         )
 
     def _is_feature(self, answer):
-        return (answer.is_predicate_proposition() and answer.getPredicate().is_feature_of(self.predicate))
+        return (answer.is_predicate_proposition() and answer.predicate.is_feature_of(self.predicate))
 
     def __eq__(self, other):
         try:
             return other is not None and other.is_proposition() and other.is_predicate_proposition(
-            ) and self.getPredicate() == other.getPredicate() and self.getArgument() == other.getArgument(
-            ) and self.get_polarity() == other.get_polarity()
+            ) and self.predicate == other.predicate and self.individual == other.individual and self.get_polarity(
+            ) == other.get_polarity()
         except AttributeError:
             return False
 
@@ -681,12 +698,21 @@ class PropositionSet(Proposition):
     def __repr__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self._propositions, self._polarity)
 
-    def getPredicate(self):
-        predicates = {proposition.getPredicate() for proposition in self._propositions}
+    @property
+    def predicate(self):
+        predicates = {proposition.predicate for proposition in self._propositions}
         if len(predicates) == 1:
             return list(predicates)[0]
         else:
             raise Exception("cannot get predicate for proposition set with zero or mixed predicates")
+
+    def getPredicate(self):
+        warnings.warn(
+            "PropositionSet.getPredicate() is deprecated. Use PropositionSet.predicate instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.predicate
 
     def is_ontology_specific(self):
         if not all([proposition.is_ontology_specific() for proposition in self._propositions]):

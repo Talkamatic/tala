@@ -180,10 +180,15 @@ class Resolve(GoalWithSemanticContent):
         return True
 
     @property
+    def question(self):
+        return self.content
+
+    @property
     def issue(self):
         return self.content
 
     def get_question(self):
+        warnings.warn("Goal.get_question() is deprecated. Use Goal.question instead.", DeprecationWarning, stacklevel=2)
         return self.content
 
     @staticmethod
@@ -199,7 +204,7 @@ class Resolve(GoalWithSemanticContent):
             result += "resolve_user"
         else:
             result += "resolve"
-        result += "(%s" % self.get_question()
+        result += "(%s" % self.question
         if self._background:
             result += ", %s" % unicodify(self._background)
         result += ")"

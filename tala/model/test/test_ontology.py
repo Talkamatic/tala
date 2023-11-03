@@ -427,5 +427,5 @@ class TestDynamicOntology(TestOntology):
         self._individual = self._ontology.create_individual(individual_string, sort)
 
     def _then_individual_is_of_right_type(self):
-        assert self._individual.getSort() == PersonNameSort()
-        assert self._individual.getValue() == PersonName("Anna Kronlid")
+        assert self._individual.sort == PersonNameSort()
+        assert self._individual.value == PersonName("Anna Kronlid")

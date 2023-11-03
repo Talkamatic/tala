@@ -1,5 +1,6 @@
 import copy
 import re
+import warnings
 
 from tala.model.error import OntologyError
 from tala.model.individual import Individual, NegativeIndividual
@@ -106,16 +107,16 @@ class Ontology(AsJSONMixin):
             self._add_builtin_sorts_for_predicate(predicate)
 
     def _add_builtin_sorts_for_predicate(self, predicate):
-        sort = predicate.getSort()
+        sort = predicate.sort
         if sort.is_builtin() and sort not in self._sorts:
             self._sorts[sort.get_name()] = sort
 
     def _validate_predicates(self):
         for predicate in list(self._predicates.values()):
-            if predicate.getSort() not in list(self._sorts.values()):
+            if predicate.sort not in list(self._sorts.values()):
                 raise OntologyError(
                     "predicate '%s' has unknown sort '%s' (sorts=%s)" %
-                    (predicate.get_name(), predicate.getSort(), self._sorts)
+                    (predicate.get_name(), predicate.sort, self._sorts)
                 )
 
         for name in self._predicates.keys():
@@ -196,8 +197,16 @@ class Ontology(AsJSONMixin):
     def has_sort(self, name):
         return name in list(self._sorts.keys())
 
-    def isPredicate(self, predicate):
-        return predicate in list(self._predicates.values())
+    def is_predicate(self, object_):
+        return object_ in list(self._predicates.values())
+
+    def isPredicate(self, object_):
+        warnings.warn(
+            "Ontology.isPredicate() is deprecated. Use Ontology.is_predicate() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.is_predicate(object_)
 
     def individual_sort(self, value):
         def sort_of(value):
@@ -232,13 +241,13 @@ class Ontology(AsJSONMixin):
 
     @property
     def predicate_sorts(self):
-        return unique(predicate.getSort() for predicate in sorted(self._predicates.values()))
+        return unique(predicate.sort for predicate in sorted(self._predicates.values()))
 
     def is_action(self, value):
         return value in self._actions
 
     def create_lambda_abstracted_predicate_proposition(self, predicate):
-        if not self.isPredicate(predicate):
+        if not self.is_predicate(predicate):
             raise OntologyError("predicate %s is not valid in ontology %s" % (str(predicate), self.name))
         return LambdaAbstractedPredicateProposition(predicate, self.name)
 

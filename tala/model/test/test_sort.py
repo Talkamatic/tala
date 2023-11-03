@@ -138,13 +138,13 @@ class TestStringSort(SortTestCase):
 
     def test_string_individual(self):
         individual = self.ontology.create_individual('"a string"')
-        assert "a string" == individual.getValue()
-        assert StringSort() == individual.getSort()
+        assert "a string" == individual.value
+        assert StringSort() == individual.sort
 
     def test_string_individual_unicode(self):
         individual = self.ontology.create_individual('"a unicode string"')
-        assert "a unicode string" == individual.getValue()
-        assert StringSort() == individual.getSort()
+        assert "a unicode string" == individual.value
+        assert StringSort() == individual.sort
 
     def test_string_individual_unicode_method(self):
         individual = self.ontology.create_individual('"a string"')
@@ -175,8 +175,8 @@ class TestImageSort(SortTestCase):
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Image("http://image.com/image.png"))
-        assert Image("http://image.com/image.png") == individual.getValue()
-        assert individual.getSort().is_image_sort()
+        assert Image("http://image.com/image.png") == individual.value
+        assert individual.sort.is_image_sort()
 
     def test_is_not_dynamic(self):
         image_sort = ImageSort()
@@ -251,8 +251,8 @@ class TestWebviewSort(SortTestCase):
 
     def test_create_individual(self):
         individual = self.ontology.create_individual(Webview("http://maps.com/map.html"))
-        assert Webview("http://maps.com/map.html") == individual.getValue()
-        assert WebviewSort() == individual.getSort()
+        assert Webview("http://maps.com/map.html") == individual.value
+        assert WebviewSort() == individual.sort
 
     def test_is_not_dynamic(self):
         image_sort = WebviewSort()
@@ -303,7 +303,7 @@ class TestBooleanSort(SortTestCase):
         self._individual = self.ontology.create_individual(value)
 
     def when_call_getValue_of_individual(self):
-        self._actual_result = self._individual.getValue()
+        self._actual_result = self._individual.value
 
     def test_created_individual_has_expected_sort(self):
         self.given_created_individual_with_argument(True)
@@ -311,7 +311,7 @@ class TestBooleanSort(SortTestCase):
         self.then_result_is(BooleanSort())
 
     def when_call_getSort_of_individual(self):
-        self._actual_result = self._individual.getSort()
+        self._actual_result = self._individual.sort
 
     def test_normalize_true(self):
         self.when_normalize_value(True)

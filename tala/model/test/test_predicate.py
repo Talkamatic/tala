@@ -17,11 +17,11 @@ class PredicateTests(LibTestCase):
 
     def test_getSort(self):
         predicate = self.ontology.get_predicate("dest_city")
-        self.assertEqual(self.sort_city, predicate.getSort())
+        self.assertEqual(self.sort_city, predicate.sort)
 
     def test_feature_get_sort(self):
         predicate = self.ontology.get_predicate("dest_city_type")
-        self.assertEqual(self.sort_city_type, predicate.getSort())
+        self.assertEqual(self.sort_city_type, predicate.sort)
 
     def test_is_feature_of_true(self):
         self.assertTrue(self.predicate_dest_city_type.is_feature_of(self.predicate_dest_city))

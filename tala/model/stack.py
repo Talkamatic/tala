@@ -1,3 +1,5 @@
+import warnings
+
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unicodify import unicodify
 
@@ -60,6 +62,7 @@ class Stack(AsJSONMixin):
             return False
 
     def isTop(self, element):
+        warnings.warn("Stack.isTop() is deprecated. Use Stack.is_top() instead.", DeprecationWarning, stacklevel=2)
         return self.is_top(element)
 
     def pop(self):
@@ -71,6 +74,7 @@ class Stack(AsJSONMixin):
         return len(self.content)
 
     def isEmpty(self):
+        warnings.warn("Stack.isEmpty() is deprecated. Use Stack.is_empty() instead.", DeprecationWarning, stacklevel=2)
         return self.is_empty()
 
     def is_empty(self):

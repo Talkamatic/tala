@@ -13,7 +13,7 @@ class MockElement:
 
 
 class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
-    def testSet(self):
+    def test_set(self):
         testset = Set()
         testset.add("first")
         testset.add("second")
@@ -23,7 +23,7 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         testset = Set(["first", "second"])
         self.assertEqual(len(testset), 2)
 
-    def testSetEq(self):
+    def test_set_eq(self):
         testset1 = Set()
         testset1.add("first")
         testset1.add("second")
@@ -79,29 +79,29 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         empty_set = Set()
         self.assertNotEqual(None, empty_set)
 
-    def testEmptySetisEmpty(self):
+    def test_empty_set_is_empty(self):
         testset = Set()
         self.assertEqual(0, len(testset))
-        self.assertTrue(testset.isEmpty())
+        self.assertTrue(testset.is_empty())
 
-    def testNonEmptySetNotisEmpty(self):
+    def test_non_empty_set_not_is_empty(self):
         testset = Set()
         testset.add("randomString")
         self.assertEqual(1, len(testset))
-        self.assertFalse(testset.isEmpty())
+        self.assertFalse(testset.is_empty())
 
-    def testSetMemberIsMember(self):
+    def test_set_member_is_member(self):
         testset = Set()
         element = "kalle"
         testset.add(element)
         self.assertTrue(element in testset)
 
-    def testSetNonMemberIsNotMember(self):
+    def test_set_non_member_is_not_member(self):
         testset = Set()
         element = "kalle"
         self.assertFalse(element in testset)
 
-    def testSetIteration(self):
+    def test_set_iteration(self):
         testset = Set()
         testset.add("first")
         testset.add("second")
@@ -111,7 +111,7 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
         self.assertTrue("first" in comparisonset)
         self.assertTrue("second" in comparisonset)
 
-    def testSetunicode(self):
+    def test_set_unicode(self):
         testset = Set()
         testset.add(MockElement("element"))
         self.assertEqual("{MockElement('element')}", str(testset))
@@ -143,7 +143,7 @@ class SetTests(unittest.TestCase, EqualityAssertionTestCaseMixin):
 
     def test_remove_non_existing_element_yields_exception(self):
         set = Set(["first", "second"])
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             set.remove("third")
 
     def test_remove_if_exists_for_existing_element(self):

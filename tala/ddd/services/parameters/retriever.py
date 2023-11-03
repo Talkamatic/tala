@@ -69,29 +69,28 @@ class ParameterRetriever(object):
             except KeyError:
                 return None
 
-        individual = fact.getArgument()
-        sort = individual.getSort()
-        value = individual.getValue()
+        individual = fact.individual
+
         if parameter.format == ParameterField.VALUE:
-            return sort.value_as_basic_type(value)
+            return individual.sort.value_as_basic_type(individual.value)
         elif parameter.format == ParameterField.GRAMMAR_ENTRY:
-            if sort.is_builtin():
+            if individual.value.sort.is_builtin():
                 return None
             else:
-                return get_grammar_entry_for_value_of_custom_sort(value)
+                return get_grammar_entry_for_value_of_custom_sort(individual.value)
         else:
             raise Exception("unknown parameter field %r" % parameter.format)
 
     @classmethod
     def get_facts_by_predicate_name(cls, predicate_name, facts):
         for fact in cls.positive_predicate_proposition_facts(facts):
-            if fact.getPredicate().get_name() == predicate_name:
+            if fact.predicate.get_name() == predicate_name:
                 yield fact
 
     @classmethod
     def predicate_names_of_facts(cls, facts):
         predicate_facts = cls.positive_predicate_proposition_facts(facts)
-        return [fact.getPredicate().get_name() for fact in predicate_facts]
+        return [fact.predicate.get_name() for fact in predicate_facts]
 
     @staticmethod
     def positive_predicate_proposition_facts(facts):

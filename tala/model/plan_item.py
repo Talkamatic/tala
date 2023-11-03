@@ -16,7 +16,6 @@ TYPE_QUIT = "quit"
 TYPE_MUTE = "mute"
 TYPE_UNMUTE = "unmute"
 TYPE_FINDOUT = "findout"
-TYPE_CONSULTDB = "consultDB"
 TYPE_RAISE = "raise"
 TYPE_BIND = "bind"
 TYPE_DO = "do"
@@ -58,7 +57,6 @@ ALL_PLAN_ITEM_TYPES = [
     TYPE_MUTE,
     TYPE_UNMUTE,
     TYPE_FINDOUT,
-    TYPE_CONSULTDB,
     TYPE_RAISE,
     TYPE_BIND,
     TYPE_DO,
@@ -377,11 +375,6 @@ class Bind(PlanItemWithSemanticContent):
 
 class BindPlanItem(Bind):
     pass
-
-
-class ConsultDBPlanItem(PlanItemWithSemanticContent):
-    def __init__(self, content):
-        PlanItemWithSemanticContent.__init__(self, TYPE_CONSULTDB, content=content)
 
 
 class JumpTo(PlanItemWithSemanticContent):

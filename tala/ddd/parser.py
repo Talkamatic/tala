@@ -48,7 +48,6 @@ class Parser:
             self._parse_raise_plan_item,
             self._parse_bind_plan_item,
             self._parse_respond_plan_item,
-            self._parse_consultDB_plan_item,
             self._parse_if_then_else_plan_item,
             self._parse_jumpto_plan_item,
             self._parse_forget_all_plan_item,
@@ -423,7 +422,7 @@ class Parser:
                 pass
             if question_content.is_predicate():
                 predicate = question_content
-                if predicate.getSort().is_boolean_sort():
+                if predicate.sort.is_boolean_sort():
                     return YesNoQuestion(PredicateProposition(predicate))
         raise ParseFailure()
 
@@ -868,15 +867,6 @@ class Parser:
         else:
             raise ParseFailure()
 
-    def _parse_consultDB_plan_item(self, string):
-        m = re.search(r'^consultDB\((.+)\)$', string)
-        if m:
-            question_string = m.group(1)
-            question = self._parse_question(question_string)
-            return plan_item.ConsultDB(question)
-        else:
-            raise ParseFailure()
-
     def _parse_if_then_else_plan_item(self, string):
         m = re.search(r'^if (.+) then (.*) else (.*)$', string)
         if m:
@@ -951,7 +941,7 @@ class Parser:
             if self.ontology.has_predicate(predicate_name):
                 predicate = self.ontology.get_predicate(predicate_name)
                 if individual_string is None or individual_string == "":
-                    if not predicate.getSort().is_boolean_sort():
+                    if not predicate.sort.is_boolean_sort():
                         raise ParseFailure()
                     individual = None
                 else:

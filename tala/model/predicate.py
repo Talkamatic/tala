@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.semantic_object import OntologySpecificSemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
@@ -14,6 +16,9 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         return self.name
 
     def getSort(self):
+        warnings.warn(
+            "Predicate.getSort() is deprecated. Use Predicate.sort instead.", DeprecationWarning, stacklevel=2
+        )
         return self.sort
 
     def get_feature_of_name(self):
@@ -30,9 +35,10 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            return isinstance(other, Predicate) and other.get_name() == self.get_name() and other.getSort(
-            ) == self.getSort() and other.get_feature_of_name() == self.get_feature_of_name(
-            ) and other.allows_multiple_instances() == self.allows_multiple_instances()
+            return other.get_name() == self.get_name() \
+                and other.sort == self.sort \
+                and other.get_feature_of_name() == self.get_feature_of_name() \
+                and other.allows_multiple_instances() == self.allows_multiple_instances()
         except AttributeError:
             return False
 

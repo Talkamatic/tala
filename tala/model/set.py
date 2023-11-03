@@ -1,3 +1,5 @@
+import warnings
+
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
@@ -54,8 +56,12 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
     def __len__(self):
         return len(self.content)
 
-    def isEmpty(self):
+    def is_empty(self):
         return len(self) == 0
+
+    def isEmpty(self):
+        warnings.warn("Set.isEmpty() is deprecated. Use Set.is_empty() instead.", DeprecationWarning, stacklevel=2)
+        return self.is_empty()
 
     def clear(self):
         self.content = []

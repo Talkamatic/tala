@@ -143,8 +143,8 @@ class Domain(AsJSONMixin):
 
     def is_feature_of(self, feature_question, question):
         try:
-            feature_question_predicate = feature_question.get_content().getPredicate()
-            question_predicate = question.get_content().getPredicate()
+            feature_question_predicate = feature_question.content.predicate
+            question_predicate = question.content.predicate
         except AttributeError:
             return False
         return feature_question_predicate.is_feature_of(question_predicate)
@@ -192,7 +192,7 @@ class Domain(AsJSONMixin):
                 if item.type_ in plan_item.QUESTION_TYPES:
                     question = item.content
                     if question.is_alt_question():
-                        for proposition in question.get_content():
+                        for proposition in question.content:
                             if proposition.is_goal_proposition():
                                 goal = proposition.get_goal()
                                 if goal == subgoal:
@@ -307,9 +307,8 @@ class Domain(AsJSONMixin):
                     individual = self.ontology.create_individual(individual_value)
                     yield PredicateProposition(predicate, individual)
 
-        predicate = question.get_predicate()
-        question_sort = predicate.getSort()
-        all_answers = answers(self.ontology.get_individuals(), predicate, question_sort)
+        predicate = question.predicate
+        all_answers = answers(self.ontology.get_individuals(), predicate, predicate.sort)
         return unique(all_answers)
 
     def _query_list_to_dict_indexed_by_question(self, query_list):
@@ -451,9 +450,9 @@ class Domain(AsJSONMixin):
 
     def get_feature_questions_for_plan_item(self, question, plan_item):
         feature_questions = []
-        if question.get_content().is_lambda_abstracted_predicate_proposition():
+        if question.content.is_lambda_abstracted_predicate_proposition():
             for predicate in list(self.ontology.get_predicates().values()):
-                if predicate.is_feature_of(question.get_content().getPredicate()):
+                if predicate.is_feature_of(question.content.predicate):
                     feature_question = self.ontology.create_wh_question(predicate.get_name())
                     feature_questions.append(feature_question)
         return feature_questions

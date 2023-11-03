@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
@@ -28,11 +30,11 @@ class LambdaAbstractedPredicateProposition(
 
     def __str__(self):
         variable = "X"
-        return variable + "." + self.getPredicate().get_name() + "(" + variable + ")"
+        return variable + "." + self.predicate.get_name() + "(" + variable + ")"
 
     def __eq__(self, other):
         if (isinstance(other, LambdaAbstractedPredicateProposition)):
-            return self.getPredicate() == other.getPredicate()
+            return self.predicate == other.predicate
         else:
             return False
 
@@ -40,10 +42,26 @@ class LambdaAbstractedPredicateProposition(
         return not (self == other)
 
     def getPredicate(self):
+        warnings.warn(
+            "LambdaAbstractedPredicateProposition.getPredicate() is deprecated. "
+            "Use LambdaAbstractedPredicateProposition.predicate instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.predicate
 
+    @property
+    def sort(self):
+        return self.predicate.sort
+
     def getSort(self):
-        return self.predicate.getSort()
+        warnings.warn(
+            "LambdaAbstractedPredicateProposition.getSort() is deprecated. "
+            "Use LambdaAbstractedPredicateProposition.sort instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.sort
 
     def __hash__(self):
         return hash((self.__class__.__name__, self.predicate))
