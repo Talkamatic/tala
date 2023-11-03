@@ -6,7 +6,7 @@ from tala.ddd.services.service_interface import ServiceInterface, ServiceActionI
 class DddCompilerTestCase(object):
     DDD_NAME = "mockup_ddd_name"
 
-    def setup(self):
+    def setup_method(self):
         self._service_interface = None
         self.mock_service_target = self._create_mock_service_target()
 

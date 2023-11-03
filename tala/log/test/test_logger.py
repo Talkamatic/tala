@@ -12,13 +12,13 @@ from tala.log import logger
 
 
 class TestLogger(object):
-    def setup(self):
+    def setup_method(self):
         self._log_filename = "mock_filename"
         self._temp_dir = tempfile.mkdtemp(prefix="LoggerTests")
         self._working_dir = os.getcwd()
         os.chdir(self._temp_dir)
 
-    def teardown(self):
+    def teardown_method(self):
         os.chdir(self._working_dir)
         shutil.rmtree(self._temp_dir)
 

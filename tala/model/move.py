@@ -228,6 +228,9 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
     def is_question_raising(self):
         return self.type_ == Move.ASK
 
+    def is_yes_no_answer(self):
+        return self.type_ == Move.ANSWER and (self.content.is_yes() or self.content.is_no())
+
     def is_turn_yielding(self):
         return self.type_ in [Move.ANSWER, Move.GREET]
 
@@ -464,7 +467,7 @@ class ICMMoveWithContent(ICMMove):
 
     def class_internal_move_content_equals(self, other):
         return (
-            self._polarity == other._polarity and self._type == other._type and self._content == other._content
+            self._polarity == other._polarity and self.type_ == other.type_ and self.content == other.content
             and self._content_speaker == other._content_speaker
         )
 
@@ -493,7 +496,7 @@ class CardinalSequencingICM(ICMMoveWithContent):
 
     def __eq__(self, other):
         try:
-            return self.type == other.type and self._content == other._content
+            return self.type_ == other.type_ and self._content == other._content
         except AttributeError:
             return False
 

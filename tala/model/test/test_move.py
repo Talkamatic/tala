@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model.speaker import Speaker
-from tala.model.move import Move, ICMMove, ReportMove, ICMMoveWithSemanticContent, AskMove
+from tala.model.move import Move, ICMMove, ReportMove, ICMMoveWithSemanticContent, AskMove, CardinalSequencingICM
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -761,7 +761,8 @@ class TestICMMoves(object):
         (ICMMoveWithSemanticContent(ICMMove.SEM, content="content", polarity=ICMMove.POS), False),
         (ICMMoveWithSemanticContent(ICMMove.PER, content="content", polarity=ICMMove.POS), False),
         (ICMMove(ICMMove.UND, polarity=ICMMove.INT), False),
-        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False)
+        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False),
+        (CardinalSequencingICM(1), False)
     ])  # yapf: disable
     def test_is_grounding_move(self, move, expected_result):
         self.given_move(move)
@@ -776,3 +777,22 @@ class TestICMMoves(object):
 
     def then_result_is(self, expected_result):
         assert self._actual_result == expected_result
+
+    @pytest.mark.parametrize("move, expected_result", [
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.INT), False),
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.POS), False),
+        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.NEG), False),
+        (ICMMoveWithSemanticContent(ICMMove.SEM, content="content", polarity=ICMMove.POS), False),
+        (ICMMoveWithSemanticContent(ICMMove.PER, content="content", polarity=ICMMove.POS), False),
+        (ICMMove(ICMMove.UND, polarity=ICMMove.INT), False),
+        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False),
+        (CardinalSequencingICM(1), False),
+        (CardinalSequencingICM(99), True)
+    ])  # yapf: disable
+    def test_equality_with_other_move(self, move, expected_result):
+        self.given_move(move)
+        self.when_calling_is_equal_to(CardinalSequencingICM(99))
+        self.then_result_is(expected_result)
+
+    def when_calling_is_equal_to(self, other_move):
+        self._actual_result = self._move == other_move
