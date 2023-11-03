@@ -74,7 +74,7 @@ class ParameterRetriever(object):
         if parameter.format == ParameterField.VALUE:
             return individual.sort.value_as_basic_type(individual.value)
         elif parameter.format == ParameterField.GRAMMAR_ENTRY:
-            if individual.value.sort.is_builtin():
+            if individual.sort.is_builtin():
                 return None
             else:
                 return get_grammar_entry_for_value_of_custom_sort(individual.value)

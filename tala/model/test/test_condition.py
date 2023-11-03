@@ -30,7 +30,7 @@ class ConditionTestCase(unittest.TestCase):
         self.predicate_a = Mock(spec=Predicate)
         self.predicate_b = Mock(spec=Predicate)
         self.proposition_over_predicate_a = Mock(spec=PredicateProposition)
-        self.proposition_over_predicate_a.get_predicate.return_value = self.predicate_a
+        self.proposition_over_predicate_a.predicate = self.predicate_a
         self.proposition_b = Mock(spec=PredicateProposition)
         self.other_proposition = Mock(spec=Proposition)
         self.resolvedness_proposition = Mock(spec=ResolvednessProposition)
