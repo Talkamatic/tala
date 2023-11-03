@@ -79,7 +79,7 @@ class HasValue(Condition):
     def is_true_given_proposition_set(self, proposition_set):
         for proposition in proposition_set:
             try:
-                if proposition.get_predicate() == self.predicate:
+                if proposition.predicate == self.predicate:
                     return True
             except AttributeError:
                 pass
