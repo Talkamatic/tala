@@ -168,7 +168,7 @@ class QUD(AsJSONMixin):
         return self._stack_set.is_top(element)
 
     def is_empty(self):
-        return self._stack_set.isEmpty()
+        return self._stack_set.is_empty()
 
     def update_turn_information(self):
         for question in self._turn_information:
