@@ -300,16 +300,12 @@ class Domain(AsJSONMixin):
         return self.get_goal_attribute(goal, "accommodate_without_feedback")
 
     def get_resolving_answers(self, question):
-        def answers(individuals, predicate, sort):
-            for individual_value in individuals:
-                individual_sort = self.ontology.individual_sort(individual_value)
-                if individual_sort == sort:
-                    individual = self.ontology.create_individual(individual_value)
-                    yield PredicateProposition(predicate, individual)
+        def all_answers(question):
+            for individual in self.ontology.individuals_as_objects:
+                if individual.sort == question.predicate.sort:
+                    yield PredicateProposition(question.predicate, individual)
 
-        predicate = question.predicate
-        all_answers = answers(self.ontology.get_individuals(), predicate, predicate.sort)
-        return unique(all_answers)
+        return unique(all_answers(question))
 
     def _query_list_to_dict_indexed_by_question(self, query_list):
         plans = {}

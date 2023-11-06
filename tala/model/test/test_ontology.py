@@ -254,14 +254,6 @@ class TestOntologyBasic(TestOntology):
                 actions={"price"}
             )
 
-    def test_is_individual_static(self):
-        city_sort = CustomSort(self.DEFAULT_NAME, "city")
-        self._when_creating_ontology(sorts={city_sort}, individuals={"paris": city_sort})
-        self._then_individual_is_static("paris")
-
-    def _then_individual_is_static(self, name):
-        assert self._ontology.is_individual_static(name) is True
-
     @pytest.mark.parametrize(
         "sort,name", [(RealSort(), REAL), (BooleanSort(), BOOLEAN), (IntegerSort(), INTEGER), (ImageSort(), IMAGE),
                       (WebviewSort(), WEBVIEW), (StringSort(), STRING), (DateTimeSort(), DATETIME)]
@@ -409,14 +401,6 @@ class TestDynamicOntology(TestOntology):
         self._given_ontology()
         with pytest.raises(InvalidIndividualName):
             self._when_ensure_individual_exists_is_called("name with whitespace", "integer")
-
-    def test_adding_dynamic_individual_is_not_considered_static(self):
-        self._given_ontology(sorts={CustomSort(self.DEFAULT_NAME, "city")})
-        self._when_individual_is_added("paris", "city")
-        self._then_individual_is_not_static("paris")
-
-    def _then_individual_is_not_static(self, name):
-        assert self._ontology.is_individual_static(name) is False
 
     def test_create_person_name_individual(self):
         self._given_ontology(sorts={})

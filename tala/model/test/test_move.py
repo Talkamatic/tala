@@ -419,8 +419,8 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.move_factory.create_prereport_move(service_action, parameters)
 
     def test_is_turn_yielding(self):
-        turn_yielding_moves = [self.report_move, self.answer_move]
-        non_turn_yielding_moves = [self.icm_acc_pos, self.icm_acc_neg, self.request_move, self.ask_move]
+        turn_yielding_moves = [self.report_move, self.ask_move, self.request_move]
+        non_turn_yielding_moves = [self.icm_acc_pos, self.icm_acc_neg, self.answer_move]
         for move in turn_yielding_moves:
             self.assertTrue(move.is_turn_yielding(), f"{move} should be turn yielding")
         for move in non_turn_yielding_moves:

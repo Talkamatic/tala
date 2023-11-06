@@ -88,9 +88,6 @@ class Ontology(AsJSONMixin):
             self._validate_individual_name(name)
             self._validate_individual_sort(name, sort)
 
-    def is_individual_static(self, name):
-        return name in self._original_individuals
-
     def _validate_individual_name(self, name):
         if not individual_name_matcher.match(name):
             raise InvalidIndividualName("invalid individual name %r" % name)
@@ -151,14 +148,15 @@ class Ontology(AsJSONMixin):
         else:
             return Action(name, ontology_name=self.name)
 
+    @property
+    def individuals_as_objects(self):
+        return [Individual(self.name, value, sort) for value, sort in self._individuals.items()]
+
     def get_individuals(self):
         return self._individuals
 
     def get_individuals_of_sort(self, expected_sort):
         return [individual for individual, sort in list(self._individuals.items()) if sort.get_name() == expected_sort]
-
-    def set_individuals(self, individuals):
-        self._individuals = individuals
 
     def add_individual(self, name, sort_as_string):
         if name in list(self._individuals.keys()):

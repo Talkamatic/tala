@@ -226,13 +226,13 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return False
 
     def is_question_raising(self):
-        return self.type_ == Move.ASK
+        return False
 
     def is_yes_no_answer(self):
         return self.type_ == Move.ANSWER and (self.content.is_yes() or self.content.is_no())
 
     def is_turn_yielding(self):
-        return self.type_ in [Move.ANSWER, Move.GREET]
+        return self.is_question_raising()
 
     def to_rich_string(self):
         return f"{str(self)}:{self._speaker}:{self.understanding_confidence}"
@@ -611,6 +611,9 @@ class GreetMove(Move):
     def __init__(self, *args, **kwargs):
         super(GreetMove, self).__init__(Move.GREET, *args, **kwargs)
 
+    def is_turn_yielding(self):
+        return True
+
 
 class ThankYouMove(Move):
     def __init__(self, *args, **kwargs):
@@ -652,7 +655,14 @@ class AskMove(MoveWithSemanticContent):
         MoveWithSemanticContent.__init__(self, Move.ASK, question, *args, **kwargs)
 
     def as_semantic_expression(self):
-        return f"ask({self._content.as_semantic_expression()})"
+        return f"ask({self.question.as_semantic_expression()})"
+
+    @property
+    def question(self):
+        return self.content
+
+    def is_question_raising(self):
+        return True
 
 
 class AnswerMove(MoveWithSemanticContent):
@@ -662,10 +672,21 @@ class AnswerMove(MoveWithSemanticContent):
     def as_semantic_expression(self):
         return f"answer({self._content.as_semantic_expression()})"
 
+    @property
+    def answer_content(self):
+        return self.content
+
 
 class RequestMove(MoveWithSemanticContent):
     def __init__(self, action, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.REQUEST, action, *args, **kwargs)
 
     def as_semantic_expression(self):
-        return f"request({self._content.as_semantic_expression()})"
+        return f"request({self.action.as_semantic_expression()})"
+
+    @property
+    def action(self):
+        return self.content
+
+    def is_turn_yielding(self):
+        return True
