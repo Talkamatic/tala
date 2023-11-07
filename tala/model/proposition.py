@@ -178,6 +178,7 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
         return proposition_copy
 
     def is_incompatible_with(self, other):
+        print("============== trivially false")
         return False
 
     def is_true_given_proposition_set(self, facts):
@@ -282,13 +283,23 @@ class PredicateProposition(PropositionWithSemanticContent):
         return self.individual
 
     def is_incompatible_with(self, other):
-        return (
-            self.negate() == other or (
-                self._proposes_other_individual_of_same_predicate(other)
-                and not self.predicate.allows_multiple_instances()
-            ) or self._is_feature_of_the_following_negative_proposition(other)
-            or (self._polarity == Polarity.NEG and self._is_feature(other))
-        )
+        print("PROPOSES etc...", self._proposes_other_individual_of_same_predicate(other))
+
+        if self.negate() == other:
+            return True
+
+        if self._proposes_other_individual_of_same_predicate(other) and not self.predicate.allows_multiple_instances():
+            return True
+
+        if self._is_feature_of_the_following_negative_proposition(other):
+            return True
+
+        if self._polarity == Polarity.NEG and self._is_feature(other):
+            return True
+
+        print("########## default false")
+
+        return False
 
     def _proposes_other_individual_of_same_predicate(self, other):
         return other.is_predicate_proposition() \
