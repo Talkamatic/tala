@@ -172,8 +172,7 @@ class TestTDMClient(object):
             '"understanding_confidence": "mock-understanding-confidence", '
             '"semantic_expression": "mock-expression"'
             '}}], '
-            '"utterance": "mock-utterance"'
-            '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
+            '"utterance": "mock-utterance"}}], "entities": []}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 
@@ -208,8 +207,7 @@ class TestTDMClient(object):
             '"understanding_confidence": "mock-understanding-confidence", '
             '"semantic_expression": "mock-expression"'
             '}}], '
-            '"utterance": "mock-utterance"'
-            '}}]}}}}}}'.format(version=PROTOCOL_VERSION),
+            '"utterance": "mock-utterance"}}], "entities": []}}}}}}'.format(version=PROTOCOL_VERSION),
             headers={'Content-type': 'application/json'}
         )
 

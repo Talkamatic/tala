@@ -66,19 +66,23 @@ class TDMClient(Observable):
         response = self._make_request(request)
         return response
 
-    def request_semantic_input(self, interpretations: Sequence[Interpretation], session: Mapping = None) -> Mapping:
-        def _create_semantic_input_request(session, interpretations):
+    def request_semantic_input(
+        self, interpretations: Sequence[Interpretation], session: Mapping = None, entities: Sequence = None
+    ) -> Mapping:
+        def _create_semantic_input_request(session, interpretations, entities):
+            if entities is None:
+                entities = []
             return {
                 "version": PROTOCOL_VERSION,
                 "session": session,
                 "request": {
                     "semantic_input": {
                         "interpretations": [interpretation.as_dict() for interpretation in interpretations],
+                        "entities": entities,
                     }
                 }
             }  # yapf: disable
-
-        request = _create_semantic_input_request(session, interpretations)
+        request = _create_semantic_input_request(session, interpretations, entities)
         response = self._make_request(request)
         return response
 
