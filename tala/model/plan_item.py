@@ -979,9 +979,6 @@ class QuestionRaisingPlanItemOfDomain(object):
     def get_format(self):
         return self._domain.get_format(self._plan_item.question)
 
-    def get_default(self):
-        return self._domain.get_default(self._plan_item.question)
-
     def get_service_query(self):
         return self._domain.get_service_query(self._plan_item.question)
 
@@ -991,5 +988,5 @@ class QuestionRaisingPlanItemOfDomain(object):
     def has_parameters(self):
         return (
             self.get_alternatives() or self.get_graphical_type() or self.get_incremental() or self.get_source()
-            or self.get_format() or self.get_default() or self.get_service_query() or self.get_label_questions()
+            or self.get_format() or self.get_service_query() or self.get_label_questions()
         )

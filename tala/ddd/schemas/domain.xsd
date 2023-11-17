@@ -420,13 +420,6 @@
             <xs:element name="resolve" type="has_question" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="perform" minOccurs="0" maxOccurs="1"/>
             <xs:element name="related_information" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="default" minOccurs="0" maxOccurs="1">
-              <xs:complexType>
-                <xs:complexContent>
-                  <xs:extension base="has_question"/>
-                </xs:complexContent>
-              </xs:complexType>
-            </xs:element>
           </xs:choice>
 
           <xs:attribute name="verbalize" type="xs:boolean"/>
