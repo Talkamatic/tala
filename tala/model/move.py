@@ -5,7 +5,6 @@ from tala.model.confidence_estimate import ConfidenceEstimates
 from tala.model.speaker import Speaker
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
-from tala.utils.equality import EqualityMixin
 from tala.utils import float_comparison
 from tala.utils.unicodify import unicodify
 
@@ -14,7 +13,7 @@ class MoveException(Exception):
     pass
 
 
-class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
+class Move(SemanticObject, AsSemanticExpressionMixin):
     QUIT = "quit"
     GREET = "greet"
     THANK_YOU = "thanks"
@@ -65,6 +64,23 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
             if weighted_understanding_confidence is not None:
                 self.weighted_understanding_confidence = weighted_understanding_confidence
 
+    def __eq__(self, other):
+        try:
+            if self._type == other._type \
+               and self._speaker == other._speaker \
+               and self._modality == other._modality \
+               and self._utterance == other._utterance \
+               and self._ddd_name == other._ddd_name \
+               and self._background == other._background \
+               and self._confidence_estimates == other._confidence_estimates:
+                if hasattr(self, "weighted_understanding_confidence"):
+                    return self.weighted_understanding_confidence == other.understanding_confidence
+                else:
+                    return True
+        except AttributeError:
+            pass
+        return False
+
     def is_move(self):
         return True
 
@@ -113,6 +129,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin, EqualityMixin):
         return self._speaker
 
     def get_modality(self):
+        return self._modality
+
+    @property
+    def modality(self):
         return self._modality
 
     def get_utterance(self):
@@ -274,6 +294,14 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def get_content(self):
         return self._content
 
+    def __eq__(self, other):
+        try:
+            if super().__eq__(other):
+                return self.content == other.content
+        except AttributeError:
+            pass
+        return False
+
     def __hash__(self):
         return hash((
             self.__class__.__name__, self._type, self.perception_confidence, self.understanding_confidence,
@@ -319,7 +347,7 @@ class ICMMove(Move):
 
     def __init__(
         self,
-        type,
+        type_,
         understanding_confidence=None,
         speaker=None,
         polarity=None,
@@ -331,12 +359,20 @@ class ICMMove(Move):
         self._polarity = polarity
         Move.__init__(
             self,
-            type,
+            type_,
             understanding_confidence=understanding_confidence,
             speaker=speaker,
             ddd_name=ddd_name,
             perception_confidence=perception_confidence
         )
+
+    def __eq__(self, other):
+        try:
+            if super().__eq__(other):
+                return self.class_internal_move_content_equals(other)
+        except AttributeError:
+            pass
+        return False
 
     def class_internal_move_content_equals(self, other):
         return (self._polarity == other._polarity and self._type == other._type)
@@ -439,6 +475,15 @@ class ICMMoveWithContent(ICMMove):
         ICMMove.__init__(self, type, *args, **kwargs)
         self._content = content
         self._content_speaker = self._get_checked_content_speaker(content_speaker)
+
+    def __eq__(self, other):
+        try:
+            if super().__eq__(other):
+                return self.content == other.content \
+                    and self.get_content_speaker() == other.get_content_speaker()
+        except AttributeError:
+            pass
+        return False
 
     @property
     def content(self):
@@ -568,6 +613,14 @@ class PrereportMove(Move, OntologySpecificSemanticObject):
         self.arguments = arguments
         Move.__init__(self, Move.PREREPORT)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
+
+    def __eq__(self, other):
+        try:
+            if super().__eq__(other):
+                return self.class_internal_move_content_equals(other)
+        except AttributeError:
+            pass
+        return False
 
     def get_service_action(self):
         return self.service_action

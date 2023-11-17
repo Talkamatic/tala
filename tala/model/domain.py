@@ -352,9 +352,6 @@ class Domain(AsJSONMixin):
     def get_format(self, semantic_object):
         return self._get_parameter(semantic_object, "format")
 
-    def get_default(self, semantic_object):
-        return self._get_parameter(semantic_object, "default")
-
     def get_service_query(self, semantic_object):
         return self._get_parameter(semantic_object, "service_query")
 

@@ -1,7 +1,4 @@
-from tala.utils.equality import EqualityMixin
-
-
-class ConfidenceEstimates(EqualityMixin):
+class ConfidenceEstimates():
     def __init__(
         self, perception_confidence=None, understanding_confidence=None, weighted_understanding_confidence=None
     ):
@@ -44,6 +41,11 @@ class ConfidenceEstimates(EqualityMixin):
         if None in confidence_sources:
             return None
         return self.perception_confidence * self.weighted_understanding_confidence
+
+    def __eq__(self, other):
+        return self.perception_confidence == other.perception_confidence \
+            and self.understanding_confidence == other.understanding_confidence \
+            and self.weighted_understanding_confidence == other.weighted_understanding_confidence
 
     def set_realization_data(self, perception_confidence=None, understanding_confidence=None):
         self._perception_confidence = perception_confidence
