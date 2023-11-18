@@ -47,6 +47,10 @@ class ConfidenceEstimates():
             and self.understanding_confidence == other.understanding_confidence \
             and self.weighted_understanding_confidence == other.weighted_understanding_confidence
 
+    def __str__(self):
+        return f"ConfidenceEstimates({self.perception_confidence}, {self.understanding_confidence}, " \
+            + "{self.weighted_understanding_confidence})"
+
     def set_realization_data(self, perception_confidence=None, understanding_confidence=None):
         self._perception_confidence = perception_confidence
         if self._perception_confidence is None:
