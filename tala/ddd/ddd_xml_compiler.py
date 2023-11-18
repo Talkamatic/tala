@@ -288,7 +288,6 @@ class DomainCompiler(XmlCompiler):
         self._compile_plan_single_attribute(plan, element, "accommodate_without_feedback", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "restart_on_completion", self._parse_boolean)
         self._compile_plan_single_attribute(plan, element, "reraise_on_resume", self._parse_boolean)
-        self._compile_plan_single_attribute(plan, element, "io_status", self._parse_io_status)
         self._compile_plan_single_attribute(plan, element, "max_answers", self._parse_integer)
         if element.hasAttribute("alternatives_predicate"):
             plan["alternatives_predicate"] = element.getAttribute("alternatives_predicate")
@@ -958,7 +957,6 @@ class DomainCompiler(XmlCompiler):
     def _compile_question_parameters(self, question, element):
         result = self._compile_simple_parameters(element)
         self._compile_question_valued_parameter(element, "service_query", result)
-        self._compile_question_valued_parameter(element, "default", result)
         self._compile_questions_valued_parameter(element, "label_questions", "label_question", result)
         self._compile_questions_valued_parameter(element, "related_information", "related_information", result)
         self._compile_alts_parameter(question, element, result)
@@ -1052,16 +1050,6 @@ class DomainCompiler(XmlCompiler):
             return self._compile_proposition_child_of(element)
         else:
             return True
-
-    def _parse_io_status(self, io_status_string):
-        valid_io_statuses = [
-            Domain.DEFAULT_IO_STATUS, Domain.EXCLUDED_IO_STATUS, Domain.HIDDEN_IO_STATUS, Domain.SILENT_IO_STATUS,
-            Domain.DISABLED_IO_STATUS
-        ]
-        if io_status_string in valid_io_statuses:
-            return io_status_string
-        else:
-            raise DDDXMLCompilerException("Invalid io_status: %r" % io_status_string)
 
 
 class ServiceInterfaceCompiler(XmlCompiler):

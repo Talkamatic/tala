@@ -1,4 +1,5 @@
 import copy
+import warnings
 
 from tala.model import move
 from tala.model.entity import Entity
@@ -252,6 +253,7 @@ class JSONDomainParser():
             if entry == "goal":
                 result[entry] = self.parser.parse_goal(goal[entry])
             elif entry == "io_status":
+                warnings.warn("io_status is deprecated.", DeprecationWarning, stacklevel=2)
                 result[entry] = self.parse_io_status(goal[entry])
             elif entry == "plan":
                 result[entry] = self.parse_plan(goal[entry])

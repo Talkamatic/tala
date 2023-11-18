@@ -53,11 +53,6 @@ def serialize_iterator(iterator):
 
 
 class Domain(AsJSONMixin):
-    DEFAULT_IO_STATUS = "default"
-    EXCLUDED_IO_STATUS = "excluded"
-    HIDDEN_IO_STATUS = "hidden"
-    SILENT_IO_STATUS = "silent"
-    DISABLED_IO_STATUS = "disabled"
 
     def __init__(
             self, ddd_name, name, ontology, plans=None, default_questions=None, parameters=None,
@@ -177,13 +172,6 @@ class Domain(AsJSONMixin):
             return self.plans[goal]
         else:
             raise DomainError("no plan for goal '%s' in domain '%s'" % (goal, self.get_name()))
-
-    def get_io_status(self, goal):
-        if self.has_goal(goal):
-            plan_info = self._get_plan_info(goal)
-            if "io_status" in plan_info:
-                return plan_info["io_status"]
-        return Domain.DEFAULT_IO_STATUS
 
     def dominates(self, supergoal, subgoal):
         if self.has_goal(supergoal):

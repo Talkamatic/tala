@@ -35,7 +35,6 @@
             <xs:element ref="superaction" minOccurs="0" maxOccurs="unbounded"/>
           </xs:choice>
           <xs:attribute name="accommodate_without_feedback" type="xs:boolean"/>
-          <xs:attribute name="io_status" type="io_status_type"/>
           <xs:attribute name="reraise_on_resume" type="xs:boolean"/>
           <xs:attribute name="restart_on_completion" type="xs:boolean"/>
           <xs:attribute name="max_answers" type="xs:integer"/>
@@ -482,13 +481,4 @@
     </xs:complexType>
   </xs:element>
 
-  <xs:simpleType name="io_status_type">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="default"/>
-      <xs:enumeration value="excluded"/>
-      <xs:enumeration value="hidden"/>
-      <xs:enumeration value="silent"/>
-      <xs:enumeration value="disabled"/>
-    </xs:restriction>
-  </xs:simpleType>
 </xs:schema>

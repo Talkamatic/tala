@@ -6,7 +6,6 @@ from tala.model.action import Action
 from tala.model.goal import ResolveGoal, PerformGoal, HandleGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
-from tala.model.set import Set
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, QuestionRaisingPlanItem, Findout, Raise
@@ -705,66 +704,3 @@ class DominatesTests(LibTestCase):
 
     def _findout_with_alts(self, alts):
         return Findout(self.domain_name, AltQuestion(PropositionSet(alts)))
-
-
-class IOStatusTests(LibTestCase):
-    def setUp(self):
-        self.DDD_NAME = "mockup_ddd"
-        self.statuses = ["default", "excluded", "hidden", "silent", "disabled"]
-        self.facts = Set()
-        self._create_ontology()
-        self._create_domain()
-
-    def _create_ontology(self):
-        self.ontology_name = "status_ontology"
-        sorts = set()
-        predicates = set()
-        individuals = {}
-        actions = set(self.statuses)
-        self.ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
-
-    def _create_domain(self):
-        self.domain_name = "status_domain"
-
-        for status in self.statuses:
-            action = self.ontology.create_action(status)
-            attribute_name = status + "_action"
-            setattr(self, attribute_name, action)
-
-        plans = [{
-            "goal": PerformGoal(self.default_action),
-            "plan": []
-        }, {
-            "goal": PerformGoal(self.excluded_action),
-            "io_status": "excluded",
-            "plan": []
-        }, {
-            "goal": PerformGoal(self.hidden_action),
-            "io_status": "hidden",
-            "plan": []
-        }, {
-            "goal": PerformGoal(self.silent_action),
-            "io_status": "silent",
-            "plan": []
-        }, {
-            "goal": PerformGoal(self.disabled_action),
-            "io_status": "disabled",
-            "plan": []
-        }]
-
-        self.domain = Domain(self.DDD_NAME, self.domain_name, self.ontology, plans=plans)
-
-    def test_io_status_for_default_plan(self):
-        self.assertEqual(Domain.DEFAULT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.default_action)))
-
-    def test_io_status_for_excluded_plan(self):
-        self.assertEqual(Domain.EXCLUDED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.excluded_action)))
-
-    def test_io_status_for_hidden_plan(self):
-        self.assertEqual(Domain.HIDDEN_IO_STATUS, self.domain.get_io_status(PerformGoal(self.hidden_action)))
-
-    def test_io_status_for_silent_plan(self):
-        self.assertEqual(Domain.SILENT_IO_STATUS, self.domain.get_io_status(PerformGoal(self.silent_action)))
-
-    def test_io_status_for_disabled_plan(self):
-        self.assertEqual(Domain.DISABLED_IO_STATUS, self.domain.get_io_status(PerformGoal(self.disabled_action)))

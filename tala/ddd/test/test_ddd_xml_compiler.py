@@ -9,7 +9,6 @@ from tala.ddd.services.service_interface import ServiceParameter, ServiceActionI
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
-from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
 from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeDomainQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem, EndTurnPlanItem
@@ -591,11 +590,6 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._given_compiled_ontology()
         self._when_compile_plan_with_attribute("reraise_on_resume", "true")
         self._then_result_has_plan_with_attribute("reraise_on_resume", True)
-
-    def test_io_status(self):
-        self._given_compiled_ontology()
-        self._when_compile_plan_with_attribute("io_status", "disabled")
-        self._then_result_has_plan_with_attribute("io_status", Domain.DISABLED_IO_STATUS)
 
     def test_postplan(self):
         self._given_compiled_ontology()

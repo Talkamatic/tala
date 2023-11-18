@@ -78,7 +78,3 @@ class DomainManager(object):
     def goal_is_preferred(self, goal):
         domain = self.get_domain_of_goal(goal)
         return domain.goal_is_preferred(goal)
-
-    def get_io_status(self, goal):
-        domain = self.get_domain_of_goal(goal)
-        return domain.get_io_status(goal)
