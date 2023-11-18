@@ -74,11 +74,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
                and self._background == other._background \
                and self._confidence_estimates == other._confidence_estimates:
                 if hasattr(self, "weighted_understanding_confidence"):
-                    return self.weighted_understanding_confidence == other.understanding_confidence
+                    return self.weighted_understanding_confidence == other.weighted_understanding_confidence
                 else:
                     return True
-        except AttributeError as error:
-            print(error)
+        except AttributeError:
             pass
         return False
 
