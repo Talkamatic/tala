@@ -48,8 +48,9 @@ class ConfidenceEstimates():
             and self.weighted_understanding_confidence == other.weighted_understanding_confidence
 
     def __str__(self):
-        return f"ConfidenceEstimates({self.perception_confidence}, {self.understanding_confidence}, " \
-            + "{self.weighted_understanding_confidence})"
+        return f"ConfidenceEstimates(perception_confidence={self.perception_confidence}, " \
+            + f"understanding_confidence={self.understanding_confidence}, " \
+            + f"weighted_understanding_confidence={self.weighted_understanding_confidence})"
 
     def __repr__(self):
         return str(self)
