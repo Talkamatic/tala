@@ -51,6 +51,9 @@ class ConfidenceEstimates():
         return f"ConfidenceEstimates({self.perception_confidence}, {self.understanding_confidence}, " \
             + "{self.weighted_understanding_confidence})"
 
+    def __repr__(self):
+        return str(self)
+
     def set_realization_data(self, perception_confidence=None, understanding_confidence=None):
         self._perception_confidence = perception_confidence
         if self._perception_confidence is None:
