@@ -77,7 +77,8 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
                     return self.weighted_understanding_confidence == other.understanding_confidence
                 else:
                     return True
-        except AttributeError:
+        except AttributeError as error:
+            print(error)
             pass
         return False
 
