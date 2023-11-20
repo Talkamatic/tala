@@ -1153,9 +1153,7 @@ class Parser:
 
     def parse_parameter(self, key, string):
         try:
-            if key == "graphical_type":
-                return self._parse_findout_type(string)
-            elif key == "source":
+            if key == "source":
                 return self._parse_findout_source(string)
             elif key == "incremental":
                 return self._parse_boolean(string)
@@ -1194,9 +1192,9 @@ class Parser:
             elif key == "max_reported_hit_count":
                 return self._parse_integer(string)
             else:
-                raise ParseError("unsupported question parameter '%s'" % key)
+                raise ParseError(f"unsupported question parameter '{key}'")
         except ParseFailure:
-            raise ParseError("failed to parse parameter %s=%s" % (key, string))
+            raise ParseError(f"failed to parse parameter {key}={string}")
 
     def _parse_predicate_list(self, string):
         string_without_brackets = self._strip_brackets(string)
@@ -1207,14 +1205,6 @@ class Parser:
         string_without_brackets = self._strip_brackets(string)
         predicate_strings = [str.strip() for str in string_without_brackets.split(",")]
         return [AskFeature(predicate_string) for predicate_string in predicate_strings]
-
-    def _parse_findout_type(self, string):
-        if string in [
-            plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
-        ]:
-            return string
-        else:
-            raise ParseFailure()
 
     def _parse_findout_source(self, string):
         if string in [

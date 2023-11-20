@@ -769,23 +769,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
             }]
         )
 
-    def test_parameters(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-
-        self._when_compile_domain(
-            """
-<domain name="Domain">
-  <parameters question_type="wh_question" predicate="price" graphical_type="list" />
-</domain>"""
-        )
-
-        self._then_result_has_field("parameters", {self._parse("?X.price(X)"): {"graphical_type": "list"}})
-
     def test_parameters_for_ynq(self):
         self._given_compiled_ontology(
             """
@@ -1150,11 +1133,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
 
 
 class TestParameterCompilation(DDDXMLCompilerTestCase):
-    def test_choice_parameter(self):
-        self._given_compiled_ontology()
-        self._when_compile_parameter_for_question("graphical_type", "list")
-        self._then_result_has_parameter_for_question("graphical_type", "list")
-
     def test_boolean_parameter(self):
         self._given_compiled_ontology()
         self._when_compile_parameter_for_question("incremental", "true")

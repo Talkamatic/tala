@@ -8,7 +8,7 @@ from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import Speaker
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
-from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, QuestionRaisingPlanItem, Findout, Raise
+from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, Findout, Raise
 from tala.model.polarity import Polarity
 from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet, ServiceActionTerminatedProposition
 from tala.model.question import WhQuestion, AltQuestion, KnowledgePreconditionQuestion
@@ -426,22 +426,6 @@ class DomainTests(LibTestCase):
         question = self.dest_city_question
         expected_answers = [self.proposition_dest_city_paris, self.proposition_dest_city_london]
         self.assertEqual(expected_answers, self.domain.get_resolving_answers(question))
-
-    def test_question_presented_as_list_forces_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = {
-            "graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST
-        }
-        self.assertTrue(self.domain.question_forces_graphical_choice(self.dest_city_question))
-
-    def test_question_presented_as_text_forces_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = {
-            "graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
-        }
-        self.assertTrue(self.domain.question_forces_graphical_choice(self.dest_city_question))
-
-    def test_incremental_question_does_not_force_graphical_choice(self):
-        self.domain.parameters[self.dest_city_question] = {"incremental": True}
-        self.assertFalse(self.domain.question_forces_graphical_choice(self.dest_city_question))
 
     def test_get_question_verbalize_returns_true_by_default(self):
         question_with_verbalize_unspecified = self.price_question

@@ -545,12 +545,6 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(expected_item, item)
         self.assertEqual(self.dest_city_question, item.content)
 
-    def test_multiple_parameters(self):
-        string = "{graphical_type=list, incremental=True}"
-        params = self.parse_parameters(string)
-        expected_params = {"graphical_type": "list", "incremental": True}
-        self.assertEqual(expected_params, params)
-
     def test_boolean_parameter_leading_uppercase(self):
         string = "{incremental=True}"
         params = self.parse_parameters(string)
@@ -585,18 +579,6 @@ class ParserTests(unittest.TestCase):
         string = "{alts=set([goal(perform(top)), goal(perform(buy))])}"
         params = self.parse_parameters(string)
         expected_params = {"alts": PropositionSet([self.parse("goal(perform(top))"), self.parse("goal(perform(buy))")])}
-        self.assertEqual(expected_params, params)
-
-    def test_graphical_type_param_list(self):
-        string = "{graphical_type=list}"
-        params = self.parse_parameters(string)
-        expected_params = {"graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST}
-        self.assertEqual(expected_params, params)
-
-    def test_graphical_type_param_text(self):
-        string = "{graphical_type=text}"
-        params = self.parse_parameters(string)
-        expected_params = {"graphical_type": QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT}
         self.assertEqual(expected_params, params)
 
     def test_source_param_service(self):

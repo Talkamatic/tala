@@ -325,9 +325,6 @@ class Domain(AsJSONMixin):
         if top_goal not in self.plans:
             self.plans[top_goal] = {"goal": top_goal, "plan": Plan()}
 
-    def get_graphical_type(self, semantic_object):
-        return self._get_parameter(semantic_object, "graphical_type")
-
     def get_incremental(self, semantic_object):
         return self._get_parameter(semantic_object, "incremental")
 
@@ -402,11 +399,6 @@ class Domain(AsJSONMixin):
             return False
         else:
             return True
-
-    def question_forces_graphical_choice(self, question):
-        return self.get_graphical_type(question) in [
-            plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_LIST, plan_item.QuestionRaisingPlanItem.GRAPHICAL_TYPE_TEXT
-        ] and not self.get_incremental(question)
 
     def _get_parameter(self, question, parameter):
         try:

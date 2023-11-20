@@ -876,8 +876,6 @@ class ChangeDDDPlanItem(ChangeDDD):
 
 
 class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
-    GRAPHICAL_TYPE_TEXT = "text"
-    GRAPHICAL_TYPE_LIST = "list"
     SOURCE_SERVICE = "service"
     SOURCE_DOMAIN = "domain"
     ALPHABETIC = "alphabetic"
@@ -966,9 +964,6 @@ class QuestionRaisingPlanItemOfDomain(object):
 
     def get_alternatives(self):
         return self._domain.get_alternatives(self._plan_item.question)
-
-    def get_graphical_type(self):
-        return self._domain.get_graphical_type(self._plan_item.question)
 
     def get_incremental(self):
         return self._domain.get_incremental(self._plan_item.question)
