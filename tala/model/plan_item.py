@@ -981,7 +981,9 @@ class QuestionRaisingPlanItemOfDomain(object):
         return self._domain.get_label_questions(self._plan_item.question)
 
     def has_parameters(self):
-        return (
-            self.get_alternatives() or self.get_graphical_type() or self.get_incremental() or self.get_source()
-            or self.get_format() or self.get_service_query() or self.get_label_questions()
-        )
+        return self.get_alternatives() \
+            or self.get_incremental() \
+            or self.get_source() \
+            or self.get_format() \
+            or self.get_service_query() \
+            or self.get_label_questions()

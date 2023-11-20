@@ -969,7 +969,6 @@ class DomainCompiler(XmlCompiler):
     def _compile_simple_parameters(self, element):
         result = {}
         supported_parameters = [
-            "graphical_type",
             "source",
             "incremental",
             "verbalize",

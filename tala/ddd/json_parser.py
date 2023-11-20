@@ -214,7 +214,7 @@ class JSONDomainParser():
             return self.parser.parse_action(parameters[name])
         if is_int_parameter():
             return int(parameters[name])
-        if name in ["graphical_type", "source"]:
+        if name in ["source"]:
             return parameters[name]
         if name == "alts":
             return PropositionSet([self.parser.parse(proposition) for proposition in parameters[name]["_propositions"]])
