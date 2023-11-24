@@ -1,4 +1,5 @@
 import uuid
+import re
 
 from tala.model.interpretation import Interpretation
 from tala.model.input_hypothesis import InputHypothesis
@@ -37,9 +38,10 @@ class OutputBuffer:
 
 
 class InteractionTester():
-    def __init__(self):
+    def __init__(self, port):
         self._session_id = f"interaction-tester-session-{str(uuid.uuid4())}"
         self._initialize_session_object()
+        self._port = port
 
     def _initialize_session_object(self):
         self._session_data = {"session_id": self._session_id}
@@ -70,9 +72,16 @@ class InteractionTester():
     def _initialize_testcase(self, testcase):
         self._output_buffer = OutputBuffer()
         self._ddd_name = testcase["target_ddd"]
-        self._client = TDMClient(testcase["url"])
+        url = self._patch_url_with_port(testcase["url"])
+        self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+
+    def _patch_url_with_port(self, url):
+        if self._port:
+            new_url = re.sub(r"^(https?:[^:]*):\d+/(.+)", rf"\1:{self._port}/\2", url)
+            return new_url
+        return url
 
     def _buffer_output(self, output):
         self._output_buffer.add(output)
