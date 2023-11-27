@@ -1,4 +1,5 @@
 import re
+import json
 
 
 def content_matches_pattern(actual, expected):
@@ -54,9 +55,9 @@ class MoveComparison:
 
     def mismatch_description(self):
         return f"""
-expected: {self._expected}
+expected: {json.dumps(self._expected)}
           {self._mismatch_position_description(self._expected, self._actual)}
-but got:  {self._actual}
+but got:  {json.dumps(self._actual)}
           {self._mismatch_position_description(self._actual, self._expected)}"""
 
     def _content_matches_pattern(self, actual, expected):

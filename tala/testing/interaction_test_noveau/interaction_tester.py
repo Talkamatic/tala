@@ -1,5 +1,6 @@
 import uuid
 import re
+import json
 
 from tala.model.interpretation import Interpretation
 from tala.model.input_hypothesis import InputHypothesis
@@ -109,7 +110,7 @@ class InteractionTester():
 
         if MOVE_CONTENT in user_entry:
             moves = user_entry[MOVE_CONTENT]
-            self._buffer_output(f"U> {moves}")
+            self._buffer_output(f"U> {json.dumps(moves)}")
             utterance = user_entry.get("utterance", "")
             interpretation = create_interpretation(moves, utterance)
             self._request_semantic_input([interpretation])
@@ -117,7 +118,7 @@ class InteractionTester():
             utterance = user_entry.get("utterance", "")
             interpretations = create_interpretations_from_dicts(user_entry[INTERPRETATIONS], utterance)
             entities = user_entry.get("entities", [])
-            self._buffer_output(f"U> {utterance if utterance else interpretations}")
+            self._buffer_output(f"U> {utterance if utterance else json.dumps(interpretations)}")
             self._request_semantic_input(interpretations, entities=entities)
         elif EXPECTED_PASSIVITY in user_entry:
             expected_passivity = user_entry[EXPECTED_PASSIVITY]
@@ -201,7 +202,7 @@ class InteractionTester():
             self._result = {"success": False, "failure_description": comparison.mismatch_description()}
             self._buffer_output(comparison.mismatch_description())
             return False
-        self._buffer_output(f"S> {actual_move_content}")
+        self._buffer_output(f"S> {json.dumps(actual_move_content)}")
         return True
 
     def _assert_system_utterance_is_matched_by(self, expected_speech_content):
