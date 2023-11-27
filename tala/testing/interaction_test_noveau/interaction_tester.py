@@ -108,6 +108,9 @@ class InteractionTester():
                 move_dict["understanding_confidence"]
             )
 
+        def interpretations_as_json(interpretations):
+            return json.dumps([interpretation.as_json() for interpretation in interpretations])
+
         if MOVE_CONTENT in user_entry:
             moves = user_entry[MOVE_CONTENT]
             self._buffer_output(f"U> {json.dumps(moves)}")
@@ -118,7 +121,7 @@ class InteractionTester():
             utterance = user_entry.get("utterance", "")
             interpretations = create_interpretations_from_dicts(user_entry[INTERPRETATIONS], utterance)
             entities = user_entry.get("entities", [])
-            self._buffer_output(f"U> {utterance if utterance else json.dumps(interpretations)}")
+            self._buffer_output(f"U> {utterance if utterance else interpretations_as_json(interpretations)}")
             self._request_semantic_input(interpretations, entities=entities)
         elif EXPECTED_PASSIVITY in user_entry:
             expected_passivity = user_entry[EXPECTED_PASSIVITY]
