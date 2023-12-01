@@ -62,6 +62,7 @@
   <xs:element name="log">
     <xs:complexType>
       <xs:attribute name="message" type="xs:string" use="required"/>
+      <xs:attribute name="level" type="xs:string" use="optional"/>
     </xs:complexType>
   </xs:element>
 

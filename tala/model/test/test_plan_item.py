@@ -390,7 +390,7 @@ class LogPlanItemTests(LibTestCase):
         self.log_plan_item = plan_item.Log(self.message)
 
     def test_string(self):
-        self.assertEqual("log_plan_item('log message')", str(self.log_plan_item))
+        self.assertEqual("log_plan_item('debug', 'log message')", str(self.log_plan_item))
 
     def test_is_log_plan_item(self):
         self.assertEqual(self.log_plan_item.type_, plan_item.TYPE_LOG)

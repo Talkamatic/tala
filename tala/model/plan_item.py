@@ -703,23 +703,39 @@ class HandlePlanItem(Handle):
     pass
 
 
+class UnexpectedLogLevelException(Exception):
+    pass
+
+
 class Log(PlanItem):
-    def __init__(self, message):
+    LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
+
+    def __init__(self, message, log_level="debug"):
+        if log_level not in self.LOG_LEVELS:
+            raise UnexpectedLogLevelException(
+                f"Log plan item creation attempted with log level '{log_level}'. Expected one of '{self.LOG_LEVELS}'"
+            )
+
         PlanItem.__init__(self, TYPE_LOG)
         self._message = message
+        self._level = log_level
 
     @property
     def message(self):
         return self._message
 
+    @property
+    def level(self):
+        return self._level
+
     def __str__(self):
-        return f"log_plan_item('{self.message}')"
+        return f"log_plan_item('{self._level}', '{self.message}')"
 
     def __repr__(self):
         return str(self)
 
     def as_dict(self):
-        return {self.type_: self.message}
+        return {self.type_: {"message": self.message, "level": self.level}}
 
 
 class LogPlanItem(Log):

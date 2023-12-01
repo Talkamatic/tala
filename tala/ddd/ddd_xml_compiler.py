@@ -689,7 +689,8 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_log_element(self, element):
         message = self._get_mandatory_attribute(element, "message")
-        return [plan_item.Log(message)]
+        level = self._get_optional_attribute(element, "level", default="debug")
+        return [plan_item.Log(message, level)]
 
     def _compile_signal_action_completion_element(self, element):
         postconfirm = self._get_optional_attribute(element, "postconfirm", default="true")

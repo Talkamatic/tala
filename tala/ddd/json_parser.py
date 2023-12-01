@@ -628,6 +628,12 @@ class NonCheckingJSONParser():
         return plan_item.Do(action)
 
     def parse_log_plan_item(self, data):
+        if "message" in data and "level" in data:
+            return plan_item.Log(data["message"], data["level"])
+        else:
+            return self.parse_old_log_plan_item(data)
+
+    def parse_old_log_plan_item(self, data):
         message = data
         return plan_item.Log(message)
 

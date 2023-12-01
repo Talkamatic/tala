@@ -11,7 +11,7 @@ from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeDomainQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem, EndTurnPlanItem
+from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeDomainQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem, EndTurnPlanItem, UnexpectedLogLevelException
 from tala.model import condition
 from tala.model.predicate import Predicate
 from tala.model.proposition import ImplicationProposition
@@ -2075,7 +2075,22 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def test_log_element(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<log message="log message" />')
-        self._then_result_has_plan(Plan([LogPlanItem("log message")]))
+        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="debug")]))
+
+    def test_log_element_with_default_level(self):
+        self._given_compiled_ontology()
+        self._when_compile_domain_with_plan('<log message="log message" level="debug"/>')
+        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="debug")]))
+
+    def test_log_element_with_level(self):
+        self._given_compiled_ontology()
+        self._when_compile_domain_with_plan('<log message="log message" level="info"/>')
+        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="info")]))
+
+    def test_log_element_with_unexpected_level(self):
+        self._given_compiled_ontology()
+        with pytest.raises(UnexpectedLogLevelException):
+            self._when_compile_domain_with_plan('<log message="log message" level="kalas"/>')
 
     def test_invoke_service_query(self):
         self._given_compiled_ontology(
