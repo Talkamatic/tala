@@ -26,10 +26,6 @@ class HttpServiceClient(AbstractServiceWrapper):
         self._http_formatter = http_formatter
         self._session = requests.Session()
 
-    def _filter_cache_by_request_type(self, response):
-        request_type = json.loads(response.request.body)["request"]["type"]
-        return True if request_type in ["query", "validator"] else False
-
     def _post(self, data, headers, session):
         def get_http_service_timeout(session):
             return float(session.get("dme_http_service_client_timeout", 2.0))

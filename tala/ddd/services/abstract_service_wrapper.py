@@ -3,9 +3,6 @@ class AbstractServiceWrapper(object):
         super(AbstractServiceWrapper, self).__init__()
         self._session_data = {}
 
-    def recognize_entity(self, string, session, context):
-        raise NotImplementedError()
-
     def query(self, question, parameters, min_results, max_results, session, context):
         raise NotImplementedError()
 

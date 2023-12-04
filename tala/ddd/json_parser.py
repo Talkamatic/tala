@@ -2,8 +2,6 @@ import copy
 import warnings
 
 from tala.model import move
-from tala.model.entity import Entity
-from tala.model import stack
 from tala.model import plan_item
 from tala.model import ontology
 from tala.model.domain import Domain
@@ -1200,82 +1198,3 @@ class CheckingJSONParser(NonCheckingJSONParser):
     def _create_lambda_abstracted_predicate_proposition(self, content):
         predicate = self.parse_predicate(content["predicate"])
         return self.ontology.create_lambda_abstracted_predicate_proposition(predicate)
-
-
-class JSONTISParser():
-    def __init__(self):
-        self._parser = NonCheckingJSONParser()
-
-    def parse(self, input):
-        if "openqueue" in input:
-            return self._parser.parse_openqueue(input["openqueue"])
-        if "set" in input:
-            return self._parser.parse_set(input["set"])
-        if "stack" in input:
-            return self.parse_stack(input)
-        else:
-            raise JSONParseFailure(f"cannot parse {input}.")
-
-    def parse_stack_set(self, input):
-        return stack.StackSet([self._parser.parse(item) for item in reversed(input["stackset"])])
-
-    def parse_qud(self, input):
-        contents = input["qud"]
-        questions = self.parse_stack_set(contents)
-        turn_information = {
-            self._parser.parse(item["key"]): int(item["value"])
-            for item in contents["turn_information"]
-        }
-        return stack.QUD(questions, turn_information)
-
-    def parse_stack(self, input):
-        return stack.Stack([self._parser.parse(item) for item in reversed(input["stack"])])
-
-    def parse_entities(self, input):
-        return Set([Entity.create_from_json(entity_as_dict) for entity_as_dict in input["set"]])
-
-    def parse_iterators(self, input):
-        return self._deserialize_iterators(input)
-
-    def _deserialize_iterators(self, query_list):
-        def try_parsing_as_list(list_or_single):
-            try:
-                return [self._parser.parse(value_as_json) for value_as_json in list_or_single]
-            except Exception:
-                return []
-
-        def parse_as_single(single):
-            return self._parser.parse(single)
-
-        def deserialize_query(query_or_iterator):
-            key_as_json = query_or_iterator["key"]
-            value_as_json = query_or_iterator["value"]
-
-            if value_as_json == []:
-                value = []
-            else:
-                value = try_parsing_as_list(value_as_json)
-                if not value:
-                    value = parse_as_single(value_as_json)
-
-            try:
-                key = self._parser.parse(key_as_json)
-            except AttributeError:
-                key = key_as_json
-
-            return key, value
-
-        queries = {}
-        for query_as_json in query_list:
-            k, v = deserialize_query(query_as_json)
-            queries[k] = v
-        return queries
-
-    def parse_last_hint_for_question(self, input):
-        return {self._parser.parse(kv_dict["key"]): int(kv_dict["value"]) for kv_dict in input}
-
-    def parse_plan(self, input):
-        return JSONDomainParser().parse_plan(input)
-
-    def parse_alts(self, input):
-        return [alt for alt in input]
