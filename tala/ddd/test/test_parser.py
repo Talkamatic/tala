@@ -747,8 +747,8 @@ class ParserTests(unittest.TestCase):
         item = self.parse("invoke_service_query(%s)" % issue)
         self.assertEqual(item.type_, plan_item.TYPE_INVOKE_SERVICE_QUERY)
         self.assertEqual(issue, item.content)
-        self.assertEqual(1, item.get_min_results())
-        self.assertEqual(1, item.get_max_results())
+        self.assertEqual(1, item.min_results)
+        self.assertEqual(1, item.max_results)
 
     def test_invoke_service_action_no_params(self):
         service_action = "MakeReservation"

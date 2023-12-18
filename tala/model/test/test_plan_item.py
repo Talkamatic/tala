@@ -274,22 +274,22 @@ class InvokeServiceQueryPlanItemTests(LibTestCase):
 
     def test_min_results_is_0_by_default(self):
         self.given_created_invoke_service_query_plan_item()
-        self.when_call(self._plan_item.get_min_results)
+        self.when_getting_value(self._plan_item.min_results)
         self.then_result_is(0)
 
     def test_min_results_overridden(self):
         self.given_created_invoke_service_query_plan_item(min_results=1)
-        self.when_call(self._plan_item.get_min_results)
+        self.when_getting_value(self._plan_item.min_results)
         self.then_result_is(1)
 
     def test_max_results_is_none_by_default(self):
         self.given_created_invoke_service_query_plan_item()
-        self.when_call(self._plan_item.get_max_results)
+        self.when_getting_value(self._plan_item.max_results)
         self.then_result_is(None)
 
     def test_max_results_overridden(self):
         self.given_created_invoke_service_query_plan_item(max_results=1)
-        self.when_call(self._plan_item.get_max_results)
+        self.when_getting_value(self._plan_item.max_results)
         self.then_result_is(1)
 
     def test_exception_raised_for_min_results_below_0(self):

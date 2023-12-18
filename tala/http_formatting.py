@@ -1,15 +1,14 @@
 from tala.model.polarity import Polarity
 
 
-class HttpFormatter(object):
-    def __init__(self, ddd_component_manager):
-        self._ddd_component_manager = ddd_component_manager
-
+class HTTPFormatter(object):
     def facts_to_json_object(self, facts, session):
+        def positive_predicate_proposition(proposition):
+            return proposition.is_predicate_proposition() and proposition.get_polarity() == Polarity.POS
+
         return {
             proposition.predicate.get_name(): self.fact_to_json_object(proposition, session)
-            for proposition in facts
-            if proposition.is_predicate_proposition() and proposition.get_polarity() == Polarity.POS
+            for proposition in facts if positive_predicate_proposition(proposition)
         }
 
     def fact_to_json_object(self, proposition, session):
@@ -20,17 +19,12 @@ class HttpFormatter(object):
                         return entity["natural_language_form"]
             return None
 
-        if proposition is None:
+        if proposition is None or proposition.individual is None:
             return None
 
-        if proposition.individual is None:
-            return None
-        value = proposition.individual.value
-        value_as_json = proposition.individual.value_as_json_object()
-        grammar_entry = get_grammar_entry(value)
         resulting_dict = {
             "sort": proposition.predicate.sort.get_name(),
-            "grammar_entry": grammar_entry,
+            "grammar_entry": get_grammar_entry(proposition.individual.value),
             "perception_confidence":
                 proposition.confidence_estimates.perception_confidence if proposition.confidence_estimates else None,
             "understanding_confidence":
@@ -41,5 +35,12 @@ class HttpFormatter(object):
                 proposition.confidence_estimates.weighted_understanding_confidence
                 if proposition.confidence_estimates else None
         }  # yapf: disable
-        resulting_dict.update(value_as_json)
+
+        resulting_dict.update(proposition.individual.value_as_json_object())
+
         return resulting_dict
+
+
+class HttpFormatter(HTTPFormatter):
+    def __init__(self, _dummy):
+        pass

@@ -136,3 +136,6 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
 
     def when_call(self, callable_):
         self._actual_result = callable_()
+
+    def when_getting_value(self, result):
+        self._actual_result = result

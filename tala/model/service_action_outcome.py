@@ -16,7 +16,7 @@ class ServiceActionOutcome():
         return {"service_action_outcome": None}
 
 
-class SuccessfulServiceAction(ServiceActionOutcome):
+class Success(ServiceActionOutcome):
     @property
     def is_successful(self):
         return True
@@ -28,9 +28,13 @@ class SuccessfulServiceAction(ServiceActionOutcome):
         return {"service_action_outcome": True}
 
 
-class FailedServiceAction(ServiceActionOutcome):
+class SuccessfulServiceAction(Success):
+    pass
+
+
+class Failure(ServiceActionOutcome):
     def __init__(self, failure_reason):
-        super(FailedServiceAction, self).__init__()
+        super().__init__()
         self._failure_reason = failure_reason
 
     @property
@@ -45,10 +49,15 @@ class FailedServiceAction(ServiceActionOutcome):
         return {"service_action_outcome": False, "failure_reason": self.failure_reason}
 
     def __eq__(self, other):
-        return super(FailedServiceAction, self).__eq__(other) and other.failure_reason == self.failure_reason
+        return super().__eq__(other) and other.failure_reason == self.failure_reason
 
     def __str__(self):
         return "%s(%s)" % (self.__class__.__name__, self.failure_reason)
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.failure_reason)
+
+
+class FailedServiceAction(Failure):
+    def __init__(self, failure_reason):
+        super().__init__(failure_reason)

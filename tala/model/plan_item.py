@@ -501,11 +501,34 @@ class MaxResultsNotSupportedException(Exception):
 
 
 class InvokeQuery(PlanItemWithSemanticContent):
-    def get_min_results(self):
+    @property
+    def min_results(self):
         return self._min_results
 
-    def get_max_results(self):
+    @property
+    def max_results(self):
         return self._max_results
+
+    @property
+    def question(self):
+        return self._content
+
+    def get_min_results(self):
+        warnings.warn(
+            "InvokeQuery.get_min_results() is deprecated. Use InvokeQuery.min_results instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
+        return self.min_results
+
+    def get_max_results(self):
+        warnings.warn(
+            "InvokeQuery.get_max_results() is deprecated. Use InvokeQuery.max_results instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.max_results
 
     def __str__(self):
         return "invoke_service_query(%s, min_results=%s, max_results=%s)" % (
@@ -518,8 +541,9 @@ class InvokeQuery(PlanItemWithSemanticContent):
         )
 
     def __eq__(self, other):
-        return super(PlanItemWithSemanticContent, self).__eq__(other) and other.get_min_results(
-        ) == self.get_min_results() and other.get_max_results() == self.get_max_results()
+        return super(PlanItemWithSemanticContent, self).__eq__(other) \
+            and other.min_results == self.min_results \
+            and other.max_results == self.max_results
 
     def as_dict(self):
         return {
