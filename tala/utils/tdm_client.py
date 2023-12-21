@@ -133,5 +133,4 @@ class TDMClient(Observable):
         if "error" in response:
             description = response["error"]["description"]
             raise TDMRuntimeException(description)
-
         return response

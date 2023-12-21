@@ -1,6 +1,7 @@
 import uuid
 import re
 import json
+import requests
 
 from tala.model.interpretation import Interpretation
 from tala.model.input_hypothesis import InputHypothesis
@@ -22,6 +23,8 @@ MOVES = "moves"
 SESSION = "session"
 EXPECTED_PASSIVITY = "expected_passivity"
 UTTERANCE = "utterance"
+
+TDM_PROTOCOL_VERSION = "3.4"
 
 
 class OutputBuffer:
@@ -58,14 +61,18 @@ class InteractionTester():
         self.start_session()
         self.line_number = 0
         success = True
+        self._previous_entry_type = None
         for entry in case["interaction"]:
             self.line_number += 1
             if entry[SPEAKER] == USER:
                 success = self._do_user_turn(entry)
             elif entry[SPEAKER] == SYSTEM:
+                if self._previous_entry_type == SYSTEM:
+                    raise Exception(f"Two consecutive entries define '{SYSTEM}' input")
                 success = self._do_system_turn(entry)
             if not success:
                 return self._create_response(self._result)
+            self._previous_entry_type = entry[SPEAKER]
         self._buffer_output('=== End interaction test ===')
         self._result = {"success": True}
         return self._create_response(self._result)
@@ -90,6 +97,10 @@ class InteractionTester():
     def _print_buffer(self):
         print(str(self._output_buffer))
 
+    def check_for_consecutive_speaker(self, speaker):
+        if self._previous_entry_type == speaker:
+            raise Exception(f"Two consecutive entries define '{speaker}' input")
+
     def _do_user_turn(self, user_entry):
         def create_interpretation(moves, utterance_content=""):
             return Interpretation([self._create_user_move(move) for move in moves], Modality.OTHER, utterance_content)
@@ -110,6 +121,8 @@ class InteractionTester():
 
         def interpretations_as_json(interpretations):
             return json.dumps([interpretation.as_json() for interpretation in interpretations])
+
+        self.check_for_consecutive_speaker(USER)
 
         if MOVE_CONTENT in user_entry:
             moves = user_entry[MOVE_CONTENT]
@@ -160,12 +173,121 @@ class InteractionTester():
         return UserMove(move, 1.0, 1.0)
 
     def _do_system_turn(self, system_entry):
-        if EXPECTED_PASSIVITY in system_entry and self._passivity_mismatch(system_entry[EXPECTED_PASSIVITY]):
-            return self._create_passivity_mismatch_description(system_entry[EXPECTED_PASSIVITY])
-        if MOVE_CONTENT in system_entry:
-            return self._assert_system_moves_are_matched_by(system_entry[MOVE_CONTENT])
-        if SPEECH_CONTENT in system_entry:
-            return self._assert_system_utterance_is_matched_by(system_entry[SPEECH_CONTENT])
+        self.check_for_consecutive_speaker(SYSTEM)
+
+        while self._is_request_for_service_invocation():
+            self._make_service_request_and_create_tdm_request_with_service_invocation_result()
+        else:
+            if EXPECTED_PASSIVITY in system_entry and self._passivity_mismatch(system_entry[EXPECTED_PASSIVITY]):
+                return self._create_passivity_mismatch_description(system_entry[EXPECTED_PASSIVITY])
+            if MOVE_CONTENT in system_entry:
+                return self._assert_system_moves_are_matched_by(system_entry[MOVE_CONTENT])
+            if SPEECH_CONTENT in system_entry:
+                return self._assert_system_utterance_is_matched_by(system_entry[SPEECH_CONTENT])
+
+    def _is_request_for_service_invocation(self):
+        if self._is_request_for_service_query_invocation():
+            return True
+        elif self._is_request_for_service_validation_invocation():
+            return True
+        elif self._is_request_for_service_action_invocation():
+            return True
+
+    def _is_request_for_service_query_invocation(self):
+        if "predicate" in self._latest_response:
+            return True
+
+    def _is_request_for_service_validation_invocation(self):
+        if "validator_name" in self._latest_response:
+            return True
+
+    def _is_request_for_service_action_invocation(self):
+        if "action_name" in self._latest_response:
+            return True
+
+    def _make_service_request_and_create_tdm_request_with_service_invocation_result(self):
+        if self._is_request_for_service_query_invocation():
+            self._make_service_request_and_create_tdm_request_with_service_query_invocation_result()
+        elif self._is_request_for_service_validation_invocation():
+            self._make_service_request_and_create_tdm_request_with_service_validator_invocation_result()
+        elif self._is_request_for_service_action_invocation():
+            self._make_service_request_and_create_tdm_request_with_service_action_invocation_result()
+
+    def _make_service_request_and_create_tdm_request_with_service_query_invocation_result(self):
+        predicate = self._latest_response["predicate"]
+        url = self._latest_response["url"]
+        parameters = self._latest_response["parameters"]
+        session = self._latest_response["session"]
+
+        query_results = self._make_query_to_http_service(predicate, url, parameters, session)
+        self._make_results_request_for_dme(
+            "query_results", {
+                "predicate": predicate,
+                "url": url,
+                "parameters": parameters,
+                "ddd_name": self._latest_response["ddd_name"],
+                "results": query_results["data"]["result"],
+                "earlier_results": self._latest_response["earlier_results"]
+            }
+        )
+
+    def _make_results_request_for_dme(self, type_, results):
+        request = {
+            "version": TDM_PROTOCOL_VERSION,
+            "request": self._latest_response["original_request"],
+            "session": self._latest_response["session"]
+        }
+        request["request"][type_] = results
+        self._latest_response = self._client.make_request(request)
+
+    def _make_query_to_http_service(self, name, url, parameters, session):
+        data = {
+            "session": session,
+            "request": {
+                "type": "query",
+                "name": name,
+                "parameters": parameters,
+            }
+        }
+        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response_dict = json.loads(response.text)
+        return response_dict
+
+    def _make_service_request_and_create_tdm_request_with_service_validator_invocation_result(self):
+        validator_name = self._latest_response["validator_name"]
+        url = self._latest_response["url"]
+        parameters = self._latest_response["parameters"]
+        session = self._latest_response["session"]
+
+        query_results = self._make_query_to_http_service(validator_name, url, parameters, session)
+        self._make_results_request_for_dme(
+            "validation_results", {
+                "validator_name": validator_name,
+                "url": url,
+                "parameters": parameters,
+                "ddd_name": self._latest_response["ddd_name"],
+                "result": query_results,
+                "earlier_results": self._latest_response["earlier_results"]
+            }
+        )
+
+    def _make_service_request_and_create_tdm_request_with_service_action_invocation_result(self):
+        action_name = self._latest_response["action_name"]
+        url = self._latest_response["url"]
+        parameters = self._latest_response["parameters"]
+        session = self._latest_response["session"]
+
+        action_result = self._make_query_to_http_service(action_name, url, parameters, session)
+        self._make_results_request_for_dme(
+            "action_results", {
+                "action_name": action_name,
+                "url": url,
+                "parameters": parameters,
+                "ddd_name": self._latest_response["ddd_name"],
+                "result": action_result,
+                "earlier_results": self._latest_response["earlier_results"]
+            }
+        )
 
     def _passivity_mismatch(self, expected_passivity_value):
         actual_value = self._latest_response[OUTPUT].get(EXPECTED_PASSIVITY)
@@ -199,6 +321,7 @@ class InteractionTester():
             }
 
     def _assert_system_moves_are_matched_by(self, expected_move_content):
+        assert OUTPUT in self._latest_response, f"No {OUTPUT} in {self._latest_response}"
         actual_move_content = self._latest_response[OUTPUT][MOVES]
         comparison = MoveComparison(actual_move_content, expected_move_content)
         if not comparison.match():
