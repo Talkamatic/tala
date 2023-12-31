@@ -5,7 +5,7 @@ from mock import Mock
 
 from tala.model.error import OntologyError
 from tala.model.goal import PerformGoal
-from tala.model.speaker import Speaker
+from tala.model import speaker
 from tala.model.ontology import Ontology
 from tala.model.polarity import Polarity
 from tala.model.question import YesNoQuestion
@@ -80,13 +80,13 @@ class PropositionTests(LibTestCase, unittest.TestCase):
 
     def test_understanding_proposition_getters(self):
         proposition = self.proposition_dest_city_paris
-        und = UnderstandingProposition(Speaker.USR, proposition)
-        self.assertEqual(Speaker.USR, und.get_speaker())
+        und = UnderstandingProposition(speaker.USR, proposition)
+        self.assertEqual(speaker.USR, und.get_speaker())
         self.assertEqual(proposition, und.get_content())
 
     def test_understanding_proposition_to_string(self):
         proposition = self.proposition_dest_city_paris
-        und = UnderstandingProposition(Speaker.USR, proposition)
+        und = UnderstandingProposition(speaker.USR, proposition)
         self.assertEqual("und(USR, dest_city(paris))", str(und))
 
 

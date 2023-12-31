@@ -7,7 +7,7 @@ from tala.model.ask_feature import AskFeature
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
 from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
-from tala.model.speaker import Speaker
+from tala.model import speaker
 from tala.model.set import Set
 from tala.model import move
 from tala.model.move import Move, ICMMove, IssueICMMove, ICMMoveWithSemanticContent, ReportMove, PrereportMove, \
@@ -837,7 +837,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return ResolveGoal(question, Speaker.SYS)
+            return ResolveGoal(question, speaker.SYS)
         else:
             raise ParseFailure()
 
@@ -846,7 +846,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return ResolveGoal(question, Speaker.USR)
+            return ResolveGoal(question, speaker.USR)
         else:
             raise ParseFailure()
 
@@ -1061,12 +1061,12 @@ class Parser:
             raise ParseFailure()
 
     def _parse_speaker(self, string):
-        if string == Speaker.USR:
-            return Speaker.USR
-        elif string == Speaker.SYS:
-            return Speaker.SYS
-        elif string == Speaker.MODEL:
-            return Speaker.MODEL
+        if string == speaker.USR:
+            return speaker.USR
+        elif string == speaker.SYS:
+            return speaker.SYS
+        elif string == speaker.MODEL:
+            return speaker.MODEL
         elif string == "None":
             return None
 

@@ -4,7 +4,7 @@ from tala.model.action import Action
 from tala.model.error import DomainError
 from tala.model.goal import PerformGoal, ResolveGoal
 from tala.model.question import KnowledgePreconditionQuestion
-from tala.model.speaker import Speaker
+from tala.model import speaker
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model import plan_item
 from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
@@ -145,7 +145,7 @@ class Domain(AsJSONMixin):
         return feature_question_predicate.is_feature_of(question_predicate)
 
     def _goal_issue_depends_on_question(self, goal_issue, question):
-        resolve_goal = ResolveGoal(goal_issue, Speaker.SYS)
+        resolve_goal = ResolveGoal(goal_issue, speaker.SYS)
         if self.has_goal(resolve_goal):
             plan = self.get_plan(resolve_goal)
             for item in plan:

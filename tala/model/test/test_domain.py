@@ -5,7 +5,7 @@ from tala.model.domain import Domain
 from tala.model.action import Action
 from tala.model.goal import ResolveGoal, PerformGoal, HandleGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
-from tala.model.speaker import Speaker
+from tala.model import speaker
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, Findout, Raise
@@ -152,7 +152,7 @@ class DomainTests(LibTestCase):
 
     def _create_plans(self):
         return [{
-            "goal": ResolveGoal(self.price_question, Speaker.SYS),
+            "goal": ResolveGoal(self.price_question, speaker.SYS),
             "plan": Plan([
                 Findout(self.domain_name, self.dest_city_question),
                 Findout(self.domain_name, self.dept_city_question),
@@ -231,11 +231,11 @@ class DomainTests(LibTestCase):
         self.assertEqual(self.buy_action, self.domain.action("buy"))
 
     def test_has_goal_true_for_question_with_plan(self):
-        self.assertTrue(self.domain.has_goal(ResolveGoal(self.price_question, Speaker.SYS)))
+        self.assertTrue(self.domain.has_goal(ResolveGoal(self.price_question, speaker.SYS)))
 
     def test_has_goal_false_for_question_without_plan(self):
         question_without_plan = self.dest_city_question
-        self.assertFalse(self.domain.has_goal(ResolveGoal(question_without_plan, Speaker.USR)))
+        self.assertFalse(self.domain.has_goal(ResolveGoal(question_without_plan, speaker.USR)))
 
     def test_has_goal_true_for_action_with_plan(self):
         self.assertTrue(self.domain.has_goal(PerformGoal(self.buy_action)))
@@ -292,7 +292,7 @@ class DomainTests(LibTestCase):
 
     def test_get_all_goals(self):
         expected_goals = {
-            ResolveGoal(self.price_question, Speaker.SYS),
+            ResolveGoal(self.price_question, speaker.SYS),
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
@@ -309,7 +309,7 @@ class DomainTests(LibTestCase):
 
     def test_get_all_goals_in_defined_order(self):
         expected_goals = [
-            ResolveGoal(self.price_question, Speaker.SYS),
+            ResolveGoal(self.price_question, speaker.SYS),
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
@@ -332,7 +332,7 @@ class DomainTests(LibTestCase):
 
     def test_iterate_plans(self):
         expected_goals = {
-            ResolveGoal(self.price_question, Speaker.SYS),
+            ResolveGoal(self.price_question, speaker.SYS),
             PerformGoal(self.buy_action),
             PerformGoal(self.always_preferred_action),
             PerformGoal(self.conditionally_preferred_action),
@@ -372,7 +372,7 @@ class DomainTests(LibTestCase):
                          list(self.domain.get_downdate_conditions(HandleGoal("mockup_ontology", "event"))))
 
     def test_get_downdate_conditions_for_resolve_goal(self):
-        resolve_goal = ResolveGoal(self.price_question, Speaker.SYS)
+        resolve_goal = ResolveGoal(self.price_question, speaker.SYS)
         self.assertEqual([], list(self.domain.get_downdate_conditions(resolve_goal)))
 
     def test_get_postplan_for_goal_with_postplan(self):
@@ -622,7 +622,7 @@ class DominatesTests(LibTestCase):
             "plan": [
                 self._findout_with_alts([
                     GoalProposition(PerformGoal(self.dominated_action)),
-                    GoalProposition(ResolveGoal(self.dominated_issue, Speaker.SYS))
+                    GoalProposition(ResolveGoal(self.dominated_issue, speaker.SYS))
                 ])
             ]
         }, {
@@ -632,7 +632,7 @@ class DominatesTests(LibTestCase):
             "goal": PerformGoal(self.super_dominated_action),
             "plan": []
         }, {
-            "goal": ResolveGoal(self.dominated_issue, Speaker.SYS),
+            "goal": ResolveGoal(self.dominated_issue, speaker.SYS),
             "plan": []
         }, {
             "goal": PerformGoal(self.non_dominated_action),
@@ -661,7 +661,7 @@ class DominatesTests(LibTestCase):
 
     def test_dominates_true_for_dominated_issue(self):
         self.assertTrue(
-            self.domain.dominates(PerformGoal(self.dominating_action), ResolveGoal(self.dominated_issue, Speaker.SYS))
+            self.domain.dominates(PerformGoal(self.dominating_action), ResolveGoal(self.dominated_issue, speaker.SYS))
         )
 
     def test_dominates_false_for_non_dominated_action(self):
@@ -672,7 +672,7 @@ class DominatesTests(LibTestCase):
     def test_dominates_false_for_non_dominated_issue(self):
         self.assertFalse(
             self.domain.dominates(
-                PerformGoal(self.dominating_action), ResolveGoal(self.non_dominated_issue, Speaker.SYS)
+                PerformGoal(self.dominating_action), ResolveGoal(self.non_dominated_issue, speaker.SYS)
             )
         )
 

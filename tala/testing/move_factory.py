@@ -1,4 +1,4 @@
-from tala.model.speaker import Speaker
+from tala.model.speaker import USR
 from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
     ICMMoveWithSemanticContent, ReportMove, PrereportMove, AnswerMove, RequestMove, AskMove
 
@@ -71,7 +71,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         return self.create_move(Move.ANSWER, answer, speaker=speaker)
 
     def create_request_move(self, action):
-        return self.create_move(Move.REQUEST, action, speaker=Speaker.USR, understanding_confidence=1.0)
+        return self.create_move(Move.REQUEST, action, speaker=USR, understanding_confidence=1.0)
 
     def create_icm_move(
         self,

@@ -1,7 +1,7 @@
 import warnings
 
 from tala.model.move import RequestMove, AskMove
-from tala.model.speaker import Speaker
+from tala.model import speaker
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
@@ -135,7 +135,7 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
 
 
 class Perform(GoalWithSemanticContent):
-    def __init__(self, action, target=Speaker.SYS):
+    def __init__(self, action, target=speaker.SYS):
         assert action.is_action()
         GoalWithSemanticContent.__init__(self, self.PERFORM_GOAL, target, action)
 
@@ -200,7 +200,7 @@ class Resolve(GoalWithSemanticContent):
 
     def __str__(self):
         result = ""
-        if self._target == Speaker.USR:
+        if self._target == speaker.USR:
             result += "resolve_user"
         else:
             result += "resolve"
@@ -220,7 +220,7 @@ class ResolveGoal(Resolve):
 
 class HandleGoal(Goal, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, device_event):
-        Goal.__init__(self, self.HANDLE_GOAL, Speaker.SYS)
+        Goal.__init__(self, self.HANDLE_GOAL, speaker.SYS)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         self._device_event = device_event
 

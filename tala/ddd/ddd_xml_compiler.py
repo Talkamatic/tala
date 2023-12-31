@@ -12,7 +12,7 @@ from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.domain import Domain
 from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
-from tala.model.speaker import Speaker
+from tala.model.speaker import SYS, USR
 from tala.model.plan import Plan
 from tala.model.polarity import Polarity
 from tala.model import plan_item
@@ -382,10 +382,10 @@ class DomainCompiler(XmlCompiler):
         if goal_type == "perform":
             action_name = self._get_mandatory_attribute(element, "action")
             action = self._ontology.create_action(action_name)
-            return PerformGoal(action, Speaker.SYS)
+            return PerformGoal(action, SYS)
         elif goal_type == "resolve":
             question = self._compile_question(element, "question_type")
-            return ResolveGoal(question, Speaker.SYS)
+            return ResolveGoal(question, SYS)
         elif goal_type == "handle":
             service_action = self._get_mandatory_attribute(element, "action")
             return HandleGoal(self._ontology.name, service_action)
@@ -834,10 +834,10 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_resolve_proposition(self, element):
         question = self._compile_question(element, "type")
-        speaker = Speaker.SYS
+        speaker = SYS
         speaker_attribute = element.getAttribute("speaker")
         if speaker_attribute == "user":
-            speaker = Speaker.USR
+            speaker = USR
         return GoalProposition(ResolveGoal(question, speaker))
 
     def _compile_if_then_child_plan(self, element, node_name):

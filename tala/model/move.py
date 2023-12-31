@@ -2,7 +2,7 @@ import warnings
 
 from tala.model.common import Modality
 from tala.model.confidence_estimate import ConfidenceEstimates
-from tala.model.speaker import Speaker
+from tala.model.speaker import USR, SYS, MODEL
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils import float_comparison
@@ -163,17 +163,17 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
 
     def is_realized(self):
         return self.understanding_confidence is not None or self._speaker is not None or self._modality is not None \
-               or (self._speaker == Speaker.USR and self._ddd_name is not None)
+               or (self._speaker == USR and self._ddd_name is not None)
 
     def _verify_realization_data(self, understanding_confidence=None, speaker=None, modality=None, ddd_name=None):
         if self.is_realized():
             raise MoveException("realization data already set")
         if speaker is None:
             raise MoveException("speaker must be supplied")
-        if speaker == Speaker.SYS:
+        if speaker == SYS:
             if understanding_confidence is not None and understanding_confidence != 1.0:
                 raise MoveException("understanding confidence below 1.0 not allowed for system moves")
-        if speaker == Speaker.USR:
+        if speaker == USR:
             if understanding_confidence is None:
                 raise MoveException("understanding confidence must be supplied for user moves")
             if ddd_name is None:
@@ -493,7 +493,7 @@ class ICMMoveWithContent(ICMMove):
         return self._content
 
     def _get_checked_content_speaker(self, speaker):
-        if (speaker in [Speaker.USR, Speaker.SYS, Speaker.MODEL, None]):
+        if (speaker in [USR, SYS, MODEL, None]):
             return speaker
         raise Exception(f"'{speaker}' is not a valid value for content_speaker")
 

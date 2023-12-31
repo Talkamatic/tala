@@ -1,9 +1,9 @@
 import unittest
 
-from tala.model.speaker import Speaker
+from tala.model import speaker
 
 
 class speakerTests(unittest.TestCase):
     def test_speaker_class(self):
-        self.assertEqual("SYS", Speaker.SYS)
-        self.assertEqual("USR", Speaker.USR)
+        self.assertEqual("SYS", speaker.SYS)
+        self.assertEqual("USR", speaker.USR)

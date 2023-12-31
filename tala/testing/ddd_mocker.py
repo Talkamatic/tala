@@ -86,13 +86,3 @@ class MockupDomain(DddDomain):
     def _ensure_dir_exists(self, path):
         if not os.path.exists(path):
             os.makedirs(path)
-
-    def _given_third_party_parser_file(self, path):
-        content = """
-from tala.model.third_party_parser import ThirdPartyParser
-class MockThirdPartyParser(ThirdPartyParser):
-    name = "MockThirdPartyParser"
-    def parse(self, string):
-        return "parsed"
-"""
-        self.create_mockup_file(path, content)

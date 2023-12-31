@@ -1,5 +1,5 @@
 from tala.model.goal import ResolveGoal
-from tala.model.speaker import Speaker
+from tala.model import speaker
 
 
 class UnknownGoalException(Exception):
@@ -35,7 +35,7 @@ class DomainManager(object):
                 question = goal.get_content()
                 if question.is_consequent_question():
                     return self.get_domain_of_goal(
-                        ResolveGoal(question.get_embedded_consequent_question(), Speaker.SYS)
+                        ResolveGoal(question.get_embedded_consequent_question(), speaker.SYS)
                     )
             raise UnknownGoalException(
                 "Goal %s not found among known goals %s" % (repr(goal), list(self._domains_of_goals.keys()))

@@ -1,4 +1,3 @@
-class Speaker:
-    SYS = "SYS"
-    USR = "USR"
-    MODEL = "MODEL"
+SYS = "SYS"
+USR = "USR"
+MODEL = "MODEL"
