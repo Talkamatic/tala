@@ -7,28 +7,12 @@ from tala.model.sort import Sort
 from tala.model.individual import Individual
 from tala.model.proposition import Proposition, PredicateProposition
 from tala.model.polarity import Polarity
-from tala.ddd.ddd_component_manager import DDDComponentManager
 
-from tala.http_formatting import HttpFormatter
-from tala.ddd.ddd_specific_components import DDDSpecificComponents
+from tala import http_formatting
 
 
 class HttpFormattingTest(unittest.TestCase):
-    def setUp(self):
-        self._mock_ddd = self._create_mock_ddd_components()
-        self._mock_ddd_manager = self._create_mock_ddd_component_manager()
-
-    def _create_mock_ddd_components(self):
-        mock_components = Mock(spec=DDDSpecificComponents)
-        return mock_components
-
-    def _create_mock_ddd_component_manager(self):
-        mock_component_manager = Mock(spec=DDDComponentManager)
-        mock_component_manager.get_ddd_specific_components_of_ontology_name.return_value = self._mock_ddd
-        return mock_component_manager
-
     def test_fact_to_json_object_for_value_with_grammar_entry(self):
-        self.given_created_http_formatter()
         self.when_call_fact_to_json_object(
             self.mock_predicate_proposition(
                 predicate_name="mock_predicate",
@@ -54,11 +38,8 @@ class HttpFormattingTest(unittest.TestCase):
             'weighted_understanding_confidence': None
         })
 
-    def given_created_http_formatter(self):
-        self._http_formatter = HttpFormatter(self._mock_ddd_manager)
-
     def when_call_fact_to_json_object(self, fact, session):
-        self._actual_result = self._http_formatter.fact_to_json_object(fact, session)
+        self._actual_result = http_formatting.fact_to_json_object(fact, session)
 
     def mock_predicate_proposition(
         self,
@@ -110,7 +91,6 @@ class HttpFormattingTest(unittest.TestCase):
         self.assertEqual(expected, self._actual_result)
 
     def test_fact_to_json_object_for_value_without_grammar_entry(self):
-        self.given_created_http_formatter()
         self.when_call_fact_to_json_object(
             self.mock_predicate_proposition(
                 predicate_name="mock_predicate",
@@ -130,12 +110,10 @@ class HttpFormattingTest(unittest.TestCase):
         })
 
     def test_fact_to_json_object_for_none(self):
-        self.given_created_http_formatter()
         self.when_call_fact_to_json_object(None, {})
         self.then_result_is(None)
 
     def test_facts_to_json_object_base_case(self):
-        self.given_created_http_formatter()
         self.when_call_facts_to_json_object([
             self.mock_predicate_proposition(
                 predicate_name="mock_predicate",
@@ -164,20 +142,17 @@ class HttpFormattingTest(unittest.TestCase):
         })
 
     def when_call_facts_to_json_object(self, facts, session):
-        self._actual_result = self._http_formatter.facts_to_json_object(facts, session)
+        self._actual_result = http_formatting.facts_to_json_object(facts, session)
 
     def test_facts_to_json_object_excludes_negative_predicate_propositions(self):
-        self.given_created_http_formatter()
         self.when_call_facts_to_json_object([self.mock_predicate_proposition(polarity=Polarity.NEG)], {})
         self.then_result_is({})
 
     def test_facts_to_json_object_excludes_non_predicate_propositions(self):
-        self.given_created_http_formatter()
         self.when_call_facts_to_json_object([self.mock_non_predicate_proposition()], {})
         self.then_result_is({})
 
     def test_facts_to_json_object_excludes_nullary_predicate_propositions(self):
-        self.given_created_http_formatter()
         self.when_call_facts_to_json_object([self.mock_nullary_predicate_proposition()], {})
         self.then_result_is({})
 

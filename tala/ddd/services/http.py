@@ -7,6 +7,7 @@ from tala.ddd.services.abstract_service_wrapper import AbstractServiceWrapper
 from tala.model.service_invocation import PROTOCOL_VERSION
 from tala.model.service_query_result import QueryResultFromService
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
+from tala import http_formatting
 
 CURRENT_VERSION = "1.1"
 DEPRECATED_PROTOCOL_VERSIONS = ["1.0"]
@@ -18,12 +19,11 @@ class HttpServiceInvocationException(Exception):
 
 
 class HttpServiceClient(AbstractServiceWrapper):
-    def __init__(self, logger, endpoint, name, http_formatter):
+    def __init__(self, logger, endpoint, name):
         super(HttpServiceClient, self).__init__()
         self._logger = logger
         self._endpoint = endpoint
         self._name = name
-        self._http_formatter = http_formatter
         self._session = requests.Session()
 
     def _post(self, data, headers, session):
@@ -96,7 +96,7 @@ class HttpServiceClient(AbstractServiceWrapper):
                 },
                 "context": {
                     "active_ddd": context.active_ddd,
-                    "facts": self._http_formatter.facts_to_json_object(context.facts, session),
+                    "facts": http_formatting.facts_to_json_object(context.facts, session),
                     "invocation_id": context.invocation_id
                 }
             },
@@ -121,7 +121,7 @@ class HttpServiceClient(AbstractServiceWrapper):
                 },
                 "context": {
                     "active_ddd": context.active_ddd,
-                    "facts": self._http_formatter.facts_to_json_object(context.facts, session),
+                    "facts": http_formatting.facts_to_json_object(context.facts, session),
                     "invocation_id": context.invocation_id
                 }
             },
@@ -149,7 +149,7 @@ class HttpServiceClient(AbstractServiceWrapper):
                 },
                 "context": {
                     "active_ddd": context.active_ddd,
-                    "facts": self._http_formatter.facts_to_json_object(context.facts, session),
+                    "facts": http_formatting.facts_to_json_object(context.facts, session),
                     "invocation_id": context.invocation_id
                 }
             },
@@ -172,10 +172,9 @@ class HttpServiceClient(AbstractServiceWrapper):
         def binding_to_json(binding):
             if binding.is_multiple_instance_binding:
                 return [
-                    self._http_formatter.fact_to_json_object(proposition, session)
-                    for proposition in binding.propositions
+                    http_formatting.fact_to_json_object(proposition, session) for proposition in binding.propositions
                 ]
             else:
-                return self._http_formatter.fact_to_json_object(binding.proposition, session)
+                return http_formatting.fact_to_json_object(binding.proposition, session)
 
         return {binding.parameter.name: binding_to_json(binding) for binding in bindings}

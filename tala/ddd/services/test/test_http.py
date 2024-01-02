@@ -6,7 +6,6 @@ import logging
 from mock import patch, Mock
 
 from tala.ddd.services.service_interface import ServiceParameter
-from tala.ddd.ddd_component_manager import DDDComponentManager
 from tala.model.individual import Individual
 from tala.model.predicate import Predicate
 from tala.model.proposition import PredicateProposition
@@ -21,7 +20,6 @@ import tala.ddd.services.http
 from tala.ddd.ddd_specific_components import DDDSpecificComponents
 from tala.ddd.services.http import HttpServiceClient, HttpServiceInvocationException
 from tala.ddd.services.parameters.binding import SingleInstanceParameterBinding
-from tala.http_formatting import HttpFormatter
 
 
 class HttpServiceClientTest(unittest.TestCase):
@@ -30,8 +28,6 @@ class HttpServiceClientTest(unittest.TestCase):
         self._mock_logger = Mock(spec=logging.Logger)
         self._mock_session = self._requests_patcher.start()
         self._mock_ddd_components = self._create_mock_ddd_components()
-        self._mock_components_manager = self._create_mock_components_manager()
-        self._http_formatter = self._create_http_formatter()
         self._mock_parameter_bindings = [
             SingleInstanceParameterBinding(
                 parameter=self._mock_service_parameter("mock_predicate_name"),
@@ -93,21 +89,13 @@ class HttpServiceClientTest(unittest.TestCase):
         mock_components = Mock(spec=DDDSpecificComponents)
         return mock_components
 
-    def _create_mock_components_manager(self):
-        mock_components_manager = Mock(spec=DDDComponentManager)
-        mock_components_manager.get_ddd_specific_components_of_ontology_name.return_value = self._mock_ddd_components
-        return mock_components_manager
-
-    def _create_http_formatter(self):
-        return HttpFormatter(self._mock_components_manager)
-
     def _mock_service_parameter(self, name):
         mock_service_parameter = Mock(spec=ServiceParameter)
         mock_service_parameter.name = name
         return mock_service_parameter
 
     def given_http_service_client(self, endpoint, name):
-        self._http_service_client = HttpServiceClient(self._mock_logger, endpoint, name, self._http_formatter)
+        self._http_service_client = HttpServiceClient(self._mock_logger, endpoint, name)
         self._http_service_client._session = self._mock_session
 
     def then_request_is_posted(self, expected_url, expected_data, expected_headers):
