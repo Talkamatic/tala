@@ -53,6 +53,14 @@ class TempDirTestMixin:
             cls._uninstall_tala()
             cls._install_old_tala_from_pip()
 
+    @classmethod
+    def _uninstall_tala(cls):
+        subprocess.check_call("pip uninstall tala --yes", shell=True)
+
+    @classmethod
+    def _install_old_tala_from_pip(cls):
+        subprocess.check_call(f"pip install tala=={cls._tala_version}", shell=True)
+
     def setup_method(self):
         self._temp_dir = tempfile.mkdtemp(prefix="TalaIntegrationTest")
         self._working_dir = os.getcwd()
@@ -61,12 +69,6 @@ class TempDirTestMixin:
     def teardown_method(self):
         os.chdir(self._working_dir)
         shutil.rmtree(self._temp_dir)
-
-    def _uninstall_tala(self):
-        subprocess.check_call("pip uninstall tala --yes", shell=True)
-
-    def _install_old_tala_from_pip(self):
-        subprocess.check_call(f"pip install tala=={self._tala_version}", shell=True)
 
 
 class ConsoleScriptTestMixin(TempDirTestMixin):
