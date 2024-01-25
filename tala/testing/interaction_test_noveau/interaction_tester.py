@@ -259,7 +259,7 @@ class InteractionTester():
         parameters = self._latest_response["parameters"]
         session = self._latest_response["session"]
 
-        query_results = self._make_query_to_http_service(validator_name, url, parameters, session)
+        query_results = self._validate_in_http_service(validator_name, url, parameters, session)
         self._make_results_request_for_dme(
             "validation_results", {
                 "validator_name": validator_name,
@@ -271,13 +271,26 @@ class InteractionTester():
             }
         )
 
+    def _validate_in_http_service(self, name, url, parameters, session):
+        data = {
+            "session": session,
+            "request": {
+                "type": "validator",
+                "name": name,
+                "parameters": parameters,
+            }
+        }
+        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response_dict = json.loads(response.text)
+        return response_dict
+
     def _make_service_request_and_create_tdm_request_with_service_action_invocation_result(self):
         action_name = self._latest_response["action_name"]
         url = self._latest_response["url"]
         parameters = self._latest_response["parameters"]
         session = self._latest_response["session"]
 
-        action_result = self._make_query_to_http_service(action_name, url, parameters, session)
+        action_result = self._perform_action_in_http_service(action_name, url, parameters, session)
         self._make_results_request_for_dme(
             "action_results", {
                 "action_name": action_name,
@@ -288,6 +301,19 @@ class InteractionTester():
                 "earlier_results": self._latest_response["earlier_results"]
             }
         )
+
+    def _perform_action_in_http_service(self, name, url, parameters, session):
+        data = {
+            "session": session,
+            "request": {
+                "type": "action",
+                "name": name,
+                "parameters": parameters,
+            }
+        }
+        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response_dict = json.loads(response.text)
+        return response_dict
 
     def _passivity_mismatch(self, expected_passivity_value):
         actual_value = self._latest_response[OUTPUT].get(EXPECTED_PASSIVITY)
