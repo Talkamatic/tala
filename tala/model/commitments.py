@@ -18,18 +18,18 @@ class Commitments(AsSemanticExpressionMixin, AsJSONMixin):
         self._meta_pcom = {k: v for k, v in meta_pcom.items()}
         self._meta_com = {k: v for k, v in meta_com.items()}
         self._pcom = Set([item for item in pcom])
-        self._previous_commitment_lifespan = previous_commitment_lifespan
+        self._previous_commitment_lifespan = int(previous_commitment_lifespan)
 
     @classmethod
-    def create_from_json(cls, input):
+    def create_from_json(cls, input_json):
         parser = NonCheckingJSONParser()
-        commitments = [parser.parse(commitment) for commitment in input["commitments_set"]["set"]]
-        lifespan = int(input["commitment_lifespan"])
-        meta_com = {parser.parse(elem["key"]): (elem["value"][0], elem["value"][1]) for elem in input["meta_com"]}
-        pcom = [parser.parse(commitment) for commitment in input["commitments_set"]["set"]]
+        commitments = [parser.parse(commitment) for commitment in input_json["commitments_set"]["set"]]
+        lifespan = int(input_json["commitment_lifespan"])
+        meta_com = {parser.parse(elem["key"]): (elem["value"][0], elem["value"][1]) for elem in input_json["meta_com"]}
+        pcom = [parser.parse(commitment) for commitment in input_json["pcom"]["set"]]
         meta_pcom = {
             parser.parse(elem["key"]): (elem["value"][0], int(elem["value"][1]))
-            for elem in input["meta_pcom"]
+            for elem in input_json["meta_pcom"]
         }
         return cls(commitments, meta_com, pcom, meta_pcom, lifespan)
 
@@ -115,15 +115,20 @@ class Commitments(AsSemanticExpressionMixin, AsJSONMixin):
         return False
 
     def purge_previous_commitments(self, current_turn_number):
-        to_purge = []
+        # all exceptions in this method are swallowed.
+        try:
+            to_purge = []
 
-        for fact in self.pcom:
-            if fact in self._meta_pcom:
-                (_, turn_number) = self._meta_pcom[fact]
-                if turn_number + self._previous_commitment_lifespan < current_turn_number:
-                    to_purge.append(fact)
+            for fact in self.pcom:
+                if fact in self._meta_pcom:
+                    (_, turn_number) = self._meta_pcom[fact]
 
-        for fact in to_purge:
-            self.pcom.remove(fact)
-            if fact in self._meta_pcom:
-                del self._meta_pcom[fact]
+                    if int(turn_number) + self._previous_commitment_lifespan < current_turn_number:
+                        to_purge.append(fact)
+
+            for fact in to_purge:
+                self.pcom.remove(fact)
+                if fact in self._meta_pcom:
+                    del self._meta_pcom[fact]
+        except Exception:
+            pass
