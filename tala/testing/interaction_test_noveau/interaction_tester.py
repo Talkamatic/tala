@@ -26,6 +26,8 @@ UTTERANCE = "utterance"
 
 TDM_PROTOCOL_VERSION = "3.4"
 
+DEFAULT_DEVICE_ID = "interaction-tester"
+
 
 class OutputBuffer:
     def __init__(self):
@@ -42,13 +44,14 @@ class OutputBuffer:
 
 
 class InteractionTester():
-    def __init__(self, port):
+    def __init__(self, port, device_id=DEFAULT_DEVICE_ID):
         self._session_id = f"interaction-tester-session-{str(uuid.uuid4())}"
+        self._device_id = device_id
         self._initialize_session_object()
         self._port = port
 
     def _initialize_session_object(self):
-        self._session_data = {"session_id": self._session_id}
+        self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
 
     def start_session(self, session_data=None):
         if session_data:
