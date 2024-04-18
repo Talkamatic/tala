@@ -381,6 +381,10 @@ class JumpTo(PlanItemWithSemanticContent):
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_JUMPTO, content=content)
 
+    @property
+    def goal(self):
+        return self.content
+
 
 class JumpToPlanItem(JumpTo):
     pass

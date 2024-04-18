@@ -762,6 +762,10 @@ class UnderstandingProposition(PropositionWithSemanticContent):
     def get_content(self):
         return self._content
 
+    @property
+    def speaker(self):
+        return self._speaker
+
     def __str__(self):
         return "und(%s, %s)" % (str(self._speaker), str(self._content))
 

@@ -1,7 +1,7 @@
 import logging
 from tala.ddd.ddd_component_manager import DDDComponentManager
 from tala.ddd.loading.component_set_loader import ComponentSetLoader
-from tala.log.formats import TIS_LOGGING_COMPACT, TIS_LOGGING_NONE, TIS_LOGGING_AUTO
+from tala.log.formats import TIS_LOGGING_COMPACT, TIS_LOGGING_FULL, TIS_LOGGING_AUTO
 from tala.config import BackendConfig
 from tala.utils.as_json import AsJSONMixin
 
@@ -132,8 +132,8 @@ class OrchestratedDomainBundle(AsJSONMixin):
     @staticmethod
     def _generate_tis_format_from_log_level(log_level):
         if log_level == logging.DEBUG:
-            return TIS_LOGGING_COMPACT
-        return TIS_LOGGING_NONE
+            return TIS_LOGGING_FULL
+        return TIS_LOGGING_COMPACT
 
     @property
     def logger(self):
