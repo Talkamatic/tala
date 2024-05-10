@@ -29,6 +29,22 @@ def convert_to_json(object_, verbose=True):
     return str(object_)
 
 
+def _convert_to_human_readable_json(object_):
+    if object_ is None:
+        return None
+    if object_ is True or object_ is False:
+        return object_
+    if isinstance(object_, list):
+        return [_convert_to_human_readable_json(element) for element in object_]
+    if isinstance(object_, dict):
+        if "semantic_expression" in object_:
+            e = object_["semantic_expression"]
+            return e
+        else:
+            return {str(key): _convert_to_human_readable_json(value) for key, value in list(object_.items())}
+    return str(object_)
+
+
 class AsJSONMixin(object):
     @property
     def can_convert_to_json(self):
@@ -42,3 +58,6 @@ class AsJSONMixin(object):
 
     def as_dict(self):
         return copy(self.__dict__)
+
+    def as_readable_json(self):
+        return _convert_to_human_readable_json(self.as_compact_json())

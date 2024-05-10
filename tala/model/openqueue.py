@@ -1,6 +1,7 @@
 import copy
 
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 from tala.utils.equality import EqualityMixin
 
@@ -96,7 +97,7 @@ class Interpretation(AsJSONMixin, EqualityMixin):
         return sum([move.confidence for move in self._moves]) / len(self._moves)
 
 
-class OpenQueue(AsJSONMixin):
+class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
     def __init__(self, front_content=None, back_content=None, unshifted_content=None):
         if front_content is None:
             front_content = []
@@ -114,12 +115,9 @@ class OpenQueue(AsJSONMixin):
     def as_dict(self):
         return {
             "openqueue": {
-                "front_content":
-                list(object_ for object_ in self.front_content),
-                "back_content":
-                list(object_ for object_ in self.back_content),
-                "unshifted_content":
-                list(object_ for object_ in self._unshifted_content) if self._unshifted_content else None,
+                "front_content": self.front_content if self.front_content else [],
+                "back_content": self.back_content if self.back_content else [],
+                "unshifted_content": self._unshifted_content if self._unshifted_content else []
             }
         }
 
