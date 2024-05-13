@@ -29,20 +29,28 @@ def convert_to_json(object_, verbose=True):
     return str(object_)
 
 
-def _convert_to_human_readable_json(object_):
+def convert_to_human_readable_json(object_):
     if object_ is None:
-        return None
-    if object_ is True or object_ is False:
-        return object_
-    if isinstance(object_, list):
-        return [_convert_to_human_readable_json(element) for element in object_]
-    if isinstance(object_, dict):
-        if "semantic_expression" in object_:
-            e = object_["semantic_expression"]
-            return e
-        else:
-            return {str(key): _convert_to_human_readable_json(value) for key, value in list(object_.items())}
-    return str(object_)
+        s = None
+    elif object_ is True or object_ is False:
+        s = object_
+    elif isinstance(object_, list):
+        s = [convert_to_human_readable_json(element) for element in object_]
+    elif isinstance(object_, set):
+        s = {"set": [convert_to_human_readable_json(element) for element in object_]}
+    elif isinstance(object_, dict):
+        s = {str(key): convert_to_human_readable_json(value) for key, value in list(object_.items())}
+        if "semantic_expression" in s:
+            s = s["semantic_expression"]
+            print(s)
+    elif isinstance(object_, AsSemanticExpressionMixin):
+        s = json_semantic_expression_of(object_)
+    elif isinstance(object_, AsJSONMixin):
+        dict_ = object_.as_dict()
+        s = convert_to_human_readable_json(dict_)
+    else:
+        s = str(object_)
+    return s
 
 
 class AsJSONMixin(object):
@@ -60,4 +68,4 @@ class AsJSONMixin(object):
         return copy(self.__dict__)
 
     def as_readable_json(self):
-        return _convert_to_human_readable_json(self.as_compact_json())
+        return convert_to_human_readable_json(self)
