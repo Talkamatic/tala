@@ -4,6 +4,7 @@ from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.semantic_object import SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
+from tala.model.goal import PerformGoal
 
 
 class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
@@ -35,6 +36,19 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     def is_question(self):
         return True
+
+    def is_action_question(self):
+        if self.is_wh_question():
+            try:
+                return self.content.is_lambda_abstracted_goal_proposition()
+            except AttributeError:
+                return False
+        elif self.is_alt_question():
+            for alt in self.content:
+                if (alt.is_goal_proposition() and alt.get_goal().type_ == PerformGoal.PERFORM_GOAL):
+                    return True
+        elif self.is_yes_no_question():
+            return self.content.is_goal_proposition()
 
     def is_wh_question(self):
         return self._type == self.TYPE_WH

@@ -42,7 +42,6 @@ def convert_to_human_readable_json(object_):
         s = {str(key): convert_to_human_readable_json(value) for key, value in list(object_.items())}
         if "semantic_expression" in s:
             s = s["semantic_expression"]
-            print(s)
     elif isinstance(object_, AsSemanticExpressionMixin):
         s = json_semantic_expression_of(object_)
     elif isinstance(object_, AsJSONMixin):
