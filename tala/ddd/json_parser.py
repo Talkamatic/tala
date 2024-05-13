@@ -25,7 +25,7 @@ from tala.model.proposition import Proposition, GoalProposition, PropositionSet,
     ActionStatusProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, \
     NumberOfAlternativesProposition, QuestionStatusProposition, MuteProposition, UnmuteProposition, QuitProposition
 from tala.model.polarity import Polarity
-from tala.model.goal import Goal, PerformGoal, ResolveGoal, HandleGoal
+from tala.model.goal import PerformGoal, ResolveGoal, PERFORM, RESOLVE
 from tala.model.set import Set
 from tala.model.openqueue import OpenQueue
 from tala.model.date_time import DateTime
@@ -995,16 +995,12 @@ class NonCheckingJSONParser():
     def parse_goal(self, data):
         if data is None:
             return None
-        if data.get("_goal_type") == Goal.PERFORM_GOAL:
+        if data.get("_goal_type") == PERFORM:
             target = data.get("_target")
             action = self.parse_action(data["_content"])
             goal = PerformGoal(action, target=target)
             return goal
-        if data.get("_goal_type") == Goal.HANDLE_GOAL:
-            event = data.get("_device_event")
-            ontology_name = data.get("_ontology_name")
-            return HandleGoal(ontology_name, event)
-        if data.get("_goal_type") == Goal.RESOLVE_GOAL:
+        if data.get("_goal_type") == RESOLVE:
             target = data.get("_target")
             question = self.parse_question(data["_content"])
             return ResolveGoal(question, target=target)

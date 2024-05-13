@@ -11,7 +11,7 @@ from tala.ddd.services.service_interface import ServiceActionInterface, ServiceP
 from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.domain import Domain
-from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
+from tala.model.goal import PerformGoal, ResolveGoal
 from tala.model.speaker import SYS, USR
 from tala.model.plan import Plan
 from tala.model.polarity import Polarity

@@ -3,7 +3,7 @@ import copy
 from tala.model.ask_feature import AskFeature
 from tala.model.domain import Domain
 from tala.model.action import Action
-from tala.model.goal import ResolveGoal, PerformGoal, HandleGoal
+from tala.model.goal import ResolveGoal, PerformGoal
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model import speaker
 from tala.model.ontology import Ontology
@@ -182,9 +182,6 @@ class DomainTests(LibTestCase):
             "goal": PerformGoal(self.downdate_plan_false_action),
             "plan": Plan([InvokeServiceAction("mockup_ontology", "mock_service_action", downdate_plan=False)]),
         }, {
-            "goal": HandleGoal("mockup_ontology", "event"),
-            "plan": Plan([]),
-        }, {
             "goal": PerformGoal(self.instructional_action),
             "plan": Plan([GetDone(Action("user_targeted_action", "mockup_ontology"))]),
         }]
@@ -301,7 +298,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.top_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
-            HandleGoal("mockup_ontology", "event"),
             PerformGoal(self.instructional),
         }
         actual_result = set(self.domain.get_all_goals())
@@ -316,7 +312,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.accommodate_unrestricted_action),
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
-            HandleGoal("mockup_ontology", "event"),
             PerformGoal(self.instructional),
             PerformGoal(self.top_action),
             PerformGoal(self.up_action),
@@ -342,7 +337,6 @@ class DomainTests(LibTestCase):
             PerformGoal(self.downdate_plan_true_action),
             PerformGoal(self.downdate_plan_false_action),
             PerformGoal(self.instructional),
-            HandleGoal("mockup_ontology", "event")
         }
         actual_goals = {goal for goal in self.domain.get_plan_goal_iterator()}
         self.assertEqual(expected_goals, actual_goals)
@@ -366,10 +360,6 @@ class DomainTests(LibTestCase):
         self
     ):
         self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_false_action))))
-
-    def test_get_downdate_conditions_considers_downdate_plan_property_for_handle_goals(self):
-        self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "event")],
-                         list(self.domain.get_downdate_conditions(HandleGoal("mockup_ontology", "event"))))
 
     def test_get_downdate_conditions_for_resolve_goal(self):
         resolve_goal = ResolveGoal(self.price_question, speaker.SYS)

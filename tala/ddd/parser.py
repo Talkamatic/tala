@@ -4,7 +4,7 @@ import re
 from tala.ddd.utils import CacheMethod
 from tala.model.action_status import Done
 from tala.model.ask_feature import AskFeature
-from tala.model.goal import HandleGoal, PerformGoal, ResolveGoal
+from tala.model.goal import Perform, Resolve
 from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
 from tala.model import speaker
@@ -143,10 +143,6 @@ class Parser:
             pass
         try:
             return self._parse_perform_goal(string)
-        except ParseFailure:
-            pass
-        try:
-            return self._parse_handle_goal(string)
         except ParseFailure:
             pass
         raise ParseFailure()
@@ -837,7 +833,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return ResolveGoal(question, speaker.SYS)
+            return Resolve(question, speaker.SYS)
         else:
             raise ParseFailure()
 
@@ -846,7 +842,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return ResolveGoal(question, speaker.USR)
+            return Resolve(question, speaker.USR)
         else:
             raise ParseFailure()
 
@@ -855,15 +851,7 @@ class Parser:
         if m:
             action_string = m.group(1)
             action = self._parse_action(action_string)
-            return PerformGoal(action)
-        else:
-            raise ParseFailure()
-
-    def _parse_handle_goal(self, string):
-        m = re.search(r'^handle\((.+)\)$', string)
-        if m:
-            service_action = m.group(1)
-            return HandleGoal(self.ontology_name, service_action)
+            return Perform(action)
         else:
             raise ParseFailure()
 

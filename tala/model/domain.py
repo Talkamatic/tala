@@ -2,7 +2,7 @@ import copy
 
 from tala.model.action import Action
 from tala.model.error import DomainError
-from tala.model.goal import PerformGoal, ResolveGoal
+from tala.model.goal import PerformGoal, ResolveGoal, PERFORM
 from tala.model.question import KnowledgePreconditionQuestion
 from tala.model import speaker
 from tala.model.plan import Plan, InvalidPlansException
@@ -100,7 +100,7 @@ class Domain(AsJSONMixin):
     def _has_top_plan(self):
         return any([
             plan for plan in list(self.plans.values()) if (
-                plan["goal"].is_goal() and plan["goal"].type == PerformGoal.PERFORM_GOAL
+                plan["goal"].is_goal() and plan["goal"].type == PERFORM
                 and plan["goal"].get_action().get_value() == "top"
             )
         ])  # noqa: E127

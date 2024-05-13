@@ -2,16 +2,15 @@ import warnings
 
 from tala.model.move import RequestMove, AskMove
 from tala.model import speaker
-from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject, SemanticObjectWithContent
+from tala.model.semantic_object import SemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 
+PERFORM = "PERFORM_GOAL"
+RESOLVE = "RESOLVE_GOAL"
+
 
 class Goal(SemanticObject, AsSemanticExpressionMixin):
-    PERFORM_GOAL = "PERFORM_GOAL"
-    RESOLVE_GOAL = "RESOLVE_GOAL"
-    HANDLE_GOAL = "HANDLE_GOAL"
-
     def __init__(self, goal_type, target):
         self._goal_type = goal_type
         self._target = target
@@ -137,14 +136,14 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
 class Perform(GoalWithSemanticContent):
     def __init__(self, action, target=speaker.SYS):
         assert action.is_action()
-        GoalWithSemanticContent.__init__(self, self.PERFORM_GOAL, target, action)
+        GoalWithSemanticContent.__init__(self, PERFORM, target, action)
 
     def is_perform_goal(self):
         return True
 
     @staticmethod
     def filter():
-        return Goal.goal_filter(PerformGoal.PERFORM_GOAL)
+        return Goal.goal_filter(PERFORM)
 
     def get_action(self):
         warnings.warn("Goal.get_action() is deprecated. Use Goal.action instead.", DeprecationWarning, stacklevel=2)
@@ -174,7 +173,7 @@ class PerformGoal(Perform):
 class Resolve(GoalWithSemanticContent):
     def __init__(self, question, target):
         assert question.is_question()
-        GoalWithSemanticContent.__init__(self, self.RESOLVE_GOAL, target, question)
+        GoalWithSemanticContent.__init__(self, RESOLVE, target, question)
 
     def is_resolve_goal(self):
         return True
@@ -193,7 +192,7 @@ class Resolve(GoalWithSemanticContent):
 
     @staticmethod
     def filter():
-        return Goal.goal_filter(ResolveGoal.RESOLVE_GOAL)
+        return Goal.goal_filter(RESOLVE)
 
     def __ne__(self, other):
         return not (self == other)
@@ -216,34 +215,3 @@ class Resolve(GoalWithSemanticContent):
 
 class ResolveGoal(Resolve):
     pass
-
-
-class HandleGoal(Goal, OntologySpecificSemanticObject):
-    def __init__(self, ontology_name, device_event):
-        Goal.__init__(self, self.HANDLE_GOAL, speaker.SYS)
-        OntologySpecificSemanticObject.__init__(self, ontology_name)
-        self._device_event = device_event
-
-    def get_device_event(self):
-        return self._device_event
-
-    def __eq__(self, other):
-        try:
-            return (
-                other.is_ontology_specific() and other.ontology_name == self.ontology_name and Goal.__eq__(self, other)
-                and other.get_device_event() == self.get_device_event()
-            )
-        except AttributeError:
-            return False
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def is_handle_goal(self):
-        return True
-
-    def __str__(self):
-        return "handle(%s)" % self.get_device_event()
-
-    def __hash__(self):
-        return 17 * hash(str(self)) + 7 * hash(self.__class__.__name__)
