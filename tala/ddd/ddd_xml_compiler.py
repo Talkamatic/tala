@@ -386,9 +386,6 @@ class DomainCompiler(XmlCompiler):
         elif goal_type == "resolve":
             question = self._compile_question(element, "question_type")
             return ResolveGoal(question, SYS)
-        elif goal_type == "handle":
-            service_action = self._get_mandatory_attribute(element, "action")
-            return HandleGoal(self._ontology.name, service_action)
         else:
             raise DDDXMLCompilerException("unsupported goal type %r" % goal_type)
 
