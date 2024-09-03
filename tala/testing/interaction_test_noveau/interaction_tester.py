@@ -47,7 +47,6 @@ class InteractionTester():
     def __init__(self, port, device_id=DEFAULT_DEVICE_ID):
         self._session_id = f"interaction-tester-session-{str(uuid.uuid4())}"
         self._device_id = device_id
-        self._initialize_session_object()
         self._port = port
 
     def _initialize_session_object(self):
@@ -56,6 +55,9 @@ class InteractionTester():
     def start_session(self, session_data=None):
         if session_data:
             self._session_data = session_data
+        else:
+            self._initialize_session_object()
+        self._session_data["neural"] = self._neural
         self._latest_response = self._client.start_session(self._session_data)
         self._session_data = self._latest_response[SESSION]
 
@@ -83,6 +85,7 @@ class InteractionTester():
     def _initialize_testcase(self, testcase):
         self._output_buffer = OutputBuffer()
         self._ddd_name = testcase["target_ddd"]
+        self._neural = testcase.get("neural")
         url = self._patch_url_with_port(testcase["url"])
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
@@ -361,7 +364,12 @@ class InteractionTester():
         return True
 
     def _assert_system_utterance_is_matched_by(self, expected_speech_content):
+        assert OUTPUT in self._latest_response, f"No {OUTPUT} in {self._latest_response}"
         actual_utterance_content = self._latest_response[OUTPUT][UTTERANCE]
+        print("OUTPUT", self._latest_response[OUTPUT])
+        print("ACTUAL:", actual_utterance_content)
+        print("EXPECTED:", expected_speech_content)
+
         comparison = StringComparison(actual_utterance_content, expected_speech_content)
         if not comparison.match():
             self._result = {"success": False, "failure_description": comparison.mismatch_description()}
