@@ -64,7 +64,8 @@ if __name__ == "__main__":
             "requests>=2.26.0",
             "structlog>=21.1.0",
             "setuptools>=68.2.2",
-            "setuptools-scm>=8.0.4"
+            "setuptools-scm>=8.0.4",
+            "paho-mqtt==2.1.0"
 
         ],
         dependency_links=[],
