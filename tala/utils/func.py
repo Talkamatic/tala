@@ -1,6 +1,7 @@
 import logging.config
 import re
 import os
+import copy
 
 from structlog.processors import JSONRenderer, TimeStamper, StackInfoRenderer, format_exc_info
 from structlog.stdlib import add_log_level, filter_by_level, add_logger_name
@@ -38,9 +39,32 @@ class FuncBase:
         self.logger = logger.bind(session_id=get_session_id(), device_id=get_device_id())
 
 
+REDACTED_LOG_FIELDS_IN_SESSION = [
+    "asr_hints", "dme_http_services", "expected_input", "nlg", "nlu", "odb", "tis", "visual_output"
+]
+
+
+def log_models(original_body, logger, models=REDACTED_LOG_FIELDS_IN_SESSION):
+    log_body = copy.deepcopy(original_body)
+    if "tis" in log_body.get("session", {}):
+        del log_body["session"]["tis"]
+    for field in models:
+        if field in log_body.get("session", {}):
+            logger.info(f"Model log for {field}", body=log_body["session"][field])
+
+
+def redact_bulky_entries_in_session(_, __, input_event_dict):
+    event_dict = copy.deepcopy(input_event_dict)
+    for field in REDACTED_LOG_FIELDS_IN_SESSION:
+        if field in event_dict.get("body", {}).get("session", {}):
+            event_dict["body"]["session"][field] = "[REDACTED]"
+    return event_dict
+
+
 def configure_stdout_logging(level=None):
     structlog.configure(
         processors=[
+            redact_bulky_entries_in_session,
             filter_by_level,
             add_log_level,
             add_logger_name,
