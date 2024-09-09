@@ -141,5 +141,4 @@ class DDDComponentManager(object):
         return self.get_ddd_of_ontology(ontology)
 
     def reset_ddd(self, name):
-        ddd_specific_components = self._ddds[name]
-        ddd_specific_components.reset()
+        self._ddds[name].reset()

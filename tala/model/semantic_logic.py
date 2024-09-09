@@ -357,8 +357,8 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
 
     @property
     def _domain(self):
-        ddd_components = self._ddd_component_manager.get_ddd_for_ontology_name(self._semantic_object.ontology_name)
-        return ddd_components.domain
+        ddd = self._ddd_component_manager.get_ddd_of_semantic_object(self._semantic_object)
+        return ddd.domain
 
     def combine_with(self, answer):
         if self._semantic_object.is_single_alt():
