@@ -22,6 +22,10 @@ class UnexpectedDDDException(Exception):
     pass
 
 
+class SemanticObjectException(Exception):
+    pass
+
+
 class DDDComponentManager(object):
     def __init__(self):
         self.reset()
@@ -112,6 +116,17 @@ class DDDComponentManager(object):
         if name not in self.ontologies:
             self.load_ddd_for_ontology_name(name)
         return self.ontologies[name]
+
+    def get_ontology_of(self, semantic_object):
+        if semantic_object.is_ontology_specific():
+            return self.get_ontology(semantic_object.ontology_name)
+        raise SemanticObjectException(
+            "This object is not ontology specific, and has no ontology information", semantic_object=semantic_object
+        )
+
+    def get_ddd_specific_components_of_semantic_object(self, semantic_object):
+        ontology = self.get_ontology_of(semantic_object)
+        return self.get_ddd_specific_components_of_ontology(ontology)
 
     def get_ddd_specific_components_of_ontology(self, ontology):
         if ontology not in self._ddds_of_ontologies:

@@ -2,6 +2,7 @@ from tala.utils.as_json import AsJSONMixin
 
 
 class DDDSpecificComponents(AsJSONMixin):
+    """ This is in practice a DDD with the addition of a parameter retriever and a parser """
     def __init__(self, ddd, parameter_retriever, parser):
         super(DDDSpecificComponents, self).__init__()
         self._ddd = ddd

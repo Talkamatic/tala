@@ -1,9 +1,8 @@
-from mock import Mock, patch
+from mock import Mock
 
 from tala.config import BackendConfig
 from tala.ddd.ddd_component_manager import DDDComponentManager
-from tala.ddd.loading import ddd_loader
-from tala.ddd.loading.ddd_loader import DddLoaderException
+from tala.ddd.loading.ddd_loader import DDDLoaderException
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.testing.ddd_mocker import DddMockingTestCase
 from tala.log import logger
@@ -83,7 +82,7 @@ class TestComponentLoader(DddMockingTestCase):
         self._given_ontology_xml_file("mockup_app/ontology.xml")
         self._given_domain_xml_file("mockup_app/domain.xml")
         self._when_load_is_called_then_exception_is_raised_matching(
-            "mockup_app", DddLoaderException, "Expected 'service_interface.xml' to exist but it does not"
+            "mockup_app", DDDLoaderException, "Expected 'service_interface.xml' to exist but it does not"
         )
 
     def _when_load_is_called_then_exception_is_raised_matching(self, ddd, expected_exception, expected_pattern):
@@ -94,16 +93,14 @@ class TestComponentLoader(DddMockingTestCase):
         self._load(*args, **kwargs)
 
     def _load(self, ddd_name):
-        with patch('%s.warnings' % ddd_loader.__name__) as mock_warnings:
-            self._mock_warnings = mock_warnings
-            mock_ddd_manager = Mock(spec=DDDComponentManager)
-            mock_ddd_loader = MockComponentLoader(
-                ddd_component_manager=mock_ddd_manager,
-                name=ddd_name,
-                ddd_config=self._mock_ddd_config,
-                rerank_amount=self._backend_config["rerank_amount"]
-            )
-            self._result = mock_ddd_loader.load()
+        mock_ddd_manager = Mock(spec=DDDComponentManager)
+        mock_ddd_loader = MockComponentLoader(
+            ddd_component_manager=mock_ddd_manager,
+            name=ddd_name,
+            ddd_config=self._mock_ddd_config,
+            rerank_amount=self._backend_config["rerank_amount"]
+        )
+        self._result = mock_ddd_loader.load()
 
     def test_load_without_device_module(self):
         self._given_ontology_xml_file("mockup_app/ontology.xml")
