@@ -1,13 +1,14 @@
 from tala.utils.as_json import AsJSONMixin
 
 
-class DDDSpecificComponents(AsJSONMixin):
+class ExtendedDDD(AsJSONMixin):
     """ This is in practice a DDD with the addition of a parameter retriever and a parser """
-    def __init__(self, ddd, parameter_retriever, parser):
-        super(DDDSpecificComponents, self).__init__()
+    def __init__(self, ddd, parameter_retriever, parser, path=None):
+        super(ExtendedDDD, self).__init__()
         self._ddd = ddd
         self._parameter_retriever = parameter_retriever
         self._parser = parser
+        self._path = path
 
     @property
     def parameter_retriever(self):
@@ -16,6 +17,10 @@ class DDDSpecificComponents(AsJSONMixin):
     @property
     def parser(self):
         return self._parser
+
+    @property
+    def path(self):
+        return self._path
 
     @property
     def ddd(self):
@@ -53,10 +58,13 @@ class DDDSpecificComponents(AsJSONMixin):
         return self.ddd.as_dict()
 
     def ensure_relevant_entities_added(self, entities):
-        for entity in entities:
-            self.ensure_relevant_entity_added(entity)
+        self.add_relevant_entities(entities)
 
-    def ensure_relevant_entity_added(self, entity):
+    def add_relevant_entities(self, entities):
+        for entity in entities:
+            self._ensure_relevant_entity_added(entity)
+
+    def _ensure_relevant_entity_added(self, entity):
         def entity_is_relevant():
             if not entity.ddd_name or self.name == entity.ddd_name:
                 return self.ontology.has_sort(entity.sort)

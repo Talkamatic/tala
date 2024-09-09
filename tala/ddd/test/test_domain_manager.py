@@ -3,14 +3,14 @@ import unittest
 from unittest.mock import Mock
 
 from tala.ddd.domain_manager import DomainManager, UnknownGoalException
-from tala.ddd.ddd_component_manager import DDDComponentManager
+from tala.ddd.ddd_manager import DDDManager
 from tala.model.domain import Domain
 from tala.model.goal import Goal
 
 
 class DomainManagerTests(unittest.TestCase):
     def setUp(self):
-        self.domain_manager = DomainManager(Mock(spec=DDDComponentManager))
+        self.domain_manager = DomainManager(Mock(spec=DDDManager))
 
     def test_get_without_adding(self):
         self.given_mocked_domain_with_goal()

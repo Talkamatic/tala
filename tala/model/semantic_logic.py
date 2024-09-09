@@ -22,8 +22,8 @@ class InvalidSemanticObjectException(Exception):
 
 
 class SemanticLogic(object):
-    def __init__(self, ddd_component_manager):
-        self._ddd_component_manager = ddd_component_manager
+    def __init__(self, ddd_manager):
+        self._ddd_manager = ddd_manager
 
     def is_relevant(self, semantic_object, other_semantic_object):
         logic_object = self.from_semantic_object(semantic_object)
@@ -61,7 +61,7 @@ class SemanticLogic(object):
             if semantic_object.is_goal_proposition():
                 return GoalPropositionLogic(semantic_object)
             if semantic_object.is_proposition_set():
-                return PropositionSetLogic(self._ddd_component_manager, semantic_object, self)
+                return PropositionSetLogic(self._ddd_manager, semantic_object, self)
             if semantic_object.is_preconfirmation_proposition():
                 return PreconfirmationPropositionLogic(semantic_object)
             if semantic_object.is_understanding_proposition():
@@ -70,7 +70,7 @@ class SemanticLogic(object):
 
     def _ontology_of_semantic_object(self, semantic_object):
         if semantic_object.is_ontology_specific():
-            ontology = self._ddd_component_manager.get_ontology(semantic_object.ontology_name)
+            ontology = self._ddd_manager.get_ontology(semantic_object.ontology_name)
             return ontology
         raise InvalidSemanticObjectException("Semantic object %s does not belong to an ontology" % semantic_object)
 
@@ -305,9 +305,9 @@ class GoalPropositionLogic(SemanticObjectSpecificLogic):
 class PropositionSetLogic(SemanticObjectSpecificLogic):
     TARGET_CLASS = PropositionSet
 
-    def __init__(self, ddd_component_manager, semantic_object, semantic_logic):
+    def __init__(self, ddd_manager, semantic_object, semantic_logic):
         SemanticObjectSpecificLogic.__init__(self, semantic_object)
-        self._ddd_component_manager = ddd_component_manager
+        self._ddd_manager = ddd_manager
         self._semantic_logic = semantic_logic
 
     def is_combinable_with(self, answer):
@@ -357,7 +357,7 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
 
     @property
     def _domain(self):
-        ddd = self._ddd_component_manager.get_ddd_of_semantic_object(self._semantic_object)
+        ddd = self._ddd_manager.get_ddd_of_semantic_object(self._semantic_object)
         return ddd.domain
 
     def combine_with(self, answer):

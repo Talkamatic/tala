@@ -1,16 +1,16 @@
 from unittest.mock import Mock
 
 from tala.config import BackendConfig
-from tala.ddd.ddd_component_manager import DDDComponentManager
+from tala.ddd.ddd_manager import DDDManager
 from tala.ddd.loading.ddd_loader import DDDLoaderException
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.testing.ddd_mocker import DddMockingTestCase
 from tala.log import logger
 
-from tala.ddd.loading.component_loader import ComponentLoader
+from tala.ddd.loading.extended_ddd_loader import ExtendedDDDLoader
 
 
-class TestComponentLoader(DddMockingTestCase):
+class TestExtendedDDDLoader(DddMockingTestCase):
     def setUp(self):
         self.test_logger = logger.configure_and_get_test_logger()
         self._backend_config = BackendConfig.default_config(active_ddd="mockup_app", ddds=["mockup_app"])
@@ -93,9 +93,9 @@ class TestComponentLoader(DddMockingTestCase):
         self._load(*args, **kwargs)
 
     def _load(self, ddd_name):
-        mock_ddd_manager = Mock(spec=DDDComponentManager)
-        mock_ddd_loader = MockComponentLoader(
-            ddd_component_manager=mock_ddd_manager,
+        mock_ddd_manager = Mock(spec=DDDManager)
+        mock_ddd_loader = MockExtendedDDDLoader(
+            ddd_manager=mock_ddd_manager,
             name=ddd_name,
             ddd_config=self._mock_ddd_config,
             rerank_amount=self._backend_config["rerank_amount"]
@@ -121,6 +121,6 @@ class TestComponentLoader(DddMockingTestCase):
         self.assertEqual(path, self._result.path)
 
 
-class MockComponentLoader(ComponentLoader):
+class MockExtendedDDDLoader(ExtendedDDDLoader):
     def _load_ddds_as_dict(self):
         return self.ddds_as_dict

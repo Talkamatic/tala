@@ -1,12 +1,12 @@
 from tala.ddd.json_parser import JSONDDDParser
 from tala.ddd.parser import Parser
 from tala.ddd.services.parameters.retriever import ParameterRetriever
-from tala.ddd.ddd_specific_components import DDDSpecificComponents
+from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.domain_manager import DomainManager
 from tala.model.semantic_logic import SemanticLogic
 
 
-class DDDSpecificComponentsAlreadyExistsException(Exception):
+class DDDAlreadyExistsException(Exception):
     pass
 
 
@@ -26,7 +26,7 @@ class SemanticObjectException(Exception):
     pass
 
 
-class DDDComponentManager(object):
+class DDDManager(object):
     def __init__(self):
         self.reset()
 
@@ -47,7 +47,7 @@ class DDDComponentManager(object):
 
     def add(self, ddd):
         if ddd.name in self._ddds:
-            raise DDDSpecificComponentsAlreadyExistsException("DDD '%s' already registered" % ddd.name)
+            raise DDDAlreadyExistsException("DDD '%s' already registered" % ddd.name)
         self.add_ontology(ddd.ontology)
         self._ddds_of_ontologies[ddd.ontology] = ddd
         self.add_domain(ddd.domain)
@@ -104,7 +104,7 @@ class DDDComponentManager(object):
         ddd = JSONDDDParser().parse(ddd_as_json)
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
-        extended_ddd = DDDSpecificComponents(ddd, parameter_retriever, parser)
+        extended_ddd = ExtendedDDD(ddd, parameter_retriever, parser)
         self.add(extended_ddd)
 
     def get_domain(self, name):

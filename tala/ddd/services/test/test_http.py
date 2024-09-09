@@ -17,7 +17,7 @@ from tala.model.service_invocation import Context, PROTOCOL_VERSION
 from tala.model.sort import Sort
 
 import tala.ddd.services.http
-from tala.ddd.ddd_specific_components import DDDSpecificComponents
+from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.services.http import HttpServiceClient, HttpServiceInvocationException
 from tala.ddd.services.parameters.binding import SingleInstanceParameterBinding
 
@@ -86,7 +86,7 @@ class HttpServiceClientTest(unittest.TestCase):
         }
 
     def _create_mock_ddd_components(self):
-        mock_components = Mock(spec=DDDSpecificComponents)
+        mock_components = Mock(spec=ExtendedDDD)
         return mock_components
 
     def _mock_service_parameter(self, name):

@@ -11,10 +11,10 @@ class DomainAlreadyAddedException(Exception):
 
 
 class DomainManager(object):
-    def __init__(self, ddd_component_manager):
+    def __init__(self, ddd_manager):
         self._domains_of_goals = {}
         self._domains = set()
-        self._ddd_component_manager = ddd_component_manager
+        self._ddd_manager = ddd_manager
 
     @property
     def domains(self):
@@ -44,7 +44,7 @@ class DomainManager(object):
 
     def _load_domain_if_needed(self, goal):
         if goal.is_ontology_specific and goal not in self._domains_of_goals:
-            self._ddd_component_manager.load_ddd_for_ontology_name(goal.ontology_name)
+            self._ddd_manager.load_ddd_for_ontology_name(goal.ontology_name)
 
     def remove(self, domain):
         for goal in domain.goals:

@@ -1,6 +1,6 @@
 import logging
-from tala.ddd.ddd_component_manager import DDDComponentManager
-from tala.ddd.loading.component_set_loader import ComponentSetLoader
+from tala.ddd.ddd_manager import DDDManager
+from tala.ddd.loading.extended_ddd_set_loader import ExtendedDDDSetLoader
 from tala.log.formats import TIS_LOGGING_COMPACT, TIS_LOGGING_FULL, TIS_LOGGING_AUTO
 from tala.config import BackendConfig
 from tala.utils.as_json import AsJSONMixin
@@ -62,9 +62,9 @@ def _check_integrity(odb_as_json):
 
 
 def load_ddds(ddd_names, overridden_config_paths, rerank_amount):
-    ddd_component_manager = DDDComponentManager()
-    component_set_loader = ComponentSetLoader(ddd_component_manager, overridden_config_paths)
-    ddds = component_set_loader.ddds_as_list(ddd_names, rerank_amount=rerank_amount)
+    ddd_manager = DDDManager()
+    extended_ddd_set_loader = ExtendedDDDSetLoader(ddd_manager, overridden_config_paths)
+    ddds = extended_ddd_set_loader.ddds_as_list(ddd_names, rerank_amount=rerank_amount)
     return ddds
 
 

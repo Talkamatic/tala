@@ -2,7 +2,7 @@ import unittest
 
 from unittest.mock import Mock
 
-from tala.ddd.ddd_specific_components import DDDSpecificComponents
+from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.parser import Parser
 from tala.ddd.services.parameters.retriever import ParameterRetriever
 from tala.ddd.services.service_interface import ServiceInterface
@@ -11,15 +11,15 @@ from tala.model.domain import Domain
 from tala.model.ontology import Ontology
 
 
-class TestDdd(unittest.TestCase):
+class TestExtendedDDD(unittest.TestCase):
     def setUp(self):
-        self._ddd_specific_components = None
+        self._extended_ddd = None
         self._mocked_ontology = None
         self._mocked_parser = None
 
     def test_reset_resets_ontology(self):
         self.given_mocked_ontology()
-        self.given_ddd_and_components_created()
+        self.given_extended_ddd_created()
         self.when_calling_reset()
         self.then_ontology_is_reset()
 
@@ -27,12 +27,12 @@ class TestDdd(unittest.TestCase):
         self._mocked_ontology = Mock(spec=Ontology)
         self._mocked_ontology.get_individuals.return_value = individuals or {}
 
-    def given_ddd_and_components_created(self):
+    def given_extended_ddd_created(self):
         ddd = self._create_ddd()
-        self._ddd_specific_components = self._create_ddd_components(ddd)
+        self._extended_ddd = self._create_extended_ddd(ddd)
 
-    def _create_ddd_components(self, ddd):
-        return DDDSpecificComponents(ddd, parameter_retriever=Mock(spec=ParameterRetriever), parser=self._mocked_parser)
+    def _create_extended_ddd(self, ddd):
+        return ExtendedDDD(ddd, parameter_retriever=Mock(spec=ParameterRetriever), parser=self._mocked_parser)
 
     def _create_ddd(self):
         return DDD(
@@ -43,7 +43,7 @@ class TestDdd(unittest.TestCase):
         )
 
     def when_calling_reset(self):
-        self._ddd_specific_components.reset()
+        self._extended_ddd.reset()
 
     def then_ontology_is_reset(self):
         self._mocked_ontology.reset.assert_called_once_with()
@@ -51,7 +51,7 @@ class TestDdd(unittest.TestCase):
     def test_reset_clears_parser(self):
         self.given_mocked_ontology()
         self.given_mocked_parser()
-        self.given_ddd_and_components_created()
+        self.given_extended_ddd_created()
         self.when_calling_reset()
         self.then_parser_is_cleared()
 

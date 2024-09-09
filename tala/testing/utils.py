@@ -15,10 +15,10 @@ class EqualityAssertionTestCaseMixin:
         assert not (object2 == object1)
 
 
-def load_mockup_travel(component_set_loader):
-    load_internal_ddds(component_set_loader, ["mockup_travel"], ".")
+def load_mockup_travel(extended_ddd_set_loader):
+    load_internal_ddds(extended_ddd_set_loader, ["mockup_travel"], ".")
 
 
-def load_internal_ddds(component_set_loader, ddds, package, rerank_amount=None):
+def load_internal_ddds(extended_ddd_set_loader, ddds, package, rerank_amount=None):
     rerank_amount = rerank_amount or BackendConfig.DEFAULT_RERANK_AMOUNT
-    component_set_loader.ensure_ddds_loaded(ddds, path=f"{package}/ddds", rerank_amount=rerank_amount)
+    extended_ddd_set_loader.ensure_ddds_loaded(ddds, path=f"{package}/ddds", rerank_amount=rerank_amount)

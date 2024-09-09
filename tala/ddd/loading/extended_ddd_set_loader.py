@@ -1,12 +1,12 @@
-from tala.ddd.loading.component_loader import ComponentLoader
+from tala.ddd.loading.extended_ddd_loader import ExtendedDDDLoader
 from tala.ddd.loading.ddd_set_loader import DDDSetLoader
 from tala.utils.chdir import chdir
 
 
-class ComponentSetLoader(DDDSetLoader):
-    def __init__(self, ddd_component_manager, overridden_ddd_config_paths=None):
-        super(ComponentSetLoader, self).__init__(overridden_ddd_config_paths)
-        self._ddd_component_manager = ddd_component_manager
+class ExtendedDDDSetLoader(DDDSetLoader):
+    def __init__(self, ddd_manager, overridden_ddd_config_paths=None):
+        super(ExtendedDDDSetLoader, self).__init__(overridden_ddd_config_paths)
+        self._ddd_manager = ddd_manager
 
     def ddds_as_list(self, ddds, path=".", *args, **kwargs):
         with chdir(path):
@@ -24,12 +24,12 @@ class ComponentSetLoader(DDDSetLoader):
             ddds[ddd_name] = self._load_ddd(ddd_name, config, *args, **kwargs)
         return ddds
 
+    def _load_ddd(self, *args, **kwargs):
+        ddd_loader = ExtendedDDDLoader(self._ddd_manager, *args, **kwargs)
+        return ddd_loader.load()
+
     def ensure_ddds_loaded(self, ddds, path=".", *args, **kwargs):
         with chdir(path):
             ddds = self._load_ddds(ddds, *args, **kwargs)
             for ddd in list(ddds.values()):
-                self._ddd_component_manager.ensure_ddd_added(ddd)
-
-    def _load_ddd(self, *args, **kwargs):
-        ddd_loader = ComponentLoader(self._ddd_component_manager, *args, **kwargs)
-        return ddd_loader.load()
+                self._ddd_manager.ensure_ddd_added(ddd)

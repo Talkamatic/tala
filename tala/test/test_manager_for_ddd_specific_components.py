@@ -2,30 +2,29 @@ import unittest
 
 from unittest.mock import Mock
 
-from tala.ddd.ddd_component_manager import DDDComponentManager, \
-    DDDSpecificComponentsAlreadyExistsException
+from tala.ddd.ddd_manager import DDDManager, DDDAlreadyExistsException
 from tala.ddd.services.service_interface import ServiceInterface
 from tala.model.ddd import DDD
 from tala.model.domain import Domain
 from tala.model.ontology import Ontology
-from tala.ddd.ddd_specific_components import DDDSpecificComponents
+from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.services.parameters.retriever import ParameterRetriever
 
 
-class TestManagerForDDDSpecificComponents(unittest.TestCase):
+class TestManagerForExtendedDDD(unittest.TestCase):
     def setUp(self):
         self.domain = None
         self.ontology = None
         self._mock_device_handler = None
         self._ddd_specific_components = None
         self._second_ddd_specific_components = None
-        self._ddd_component_manager = None
+        self._ddd_manager = None
 
     def _create_ddd(self, name="mockup_ddd"):
         return DDD(name, ontology=self.ontology, domain=self.domain, service_interface=Mock(spec=ServiceInterface))
 
     def _create_ddd_specific_components(self, ddd, device_class=None):
-        return DDDSpecificComponents(ddd, parameter_retriever=Mock(spec=ParameterRetriever), parser=None)
+        return ExtendedDDD(ddd, parameter_retriever=Mock(spec=ParameterRetriever), parser=None)
 
     def test_get_domain(self):
         self._given_empty_manager_for_ddd_specific_components()
@@ -54,7 +53,7 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self._second_ddd_specific_components = self._create_ddd_specific_components(ddd, device_class)
 
     def _when_getting_domain(self, name):
-        self._result = self._ddd_component_manager.get_domain(name)
+        self._result = self._ddd_manager.get_domain(name)
 
     def _then_it_equals_mocked_domain(self):
         self.assertEqual(self._result, self.domain)
@@ -78,7 +77,7 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         return ontology
 
     def _when_getting_ontology(self, name):
-        self._result = self._ddd_component_manager.get_ontology(name)
+        self._result = self._ddd_manager.get_ontology(name)
 
     def _then_it_equals_mocked_ontology(self):
         self.assertEqual(self._result, self.ontology)
@@ -93,17 +92,17 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self._when_adding_second_ddd_specific_components_again_then_exception_is_raised()
 
     def _when_adding_second_ddd_specific_components_again_then_exception_is_raised(self):
-        with self.assertRaises(DDDSpecificComponentsAlreadyExistsException):
+        with self.assertRaises(DDDAlreadyExistsException):
             self._given_second_ddd_specific_components_added()
 
     def _given_empty_manager_for_ddd_specific_components(self):
-        self._ddd_component_manager = DDDComponentManager()
+        self._ddd_manager = DDDManager()
 
     def _given_ddd_specific_components_added(self):
-        self._ddd_component_manager.add(self._ddd_specific_components)
+        self._ddd_manager.add(self._ddd_specific_components)
 
     def _given_second_ddd_specific_components_added(self):
-        self._ddd_component_manager.add(self._second_ddd_specific_components)
+        self._ddd_manager.add(self._second_ddd_specific_components)
 
     def _then_sorted_results_is(self, expected_result):
         self.assertEqual(expected_result, sorted(self._result))
@@ -118,7 +117,7 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self._then_ddd_specific_components_are_returned()
 
     def _when_getting_ddd_specific_components_for(self, ddd):
-        self._result = self._ddd_component_manager.get_ddd(ddd)
+        self._result = self._ddd_manager.get_ddd(ddd)
 
     def _then_ddd_specific_components_are_returned(self):
         self.assertEqual(self._result, self._ddd_specific_components)
@@ -137,10 +136,10 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self.ontology.add_individual("athens", "city")
 
     def _when_ddd_is_reset_for(self, ddd):
-        self._ddd_component_manager.reset_ddd(ddd)
+        self._ddd_manager.reset_ddd(ddd)
 
     def _then_get_ddd_returns_ddd_with_unmodified_ontology(self, ddd_name):
-        ddd = self._ddd_component_manager.get_ddd(ddd_name)
+        ddd = self._ddd_manager.get_ddd(ddd_name)
         self.assertEqual(0, len(ddd.ontology.get_individuals()))
 
     def _then_result_is(self, expected):

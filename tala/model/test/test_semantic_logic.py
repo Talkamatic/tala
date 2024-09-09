@@ -1,6 +1,6 @@
 import unittest
 
-from tala.ddd.ddd_component_manager import DDDComponentManager
+from tala.ddd.ddd_manager import DDDManager
 from tala.model.semantic_logic import SemanticLogic
 from tala.model.test.semanticstester import SemanticsTester
 from tala.model.ontology import Ontology
@@ -280,9 +280,9 @@ class SemanticLogicTests(SemanticsTester):
 
 class TestSemanticLogicWithPropositions(unittest.TestCase):
     def setUp(self):
-        self._ddd_component_manager = DDDComponentManager()
+        self._ddd_manager = DDDManager()
         self._create_ontology()
-        self.ontology = self._ddd_component_manager.get_ontology(self.ontology_name)
+        self.ontology = self._ddd_manager.get_ontology(self.ontology_name)
         self._create_semantic_objects()
         self._language_code = "mocked_language"
 
@@ -304,10 +304,10 @@ class TestSemanticLogicWithPropositions(unittest.TestCase):
         individuals = {"paris": self._city_sort, "london": self._city_sort}
         actions = {"top", "buy"}
         ontology = Ontology(self.ontology_name, sorts, predicates, individuals, actions)
-        self._ddd_component_manager.add_ontology(ontology)
+        self._ddd_manager.add_ontology(ontology)
 
         self.empty_ontology = Ontology("empty_ontology", {}, {}, {}, set([]))
-        self._ddd_component_manager.add_ontology(self.empty_ontology)
+        self._ddd_manager.add_ontology(self.empty_ontology)
 
     def _create_predicate(self, *args, **kwargs):
         return Predicate(self.ontology_name, *args, **kwargs)
@@ -343,25 +343,23 @@ class TestSemanticLogicWithPropositions(unittest.TestCase):
     def test_combine_with_proposition_in_set_returns_proposition(self):
         self.assertEqual(
             self.proposition_dest_city_paris,
-            SemanticLogic(self._ddd_component_manager
-                          ).combine(self.positive_prop_set, self.proposition_dest_city_paris)
+            SemanticLogic(self._ddd_manager).combine(self.positive_prop_set, self.proposition_dest_city_paris)
         )
 
     def test_combine_with_individual_in_set_returns_proposition(self):
         self.assertEqual(
             self.proposition_dest_city_paris,
-            SemanticLogic(self._ddd_component_manager).combine(self.positive_prop_set, self.individual_paris)
+            SemanticLogic(self._ddd_manager).combine(self.positive_prop_set, self.individual_paris)
         )
 
     def test_combine_with_negated_proposition_in_set_returns_negated_proposition(self):
         self.assertEqual(
             self.proposition_not_dest_city_paris,
-            SemanticLogic(self._ddd_component_manager
-                          ).combine(self.positive_prop_set, self.proposition_not_dest_city_paris)
+            SemanticLogic(self._ddd_manager).combine(self.positive_prop_set, self.proposition_not_dest_city_paris)
         )
 
     def test_combine_with_negated_individual_in_set_returns_negated_proposition(self):
         self.assertEqual(
             self.proposition_not_dest_city_paris,
-            SemanticLogic(self._ddd_component_manager).combine(self.positive_prop_set, self.individual_not_paris)
+            SemanticLogic(self._ddd_manager).combine(self.positive_prop_set, self.individual_not_paris)
         )
