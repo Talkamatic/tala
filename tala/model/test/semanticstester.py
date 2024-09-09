@@ -9,8 +9,8 @@ from tala.model.semantic_logic import SemanticLogic
 class SemanticsTester(unittest.TestCase):
     def setUp(self):
         self._semantic_logic = SemanticLogic(self.ddd_component_manager)
-        self.ddd_components = self.ddd_component_manager.get_ddd_specific_components("mockup_travel")
-        self.parser = self.ddd_components.parser
+        self.ddd = self.ddd_component_manager.get_ddd("mockup_travel")
+        self.parser = self.ddd.parser
         self.valid_combinations = []
         self.valid_relevances = []
         self.valid_resolves = []
@@ -22,7 +22,7 @@ class SemanticsTester(unittest.TestCase):
     def tearDown(self):
         if len(self.failures) > 0:
             self.fail("Failures:\n" + "\n".join(self.failures))
-        self.ddd_component_manager.reset_components_of_ddd(self.ddd_components.name)
+        self.ddd_component_manager.reset_ddd(self.ddd.name)
 
     def declare_combinable_and_relevant(self, declarations):
         for declaration in declarations:

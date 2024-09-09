@@ -28,7 +28,7 @@ class ComponentSetLoader(DDDSetLoader):
         with chdir(path):
             ddds = self._load_ddds(ddds, *args, **kwargs)
             for ddd in list(ddds.values()):
-                self._ddd_component_manager.ensure_ddd_components_added(ddd)
+                self._ddd_component_manager.ensure_ddd_added(ddd)
 
     def _load_ddd(self, *args, **kwargs):
         ddd_loader = ComponentLoader(self._ddd_component_manager, *args, **kwargs)

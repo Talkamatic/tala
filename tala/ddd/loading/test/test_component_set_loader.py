@@ -38,7 +38,7 @@ class TestComponentSetLoader(unittest.TestCase):
         self._component_set_loader.ensure_ddds_loaded(ddds, rerank_amount=config["rerank_amount"])
 
     def _then_components_are_loaded_for(self, ddd_name):
-        components = self._ddd_component_manager.get_ddd_specific_components(ddd_name)
+        components = self._ddd_component_manager.get_ddd(ddd_name)
         self.assertTrue(isinstance(components, DDDSpecificComponents))
 
     @patch("{}.DddConfig".format(ddd_set_loader.__name__))

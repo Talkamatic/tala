@@ -33,7 +33,7 @@ class DDDComponentManager(object):
     def reset(self):
         self.ddd_names = []
         self.ddds_as_json = []
-        self._components_of_ddds = {}
+        self._ddds = {}
         self.ontologies = {}
         self.domains = {}
         self.domain_manager = DomainManager(self)
@@ -45,20 +45,18 @@ class DDDComponentManager(object):
     def semantic_logic(self):
         return self._semantic_logic
 
-    def add(self, ddd_specific_components):
-        if ddd_specific_components.name in self._components_of_ddds:
-            raise DDDSpecificComponentsAlreadyExistsException(
-                "Components for DDD '%s' already registered" % ddd_specific_components.name
-            )
-        self.add_ontology(ddd_specific_components.ontology)
-        self._ddds_of_ontologies[ddd_specific_components.ontology] = ddd_specific_components
-        self.add_domain(ddd_specific_components.domain)
-        self._ddds_of_domains[ddd_specific_components.domain] = ddd_specific_components
-        self._components_of_ddds[ddd_specific_components.name] = ddd_specific_components
+    def add(self, ddd):
+        if ddd.name in self._ddds:
+            raise DDDSpecificComponentsAlreadyExistsException("DDD '%s' already registered" % ddd.name)
+        self.add_ontology(ddd.ontology)
+        self._ddds_of_ontologies[ddd.ontology] = ddd
+        self.add_domain(ddd.domain)
+        self._ddds_of_domains[ddd.domain] = ddd
+        self._ddds[ddd.name] = ddd
 
-    def ensure_ddd_components_added(self, ddd_components):
-        if ddd_components.name not in self._components_of_ddds:
-            self.add(ddd_components)
+    def ensure_ddd_added(self, ddd):
+        if ddd.name not in self._ddds:
+            self.add(ddd)
 
     def add_domain(self, domain):
         self.domains[domain.get_name()] = domain
@@ -67,13 +65,13 @@ class DDDComponentManager(object):
     def add_ontology(self, ontology):
         self.ontologies[ontology.get_name()] = ontology
 
-    def get_components_for_all_ddds(self):
-        return list(self._components_of_ddds.values())
+    def get_all_ddds(self):
+        return list(self._ddds.values())
 
-    def get_ddd_specific_components(self, name):
-        if name not in self._components_of_ddds and self.ddds_as_json:
+    def get_ddd(self, name):
+        if name not in self._ddds and self.ddds_as_json:
             self._load_ddd(name)
-        return self._components_of_ddds[name]
+        return self._ddds[name]
 
     def _load_ddd(self, name):
         if name not in self.ddd_names:
@@ -91,7 +89,7 @@ class DDDComponentManager(object):
         raise UnexpectedDDDException(f"Expected ontology name of a known DDD ({self.ddd_names}), but got '{name}'")
 
     def _is_loaded(self, ddd_name):
-        return ddd_name in self._components_of_ddds
+        return ddd_name in self._ddds
 
     def add_ddds_as_json(self, ddd_names, ddds_as_json):
         self.ddd_names = ddd_names
@@ -106,8 +104,8 @@ class DDDComponentManager(object):
         ddd = JSONDDDParser().parse(ddd_as_json)
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
-        ddd_specific_components = DDDSpecificComponents(ddd, parameter_retriever, parser)
-        self.add(ddd_specific_components)
+        extended_ddd = DDDSpecificComponents(ddd, parameter_retriever, parser)
+        self.add(extended_ddd)
 
     def get_domain(self, name):
         return self.domains[name]
@@ -124,11 +122,11 @@ class DDDComponentManager(object):
             "This object is not ontology specific, and has no ontology information", semantic_object=semantic_object
         )
 
-    def get_ddd_specific_components_of_semantic_object(self, semantic_object):
+    def get_ddd_of_semantic_object(self, semantic_object):
         ontology = self.get_ontology_of(semantic_object)
-        return self.get_ddd_specific_components_of_ontology(ontology)
+        return self.get_ddd_of_ontology(ontology)
 
-    def get_ddd_specific_components_of_ontology(self, ontology):
+    def get_ddd_of_ontology(self, ontology):
         if ontology not in self._ddds_of_ontologies:
             raise UnexpectedOntologyException(
                 "Expected to find '%s' among known ontologies %s but did not." %
@@ -136,12 +134,12 @@ class DDDComponentManager(object):
             )
         return self._ddds_of_ontologies[ontology]
 
-    def get_ddd_specific_components_of_ontology_name(self, ontology_name):
+    def get_ddd_for_ontology_name(self, ontology_name):
         if ontology_name not in self.ontologies:
             self.load_ddd_for_ontology_name(ontology_name)
         ontology = self.get_ontology(ontology_name)
-        return self.get_ddd_specific_components_of_ontology(ontology)
+        return self.get_ddd_of_ontology(ontology)
 
-    def reset_components_of_ddd(self, name):
-        ddd_specific_components = self._components_of_ddds[name]
+    def reset_ddd(self, name):
+        ddd_specific_components = self._ddds[name]
         ddd_specific_components.reset()

@@ -118,7 +118,7 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self._then_ddd_specific_components_are_returned()
 
     def _when_getting_ddd_specific_components_for(self, ddd):
-        self._result = self._ddd_component_manager.get_ddd_specific_components(ddd)
+        self._result = self._ddd_component_manager.get_ddd(ddd)
 
     def _then_ddd_specific_components_are_returned(self):
         self.assertEqual(self._result, self._ddd_specific_components)
@@ -137,10 +137,10 @@ class TestManagerForDDDSpecificComponents(unittest.TestCase):
         self.ontology.add_individual("athens", "city")
 
     def _when_ddd_is_reset_for(self, ddd):
-        self._ddd_component_manager.reset_components_of_ddd(ddd)
+        self._ddd_component_manager.reset_ddd(ddd)
 
     def _then_get_ddd_returns_ddd_with_unmodified_ontology(self, ddd_name):
-        ddd = self._ddd_component_manager.get_ddd_specific_components(ddd_name)
+        ddd = self._ddd_component_manager.get_ddd(ddd_name)
         self.assertEqual(0, len(ddd.ontology.get_individuals()))
 
     def _then_result_is(self, expected):
