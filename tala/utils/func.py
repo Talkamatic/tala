@@ -54,11 +54,13 @@ def log_models(original_body, logger, models=REDACTED_LOG_FIELDS_IN_SESSION):
 
 
 def redact_bulky_entries_in_session(_, __, input_event_dict):
-    event_dict = copy.deepcopy(input_event_dict)
-    for field in REDACTED_LOG_FIELDS_IN_SESSION:
-        if field in event_dict.get("body", {}).get("session", {}):
-            event_dict["body"]["session"][field] = "[REDACTED]"
-    return event_dict
+    if "session" in input_event_dict.get("body", {}):
+        event_dict = copy.deepcopy(input_event_dict)
+        for field in REDACTED_LOG_FIELDS_IN_SESSION:
+            if field in event_dict.get("body", {}).get("session", {}):
+                event_dict["body"]["session"][field] = "[REDACTED]"
+        return event_dict
+    return input_event_dict
 
 
 def configure_stdout_logging(level=None):
