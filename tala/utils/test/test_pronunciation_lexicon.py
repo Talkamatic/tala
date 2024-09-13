@@ -120,3 +120,24 @@ class TestLexicon(object):
 
     def given_non_matching_param(self, param):
         self._input_data[param] = "non_matching_value"
+
+    def test_generate_replacement_dict(self):
+        self.given_lexicon(BASIC_LEXICON)
+        self.given_input_data({"locale": "some_locale"})
+        self.when_get_replacement_dict_called()
+        self.then_result_is({"utterance": "spoken words"})
+
+    def when_get_replacement_dict_called(self):
+        self._pronunciation = self._lexicon.get_replacement_dict(self._input_data)
+
+    def test_generate_replacement_dict_anything_goes(self):
+        self.given_lexicon(BASIC_LEXICON)
+        self.given_input_data({"locale": "some_locale", "ddd_name": "other_name", "voice": "hmv"})
+        self.when_get_replacement_dict_called()
+        self.then_result_is({"utterance": "spoken words"})
+
+    def test_generate_replacement_dict_ddd_and_locale(self):
+        self.given_lexicon(BASIC_LEXICON)
+        self.given_input_data({"locale": "some_locale", "ddd_name": "some_ddd", "voice": "hmv"})
+        self.when_get_replacement_dict_called()
+        self.then_result_is({'ddd_specific_entry': 'ddd_specific_replacement', 'utterance': 'spoken words'})
