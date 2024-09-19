@@ -65,7 +65,8 @@ if __name__ == "__main__":
             "structlog>=21.1.0",
             "setuptools>=68.2.2",
             "setuptools-scm>=8.0.4",
-            "paho-mqtt==2.1.0"
+            "paho-mqtt==2.1.0",
+            "azure-data-tables==12.5.0"
 
         ],
         dependency_links=[],
