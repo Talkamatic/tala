@@ -8,3 +8,4 @@ dist
 *.egg-info
 __pycache__
 .python_packages
+.venv
