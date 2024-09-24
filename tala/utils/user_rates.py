@@ -17,9 +17,8 @@ class AbstractTableHandler():
     def create_entity(self, offer_id: str, user_id: str):
         self._table_client.create_entity(self._make_new_entity(offer_id, user_id))
 
-    def increment_num_calls(self, offer_id: str):
-        entities = self.query_offer_id(offer_id)
-        self._increment_calls("NumCalls", entities[0])
+    def increment_num_calls(self, *args):
+        raise NotImplementedError("Needs to be implemented in subclass %s" % self.__class__.__name__)
 
     def query_user_id(self, user_id: str):
         return self._query_entities("UserID", user_id)
@@ -49,6 +48,14 @@ class AbstractTableHandler():
 class HandlerUserRates(AbstractTableHandler):
     partition_key = "HandlerData"
 
+    def increment_num_calls(self, offer_id: str):
+        entities = self.query_offer_id(offer_id)
+        self._increment_calls("NumCalls", entities[0])
+
 
 class BuddyGeneratorUserRates(AbstractTableHandler):
     partition_key = "BuddyGeneratorData"
+
+    def increment_num_calls(self, user_id: str):
+        entities = self.query_user_id(user_id)
+        self._increment_calls("NumCalls", entities[0])
