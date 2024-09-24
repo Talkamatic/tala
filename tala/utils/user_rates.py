@@ -14,12 +14,6 @@ class AbstractTableHandler():
             raise NoConnectionToDB("Table Service Client could not be reached.")
         self._table_client = table_service.get_table_client(table_name="UserRates")
 
-    def create_entity(self, *args):
-        raise NotImplementedError("Needs to be implemented in subclass %s" % self.__class__.__name__)
-
-    def increment_num_calls(self, *args):
-        raise NotImplementedError("Needs to be implemented in subclass %s" % self.__class__.__name__)
-
     def query_user_id(self, user_id: str):
         return self._query_entities("UserID", user_id)
 
@@ -30,9 +24,6 @@ class AbstractTableHandler():
         if entity:
             entity[key] += 1
             self._table_client.update_entity(entity)
-
-    def _make_new_entity(self, *args):
-        raise NotImplementedError("Needs to be implemented in subclass %s" % self.__class__.__name__)
 
     def _query_entities(self, key: str, value: str):
         filters = f"PartitionKey eq '{self.partition_key}' and {key} eq '{value}'"
