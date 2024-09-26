@@ -33,32 +33,50 @@ class AbstractTableHandler():
 class HandlerUserRates(AbstractTableHandler):
     partition_key = "HandlerData"
 
-    def create_entity(self, offer_id: str, user_id: str):
-        self._table_client.create_entity(self._make_new_entity(offer_id, user_id))
+    def create_entity(self, offer_id: str, user_id: str, offer_quota: int):
+        self._table_client.create_entity(self._make_new_entity(offer_id, user_id, offer_quota))
+
+    def create_entity_author_quota(self, user_id: str, author_quota: int):
+        self._table_client.create_entity(self._make_new_entity_author_quota(user_id, author_quota))
 
     def increment_num_calls(self, offer_id: str):
         entities = self.query_offer_id(offer_id)
         self._increment_calls("NumCalls", entities[0])
 
-    def _make_new_entity(self, offer_id: str, user_id: str):
+    def _make_new_entity(self, offer_id: str, user_id: str, offer_quota: int):
         return {
             "PartitionKey": self.partition_key,
             "RowKey": str(uuid.uuid4()),
             "NumCalls": 0,
             "OfferID": offer_id,
-            "UserID": user_id
+            "UserID": user_id,
+            "OfferQuota": offer_quota
+        }
+
+    def _make_new_entity_author_quota(self, user_id: str, author_quota: int):
+        return {
+            "PartitionKey": self.partition_key,
+            "RowKey": str(uuid.uuid4()),
+            "UserID": user_id,
+            "AuthorQuota": author_quota
         }
 
 
 class BuddyGeneratorUserRates(AbstractTableHandler):
     partition_key = "BuddyGeneratorData"
 
-    def create_entity(self, user_id: str):
-        self._table_client.create_entity(self._make_new_entity(user_id))
+    def create_entity(self, user_id: str, author_quota: int):
+        self._table_client.create_entity(self._make_new_entity(user_id, author_quota))
 
     def increment_num_calls(self, user_id: str):
         entities = self.query_user_id(user_id)
         self._increment_calls("NumCalls", entities[0])
 
-    def _make_new_entity(self, user_id: str):
-        return {"PartitionKey": self.partition_key, "RowKey": str(uuid.uuid4()), "NumCalls": 0, "UserID": user_id}
+    def _make_new_entity(self, user_id: str, author_quota: int):
+        return {
+            "PartitionKey": self.partition_key,
+            "RowKey": str(uuid.uuid4()),
+            "NumCalls": 0,
+            "UserID": user_id,
+            "AuthorQuota": author_quota
+        }
