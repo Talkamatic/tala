@@ -26,8 +26,16 @@ class AbstractTableHandler():
     def query_user_id(self, user_id: str):
         return self._query_entities("UserID", user_id)
 
+    def query_author_user_id(self, author_user_id: str):
+        return self._query_entities("AuthorUserID", author_user_id)
+
     def query_offer_id(self, offer_id: str):
         return self._query_entities("OfferID", offer_id)
+
+    def update_author_quota(self, author_user_id: str, author_quota: int):
+        entity = self.query_author_user_id(author_user_id)[0]
+        entity["AuthorQuota"] = author_quota
+        self._table_client.update_entity(entity)
 
     def _increment_calls(self, key: str, entity: dict):
         if entity:
@@ -92,6 +100,11 @@ class HandlerUserRates(AbstractTableHandler):
         log_call_in_last_period(entity)
         self._table_client.update_entity(entity)
 
+    def update_offer_quota(self, offer_id: str, offer_quota: int):
+        entity = self.query_offer_id(offer_id)[0]
+        entity["OfferQuota"] = offer_quota
+        self._table_client.update_entity(entity)
+
     def _make_new_entity(self, offer_id: str, user_id: str, offer_quota: int):
         return {
             "PartitionKey": self.partition_key,
@@ -103,11 +116,11 @@ class HandlerUserRates(AbstractTableHandler):
             "OfferQuota": offer_quota
         }
 
-    def _make_new_entity_author_quota(self, user_id: str, author_quota: int):
+    def _make_new_entity_author_quota(self, author_user_id: str, author_quota: int):
         return {
             "PartitionKey": self.partition_key,
             "RowKey": str(uuid.uuid4()),
-            "UserID": user_id,
+            "AuthorUserID": author_user_id,
             "AuthorQuota": author_quota
         }
 
@@ -119,14 +132,14 @@ class BuddyGeneratorUserRates(AbstractTableHandler):
         self._table_client.create_entity(self._make_new_entity(user_id, author_quota))
 
     def increment_num_calls(self, user_id: str):
-        entities = self.query_user_id(user_id)
+        entities = self.query_author_user_id(user_id)
         self._increment_calls("NumCalls", entities[0])
 
-    def _make_new_entity(self, user_id: str, author_quota: int):
+    def _make_new_entity(self, author_user_id: str, author_quota: int):
         return {
             "PartitionKey": self.partition_key,
             "RowKey": str(uuid.uuid4()),
             "NumCalls": 0,
-            "UserID": user_id,
+            "AuthorUserID": author_user_id,
             "AuthorQuota": author_quota
         }

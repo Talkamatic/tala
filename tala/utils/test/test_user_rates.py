@@ -3,12 +3,22 @@ import datetime
 
 import pytest
 
-from tala.utils.user_rates import HandlerUserRates, OfferNotInDB
+from tala.utils.user_rates import BuddyGeneratorUserRates, HandlerUserRates, OfferNotInDB
 
-OFFER_QUOTA = "500"
+OFFER_QUOTA = 500
+AUTHOR_QUOTA = 2500
+BUDDY_GENERATOR_AUTHOR_QUOTA = 30
 
 
 class MockHandlerUserRates(HandlerUserRates):
+    def __init__(self, table_client):
+        self._table_client = table_client
+
+    def _query_entities(self, key, value):
+        return copy.deepcopy(self._table_client.query_entities(key, value))
+
+
+class MockBuddyGeneratorUserRates(BuddyGeneratorUserRates):
     def __init__(self, table_client):
         self._table_client = table_client
 
@@ -38,18 +48,23 @@ class MockTableClient:
                 break
 
 
-def generate_rate_entry(handler_calls, offer_id, row_key):
+def create_rate_entry(handler_calls, offer_id, row_key):
     return {
         'PartitionKey': 'HandlerData',
         'RowKey': row_key,
         'NumCalls': handler_calls,
         'OfferID': str(offer_id),
         'CallsLastPeriod': [],
-        'UserID': '2'
+        'UserID': '2',
+        "OfferQuota": OFFER_QUOTA
     }
 
 
-class TestQuota:
+def create_author_quota_entry(user_id, row_key):
+    return {"PartitionKey": 'HandlerData', "RowKey": row_key, "AuthorUserID": user_id, "AuthorQuota": AUTHOR_QUOTA}
+
+
+class TestHandlerUserRates:
     def test_first_call(self):
         self.given_user_rates([(0, "offer-id-2", "id-2")])
         self.given_handler()
@@ -63,15 +78,15 @@ class TestQuota:
         self.then_num_calls_are("offer-id-1", 500)
 
     def given_user_rates(self, rate_entry_values):
-        rates = [generate_rate_entry(*values_tuple) for values_tuple in rate_entry_values]
+        rates = [create_rate_entry(*values_tuple) for values_tuple in rate_entry_values]
         try:
-            self._user_rates.extend(rates)
+            self._user_rates_table.extend(rates)
         except AttributeError:
-            self._user_rates = rates
+            self._user_rates_table = rates
 
     def given_handler(self):
         try:
-            self._handler = MockHandlerUserRates(MockTableClient(self._user_rates))
+            self._handler = MockHandlerUserRates(MockTableClient(self._user_rates_table))
         except AttributeError:
             self._handler = MockHandlerUserRates(MockTableClient([]))
 
@@ -96,8 +111,8 @@ class TestQuota:
         self.then_num_calls_last_hour_is("offer-id-1", 1)
 
     def given_field_removed(self, field_name):
-        for item in self._user_rates:
-            del item["CallsLastPeriod"]
+        for item in self._user_rates_table:
+            del item[field_name]
 
     def then_num_calls_last_hour_is(self, offer_id, num_calls):
         entities = self._handler.query_offer_id_and_garbage_collect(offer_id)
@@ -115,7 +130,7 @@ class TestQuota:
         delta = delta = datetime.timedelta(minutes=age_in_minutes)
         birth_time = now - delta
 
-        self._user_rates[0]["CallsLastPeriod"].append(birth_time.timestamp())
+        self._user_rates_table[0]["CallsLastPeriod"].append(birth_time.timestamp())
 
     def test_younger_entries_not_garbage_collected(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])
@@ -140,3 +155,98 @@ class TestQuota:
     def then_incrementing_works_flawlessly(self, offer_id):
         self._handler.increment_num_calls(offer_id)
         assert True
+
+    def test_create_entity_author_quota(self):
+        self.given_handler()
+        self.when_create_entity_author_quota("new_user", AUTHOR_QUOTA)
+        self.then_user_rates_contain_author_entry("new_user")
+
+    def when_create_entity_author_quota(self, author_user_id, author_quota):
+        self._handler.create_entity_author_quota(author_user_id, author_quota)
+
+    def then_user_rates_contain_author_entry(self, author_user_id):
+        entities = self._handler.query_author_user_id(author_user_id)
+        assert author_user_id == entities[0]["AuthorUserID"]
+
+    def test_update_author_quota(self):
+        self.given_author_in_user_rates([("author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_update_author_quota("author-user-id-2", 4000)
+        self.then_author_quota_is("author-user-id-2", 4000)
+
+    def when_update_author_quota(self, author_user_id, author_quota):
+        self._handler.update_author_quota(author_user_id, author_quota)
+
+    def then_author_quota_is(self, author_user_id, author_quota):
+        entities = self._handler.query_author_user_id(author_user_id)
+        assert author_quota == entities[0]["AuthorQuota"]
+
+    def given_author_in_user_rates(self, author_rates_values):
+        author_rates = [create_author_quota_entry(*values_tuple) for values_tuple in author_rates_values]
+        try:
+            self._user_rates_table.extend(author_rates)
+        except AttributeError:
+            self._user_rates_table = author_rates
+
+
+def create_buddy_generator_rate_entry(num_calls, author_user_id, row_key, author_quota=None):
+    return {
+        "PartitionKey": "BuddyGeneratorData",
+        "RowKey": row_key,
+        "NumCalls": num_calls,
+        "AuthorUserID": author_user_id,
+        "AuthorQuota": author_quota if author_quota else BUDDY_GENERATOR_AUTHOR_QUOTA
+    }
+
+
+class TestBuddyGeneratorUserRates:
+    def test_first_call(self):
+        self.given_user_rates([(0, "author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_increment_calls("author-user-id-2")
+        self.then_num_calls_are("author-user-id-2", 1)
+
+    def given_user_rates(self, rate_entry_values):
+        rates = [create_buddy_generator_rate_entry(*values_tuple) for values_tuple in rate_entry_values]
+        try:
+            self._user_rates_table.extend(rates)
+        except AttributeError:
+            self._user_rates_table = rates
+
+    def given_handler(self):
+        try:
+            self._handler = MockBuddyGeneratorUserRates(MockTableClient(self._user_rates_table))
+        except AttributeError:
+            self._handler = MockBuddyGeneratorUserRates(MockTableClient([]))
+
+    def when_increment_calls(self, author_user_id):
+        self._handler.increment_num_calls(author_user_id)
+
+    def then_num_calls_are(self, author_user_id, num_calls):
+        entities = self._handler.query_author_user_id(author_user_id)
+        assert num_calls == entities[0]["NumCalls"]
+
+    def test_create_entity(self):
+        self.given_handler()
+        self.when_create_entity("new_user", AUTHOR_QUOTA)
+        self.then_user_rates_contain_author_entry("new_user")
+
+    def when_create_entity(self, author_user_id, author_quota):
+        self._handler.create_entity(author_user_id, author_quota)
+
+    def then_user_rates_contain_author_entry(self, author_user_id):
+        entities = self._handler.query_author_user_id(author_user_id)
+        assert author_user_id == entities[0]["AuthorUserID"]
+
+    def test_update_author_quota(self):
+        self.given_user_rates([(0, "author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_update_author_quota("author-user-id-2", 40)
+        self.then_author_quota_is("author-user-id-2", 40)
+
+    def when_update_author_quota(self, author_user_id, author_quota):
+        self._handler.update_author_quota(author_user_id, author_quota)
+
+    def then_author_quota_is(self, author_user_id, author_quota):
+        entities = self._handler.query_author_user_id(author_user_id)
+        assert author_quota == entities[0]["AuthorQuota"]
