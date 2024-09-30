@@ -1,5 +1,6 @@
 import copy
 import datetime
+import json
 
 import pytest
 
@@ -15,7 +16,10 @@ class MockHandlerUserRates(HandlerUserRates):
         self._table_client = table_client
 
     def _query_entities(self, key, value):
-        return copy.deepcopy(self._table_client.query_entities(key, value))
+        entities = copy.deepcopy(self._table_client.query_entities(key, value))
+        for entity in entities:
+            self._load_json_fields(entity)
+        return entities
 
 
 class MockBuddyGeneratorUserRates(BuddyGeneratorUserRates):
@@ -23,7 +27,10 @@ class MockBuddyGeneratorUserRates(BuddyGeneratorUserRates):
         self._table_client = table_client
 
     def _query_entities(self, key, value):
-        return copy.deepcopy(self._table_client.query_entities(key, value))
+        entities = copy.deepcopy(self._table_client.query_entities(key, value))
+        for entity in entities:
+            self._load_json_fields(entity)
+        return entities
 
 
 class MockTableClient:
@@ -54,7 +61,7 @@ def create_rate_entry(handler_calls, offer_id, row_key):
         'RowKey': row_key,
         'NumCalls': handler_calls,
         'OfferID': str(offer_id),
-        'CallsLastPeriod': [],
+        'CallsLastPeriod': json.dumps([]),
         'UserID': '2',
         "OfferQuota": OFFER_QUOTA
     }
@@ -129,8 +136,7 @@ class TestHandlerUserRates:
         now = datetime.datetime.now()
         delta = delta = datetime.timedelta(minutes=age_in_minutes)
         birth_time = now - delta
-
-        self._user_rates_table[0]["CallsLastPeriod"].append(birth_time.timestamp())
+        self._user_rates_table[0]["CallsLastPeriod"] = json.dumps([birth_time.timestamp()])
 
     def test_younger_entries_not_garbage_collected(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])

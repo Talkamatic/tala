@@ -1,4 +1,6 @@
+import copy
 from datetime import timedelta, datetime
+import json
 import uuid
 import time
 
@@ -35,26 +37,56 @@ class AbstractTableHandler():
     def update_author_quota(self, author_user_id: str, author_quota: int):
         entity = self.query_author_user_id(author_user_id)[0]
         entity["AuthorQuota"] = author_quota
-        self._table_client.update_entity(entity)
+        self._update_entity(entity)
+
+    def _create_entity(self, entity: dict):
+        table_entity = self._dump_json_fields(copy.deepcopy(entity))
+        self._table_client.create_entity(table_entity)
+
+    def _dump_json_fields(self, entity: dict):
+        for field in self.fields_to_jsonify:
+            try:
+                entity[field] = json.dumps(entity[field])
+            except KeyError:
+                pass
+        return entity
+
+    def _load_json_fields(self, entity: dict):
+        for field in self.fields_to_jsonify:
+            try:
+                entity[field] = json.loads(entity[field])
+            except KeyError:
+                pass
+        return entity
 
     def _increment_calls(self, key: str, entity: dict):
         if entity:
             entity[key] += 1
-            self._table_client.update_entity(entity)
+            self._update_entity(entity)
 
     def _query_entities(self, key: str, value: str):
         filters = f"PartitionKey eq '{self.partition_key}' and {key} eq '{value}'"
-        return list(self._table_client.query_entities(filters))
+        entities = list(self._table_client.query_entities(filters))
+        for entity in entities:
+            self._load_json_fields(entity)
+        return entities
+
+    def _update_entity(self, entity: dict):
+        table_entity = self._dump_json_fields(copy.deepcopy(entity))
+        self._table_client.update_entity(table_entity)
 
 
 class HandlerUserRates(AbstractTableHandler):
     partition_key = "HandlerData"
+    fields_to_jsonify = ["CallsLastPeriod"]
 
     def create_entity(self, offer_id: str, user_id: str, offer_quota: int):
-        self._table_client.create_entity(self._make_new_entity(offer_id, user_id, offer_quota))
+        entity = self._make_new_entity(offer_id, user_id, offer_quota)
+        self._create_entity(entity)
 
     def create_entity_author_quota(self, user_id: str, author_quota: int):
-        self._table_client.create_entity(self._make_new_entity_author_quota(user_id, author_quota))
+        entity = self._make_new_entity_author_quota(user_id, author_quota)
+        self._create_entity(entity)
 
     def query_offer_id_and_garbage_collect(self, offer_id: str, age_limit=DEFAULT_AGE_LIMIT):
         def garbage_collect(entity, age_limit=DEFAULT_AGE_LIMIT):
@@ -71,7 +103,7 @@ class HandlerUserRates(AbstractTableHandler):
         entities = self.query_offer_id(offer_id)
         for entity in entities:
             garbage_collect(entity, age_limit)
-            self._table_client.update_entity(entity)
+            self._update_entity(entity)
         return entities
 
     def increment_num_calls(self, offer_id, age_limit=DEFAULT_AGE_LIMIT):
@@ -98,12 +130,12 @@ class HandlerUserRates(AbstractTableHandler):
         entity = get_entry_for_offer_id(offer_id)
         increment_calls(entity)
         log_call_in_last_period(entity)
-        self._table_client.update_entity(entity)
+        self._update_entity(entity)
 
     def update_offer_quota(self, offer_id: str, offer_quota: int):
         entity = self.query_offer_id(offer_id)[0]
         entity["OfferQuota"] = offer_quota
-        self._table_client.update_entity(entity)
+        self._update_entity(entity)
 
     def _make_new_entity(self, offer_id: str, user_id: str, offer_quota: int):
         return {
@@ -127,9 +159,11 @@ class HandlerUserRates(AbstractTableHandler):
 
 class BuddyGeneratorUserRates(AbstractTableHandler):
     partition_key = "BuddyGeneratorData"
+    fields_to_jsonify = []
 
     def create_entity(self, user_id: str, author_quota: int):
-        self._table_client.create_entity(self._make_new_entity(user_id, author_quota))
+        entity = self._make_new_entity(user_id, author_quota)
+        self._create_entity(entity)
 
     def increment_num_calls(self, user_id: str):
         entities = self.query_author_user_id(user_id)
