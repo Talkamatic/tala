@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.model.proposition import Proposition
 from tala.model.validation_result import ValidationResult, ValidationSuccess, ValidationFailure

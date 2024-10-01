@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.model.error import OntologyError
 from tala.model.goal import PerformGoal

@@ -1,4 +1,4 @@
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, DeviceModuleTarget
 

@@ -5,7 +5,7 @@ import pytest
 import unittest
 from io import StringIO
 
-from mock import patch, ANY, call
+from unittest.mock import patch, ANY, call
 
 from tala.testing.interactions import compiler
 from tala.testing.interactions.compiler import InteractionTestCompiler, ParseException

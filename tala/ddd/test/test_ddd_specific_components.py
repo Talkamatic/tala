@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.ddd.ddd_specific_components import DDDSpecificComponents
 from tala.ddd.parser import Parser

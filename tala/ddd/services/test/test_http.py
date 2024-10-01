@@ -3,7 +3,7 @@ import unittest
 import requests
 import logging
 
-from mock import patch, Mock
+from unittest.mock import patch, Mock
 
 from tala.ddd.services.service_interface import ServiceParameter
 from tala.model.individual import Individual

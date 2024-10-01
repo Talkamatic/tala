@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.model.proposition import PredicateProposition, Proposition, ResolvednessProposition
 from tala.model.predicate import Predicate

@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 import pytest
-from mock import patch, Mock
+from unittest.mock import patch, Mock
 
 import tala.utils.as_json
 from tala.utils.as_json import AsJSONMixin, convert_to_json

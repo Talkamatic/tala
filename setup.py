@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3.11
 
 from setuptools import find_packages, setup
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         classifiers=[
             "Operating System :: OS Independent",
-            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.11",
         ],
         keywords="tala tdm ddd ddds dialogue conversation AI",
         packages=find_packages(exclude=["tala/ddds", "test", "*.test", "test.*", "*.test.*"]),

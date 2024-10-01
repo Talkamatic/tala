@@ -1,6 +1,6 @@
 import json
 
-from mock import patch, Mock, call
+from unittest.mock import patch, Mock, call
 import pytest
 from requests.exceptions import RequestException
 
@@ -84,7 +84,9 @@ class TestTDMClient(object):
     "facts": {{}},
     "language": "eng"
   }}
-}}'''.format(version=PROTOCOL_VERSION, session_id=session_id)
+}}'''.format(
+            version=PROTOCOL_VERSION, session_id=session_id
+        )
         response.json.return_value = json.loads(json_response)
         self._mocked_requests.post.return_value = response
 
@@ -262,7 +264,9 @@ class TestTDMClient(object):
   "error": {{
     "description": "{description}"
   }}
-}}'''.format(version=PROTOCOL_VERSION, description=description)
+}}'''.format(
+            version=PROTOCOL_VERSION, description=description
+        )
         response.json.return_value = json.loads(json_response)
         self._mocked_requests.post.return_value = response
 

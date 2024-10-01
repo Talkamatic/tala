@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.ddd.ddd_component_manager import DDDComponentManager, \
     DDDSpecificComponentsAlreadyExistsException

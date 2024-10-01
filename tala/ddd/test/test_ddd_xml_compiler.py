@@ -1,5 +1,5 @@
 import pytest
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 import tala.ddd.ddd_xml_compiler
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, UnexpectedAttributeException, OntologyWarning

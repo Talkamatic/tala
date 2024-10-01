@@ -1,6 +1,6 @@
 import unittest
 
-from mock import patch
+from unittest.mock import patch
 
 from tala.utils.chdir import chdir
 from tala.config import BackendConfig, OverriddenDddConfig

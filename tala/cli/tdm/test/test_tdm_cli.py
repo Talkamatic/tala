@@ -1,6 +1,6 @@
 import json
 
-from mock import patch, ANY
+from unittest.mock import patch, ANY
 
 from tala.cli.tdm import tdm_cli
 from tala.cli.tdm.passivity_timer import PASSIVE

@@ -1,4 +1,4 @@
-from mock import patch, ANY
+from unittest.mock import patch, ANY
 
 from tala.cli.tdm import passivity_timer
 from tala.cli.tdm.passivity_timer import PassivityTimer

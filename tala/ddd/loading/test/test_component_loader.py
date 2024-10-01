@@ -1,4 +1,4 @@
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.config import BackendConfig
 from tala.ddd.ddd_component_manager import DDDComponentManager

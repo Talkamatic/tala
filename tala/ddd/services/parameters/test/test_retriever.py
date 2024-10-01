@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from unittest.mock import Mock
 
 from tala.model.ontology import Ontology
 from tala.model.person_name import PersonName

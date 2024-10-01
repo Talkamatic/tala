@@ -1,4 +1,4 @@
-from mock import Mock
+from unittest.mock import Mock
 import unittest
 
 from tala.utils.observable import Observable, Observer
@@ -52,6 +52,7 @@ class ObservableTests(unittest.TestCase):
     def given_mocked_observer_removes_itself_from_observable_when_updated(self):
         def remove_from_observable(value):
             self._observable.remove_observer(self._mock_observer)
+
         self._mock_observer.update.side_effect = remove_from_observable
 
     def then_there_was_no_exception(self):

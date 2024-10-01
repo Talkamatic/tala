@@ -1,4 +1,4 @@
-from mock import patch
+from unittest.mock import patch
 import unittest
 
 import tala.testing.endurance.named_test
@@ -22,7 +22,8 @@ class EnduranceInteractionTestTests(unittest.TestCase):
             self._create_interaction_test_with_turns([
                 SystemUtteranceTurn("mock system utterance", 1),
                 RecognitionHypothesesTurn(["mock user utterance"], 2)
-            ])])
+            ])
+        ])
         self._given_duration(0)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
@@ -54,14 +55,14 @@ class EnduranceInteractionTestTests(unittest.TestCase):
 
     def test_only_turn_is_of_type_system(self):
         self._given_mocked_tests([
-            self._create_interaction_test_with_turns([
-                SystemUtteranceTurn("mock system utterance", 1)
-            ])])
+            self._create_interaction_test_with_turns([SystemUtteranceTurn("mock system utterance", 1)])
+        ])
         self._given_duration(0)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
         self._when_fetching_the_next_turn_then_exception_is_raised_matching(
-            MissingTurnsException, "Expected turns but found none in test 'mock_name' of 'mock_file'")
+            MissingTurnsException, "Expected turns but found none in test 'mock_name' of 'mock_file'"
+        )
 
     def _when_fetching_the_next_turn_then_exception_is_raised_matching(self, ExceptionClass, message_regex):
         with self.assertRaisesRegex(ExceptionClass, message_regex):
@@ -75,9 +76,8 @@ class EnduranceInteractionTestTests(unittest.TestCase):
         self._given_mock_time(mock_time)
         self._given_mock_time_is(0)
         self._given_mocked_tests([
-            self._create_interaction_test_with_turns([
-                RecognitionHypothesesTurn(["mock user utterance"], 1)
-            ])])
+            self._create_interaction_test_with_turns([RecognitionHypothesesTurn(["mock user utterance"], 1)])
+        ])
         self._given_duration(1)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
@@ -97,9 +97,8 @@ class EnduranceInteractionTestTests(unittest.TestCase):
 
     def test_stop(self):
         self._given_mocked_tests([
-            self._create_interaction_test_with_turns([
-                RecognitionHypothesesTurn(["mock user utterance"], 1)
-            ])])
+            self._create_interaction_test_with_turns([RecognitionHypothesesTurn(["mock user utterance"], 1)])
+        ])
         self._given_duration(0)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
@@ -112,9 +111,8 @@ class EnduranceInteractionTestTests(unittest.TestCase):
 
     def test_turns_are_generated_over_and_over_again(self):
         self._given_mocked_tests([
-            self._create_interaction_test_with_turns([
-                RecognitionHypothesesTurn(["mock user utterance"], 1)
-            ])])
+            self._create_interaction_test_with_turns([RecognitionHypothesesTurn(["mock user utterance"], 1)])
+        ])
         self._given_duration(0)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
@@ -128,13 +126,11 @@ class EnduranceInteractionTestTests(unittest.TestCase):
     def test_turns_are_generated_randomly(self, mock_random):
         self._given_mock_random(mock_random)
         self._given_mock_random_choice_returns(
-            self._create_interaction_test_with_turns([
-                RecognitionHypothesesTurn(["mock user utterance"], 1)
-            ]))
+            self._create_interaction_test_with_turns([RecognitionHypothesesTurn(["mock user utterance"], 1)])
+        )
         self._given_mocked_tests([
-            self._create_interaction_test_with_turns([
-                RecognitionHypothesesTurn(["mock user utterance"], 1)
-            ])])
+            self._create_interaction_test_with_turns([RecognitionHypothesesTurn(["mock user utterance"], 1)])
+        ])
         self._given_duration(0)
         self._given_created_endurance_test()
         self._given_fetched_turns_iterator()
