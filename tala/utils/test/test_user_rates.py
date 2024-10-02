@@ -4,11 +4,12 @@ import json
 
 import pytest
 
+from tala.utils import user_rates_constants as constants
 from tala.utils.user_rates import BuddyGeneratorUserRates, HandlerUserRates, OfferNotInDB
 
-OFFER_QUOTA = 500
-AUTHOR_QUOTA = 2500
-BUDDY_GENERATOR_AUTHOR_QUOTA = 30
+OFFER_USAGE_QUOTA = 500
+AUTHOR_USAGE_QUOTA = 2500
+AUTHOR_GENERATION_QUOTA = 30
 
 
 class MockHandlerUserRates(HandlerUserRates):
@@ -57,18 +58,23 @@ class MockTableClient:
 
 def create_rate_entry(handler_calls, offer_id, row_key):
     return {
-        'PartitionKey': 'HandlerData',
-        'RowKey': row_key,
-        'NumCalls': handler_calls,
-        'OfferID': str(offer_id),
-        'CallsLastPeriod': json.dumps([]),
-        'UserID': '2',
-        "OfferQuota": OFFER_QUOTA
+        constants.PARTITION_KEY: constants.HANDLER_DATA,
+        constants.ROW_KEY: row_key,
+        constants.NUM_CALLS: handler_calls,
+        constants.OFFER_ID: str(offer_id),
+        constants.CALLS_LAST_PERIOD: json.dumps([]),
+        constants.OFFER_AUTHOR_ID: '2',
+        constants.OFFER_QUOTA: OFFER_USAGE_QUOTA
     }
 
 
 def create_author_quota_entry(user_id, row_key):
-    return {"PartitionKey": 'HandlerData', "RowKey": row_key, "AuthorUserID": user_id, "AuthorQuota": AUTHOR_QUOTA}
+    return {
+        constants.PARTITION_KEY: constants.HANDLER_DATA,
+        constants.ROW_KEY: row_key,
+        constants.AUTHOR_ID: user_id,
+        constants.AUTHOR_QUOTA: AUTHOR_USAGE_QUOTA
+    }
 
 
 class TestHandlerUserRates:
@@ -102,7 +108,7 @@ class TestHandlerUserRates:
 
     def then_num_calls_are(self, offer_id, num_calls):
         entities = self._handler.query_offer_id(offer_id)
-        assert num_calls == entities[0]["NumCalls"]
+        assert num_calls == entities[0][constants.NUM_CALLS]
 
     def test_rate_increased(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])
@@ -112,7 +118,7 @@ class TestHandlerUserRates:
 
     def test_entry_updated_with_new_field(self):
         self.given_user_rates([(0, "offer-id-1", "id_1")])
-        self.given_field_removed("CallsLastPeriod")
+        self.given_field_removed(constants.CALLS_LAST_PERIOD)
         self.given_handler()
         self.when_increment_calls("offer-id-1")
         self.then_num_calls_last_hour_is("offer-id-1", 1)
@@ -123,7 +129,7 @@ class TestHandlerUserRates:
 
     def then_num_calls_last_hour_is(self, offer_id, num_calls):
         entities = self._handler.query_offer_id_and_garbage_collect(offer_id)
-        assert num_calls == len(entities[0]["CallsLastPeriod"])
+        assert num_calls == len(entities[0][constants.CALLS_LAST_PERIOD])
 
     def test_old_entries_garbage_collected(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])
@@ -136,7 +142,7 @@ class TestHandlerUserRates:
         now = datetime.datetime.now()
         delta = delta = datetime.timedelta(minutes=age_in_minutes)
         birth_time = now - delta
-        self._user_rates_table[0]["CallsLastPeriod"] = json.dumps([birth_time.timestamp()])
+        self._user_rates_table[0][constants.CALLS_LAST_PERIOD] = json.dumps([birth_time.timestamp()])
 
     def test_younger_entries_not_garbage_collected(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])
@@ -152,7 +158,7 @@ class TestHandlerUserRates:
 
     def test_create_entity(self):
         self.given_handler()
-        self.when_create_entity("new_offer", "new_user", OFFER_QUOTA)
+        self.when_create_entity("new_offer", "new_user", OFFER_USAGE_QUOTA)
         self.then_incrementing_works_flawlessly("new_offer")
 
     def when_create_entity(self, offer_id, user_id, offer_quota):
@@ -162,9 +168,9 @@ class TestHandlerUserRates:
         self._handler.increment_num_calls(offer_id)
         assert True
 
-    def test_create_entity_author_quota(self):
+    def test_create_entity_author_usage_quota(self):
         self.given_handler()
-        self.when_create_entity_author_quota("new_user", AUTHOR_QUOTA)
+        self.when_create_entity_author_quota("new_user", AUTHOR_USAGE_QUOTA)
         self.then_user_rates_contain_author_entry("new_user")
 
     def when_create_entity_author_quota(self, author_user_id, author_quota):
@@ -172,7 +178,7 @@ class TestHandlerUserRates:
 
     def then_user_rates_contain_author_entry(self, author_user_id):
         entities = self._handler.query_author_user_id(author_user_id)
-        assert author_user_id == entities[0]["AuthorUserID"]
+        assert author_user_id == entities[0][constants.AUTHOR_ID]
 
     def test_update_author_quota(self):
         self.given_author_in_user_rates([("author-user-id-2", "id-2")])
@@ -185,7 +191,7 @@ class TestHandlerUserRates:
 
     def then_author_quota_is(self, author_user_id, author_quota):
         entities = self._handler.query_author_user_id(author_user_id)
-        assert author_quota == entities[0]["AuthorQuota"]
+        assert author_quota == entities[0][constants.AUTHOR_QUOTA]
 
     def given_author_in_user_rates(self, author_rates_values):
         author_rates = [create_author_quota_entry(*values_tuple) for values_tuple in author_rates_values]
@@ -197,11 +203,11 @@ class TestHandlerUserRates:
 
 def create_buddy_generator_rate_entry(num_calls, author_user_id, row_key, author_quota=None):
     return {
-        "PartitionKey": "BuddyGeneratorData",
-        "RowKey": row_key,
-        "NumCalls": num_calls,
-        "AuthorUserID": author_user_id,
-        "AuthorQuota": author_quota if author_quota else BUDDY_GENERATOR_AUTHOR_QUOTA
+        constants.PARTITION_KEY: constants.BUDDY_GENERATOR_DATA,
+        constants.ROW_KEY: row_key,
+        constants.NUM_CALLS: num_calls,
+        constants.AUTHOR_ID: author_user_id,
+        constants.AUTHOR_QUOTA: author_quota if author_quota else AUTHOR_GENERATION_QUOTA
     }
 
 
@@ -230,11 +236,11 @@ class TestBuddyGeneratorUserRates:
 
     def then_num_calls_are(self, author_user_id, num_calls):
         entities = self._handler.query_author_user_id(author_user_id)
-        assert num_calls == entities[0]["NumCalls"]
+        assert num_calls == entities[0][constants.NUM_CALLS]
 
     def test_create_entity(self):
         self.given_handler()
-        self.when_create_entity("new_user", AUTHOR_QUOTA)
+        self.when_create_entity("new_user", AUTHOR_GENERATION_QUOTA)
         self.then_user_rates_contain_author_entry("new_user")
 
     def when_create_entity(self, author_user_id, author_quota):
@@ -242,7 +248,7 @@ class TestBuddyGeneratorUserRates:
 
     def then_user_rates_contain_author_entry(self, author_user_id):
         entities = self._handler.query_author_user_id(author_user_id)
-        assert author_user_id == entities[0]["AuthorUserID"]
+        assert author_user_id == entities[0][constants.AUTHOR_ID]
 
     def test_update_author_quota(self):
         self.given_user_rates([(0, "author-user-id-2", "id-2")])
@@ -255,4 +261,4 @@ class TestBuddyGeneratorUserRates:
 
     def then_author_quota_is(self, author_user_id, author_quota):
         entities = self._handler.query_author_user_id(author_user_id)
-        assert author_quota == entities[0]["AuthorQuota"]
+        assert author_quota == entities[0][constants.AUTHOR_QUOTA]

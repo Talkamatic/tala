@@ -6,6 +6,8 @@ import time
 
 from azure.data.tables import TableServiceClient
 
+from tala.utils import user_rates_constants as constants
+
 DEFAULT_AGE_LIMIT = 60
 
 
@@ -23,20 +25,20 @@ class AbstractTableHandler():
             table_service = TableServiceClient.from_connection_string(conn_str=connection_str)
         except Exception:
             raise NoConnectionToDB("Table Service Client could not be reached.")
-        self._table_client = table_service.get_table_client(table_name="UserRates")
+        self._table_client = table_service.get_table_client(table_name=constants.USER_RATES)
 
     def query_user_id(self, user_id: str):
-        return self._query_entities("UserID", user_id)
+        return self._query_entities(constants.OFFER_AUTHOR_ID, user_id)
 
     def query_author_user_id(self, author_user_id: str):
-        return self._query_entities("AuthorUserID", author_user_id)
+        return self._query_entities(constants.AUTHOR_ID, author_user_id)
 
     def query_offer_id(self, offer_id: str):
-        return self._query_entities("OfferID", offer_id)
+        return self._query_entities(constants.OFFER_ID, offer_id)
 
     def update_author_quota(self, author_user_id: str, author_quota: int):
         entity = self.query_author_user_id(author_user_id)[0]
-        entity["AuthorQuota"] = author_quota
+        entity[constants.AUTHOR_QUOTA] = author_quota
         self._update_entity(entity)
 
     def _create_entity(self, entity: dict):
@@ -77,8 +79,8 @@ class AbstractTableHandler():
 
 
 class HandlerUserRates(AbstractTableHandler):
-    partition_key = "HandlerData"
-    fields_to_jsonify = ["CallsLastPeriod"]
+    partition_key = constants.HANDLER_DATA
+    fields_to_jsonify = [constants.CALLS_LAST_PERIOD]
 
     def create_entity(self, offer_id: str, user_id: str, offer_quota: int):
         entity = self._make_new_entity(offer_id, user_id, offer_quota)
@@ -92,13 +94,13 @@ class HandlerUserRates(AbstractTableHandler):
         def garbage_collect(entity, age_limit=DEFAULT_AGE_LIMIT):
             to_remove = []
             now = datetime.now()
-            for timestamp in entity.get("CallsLastPeriod", []):
+            for timestamp in entity.get(constants.CALLS_LAST_PERIOD, []):
                 if datetime.fromtimestamp(timestamp) + timedelta(minutes=age_limit) < now:
                     to_remove.append(timestamp)
                 else:
                     break
             for item in to_remove:
-                entity["CallsLastPeriod"].remove(item)
+                entity[constants.CALLS_LAST_PERIOD].remove(item)
 
         entities = self.query_offer_id(offer_id)
         for entity in entities:
@@ -108,16 +110,16 @@ class HandlerUserRates(AbstractTableHandler):
 
     def increment_num_calls(self, offer_id, age_limit=DEFAULT_AGE_LIMIT):
         def increment_calls(entity):
-            if entity["NumCalls"] < 0:
+            if entity[constants.NUM_CALLS] < 0:
                 pass
             else:
-                entity["NumCalls"] += 1
+                entity[constants.NUM_CALLS] += 1
 
         def log_call_in_last_period(entity):
             try:
-                entity["CallsLastPeriod"].append(time.time())
+                entity[constants.CALLS_LAST_PERIOD].append(time.time())
             except KeyError:
-                entity["CallsLastPeriod"] = [time.time()]
+                entity[constants.CALLS_LAST_PERIOD] = [time.time()]
 
         def get_entry_for_offer_id(offer_id):
             try:
@@ -134,31 +136,31 @@ class HandlerUserRates(AbstractTableHandler):
 
     def update_offer_quota(self, offer_id: str, offer_quota: int):
         entity = self.query_offer_id(offer_id)[0]
-        entity["OfferQuota"] = offer_quota
+        entity[constants.OFFER_QUOTA] = offer_quota
         self._update_entity(entity)
 
     def _make_new_entity(self, offer_id: str, user_id: str, offer_quota: int):
         return {
-            "PartitionKey": self.partition_key,
-            "RowKey": str(uuid.uuid4()),
-            "NumCalls": 0,
-            "CallsLastPeriod": [],
-            "OfferID": offer_id,
-            "UserID": user_id,
-            "OfferQuota": offer_quota
+            constants.PARTITION_KEY: self.partition_key,
+            constants.ROW_KEY: str(uuid.uuid4()),
+            constants.NUM_CALLS: 0,
+            constants.CALLS_LAST_PERIOD: [],
+            constants.OFFER_ID: offer_id,
+            constants.OFFER_AUTHOR_ID: user_id,
+            constants.OFFER_QUOTA: offer_quota
         }
 
-    def _make_new_entity_author_quota(self, author_user_id: str, author_quota: int):
+    def _make_new_entity_author_quota(self, user_id: str, author_quota: int):
         return {
-            "PartitionKey": self.partition_key,
-            "RowKey": str(uuid.uuid4()),
-            "AuthorUserID": author_user_id,
-            "AuthorQuota": author_quota
+            constants.PARTITION_KEY: self.partition_key,
+            constants.ROW_KEY: str(uuid.uuid4()),
+            constants.AUTHOR_ID: user_id,
+            constants.AUTHOR_QUOTA: author_quota
         }
 
 
 class BuddyGeneratorUserRates(AbstractTableHandler):
-    partition_key = "BuddyGeneratorData"
+    partition_key = constants.BUDDY_GENERATOR_DATA
     fields_to_jsonify = []
 
     def create_entity(self, user_id: str, author_quota: int):
@@ -167,13 +169,13 @@ class BuddyGeneratorUserRates(AbstractTableHandler):
 
     def increment_num_calls(self, user_id: str):
         entities = self.query_author_user_id(user_id)
-        self._increment_calls("NumCalls", entities[0])
+        self._increment_calls(constants.NUM_CALLS, entities[0])
 
     def _make_new_entity(self, author_user_id: str, author_quota: int):
         return {
-            "PartitionKey": self.partition_key,
-            "RowKey": str(uuid.uuid4()),
-            "NumCalls": 0,
-            "AuthorUserID": author_user_id,
-            "AuthorQuota": author_quota
+            constants.PARTITION_KEY: self.partition_key,
+            constants.ROW_KEY: str(uuid.uuid4()),
+            constants.NUM_CALLS: 0,
+            constants.AUTHOR_ID: author_user_id,
+            constants.AUTHOR_QUOTA: author_quota
         }
