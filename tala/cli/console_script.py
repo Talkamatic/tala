@@ -1,15 +1,8 @@
-#!/usr/bin/env python
-
 import argparse
 import contextlib
 import os
-import sys
 import warnings
-import unittest
 import logging
-import time
-import random
-import signal
 
 import structlog
 import json
@@ -23,12 +16,6 @@ from tala.config import BackendConfig, DddConfig, DeploymentsConfig, BackendConf
 from tala.ddd.maker.ddd_maker import DddMaker
 from tala import installed_version
 from tala.log.logger import configure_stdout_logging, configure_file_logging
-from tala.log.interaction_test_extractor import InteractionTestExtractor
-from tala.testing.interactions.file import InteractionTestingFile
-from tala.testing.interactions.testloader import InteractionTestingLoader
-from tala.testing.interactions.result import InteractionTestResult
-from tala.utils.tdm_client import TDMClient
-from tala.testing.endurance.runner import EnduranceTestRunner
 from tala.cli.argument_parser import add_common_backend_arguments, add_shared_frontend_and_backend_arguments
 from tala.log.formats import VALID_TIS_LOGGING_FORMATS, TIS_LOGGING_AUTO, VALID_TIS_UPDATE_FORMATS, TIS_LOGGING_FULL
 from tala.service.constants import DEFAULT_PORT
@@ -139,85 +126,6 @@ def interact(args):
     except MissingSchema:
         environments = list(config.read().keys())
         print(f"Expected a URL or one of the known environments {environments} but got '{url}'")
-
-
-def test_interactions(args):
-    def _check_health(url):
-        tdm = TDMClient(url)
-        print(f"Connecting to {url}...", end="")
-        sys.stdout.flush()
-        try:
-            tdm.wait_to_start()
-            print("done.")
-        except BaseException:
-            print("failed.")
-            raise
-        sys.stdout.flush()
-
-    def _test_suites(selected_tests, test_paths, url):
-        test_files = [InteractionTestingFile.from_path(test_path) for test_path in test_paths]
-        return _test_suites_from_files(selected_tests, test_files, url)
-
-    def _test_suites_from_files(selected_tests, test_files, url):
-        suites = []
-        for file in test_files:
-            test_loader = InteractionTestingLoader(url)
-            suite = test_loader.load_interaction_tests(file, selected_tests)
-            suites.append(suite)
-        return suites
-
-    def _run_tests_from_suites(suites):
-        results = []
-        runner = unittest.TextTestRunner(resultclass=InteractionTestResult)
-        successful = False
-        for suite in suites:
-            print(f"Running interaction tests from {suite.filename}")
-            result = runner.run(suite)
-            results.append(result)
-            successful = all([result.wasSuccessful() for result in results])
-        return successful
-
-    configure_stdout_logging(args.log_level)
-    config = DeploymentsConfig(args.deployments_config)
-    url = config.get_url(args.environment_or_url)
-    _check_health(url)
-    suites = _test_suites(args.selected_tests, args.tests_filenames, url)
-    unittest.installHandler()
-    successful = _run_tests_from_suites(suites)
-    if not successful:
-        sys.exit(-1)
-
-
-def endurancetest(args):
-    def on_terminate_signal(*args, **kwargs):
-        test_runner.stop()
-
-    configure_stdout_logging(args.log_level)
-    config = DeploymentsConfig(args.deployments_config)
-    url = config.get_url(args.environment_or_url)
-
-    if args.seed:
-        seed = args.seed
-    else:
-        seed = hash(time.time())
-    random.seed(seed)
-    print(f"Running endurance test with random seed {seed}")
-
-    test_runner = EnduranceTestRunner(args.tests_filenames, args.duration, url)
-
-    unittest.installHandler()
-
-    signal.signal(signal.SIGINT, on_terminate_signal)
-    signal.signal(signal.SIGTERM, on_terminate_signal)
-
-    test_runner.run()
-
-
-def extract(args):
-    extractor = InteractionTestExtractor.from_args(
-        args.log, verbose=args.verbose, full=args.full, semantic=args.semantic
-    )
-    extractor.run()
 
 
 def add_create_ddd_subparser(subparsers):
@@ -340,40 +248,6 @@ def _add_test_arguments(parser):
     )
 
 
-def add_test_subparser(subparsers):
-    parser = subparsers.add_parser("test", help="run interaction tests")
-    _add_test_arguments(parser)
-    parser.set_defaults(func=test_interactions)
-
-
-def add_endurancetest_subparser(subparsers):
-    parser = subparsers.add_parser(
-        "endurancetest",
-        help="run the provided interaction tests in a random sequence on a single backend until they fail, error or "
-        "until the duration elapses. The tests succeed when the duration has elapsed and no failure or error has "
-        "been found."
-    )
-    _add_test_arguments(parser)
-    parser.add_argument(
-        "--duration",
-        default=0,
-        type=int,
-        metavar="SECONDS",
-        help="run until the duration has elapsed; if duration is 0, run forever"
-    )
-    parser.add_argument("--seed", type=int, metavar="INTEGER", help="random seed")
-    parser.set_defaults(func=endurancetest)
-
-
-def add_extract_subparser(subparsers):
-    parser = subparsers.add_parser("extract", help="extract interaction test from a TDM log file")
-    parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", help="print verbose information")
-    parser.add_argument("-f", "--full", action="store_true", help="print full interpretation information")
-    parser.add_argument("-s", "--semantic", action="store_true", help="print semantic information")
-    parser.set_defaults(func=extract)
-    parser.add_argument("log", help="the TDM session log to extract from")
-
-
 def format_warnings():
     def warning_on_one_line(message, category, _filename, _lineno, _file=None, _line=None):
         string = f"{category.__name__}: {message}\n"
@@ -398,9 +272,6 @@ def main(args=None):
     add_create_deployments_config_subparser(subparsers)
     add_version_subparser(subparsers)
     add_interact_subparser(subparsers)
-    add_test_subparser(subparsers)
-    add_endurancetest_subparser(subparsers)
-    add_extract_subparser(subparsers)
 
     parsed_args = root_parser.parse_args(args)
     with _config_exception_handling():

@@ -1,5 +1,3 @@
-import pytest
-
 from tala.ddd.files import ddd_files
 
 
@@ -8,16 +6,14 @@ class TestFiles:
         self._path = None
         self._result = None
 
-    @pytest.mark.skip
     def test_ddd_files(self):
-        self.given_path("tdm/ddds/person_name")
+        self.given_path("ddds/mockup_travel")
         self.when_fetching_ddd_files()
         self.then_returns([
-            'tdm/ddds/person_name/__init__.py', 'tdm/ddds/person_name/ddd.config.json',
-            'tdm/ddds/person_name/device.py', 'tdm/ddds/person_name/domain.xml',
-            'tdm/ddds/person_name/grammar/__init__.py', 'tdm/ddds/person_name/grammar/grammar_eng.xml',
-            'tdm/ddds/person_name/http_service.py', 'tdm/ddds/person_name/ontology.xml',
-            'tdm/ddds/person_name/service_interface.xml', 'tdm/ddds/person_name/test/interaction_tests_eng.txt'
+            'ddds/mockup_travel/__init__.py', 'ddds/mockup_travel/ddd.config.json', 'ddds/mockup_travel/domain.xml',
+            'ddds/mockup_travel/http_service/http_service.py', 'ddds/mockup_travel/ontology.xml',
+            'ddds/mockup_travel/service_interface.xml', 'ddds/mockup_travel/test/__init__.py',
+            'ddds/mockup_travel/test/interaction_tests.json'
         ])
 
     def given_path(self, path):

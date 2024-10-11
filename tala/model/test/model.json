@@ -1,0 +1,107 @@
+
+Det kanske inte var det mest prioriterade just nu, men ibland får man lite feeling, och det mest produktiva man kan göra är att ta vara på den. Med det sagt, jag började dra lite i JSON-formatet för vår modell, "tala.model".
+
+Det format som vi har använt har ju mer eller mindre emergerat - det var vad som blev när vi tillämpade Robins AsJSONMixin.as_json() (som skapar ett dictionary som sedan konverteras till JSON) på objekten i tala.model.
+
+Inspirerat av formatet för lagringen av QnA-data i sessionsobjektet (JSON:API), började jag med tala.model.individual.Individual, en ganska enkel klass. Nuvarande JSON-representaton ser ut såhär:
+
+
+{
+  "_ontology_name": "mockup_ontology",
+  "value": "paris",
+  "sort": {
+    "_name": "city",
+    "_dynamic": false,
+    "_ontology_name": "mockup_ontology"
+  },
+  "polarity": "POS",
+  "semantic_expression": "paris"
+}
+
+JSON:API säger att det ska finnas attribut för "type" och "id", jag lade också till "version:id", för att kunna genomföra ändringen gradvis. (Om "version:id" inte är satt för ett objekt, defaultar den till 0, och innebär att det gamla formatet används.)
+
+
+Såhär ser motsvarande objekt ut i det nya formatet. Lite mer verbost (för detta lilla exempel), men mer strukturerat.
+
+{
+  "version:id": 1,
+  "id": "mockup_ontology.paris.POS",
+  "type": "individual",
+  "attributes": {
+    "ontology_name": "mockup_ontology",
+    "polarity": "POS",
+    "value": "paris",
+    "sort": {
+      "version:id": 1,
+      "id": "mockup_ontology.city",
+      "type": "sort",
+      "attributes": {
+        "dynamic": false,
+        "ontology_name": "mockup_ontology",
+        "sort_name": "city"
+      }
+    }
+  }
+}
+
+Exemplet är hierarkiskt uppbyggt, vilket väl inte är tanken. Målet är väl att ha platta strukturer som exemplet i version 2 nedan.
+
+[
+  {
+    "version:id": 2,
+    "id": "mockup_ontology.paris.POS",
+    "type": "individual",
+    "attributes": {
+      "ontology_name": "mockup_ontology",
+      "polarity": "POS",
+      "value": "paris",
+    }
+    "relationships": {
+      "sort": "data": {"type": "sort", "id": "mockup_ontology.city"}
+      }
+    }
+  },
+  {
+    "version:id": 2,
+    "id": "mockup_ontology.city",
+    "type": "sort",
+    "attributes": {
+      "dynamic": false,
+      "ontology_name": "mockup_ontology",
+      "sort_name": "city"
+    }
+  }
+]
+
+
+
+{
+  "version:id": 1,
+  "id": "mockup_ontology.paris.POS",
+  "type": "individual",
+  "attributes": {
+    "ontology_name": "mockup_ontology",
+    "value": "paris",
+    "polarity": "POS"
+  },
+  "relationships": {
+    "sort": {
+      "data": {
+        "id": "mockup_ontology.city",
+        "type": "sort"
+      }
+    }
+  },
+  "included": [
+    {
+      "version:id": 1,
+      "id": "mockup_ontology.city",
+      "type": "sort",
+      "attributes": {
+        "sort_name": "city",
+        "dynamic": false,
+        "ontology_name": "mockup_ontology"
+      },
+    }
+  ]
+}
