@@ -2,6 +2,7 @@ import uuid
 import re
 import json
 import requests
+import time
 
 from tala.model.interpretation import Interpretation
 from tala.model.input_hypothesis import InputHypothesis
@@ -49,9 +50,6 @@ class InteractionTester():
         self._device_id = device_id
         self._port = port
 
-    def _initialize_session_object(self):
-        self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
-
     def start_session(self, session_data=None):
         if session_data:
             self._session_data = session_data
@@ -61,14 +59,16 @@ class InteractionTester():
         self._latest_response = self._client.start_session(self._session_data)
         self._session_data = self._latest_response[SESSION]
 
+    def _initialize_session_object(self):
+        self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
+
     def run_testcase(self, case):
         self._initialize_testcase(case)
+        self._start_clock()
         self.start_session()
-        self.line_number = 0
         success = True
         self._previous_entry_type = None
         for entry in case["interaction"]:
-            self.line_number += 1
             if entry[SPEAKER] == USER:
                 success = self._do_user_turn(entry)
             elif entry[SPEAKER] == SYSTEM:
@@ -76,9 +76,11 @@ class InteractionTester():
                     raise Exception(f"Two consecutive entries define '{SYSTEM}' input")
                 success = self._do_system_turn(entry)
             if not success:
+                self._stop_clock()
                 return self._create_response(self._result)
             self._previous_entry_type = entry[SPEAKER]
         self._buffer_output('=== End interaction test ===')
+        self._stop_clock()
         self._result = {"success": True}
         return self._create_response(self._result)
 
@@ -90,6 +92,10 @@ class InteractionTester():
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+
+    def _start_clock(self):
+        self._start_time = time.time()
+        self._turn_times = []
 
     def _patch_url_with_port(self, url):
         if self._port:
@@ -130,6 +136,8 @@ class InteractionTester():
 
         self.check_for_consecutive_speaker(USER)
 
+        start_time = time.time()
+
         if MOVE_CONTENT in user_entry:
             moves = user_entry[MOVE_CONTENT]
             self._buffer_output(f"U> {json.dumps(moves)}")
@@ -155,6 +163,8 @@ class InteractionTester():
             self._request_speech_input(utterance)
         else:
             raise Exception("Nothing to do in user entry:", user_entry)
+        end_time = time.time()
+        self._turn_times.append(end_time - start_time)
         return True
 
     def _request_semantic_input(self, interpretations, entities=None):
@@ -360,24 +370,34 @@ class InteractionTester():
             self._result = {"success": False, "failure_description": comparison.mismatch_description()}
             self._buffer_output(comparison.mismatch_description())
             return False
-        self._buffer_output(f"S> {json.dumps(actual_move_content)}")
+        if self._turn_times:
+            self._buffer_output(f"S> {json.dumps(actual_move_content)}: {self._turn_times[-1]:.2f} s")
+        else:
+            self._buffer_output(f"S> {json.dumps(actual_move_content)}")
+
         return True
 
     def _assert_system_utterance_is_matched_by(self, expected_speech_content):
         assert OUTPUT in self._latest_response, f"No {OUTPUT} in {self._latest_response}"
         actual_utterance_content = self._latest_response[OUTPUT][UTTERANCE]
-        print("OUTPUT", self._latest_response[OUTPUT])
-        print("ACTUAL:", actual_utterance_content)
-        print("EXPECTED:", expected_speech_content)
 
         comparison = StringComparison(actual_utterance_content, expected_speech_content)
         if not comparison.match():
             self._result = {"success": False, "failure_description": comparison.mismatch_description()}
             self._buffer_output(comparison.mismatch_description())
             return False
-        self._buffer_output(f"S> {actual_utterance_content}")
+        if self._turn_times:
+            self._buffer_output(f"S> {actual_utterance_content}: {self._turn_times[-1]:.2f} s")
+        else:
+            self._buffer_output(f"S> {actual_utterance_content}")
         return True
 
     def _create_response(self, response):
         response["transcript"] = str(self._output_buffer)
+        response["running_time"] = self._end_time - self._start_time
+        response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
+        response["max_turn_time"] = max(self._turn_times) if self._turn_times else 0
         return response
+
+    def _stop_clock(self):
+        self._end_time = time.time()
