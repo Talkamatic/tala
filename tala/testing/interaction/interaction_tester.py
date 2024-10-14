@@ -10,7 +10,7 @@ from tala.model.common import Modality
 from tala.model.user_move import UserMove, DDDSpecificUserMove
 from tala.utils.tdm_client import TDMClient
 
-from tala.testing.interaction_test.comparison import StringComparison, MoveComparison
+from tala.testing.interaction.comparison import StringComparison, MoveComparison
 
 SPEAKER = "speaker"
 USER = "user"
