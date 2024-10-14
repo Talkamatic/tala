@@ -1,4 +1,4 @@
-from tala.testing.interaction_test_noveau.interaction_tester import InteractionTester
+from tala.testing.interaction_test.interaction_tester import InteractionTester
 
 
 class InteractionTestExecutorBase:
