@@ -393,10 +393,12 @@ class InteractionTester():
         return True
 
     def _create_response(self, response):
+        response["name"] = self._test_name
         response["transcript"] = str(self._output_buffer)
         response["running_time"] = self._end_time - self._start_time
         response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
         response["max_turn_time"] = max(self._turn_times) if self._turn_times else 0
+        response["session_id"] = self._session_id
         return response
 
     def _stop_clock(self):
