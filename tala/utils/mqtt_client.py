@@ -69,7 +69,7 @@ class MQTTClient:
         self._request_id = request_id
         self._search_and_replace_dict = s_and_r_dict if s_and_r_dict else {}
         self.logger.info(
-            "prepare_session", client_id=self._client_id, session_id=self.session_id, request_id=self.request_id
+            "open_session", client_id=self._client_id, session_id=self.session_id, request_id=self.request_id
         )
         self._message_counter = 0
         self._streamed = []
@@ -90,22 +90,29 @@ class MQTTClient:
             return chunk.endswith(f" {key}")
 
         if chunk in self._search_and_replace_dict:
+            self.logger.info("Matched entire chunk", chunk=chunk)
             return self._search_and_replace_dict[chunk]
         for key in self._search_and_replace_dict:
             if key_matches_beginning_of_chunk(key, chunk):
+                self.logger.info("Matched beginning of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
             match = key_matches_middle_of_chunk(key, chunk)
             while match:
+                self.logger.info("Matched middle of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
                 match = key_matches_middle_of_chunk(key, chunk)
             if key_matches_end_of_chunk(key, chunk):
+                self.logger.info("Matched end of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
         return chunk
 
     def _prepare_streamer_thread(self):
         def stream_chunks():
             for chunk in self._chunk_joiner:
-                chunk = self._apply_dictionary(chunk)
+                try:
+                    chunk = self._apply_dictionary(chunk)
+                except BaseException:
+                    self.logger.exception("Exception raised in streamer thread")
                 self._stream_to_frontend({"event": "STREAMING_CHUNK", "data": chunk})
                 self._streamed.append(chunk)
 
