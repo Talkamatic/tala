@@ -2,6 +2,7 @@ import json
 import threading
 import queue
 import uuid
+import warnings
 
 import paho.mqtt.client as mqtt
 
@@ -56,6 +57,11 @@ class MQTTClient:
             yield f'tm/id/{self.session_id}-{self.request_id}'
 
     def prepare_session(self, session_id, request_id=None, s_and_r_dict=None):
+        warnings.warn(
+            "MQTTClient.prepare_session() is deprecated. Use MQTTClient.open_session instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.open_session(session_id, request_id, s_and_r_dict)
 
     def open_session(self, session_id, request_id=None, s_and_r_dict=None):
@@ -90,8 +96,7 @@ class MQTTClient:
                 chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
             match = key_matches_middle_of_chunk(key, chunk)
             while match:
-                replacement = match.replace(key, chunk)
-                chunk.replace(match, replacement)
+                chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
                 match = key_matches_middle_of_chunk(key, chunk)
             if key_matches_end_of_chunk(key, chunk):
                 chunk = chunk.replace(key, self._search_and_replace_dict[key], 1)
@@ -138,6 +143,11 @@ class MQTTClient:
         self._stream_to_frontend({"event": "STREAMING_DONE"})
 
     def finalize_session(self):
+        warnings.warn(
+            "MQTTClient.close_session() is deprecated. Use MQTTClient.close_session instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.close_session()
 
     def close_session(self):
