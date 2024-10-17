@@ -92,6 +92,7 @@ class InteractionTester():
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+        self._buffer_output(f'\n=== Session ID "{self._session_id}" ===')
 
     def _start_clock(self):
         self._start_time = time.time()
