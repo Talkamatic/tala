@@ -88,11 +88,11 @@ class InteractionTester():
         self._output_buffer = OutputBuffer()
         self._ddd_name = testcase["target_ddd"]
         self._neural = testcase.get("neural")
+        self._start_date = {time.asctime()}
         url = self._patch_url_with_port(testcase["url"])
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
-        self._buffer_output(f'\n=== Session ID "{self._session_id}" ===')
 
     def _start_clock(self):
         self._start_time = time.time()
@@ -395,6 +395,7 @@ class InteractionTester():
 
     def _create_response(self, response):
         response["name"] = self._test_name
+        response["start_time"] = self._start_time
         response["transcript"] = str(self._output_buffer)
         response["running_time"] = self._end_time - self._start_time
         response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
