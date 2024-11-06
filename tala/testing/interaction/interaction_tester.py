@@ -93,6 +93,9 @@ class InteractionTester:
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+        self._request_times = []
+        self._stream_start_times = []
+        self._stream_end_times = []
 
     def _start_stream_listener(self):
         if self._use_streaming:
@@ -176,6 +179,7 @@ class InteractionTester:
 
     def _request_semantic_input(self, interpretations, entities=None):
         self._start_stream_listener()
+        self._request_times.append(time.time())
         self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
         self._add_streamed_output()
         self._update_session_data()
@@ -183,10 +187,13 @@ class InteractionTester:
     def _add_streamed_output(self):
         if self._use_streaming:
             self._latest_response[OUTPUT][UTTERANCE] = self._stream_listener_thread.system_utterance
+            self._stream_start_times.append(self._stream_listener_thread.streaming_started)
+            self._stream_end_times.append(self._stream_listener_thread.streaming_ended)
             self._stream_listener_thread = None
 
     def _request_passivity(self):
         self._start_stream_listener()
+        self._request_times.append(time.time())
         self._latest_response = self._client.request_passivity(self._session_data)
         self._add_streamed_output()
         self._update_session_data()
@@ -194,6 +201,7 @@ class InteractionTester:
     def _request_speech_input(self, utterance):
         hypotheses = [InputHypothesis(utterance, 1.0)]
         self._start_stream_listener()
+        self._request_times.append(time.time())
         self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
         self._add_streamed_output()
         self._update_session_data()
@@ -410,13 +418,42 @@ class InteractionTester:
         return True
 
     def _create_response(self, response):
+        def get_stream_onset_times():
+            onsets = []
+            for request_sent, first_token in zip(self._request_times, self._stream_start_times):
+                onsets.append(first_token - request_sent)
+            return onsets
+
+        def get_streaming_times():
+            streaming_times = []
+            for first_token, end_stream in zip(self._stream_start_times, self._stream_end_times):
+                try:
+                    streaming_times.append(end_stream - first_token)
+                except TypeError:
+                    pass
+            return streaming_times
+
+        onset_times = get_stream_onset_times()
+        streaming_times = get_streaming_times()
+
         response["name"] = self._test_name
-        response["start_time"] = self._start_time
+        response["session_id"] = self._session_id
+
         response["transcript"] = str(self._output_buffer)
+
+        response["start_time"] = self._start_time
         response["running_time"] = self._end_time - self._start_time
+
+        if self._use_streaming:
+            response["avg_stream_start"] = sum(onset_times) / len(onset_times)
+            response["max_stream_start"] = max(onset_times)
+
+            response["avg_streaming_time"] = sum(streaming_times) / len(streaming_times)
+            response["max_streaming_time"] = max(streaming_times)
+
         response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
         response["max_turn_time"] = max(self._turn_times) if self._turn_times else 0
-        response["session_id"] = self._session_id
+
         return response
 
     def _stop_clock(self):

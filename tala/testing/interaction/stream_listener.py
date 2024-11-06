@@ -1,6 +1,7 @@
+import json
 import requests
 import threading
-import json
+import time
 
 TIMEOUT = 2.0
 
@@ -13,6 +14,8 @@ class StreamListener(threading.Thread):
         self._please_stop = threading.Event()
         self._stopped = threading.Event()
         self._session_id = session_id
+        self._streaming_started = None
+        self._streaming_ended = None
         super().__init__(daemon=True)
 
     def run(self):
@@ -52,8 +55,12 @@ class StreamListener(threading.Thread):
                 json_event = f'{{"event": "{self.current_event}"}}'
             if self.current_event == "STREAMING_DONE":
                 json_event = f'{{"event": "{self.current_event}"}}'
+                self._streaming_ended = time.time()
                 self.please_stop()
             if self.current_event == "STREAMING_CHUNK":
+                if not bool(self._streaming_started):
+                    self._streaming_started = time.time()
+
                 json_event = f'{{"event": "{self.current_event}", "data": "{self.current_data}"}}'
             if json_event:
                 self._streamed_messages.append(json.loads(json_event))
@@ -78,3 +85,11 @@ class StreamListener(threading.Thread):
             except KeyError:
                 pass
         return utterance.strip()
+
+    @property
+    def streaming_started(self):
+        return self._streaming_started
+
+    @property
+    def streaming_ended(self):
+        return self._streaming_ended
