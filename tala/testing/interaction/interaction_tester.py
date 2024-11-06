@@ -183,6 +183,7 @@ class InteractionTester:
     def _add_streamed_output(self):
         if self._use_streaming:
             self._latest_response[OUTPUT][UTTERANCE] = self._stream_listener_thread.system_utterance
+            self._stream_listener_thread = None
 
     def _request_passivity(self):
         self._start_stream_listener()

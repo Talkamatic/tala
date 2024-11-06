@@ -2,6 +2,8 @@ import requests
 import threading
 import json
 
+TIMEOUT = 2.0
+
 
 class StreamListener(threading.Thread):
     def __init__(self, session_id):
@@ -11,19 +13,18 @@ class StreamListener(threading.Thread):
         self._please_stop = threading.Event()
         self._stopped = threading.Event()
         self._session_id = session_id
-        super().__init__(daemon=False)
+        super().__init__(daemon=True)
 
     def run(self):
         self._streamed_messages = []
-        r = requests.get(f'https://tala-event-sse.azurewebsites.net/event-sse/{self._session_id}', stream=True)
+        response = requests.get(f'https://tala-event-sse.azurewebsites.net/event-sse/{self._session_id}', stream=True)
         self.stream_started.set()
-        for line in r.iter_lines():
+        for line in response.iter_lines():
             if line:  # filter out keep-alive new lines
                 decoded_line = line.decode('utf-8')
                 self.process_line(decoded_line)
             if self._please_stop.is_set():
                 break
-
         self._stopped.set()
 
     def process_line(self, line):
@@ -65,7 +66,7 @@ class StreamListener(threading.Thread):
 
     @property
     def payload(self):
-        self._stopped.wait()
+        self._stopped.wait(TIMEOUT)
         return self._streamed_messages
 
     @property
