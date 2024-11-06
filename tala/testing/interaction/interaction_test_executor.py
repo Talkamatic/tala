@@ -2,7 +2,8 @@ from tala.testing.interaction.interaction_tester import InteractionTester
 
 
 class InteractionTestExecutorBase:
-    def run_ng_interaction_test(self, testcase, port=None):
+    def run_ng_interaction_test(self, testcase, port=None, use_streaming=False):
+        self._use_streaming = use_streaming
         self._given_testcase(testcase)
         self._when_running_testcase(port)
 
@@ -10,7 +11,7 @@ class InteractionTestExecutorBase:
         self._testcase = testcase
 
     def _when_running_testcase(self, port):
-        tester = InteractionTester(port)
+        tester = InteractionTester(port, use_streaming=self._use_streaming)
         self._result = tester.run_testcase(self._testcase)
 
 

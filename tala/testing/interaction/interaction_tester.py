@@ -11,6 +11,7 @@ from tala.model.user_move import UserMove, DDDSpecificUserMove
 from tala.utils.tdm_client import TDMClient
 
 from tala.testing.interaction.comparison import StringComparison, MoveComparison
+from tala.testing.interaction.stream_listener import StreamListener
 
 SPEAKER = "speaker"
 USER = "user"
@@ -44,11 +45,12 @@ class OutputBuffer:
         return output
 
 
-class InteractionTester():
-    def __init__(self, port, device_id=DEFAULT_DEVICE_ID):
+class InteractionTester:
+    def __init__(self, port, device_id=DEFAULT_DEVICE_ID, use_streaming=False):
         self._session_id = f"interaction-tester-session-{str(uuid.uuid4())}"
         self._device_id = device_id
         self._port = port
+        self._use_streaming = use_streaming
 
     def start_session(self, session_data=None):
         if session_data:
@@ -72,8 +74,6 @@ class InteractionTester():
             if entry[SPEAKER] == USER:
                 success = self._do_user_turn(entry)
             elif entry[SPEAKER] == SYSTEM:
-                if self._previous_entry_type == SYSTEM:
-                    raise Exception(f"Two consecutive entries define '{SYSTEM}' input")
                 success = self._do_system_turn(entry)
             if not success:
                 self._stop_clock()
@@ -93,6 +93,12 @@ class InteractionTester():
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
         self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+
+    def _start_stream_listener(self):
+        if self._use_streaming:
+            self._stream_listener_thread = StreamListener(self._session_id)
+            self._stream_listener_thread.start()
+            self._stream_listener_thread.stream_started.wait()
 
     def _start_clock(self):
         self._start_time = time.time()
@@ -169,16 +175,26 @@ class InteractionTester():
         return True
 
     def _request_semantic_input(self, interpretations, entities=None):
+        self._start_stream_listener()
         self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
+        self._add_streamed_output()
         self._update_session_data()
 
+    def _add_streamed_output(self):
+        if self._use_streaming:
+            self._latest_response[OUTPUT][UTTERANCE] = self._stream_listener_thread.system_utterance
+
     def _request_passivity(self):
+        self._start_stream_listener()
         self._latest_response = self._client.request_passivity(self._session_data)
+        self._add_streamed_output()
         self._update_session_data()
 
     def _request_speech_input(self, utterance):
         hypotheses = [InputHypothesis(utterance, 1.0)]
+        self._start_stream_listener()
         self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
+        self._add_streamed_output()
         self._update_session_data()
 
     def _update_session_data(self):
@@ -191,7 +207,6 @@ class InteractionTester():
 
     def _do_system_turn(self, system_entry):
         self.check_for_consecutive_speaker(SYSTEM)
-
         while self._is_request_for_service_invocation():
             self._make_service_request_and_create_tdm_request_with_service_invocation_result()
         else:
