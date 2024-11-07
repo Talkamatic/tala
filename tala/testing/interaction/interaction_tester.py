@@ -421,7 +421,10 @@ class InteractionTester:
         def get_stream_onset_times():
             onsets = []
             for request_sent, first_token in zip(self._request_times, self._stream_start_times):
-                onsets.append(first_token - request_sent)
+                try:
+                    onsets.append(first_token - request_sent)
+                except TypeError:
+                    pass
             return onsets
 
         def get_streaming_times():
