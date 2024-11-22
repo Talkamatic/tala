@@ -3,7 +3,22 @@ from typing import Text  # noqa: F401
 from tala.utils.equality import EqualityMixin
 
 
+def create(user_move_as_dict):
+    try:
+        return DDDSpecificUserMove.from_dict(user_move_as_dict)
+    except KeyError:
+        return UserMove.from_dict(user_move_as_dict)
+
+
 class UserMove(EqualityMixin):
+    @classmethod
+    def from_dict(cls, move_as_json):
+        perception_confidence = move_as_json["perception_confidence"]
+        understanding_confidence = move_as_json["understanding_confidence"]
+        semantic_expression = move_as_json["semantic_expression"]
+
+        return cls(semantic_expression, perception_confidence, understanding_confidence)
+
     def __init__(self, semantic_expression, perception_confidence, understanding_confidence):
         # type: (Text, float, float) -> None
         self._semantic_expression = semantic_expression
@@ -47,6 +62,15 @@ class UserMove(EqualityMixin):
 
 
 class DDDSpecificUserMove(UserMove):
+    @classmethod
+    def from_dict(cls, move_as_json):
+        ddd = move_as_json["ddd"]
+        perception_confidence = move_as_json["perception_confidence"]
+        understanding_confidence = move_as_json["understanding_confidence"]
+        semantic_expression = move_as_json["semantic_expression"]
+
+        return cls(ddd, semantic_expression, perception_confidence, understanding_confidence)
+
     def __init__(self, ddd, semantic_expression, perception_confidence, understanding_confidence):
         # type: (Text, Text, float, float) -> None
         super(DDDSpecificUserMove, self).__init__(semantic_expression, perception_confidence, understanding_confidence)

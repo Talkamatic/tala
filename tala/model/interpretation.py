@@ -1,5 +1,5 @@
 from tala.model.common import Modality
-from tala.model.user_move import UserMove  # noqa: F401
+from tala.model.user_move import UserMove, create  # noqa: F401
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.equality import EqualityMixin
 from tala.utils.unicodify import unicodify
@@ -10,6 +10,14 @@ class UnexpectedModalityException(Exception):
 
 
 class Interpretation(EqualityMixin, AsJSONMixin):
+    @classmethod
+    def from_dict(cls, json_data):
+        moves = [create(move) for move in json_data.get("moves", [])]
+        modality = json_data.get("modality", Modality.OTHER)
+        utterance = json_data.get("utterance")
+        perception_confidence = json_data.get("perception_confidence")
+        return cls(moves, modality, utterance, perception_confidence)
+
     def __init__(self, moves, modality, utterance=None, perception_confidence=None):
         # type: ([UserMove], str, str) -> None
         self._moves = moves
@@ -49,11 +57,14 @@ class Interpretation(EqualityMixin, AsJSONMixin):
         return self._perception_confidence
 
     def as_dict(self):
-        return {
+        d = {
             "modality": self.modality,
             "moves": [move.as_dict() for move in self.moves],
             "utterance": self.utterance,
         }
+        if self.perception_confidence:
+            d["perception_confidence"] = self.perception_confidence
+        return d
 
     def __repr__(self):
         return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance}, {self._perception_confidence})"
