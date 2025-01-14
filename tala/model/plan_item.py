@@ -151,7 +151,7 @@ class PlanItemWithContent(PlanItem):
 
     def __eq__(self, other):
         try:
-            return other is not None and other.is_plan_item() and self.type_ == other.get_type() and self.get_content(
+            return other is not None and other.is_plan_item() and self.type_ == other.type_ and self.get_content(
             ) == other.get_content()
         except AttributeError:
             return False
@@ -665,7 +665,7 @@ class ServiceReport(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_SERVICE_REPORT, result_proposition)
 
     def is_turn_yielding(self):
-        return self._content.get_type() == Proposition.SERVICE_RESULT
+        return self._content.type_ == Proposition.SERVICE_RESULT
 
 
 class ServiceReportPlanItem(ServiceReport):
@@ -677,7 +677,7 @@ class ActionReport(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_ACTION_REPORT, result_proposition)
 
     def is_turn_yielding(self):
-        return self._content.get_type() in [Proposition.SERVICE_RESULT, Proposition.ACTION_STATUS]
+        return self._content.type_ in [Proposition.SERVICE_RESULT, Proposition.ACTION_STATUS]
 
 
 class ActionReportPlanItem(ActionReport):
@@ -689,7 +689,7 @@ class QuestionReport(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_QUESTION_REPORT, result_proposition)
 
     def is_turn_yielding(self):
-        return self._content.get_type() == Proposition.QUESTION_STATUS
+        return self._content.type_ == Proposition.QUESTION_STATUS
 
 
 class QuestionReportPlanItem(QuestionReport):

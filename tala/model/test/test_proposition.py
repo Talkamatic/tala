@@ -61,9 +61,9 @@ class PropositionTests(LibTestCase, unittest.TestCase):
         quit_prop = QuitProposition()
         self.assertEqual("QUIT", str(quit_prop))
 
-    def test_quit_proposition_get_type(self):
+    def test_quit_proposition_type(self):
         quit_prop = QuitProposition()
-        self.assertEqual("QUIT", quit_prop.get_type())
+        self.assertEqual("QUIT", quit_prop.type_)
 
     def test_mute_proposition_string(self):
         mute_prop = MuteProposition()

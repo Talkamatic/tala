@@ -14,16 +14,20 @@ from tala.model import sort
 from tala.model.sort import Sort, CustomSort
 from tala.model.predicate import Predicate
 from tala.model.individual import No, Yes, Individual, NegativeIndividual
-from tala.model.question import Question, WhQuestion, YesNoQuestion, ConsequentQuestion, AltQuestion, \
-    KnowledgePreconditionQuestion
-from tala.model.lambda_abstraction import LambdaAbstractedProposition, \
-    LambdaAbstractedImplicationPropositionForConsequent, LambdaAbstractedGoalProposition, \
+from tala.model.question import (
+    Question, WhQuestion, YesNoQuestion, ConsequentQuestion, AltQuestion, KnowledgePreconditionQuestion
+)
+from tala.model.lambda_abstraction import (
+    LambdaAbstractedProposition, LambdaAbstractedImplicationPropositionForConsequent, LambdaAbstractedGoalProposition,
     LambdaAbstractedPredicateProposition
-from tala.model.proposition import Proposition, GoalProposition, PropositionSet, PredicateProposition, \
-    ResolvednessProposition, PrereportProposition, ImplicationProposition, UnderstandingProposition, \
-    KnowledgePreconditionProposition, PreconfirmationProposition, RejectedPropositions, ServiceResultProposition, \
-    ActionStatusProposition, ServiceActionStartedProposition, ServiceActionTerminatedProposition, \
-    NumberOfAlternativesProposition, QuestionStatusProposition, MuteProposition, UnmuteProposition, QuitProposition
+)
+from tala.model.proposition import (
+    Proposition, GoalProposition, PropositionSet, PredicateProposition, ResolvednessProposition, PrereportProposition,
+    ImplicationProposition, UnderstandingProposition, KnowledgePreconditionProposition, PreconfirmationProposition,
+    RejectedPropositions, ServiceResultProposition, ActionStatusProposition, ServiceActionStartedProposition,
+    ServiceActionTerminatedProposition, NumberOfAlternativesProposition, QuestionStatusProposition, MuteProposition,
+    UnmuteProposition, QuitProposition, PredictedProposition
+)
 from tala.model.polarity import Polarity
 from tala.model.goal import PerformGoal, ResolveGoal, PERFORM, RESOLVE
 from tala.model.set import Set
@@ -967,6 +971,8 @@ class NonCheckingJSONParser():
             return UnmuteProposition()
         if data["_type"] == Proposition.QUIT:
             return QuitProposition()
+        if data["_type"] == Proposition.PREDICTED:
+            return self._create_predicted_proposition(data)
         raise JSONParseFailure(f"Cannot parse {data} as proposition.")
 
     def _create_predicate_proposition(self, data):
@@ -979,6 +985,11 @@ class NonCheckingJSONParser():
         predicate = self.parse_predicate(data["predicate"])
         polarity = data.get("_polarity")
         return PredicateProposition(predicate, individual, polarity)
+
+    def _create_predicted_proposition(self, data):
+        prediction = self.parse_proposition(data["_content"])
+        polarity = data.get("_polarity")
+        return PredictedProposition(prediction, polarity)
 
     def parse_individual(self, data):
         if data is None:

@@ -24,6 +24,11 @@ class TDMClient(Observable):
     def __init__(self, url: str) -> None:
         super(TDMClient, self).__init__()
         self._url = url
+        self._session = None
+
+    @property
+    def session(self):
+        return self._session
 
     def wait_to_start(self, timeout=3):
         url = self._url.replace("/interact", "/health")
@@ -42,6 +47,7 @@ class TDMClient(Observable):
                 }
             }
 
+        session = session if session else self.session
         request = _create_text_input_request(session, utterance)
         response = self._make_request(request)
         return response
@@ -62,6 +68,7 @@ class TDMClient(Observable):
                 }
             }  # yapf: disable
 
+        session = session if session else self.session
         request = _create_speech_input_request(session, hypotheses)
         response = self._make_request(request)
         return response
@@ -82,30 +89,14 @@ class TDMClient(Observable):
                     }
                 }
             }  # yapf: disable
+
+        session = session if session else self.session
         request = _create_semantic_input_request(session, interpretations, entities)
         response = self._make_request(request)
         return response
 
     def request_passivity(self, session: Mapping = None) -> Mapping:
         request = {"version": PROTOCOL_VERSION, "session": session, "request": {"passivity": {}}}
-        response = self._make_request(request)
-        return response
-
-    def request_event_notification(self, notification: EventNotification, session: Mapping = None) -> Mapping:
-        def _create_event_notification_request(session, notification):
-            return {
-                "version": PROTOCOL_VERSION,
-                "session": session,
-                "request": {
-                    "event": {
-                        "name": notification.action,
-                        "status": notification.status,
-                        "parameters": notification.parameters
-                    }
-                }
-            }  # yapf: disable
-
-        request = _create_event_notification_request(session, notification)
         response = self._make_request(request)
         return response
 
