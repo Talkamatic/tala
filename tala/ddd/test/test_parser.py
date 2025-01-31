@@ -99,6 +99,9 @@ class ParserTests(unittest.TestCase):
         self.real_individual = self.ontology.create_individual(1234.0)
         self.real_negative_individual = self.ontology.create_negative_individual(1234.0)
         self.integer_individual = self.ontology.create_individual(1234)
+        city_sort = CustomSort(self.ontology_name, "city")
+        self.non_integer_individual = self.ontology.create_individual(1235, city_sort)
+        self.non_float_individual = self.ontology.create_individual(1235.3, city_sort)
         self.negative_integer_individual = self.ontology.create_negative_individual(1234)
         self.datetime_individual = self.ontology.create_individual(DateTime("2018-04-11T22:00:00.000Z"))
         self.negative_datetime_individual = self.ontology.create_negative_individual(
@@ -196,6 +199,21 @@ class ParserTests(unittest.TestCase):
         move = self.parse("answer(~1234)")
         expected_move = self._move_factory.create_answer_move(self.negative_integer_individual)
         self.assertEqual(expected_move, move)
+
+    def test_parse_integer_string_in_proposition_as_non_integer_individual(self):
+        proposition = self.parse("dest_city(1235)")
+        expected_prop = PredicateProposition(self.predicate_dest_city, self.non_integer_individual)
+        self.assertEqual(expected_prop, proposition)
+
+    def test_parse_float_string_in_proposition_as_non_float_individual(self):
+        proposition = self.parse("dest_city(1235.3)")
+        expected_prop = PredicateProposition(self.predicate_dest_city, self.non_float_individual)
+        self.assertEqual(expected_prop, proposition)
+
+    def test_parse_integer_string_in_move_as_non_integer_individual(self):
+        move = self.parse("answer(dest_city(1235))")
+        answer_content = PredicateProposition(self.predicate_dest_city, self.non_integer_individual)
+        self.assertEqual(answer_content, move.answer_content)
 
     def test_person_name_sortal_answer(self):
         move = self.parse("answer(person_name(John))")

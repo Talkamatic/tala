@@ -257,6 +257,7 @@ class Ontology(AsJSONMixin):
     def create_individual(self, value, sort=None):
         if sort is None:
             sort = self.individual_sort(value)
+
         value = self._normalize_and_assert_valid_individual_value(value, sort)
         return Individual(self.name, value, sort)
 
@@ -275,7 +276,7 @@ class Ontology(AsJSONMixin):
             return sort.normalize_value(value)
         else:
             self._assert_valid_individual_value_of_non_dynamic_custom_sort(value)
-            return value
+            return str(value)
 
     def _assert_valid_individual_value_of_non_dynamic_custom_sort(self, value):
         try:

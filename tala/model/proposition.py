@@ -92,7 +92,8 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
     def confidence_estimates(self, confidence):
         self._confidence_estimates = confidence
 
-    def get_polarity_prefix_string(self):
+    @property
+    def polarity_prefix(self):
         if self._polarity == Polarity.NEG:
             return "~"
         else:
@@ -327,9 +328,9 @@ class PredicateProposition(PropositionWithSemanticContent):
 
     def __str__(self):
         if self.individual is None:
-            return "%s%s" % (self.get_polarity_prefix_string(), str(self.predicate))
+            return f"{self.polarity_prefix}{self.predicate}"
         else:
-            return "%s%s(%s)" % (self.get_polarity_prefix_string(), str(self.predicate), str(self.individual))
+            return f"{self.polarity_prefix}{self.predicate}({self.individual})"
 
     def __hash__(self):
         return hash((self.predicate, self.individual, self.polarity))
@@ -362,7 +363,7 @@ class GoalProposition(PropositionWithSemanticContent):
         return not (self == other)
 
     def __str__(self):
-        return "%sgoal(%s)" % (self.get_polarity_prefix_string(), self._goal)
+        return "%sgoal(%s)" % (self.polarity_prefix, self._goal)
 
     def __hash__(self):
         return hash((self._goal, self._polarity))
@@ -403,9 +404,7 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
         return not (self == other)
 
     def __str__(self):
-        return "%spreconfirmed(%s, %s)" % (
-            self.get_polarity_prefix_string(), str(self.service_action), unicodify(self._arguments)
-        )
+        return "%spreconfirmed(%s, %s)" % (self.polarity_prefix, str(self.service_action), unicodify(self._arguments))
 
     def __hash__(self):
         return hash((self.service_action, frozenset(self.arguments)))
@@ -473,7 +472,7 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
         return self.service_action
 
     def __str__(self):
-        return "%sservice_action_terminated(%s)" % (self.get_polarity_prefix_string(), str(self.service_action))
+        return "%sservice_action_terminated(%s)" % (self.polarity_prefix, str(self.service_action))
 
     def __eq__(self, other):
         try:
@@ -500,7 +499,7 @@ class PredictedProposition(PropositionWithSemanticContent):
         PropositionWithSemanticContent.__init__(self, Proposition.PREDICTED, prediction, polarity)
 
     def __str__(self):
-        return "%spredicted(%s)" % (self.get_polarity_prefix_string(), self.prediction)
+        return "%spredicted(%s)" % (self.polarity_prefix, self.prediction)
 
     def __eq__(self, other):
         try:
@@ -627,11 +626,9 @@ class RejectedPropositions(PropositionWithSemanticContent):
 
     def __str__(self):
         if self.reason_for_rejection:
-            return "%srejected(%s, %s)" % (
-                self.get_polarity_prefix_string(), self.rejected_combination, self.reason_for_rejection
-            )
+            return "%srejected(%s, %s)" % (self.polarity_prefix, self.rejected_combination, self.reason_for_rejection)
         else:
-            return "%srejected(%s)" % (self.get_polarity_prefix_string(), str(self.rejected_combination))
+            return "%srejected(%s)" % (self.polarity_prefix, str(self.rejected_combination))
 
     def __eq__(self, other):
         try:
@@ -700,7 +697,7 @@ class PropositionSet(Proposition):
         return not (self == other)
 
     def __str__(self):
-        return "%sset(%s)" % (self.get_polarity_prefix_string(), self.unicode_propositions())
+        return "%sset(%s)" % (self.polarity_prefix, self.unicode_propositions())
 
     def __repr__(self):
         return "%s(%r, %r)" % (self.__class__.__name__, self._propositions, self._polarity)
@@ -830,7 +827,7 @@ class KnowledgePreconditionProposition(PropositionWithSemanticContent):
             return False
 
     def __str__(self):
-        return f"{self.get_polarity_prefix_string()}know_answer({self.embedded_question})"
+        return f"{self.polarity_prefix}know_answer({self.embedded_question})"
 
     def __hash__(self):
         return hash(self.embedded_question)
@@ -926,7 +923,7 @@ class NumberOfAlternativesProposition(PropositionWithSemanticContent):
         PropositionWithSemanticContent.__init__(self, Proposition.NUMBER_OF_ALTERNATIVES, content)
 
     def __repr__(self):
-        return f"{self.get_polarity_prefix_string()}number_of_alternatives({self._content})"
+        return f"{self.polarity_prefix}number_of_alternatives({self._content})"
 
     def __str__(self):
         return repr(self)

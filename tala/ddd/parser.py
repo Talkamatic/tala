@@ -460,11 +460,22 @@ class Parser:
         m = re.search(r'^answer\((.+)\)', string)
         if m:
             answer_string = m.group(1)
-            answer = self.parse(answer_string)
+            answer = self._parse_yes_no_proposition_or_individual(answer_string)
             answer_move = AnswerMove(answer)
             return answer_move
         else:
             raise ParseFailure()
+
+    def _parse_yes_no_proposition_or_individual(self, answer_string):
+        try:
+            return self._parse_yes_or_no(answer_string)
+        except ParseFailure:
+            pass
+        try:
+            return self._parse_proposition(answer_string)
+        except ParseFailure:
+            pass
+        return self._parse_individual(answer_string)
 
     def _parse_decorated_icm_move(self, string):
         m = re.search(r'^ICMMove\(([^,]+)((, *)(.+))?\)$', string)
@@ -932,13 +943,15 @@ class Parser:
                     if not predicate.sort.is_boolean_sort():
                         raise ParseFailure()
                     individual = None
-                else:
+                elif predicate.sort.is_builtin():
                     individual = self._parse_individual(individual_string)
+                else:
+                    individual = self._parse_individual(individual_string, predicate.sort)
                 polarity = self._parse_polarity(polarity_str)
                 return PredicateProposition(predicate, individual, polarity)
         raise ParseFailure()
 
-    def _parse_individual(self, string):
+    def _parse_individual(self, string, sort=None):
         def negate_if_negative_polarity(individual, polarity):
             if polarity is Polarity.NEG:
                 return individual.negate()
@@ -949,6 +962,8 @@ class Parser:
         polarity_string = m.group(1)
         individual_string = m.group(2)
         polarity = self._parse_polarity(polarity_string)
+        if sort is not None:
+            return self._parse_individual_of_sort(individual_string, sort)
         try:
             individual = self._parse_real_individual(individual_string)
             return negate_if_negative_polarity(individual, polarity)
@@ -979,6 +994,13 @@ class Parser:
             return negate_if_negative_polarity(individual, polarity)
         except ParseFailure:
             pass
+        raise ParseFailure()
+
+    def _parse_individual_of_sort(self, string, sort):
+        m = re.search(r'^(.+)$', string)
+        if m:
+            individual_value = m.group(1)
+            return self.ontology.create_individual(individual_value, sort)
         raise ParseFailure()
 
     def _parse_individual_of_enumerated_sort(self, string):

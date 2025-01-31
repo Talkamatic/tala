@@ -93,8 +93,7 @@ class NegativeIndividual(Individual):
             if other.is_positive():
                 return False
             else:
-                otherValue = other.value
-                return self.value == otherValue
+                return self.value == other.value
         except AttributeError:
             return False
 
