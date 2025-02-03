@@ -31,6 +31,14 @@ TDM_PROTOCOL_VERSION = "3.4"
 DEFAULT_DEVICE_ID = "interaction-tester"
 
 
+class InteractionTesterException(BaseException):
+    pass
+
+
+class QueryException(BaseException):
+    pass
+
+
 class OutputBuffer:
     def __init__(self):
         self._content_lines = []
@@ -259,8 +267,15 @@ class InteractionTester:
         url = self._latest_response["url"]
         parameters = self._latest_response["parameters"]
         session = self._latest_response["session"]
+        min_results = self._latest_response["min_results"]
+        max_results = self._latest_response["max_results"]
 
-        query_results = self._make_query_to_http_service(predicate, url, parameters, session)
+        query_results = self._make_query_to_http_service(predicate, url, parameters, min_results, max_results, session)
+        if query_results["status"] != "success":
+            raise QueryException(
+                f"HTTP service query failed: url: {url}, parameters:{parameters}, result: {query_results}"
+            )
+
         self._make_results_request_for_dme(
             "query_results", {
                 "predicate": predicate,
@@ -281,9 +296,11 @@ class InteractionTester:
         request["request"][type_] = results
         self._latest_response = self._client.make_request(request)
 
-    def _make_query_to_http_service(self, name, url, parameters, session):
+    def _make_query_to_http_service(self, name, url, parameters, min_results, max_results, session):
         data = {
             "session": session,
+            "min_results": min_results,
+            "max_results": max_results,
             "request": {
                 "type": "query",
                 "name": name,
