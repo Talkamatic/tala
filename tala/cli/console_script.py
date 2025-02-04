@@ -1,20 +1,19 @@
 import argparse
 import contextlib
+import importlib
 import os
 import warnings
 import logging
-
-import structlog
 import json
 
 from requests.exceptions import MissingSchema
+import structlog
 
 from tala.cli import console_formatting
 from tala.cli.tdm.tdm_cli import TDMCLI
 from tala.config import BackendConfig, DddConfig, DeploymentsConfig, BackendConfigNotFoundException, \
     DddConfigNotFoundException, DeploymentsConfigNotFoundException
 from tala.ddd.maker.ddd_maker import DddMaker
-from tala import installed_version
 from tala.log.logger import configure_stdout_logging, configure_file_logging
 from tala.cli.argument_parser import add_common_backend_arguments, add_shared_frontend_and_backend_arguments
 from tala.log.formats import VALID_TIS_LOGGING_FORMATS, TIS_LOGGING_AUTO, VALID_TIS_UPDATE_FORMATS, TIS_LOGGING_FULL
@@ -110,7 +109,11 @@ def _config_exception_handling():
 
 
 def version(args):
-    print(installed_version.version)
+    try:
+        tala_version = importlib.metadata.version("tala")
+        print(tala_version)
+    except importlib.metadata.PackageNotFoundError:
+        print("Tala is not installed.")
 
 
 def interact(args):

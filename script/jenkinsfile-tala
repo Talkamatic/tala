@@ -103,9 +103,8 @@ pipeline {
             stages {
                 stage('tests') {
                     steps {
-                        sh 'python setup.py build'
-                        sh 'py.test tala'
-                        sh 'py.test integration_tests'
+                        sh 'python -m build'
+                        sh 'pytest tala'
                     }
                 }
 
