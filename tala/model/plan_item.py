@@ -151,8 +151,10 @@ class PlanItemWithContent(PlanItem):
 
     def __eq__(self, other):
         try:
-            return other is not None and other.is_plan_item() and self.type_ == other.type_ and self.get_content(
-            ) == other.get_content()
+            return other is not None \
+                and other.is_plan_item() \
+                and self.type_ == other.type_ \
+                and self.content == other.content
         except AttributeError:
             return False
 
@@ -342,14 +344,10 @@ class EmitICM(PlanItemWithSemanticContent):
 
     def is_question_raising_item(self):
         icm = self.content
-        return (
-            icm.type_ == ICMMove.UND
-            and not (icm.get_polarity() == ICMMove.POS and not icm.get_content().is_positive())
-        )
+        return (icm.type_ == ICMMove.UND and not (icm.get_polarity() == ICMMove.POS and not icm.content.is_positive()))
 
     def is_turn_yielding(self):
-        icm = self.content
-        return (icm.type_ == ICMMove.ACC and icm.get_polarity() == ICMMove.NEG)
+        return self.content.type_ == ICMMove.ACC and self.content.get_polarity() == ICMMove.NEG
 
 
 class EmitIcmPlanItem(EmitICM):

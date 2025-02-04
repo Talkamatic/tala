@@ -28,8 +28,8 @@ class Event(InternalEvent, AsJSONMixin, EqualityMixin):
     SESSION_ID = "SESSION_ID"
 
     def __init__(self, type_, content=None, sender=None, reason=None):
-        self.type = type_
-        self.content = content
+        self._type = type_
+        self._content = content
         self._sender = sender
         self._reason = reason
 
@@ -43,8 +43,28 @@ class Event(InternalEvent, AsJSONMixin, EqualityMixin):
             return Event(type_, content, sender, reason)
         return None
 
+    @property
+    def type_(self):
+        return self._type
+
+    @property
+    def type(self):
+        return self.type_
+
+    @property
+    def content(self):
+        return self._content
+
+    @property
+    def sender(self):
+        return self._sender
+
+    @property
+    def reason(self):
+        return self._reason
+
     def get_type(self):
-        return self.type
+        return self.type_
 
     def get_sender(self):
         return self._sender
@@ -69,8 +89,8 @@ class Event(InternalEvent, AsJSONMixin, EqualityMixin):
     def as_dict(self):
         return {
             "semantic_object_type": SEMANTIC_OBJECT_TYPE,
-            "type": self.get_type(),
-            "content": self.get_content(),
-            "sender": self.get_sender(),
-            "reason": self.get_reason(),
+            "type": self.type_,
+            "content": self.content,
+            "sender": self.sender,
+            "reason": self.reason,
         }

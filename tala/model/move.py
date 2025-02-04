@@ -291,9 +291,6 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def content(self):
         return self._content
 
-    def get_content(self):
-        return self._content
-
     def __eq__(self, other):
         try:
             if super().__eq__(other):
@@ -377,8 +374,12 @@ class ICMMove(Move):
     def class_internal_move_content_equals(self, other):
         return (self._polarity == other._polarity and self._type == other._type)
 
-    def get_polarity(self):
+    @property
+    def polarity(self):
         return self._polarity
+
+    def get_polarity(self):
+        return self.polarity
 
     def is_icm(self):
         return True
@@ -389,7 +390,8 @@ class ICMMove(Move):
     def is_question_raising(self):
         return False
 
-    def get_content(self):
+    @property
+    def content(self):
         return None
 
     def is_negative_perception_icm(self):
@@ -489,9 +491,6 @@ class ICMMoveWithContent(ICMMove):
     def content(self):
         return self._content
 
-    def get_content(self):
-        return self._content
-
     def _get_checked_content_speaker(self, speaker):
         if (speaker in [USR, SYS, MODEL, None]):
             return speaker
@@ -589,13 +588,13 @@ class ReportMove(MoveWithSemanticContent):
         MoveWithSemanticContent.__init__(self, Move.REPORT, content, *args, **kwargs)
 
     def as_semantic_expression(self):
-        return f"report({self.get_content().as_semantic_expression()})"
+        return f"report({self.content.as_semantic_expression()})"
 
     def is_turn_yielding(self):
         return True
 
     def _get_semantic_expression(self, include_attributes):
-        string = f"report({unicodify(self.get_content())}"
+        string = f"report({unicodify(self.content)}"
         if self._background:
             string += f", {unicodify(self._background)}"
         if include_attributes:
@@ -604,7 +603,7 @@ class ReportMove(MoveWithSemanticContent):
         return string
 
     def class_internal_move_content_equals(self, other):
-        return (self.get_content() == other.get_content())
+        return self.content == other.content
 
 
 class PrereportMove(Move, OntologySpecificSemanticObject):

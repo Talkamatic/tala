@@ -42,7 +42,7 @@ class ReportMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_getters(self):
         self.assertEqual(Move.REPORT, self.success_move.type_)
-        self.assertEqual(self.success_result, self.success_move.get_content())
+        self.assertEqual(self.success_result, self.success_move.content)
 
     def test_str_success_move(self):
         self.assertEqual(
@@ -649,7 +649,7 @@ class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
         )
         self.assertTrue(move.is_icm())
         self.assertEqual(ICMMove.INT, move.get_polarity())
-        self.assertEqual(self.price_question, move.get_content())
+        self.assertEqual(self.price_question, move.content)
         self.assertEqual(speaker.USR, move.get_content_speaker())
 
     def test_semantic_expression_without_realization_data(self):
