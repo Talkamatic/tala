@@ -481,6 +481,8 @@ class DomainCompiler(XmlCompiler):
             return self._compile_end_turn_element(element)
         elif element.localName == "reset_domain_query":
             return self._compile_reset_domain_query_element(element)
+        elif element.localName == "greet":
+            return self._compile_greet_element(element)
         else:
             raise DDDXMLCompilerException("unknown plan item element %s" % element.toxml())
 
@@ -704,6 +706,9 @@ class DomainCompiler(XmlCompiler):
     def _compile_reset_domain_query_element(self, element):
         question = self._compile_question(element)
         return [plan_item.ResetDomainQuery(question)]
+
+    def _compile_greet_element(self, element):
+        return [plan_item.Greet()]
 
     def _parse_preconfirm_value(self, string):
         if string == "":

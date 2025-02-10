@@ -5,6 +5,8 @@ import warnings
 import requests
 import time
 
+import structlog
+
 from tala.model.interpretation import Interpretation
 from tala.model.input_hypothesis import InputHypothesis
 from tala.model.common import Modality
@@ -13,6 +15,8 @@ from tala.utils.tdm_client import TDMClient
 
 from tala.testing.interaction.comparison import StringComparison, MoveComparison
 from tala.testing.interaction.stream_listener import StreamListener
+
+from tala.utils.func import configure_stdout_logging, getenv
 
 SPEAKER = "speaker"
 USER = "user"
@@ -30,6 +34,10 @@ UTTERANCE = "utterance"
 TDM_PROTOCOL_VERSION = "3.4"
 
 DEFAULT_DEVICE_ID = "interaction-tester"
+
+logger = structlog.get_logger(__name__)
+log_level = getenv("LOG_LEVEL", "INFO")
+configure_stdout_logging(log_level)
 
 
 class InteractionTesterException(BaseException):
@@ -78,6 +86,7 @@ class InteractionTester:
         self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
 
     def run_testcase(self, case):
+        print("CASE:", case)
         self._initialize_testcase(case)
         self._start_clock()
         self.start_session()
@@ -312,8 +321,16 @@ class InteractionTester:
                 "parameters": parameters,
             }
         }
+        logger.info("making query request to http service", url=url, data=data)
         response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
-        response_dict = json.loads(response.text)
+        try:
+            response_dict = json.loads(response.text)
+        except BaseException:
+            logger.exception("Exception when loading response from service")
+            raise QueryException(
+                f"Response to service request is not JSON: request_data='{data}', response='{response.text}'"
+            )
+        logger.info("query response from http service:", response_dict)
         return response_dict
 
     def _make_service_request_and_create_tdm_request_with_service_validator_invocation_result(self):

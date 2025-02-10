@@ -11,7 +11,17 @@ from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.model.plan_item import IfThenElse, ForgetAllPlanItem, InvokeServiceQueryPlanItem, InvokeDomainQueryPlanItem, InvokeServiceActionPlanItem, LogPlanItem, EndTurnPlanItem, UnexpectedLogLevelException
+from tala.model.plan_item import (
+    IfThenElse,
+    ForgetAllPlanItem,
+    InvokeServiceQueryPlanItem,
+    InvokeDomainQueryPlanItem,
+    InvokeServiceActionPlanItem,
+    LogPlanItem,
+    EndTurnPlanItem,
+    UnexpectedLogLevelException,
+)
+from tala.model import plan_item
 from tala.model import condition
 from tala.model.predicate import Predicate
 from tala.model.proposition import ImplicationProposition
@@ -1408,6 +1418,13 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
                 }
             }
         )
+
+    def test_greet(self):
+        self._given_compiled_ontology("""
+<ontology name="Ontology">
+</ontology>""")
+        self._when_compile_goal_with_content("<plan><greet/></plan>")
+        self._then_result_has_plan(Plan([plan_item.Greet()]))
 
     def test_person_names_as_alts(self):
         self._given_compiled_ontology(

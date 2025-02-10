@@ -66,6 +66,9 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="greet"/>
+
+
   <xs:complexType name="query">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="implication" minOccurs="1" maxOccurs="unbounded"/>
@@ -104,6 +107,7 @@
       <xs:element name="forget_shared" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="forget_all" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="log" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="greet" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_service_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_domain_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="findout" minOccurs="0" maxOccurs="unbounded"/>
