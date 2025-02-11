@@ -1,6 +1,7 @@
 import uuid
 import re
 import json
+import warnings
 import requests
 import time
 
@@ -36,6 +37,10 @@ class InteractionTesterException(BaseException):
 
 
 class QueryException(BaseException):
+    pass
+
+
+class ZeroDivisionWarning(UserWarning):
     pass
 
 
@@ -465,10 +470,31 @@ class InteractionTester:
         response["running_time"] = self._end_time - self._start_time
 
         if self._use_streaming:
-            response["avg_stream_start"] = sum(onset_times) / len(onset_times)
+            try:
+                response["avg_stream_start"] = sum(onset_times) / len(onset_times)
+            except ZeroDivisionError:
+                response["avg_stream_start"] = -1
+                warnings.warn(
+                    "Attempted division by zero when calculating average stream start.\n"
+                    "\tresponse[\"avg_stream_start\"] = sum(onset_times) / len(onset_times)\n"
+                    f"\tonset_times = {onset_times}"
+                    f"\trequest_times = {self._request_times}"
+                    f"\tstream_start_times = {self._stream_start_times}", ZeroDivisionWarning
+                )
+
             response["max_stream_start"] = max(onset_times)
 
-            response["avg_streaming_time"] = sum(streaming_times) / len(streaming_times)
+            try:
+                response["avg_streaming_time"] = sum(streaming_times) / len(streaming_times)
+            except ZeroDivisionError:
+                response["avg_streaming_time"] = -1
+                warnings.warn(
+                    "Attempted division by zero when calculating average stream time.\n"
+                    "\tresponse[\"avg_streaming_time\"] = sum(streaming_times) / len(streaming_times)\n"
+                    f"\tstreaming_times = {streaming_times}"
+                    f"\tstream_start_times = {self._stream_start_times}"
+                    f"\tstream_end_times = {self._stream_end_times}", ZeroDivisionWarning
+                )
             response["max_streaming_time"] = max(streaming_times)
 
         response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
