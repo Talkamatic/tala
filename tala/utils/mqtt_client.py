@@ -157,7 +157,9 @@ class MQTTClient:
     def flush_stream(self):
         self.logger.info("flushing stream")
         self._chunk_joiner.last_chunk_sent()
-        self.streamer_thread.join()
+        self.streamer_thread.join(3.0)
+        if self.streamer_thread.is_alive():
+            self.logger.warn("Streamer thread is still alive!", streamed=self._streamed)
 
     def end_stream(self):
         self.logger.info("ending stream")
