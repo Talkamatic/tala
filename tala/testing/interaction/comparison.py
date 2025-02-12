@@ -12,13 +12,23 @@ class StringComparison:
     def __init__(self, actual, expected):
         self._actual = actual
         self._expected = expected
-        self._match = self._content_matches_pattern(actual, expected)
 
     def match(self):
+        self._match = self._content_matches_pattern(self._actual, self._expected)
         return self._match
 
     def _content_matches_pattern(self, actual, expected):
-        return content_matches_pattern(actual, expected)
+        try:
+            return content_matches_pattern(actual, expected)
+        except TypeError:
+            pass
+        for expected_alt in expected:
+            match = content_matches_pattern(actual, expected_alt)
+            if match:
+                self._match = match
+                break
+        self._expected = expected_alt
+        return match
 
     def mismatch_description(self):
         return f"""
