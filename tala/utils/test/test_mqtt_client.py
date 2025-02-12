@@ -1,6 +1,7 @@
 import structlog
 import time
 import threading
+import random
 
 from tala.utils.mqtt_client import MQTTClient, ChunkJoiner
 from tala.utils.func import configure_stdout_logging, getenv
@@ -46,12 +47,12 @@ class TestChunkJoiner:
         self.then_resulting_chunks_are(["hej"])
 
     def given_joiner(self):
-        self._joiner = ChunkJoiner()
+        self._joiner = ChunkJoiner(logger)
 
     def given_chunks(self, chunks):
         def produce_chunks():
             for chunk in chunks:
-                time.sleep(0.5)
+                time.sleep(random.uniform(0.0, 0.2))
                 self._joiner.add_chunk(chunk)
             self.when_end_chunks()
 
@@ -96,3 +97,13 @@ class TestChunkJoiner:
         self.then_resulting_chunks_are([
             "En", " lustjakt", " är", " en", " båt", " som", " används", " för", " nöjessegling. "
         ])
+
+    def test_ndg_system_case(self):
+        self.given_joiner()
+        self.given_chunks(["Har du några fler frågor? "])
+        self.then_resulting_chunks_are(["Har du några fler frågor? "])
+
+    def test_ndg_system_case_no_space(self):
+        self.given_joiner()
+        self.given_chunks(["Har du några fler frågor?"])
+        self.then_resulting_chunks_are(["Har du några fler frågor?"])
