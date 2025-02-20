@@ -187,7 +187,9 @@ class Ontology(AsJSONMixin):
         try:
             return self._predicates[name]
         except KeyError:
-            raise OntologyError("unknown predicate %r in %s" % (name, self))
+            raise OntologyError(
+                f"The predicate '{name}' is not known in ontology '{self}'. Known predicates: {self._predicates.keys()}"
+            )
 
     def has_predicate(self, name):
         return name in list(self._predicates.keys())
