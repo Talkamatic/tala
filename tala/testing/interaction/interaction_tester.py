@@ -86,7 +86,6 @@ class InteractionTester:
         self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
 
     def run_testcase(self, case):
-        print("CASE:", case)
         self._initialize_testcase(case)
         self._start_clock()
         self.start_session()

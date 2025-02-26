@@ -21,7 +21,7 @@ class InvalidSemanticObjectException(Exception):
     pass
 
 
-class SemanticLogic(object):
+class SemanticLogic:
     def __init__(self, ddd_manager):
         self._ddd_manager = ddd_manager
 
