@@ -203,10 +203,6 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
     def failure_reasons(self):
         return self._failure_reasons
 
-    @property
-    def is_play_audio_action(self):
-        raise NotImplementedError("Needs to be implemented")
-
     def __repr__(self):
         return "%s(%r, %r, parameters=%s, failure_reasons=%s)" % (
             self.__class__.__name__, self.name, self.target, self.parameters, self.failure_reasons
@@ -220,38 +216,7 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
 
 
 class ServiceActionInterface(BaseActionInterface):
-    @property
-    def is_play_audio_action(self):
-        return False
-
-
-class PlayAudioActionInterface(BaseActionInterface):
-    def __init__(self, name, target, parameters, audio_url_parameter):
-        super(PlayAudioActionInterface, self).__init__(name, target, parameters, failure_reasons=[])
-        self._audio_url_parameter = audio_url_parameter
-
-    @property
-    def audio_url_parameter(self):
-        return self._audio_url_parameter
-
-    @property
-    def is_play_audio_action(self):
-        return True
-
-    def __repr__(self):
-        return "%s(%r, %r, parameters=%s, audio_url_parameter=%s)" % (
-            self.__class__.__name__, self.name, self.target, self.parameters, self.audio_url_parameter
-        )
-
-    def __eq__(self, other):
-        return bool(
-            isinstance(other, self.__class__) and self.name == other.name and self.target == other.target
-            and self.parameters == other.parameters and self.audio_url_parameter == other.audio_url_parameter
-        )
-
-    @property
-    def parameters(self):
-        return self._parameters + [self._audio_url_parameter]
+    pass
 
 
 class ServiceQueryInterface(ParameterizedSpecificServiceInterface):
@@ -317,23 +282,6 @@ class ServiceParameter(AbstractServiceParameter):
             isinstance(other, self.__class__) and self.name == other.name and self.format == other.format
             and self.is_optional == other.is_optional
         )
-
-
-class AudioURLServiceParameter(AbstractServiceParameter):
-    def __init__(self, name):
-        format = ParameterField.GRAMMAR_ENTRY
-        super(AudioURLServiceParameter, self).__init__(name, format)
-        self._is_optional = False
-
-    @property
-    def is_optional(self):
-        return self._is_optional
-
-    def __repr__(self):
-        return "%s(%r, format=%r)" % (self.__class__.__name__, self.name, self.format)
-
-    def __eq__(self, other):
-        return bool(isinstance(other, self.__class__) and self.name == other.name and self.format == other.format)
 
 
 class ActionFailureReason(AsJSONMixin):

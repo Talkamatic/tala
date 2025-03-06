@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import tala.ddd.ddd_xml_compiler
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, UnexpectedAttributeException, OntologyWarning
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter, ParameterField
+from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
 
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ask_feature import AskFeature
@@ -2958,109 +2958,3 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
                 ]
             )
         ])
-
-    def test_play_audio_action_without_url_parameter(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching(
-            """
-<service_interface>
-  <play_audio_action name="PlayAudio">
-    <parameters/>
-    <target>
-      <frontend/>
-    </target>
-  </play_audio_action>
-</service_interface>
-""", ViolatesSchemaException,
-            r"Expected service_interface.xml compliant with schema but it's in violation: Element 'parameters': "
-            r"This element is not expected. Expected is \( audio_url_parameter \)., line 4"
-        )
-
-    def test_play_audio_action_with_parameters(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <play_audio_action name="PlayAudio">
-    <audio_url_parameter predicate="url_of_song"/>
-    <parameters>
-      <parameter predicate="artist"/>
-    </parameters>
-    <target>
-      <frontend/>
-    </target>
-  </play_audio_action>
-</service_interface>
-"""
-        )
-        self._then_service_interface_has_actions([
-            PlayAudioActionInterface(
-                "PlayAudio",
-                target=FrontendTarget(),
-                parameters=[
-                    ServiceParameter("artist"),
-                ],
-                audio_url_parameter=AudioURLServiceParameter("url_of_song")
-            )
-        ])
-
-    def test_play_audio_action_and_custom_action_together(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <play_audio_action name="PlayAudio">
-    <audio_url_parameter predicate="url_of_song"/>
-    <parameters>
-      <parameter predicate="artist"/>
-    </parameters>
-    <target>
-      <frontend/>
-    </target>
-  </play_audio_action>
-  <action name="CallContact">
-    <parameters>
-      <parameter predicate="contact_to_call" format="grammar_entry"/>
-    </parameters>
-    <failure_reasons/>
-    <target>
-      <device_module device="CallDevice"/>
-    </target>
-  </action>
-</service_interface>
-"""
-        )
-        self._then_service_interface_has_actions([
-            PlayAudioActionInterface(
-                "PlayAudio",
-                target=FrontendTarget(),
-                parameters=[
-                    ServiceParameter("artist"),
-                ],
-                audio_url_parameter=AudioURLServiceParameter("url_of_song")
-            ),
-            ServiceActionInterface(
-                "CallContact",
-                target=DeviceModuleTarget("CallDevice"),
-                parameters=[
-                    ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
-                ],
-                failure_reasons=[]
-            )
-        ])
-
-    def test_play_audio_action_with_invalid_target(self):
-        self._when_compile_service_interface_then_exception_is_raised_matching(
-            """
-<service_interface>
-  <play_audio_action name="PlayAudio">
-    <audio_url_parameter predicate="url_of_song"/>
-    <parameters>
-      <parameter predicate="artist"/>
-    </parameters>
-    <target>
-      <device_module device="AudioDevice"/>
-    </target>
-  </play_audio_action>
-</service_interface>
-""", ViolatesSchemaException,
-            r"Expected service_interface.xml compliant with schema but it's in violation: Element 'device_module': "
-            r"This element is not expected. Expected is \( frontend \)., line 9"
-        )

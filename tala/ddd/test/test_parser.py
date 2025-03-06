@@ -1121,6 +1121,11 @@ class ParserTests(unittest.TestCase):
         expected_object = Individual(self.ontology_name, 'a string', StringSort())
         self.assertEqual(expected_object, object)
 
+    def test_empty_string_individual(self):
+        object = self.parse('""')
+        expected_object = Individual(self.ontology_name, '', StringSort())
+        self.assertEqual(expected_object, object)
+
     def test_string_individual_digits_only(self):
         object = self.parse('"123"')
         expected_object = Individual(self.ontology_name, '123', StringSort())

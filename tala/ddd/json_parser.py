@@ -375,11 +375,7 @@ class JSONServiceInterfaceParser():
         target = self.parse_target(action_dict["_target"])
         service_parameters = self.parse_parameters(action_dict["_parameters"])
         failure_reasons = action_dict["_failure_reasons"]
-        if action_dict.get("_audio_url_parameter"):
-            audio_parameter = self.parse_audio_parameter(action_dict["_audio_url_parameter"])
-            interface = service_interface.PlayAudioActionInterface(name, target, service_parameters, audio_parameter)
-        else:
-            interface = ServiceActionInterface(name, target, service_parameters, failure_reasons)
+        interface = ServiceActionInterface(name, target, service_parameters, failure_reasons)
         return interface
 
     def parse_target(self, target_dict):
@@ -393,16 +389,13 @@ class JSONServiceInterfaceParser():
         raise JSONParseFailure(f"Cannot parse as target: {target_dict}")
 
     def parse_parameters(self, parameter_dict):
-        return [self.parse_parameter(parameter) for parameter in parameter_dict if parameter["_name"] != "audio_url"]
+        return [self.parse_parameter(parameter) for parameter in parameter_dict]
 
     def parse_parameter(self, parameter):
         name = parameter["_name"]
         format = parameter["_format"]
         is_optional = parameter["_is_optional"]
         return service_interface.ServiceParameter(name, format, is_optional)
-
-    def parse_audio_parameter(self, parameter):
-        return service_interface.AudioURLServiceParameter(parameter["_name"])
 
     def parse_queries(self, queries_dict):
         return [self.parse_query(query) for query in queries_dict.values()]

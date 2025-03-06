@@ -7,7 +7,7 @@ import xml.dom.minidom
 
 from lxml import etree
 
-from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason, PlayAudioActionInterface, AudioURLServiceParameter
+from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason
 from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.domain import Domain
@@ -1071,22 +1071,11 @@ class ServiceInterfaceCompiler(XmlCompiler):
         self._validate(xml_string)
         self._parse_xml(xml_string)
         self._device_element = self._get_root_element("service_interface")
-        play_audio_actions = list(self._compile_play_audio_actions())
         custom_actions = list(self._compile_actions())
-        actions = play_audio_actions + custom_actions
+        actions = custom_actions
         queries = list(self._compile_queries())
         validities = list(self._compile_validities())
         return ServiceInterface(actions, queries, validities)
-
-    def _compile_play_audio_actions(self):
-        elements = self._document.getElementsByTagName("play_audio_action")
-        for element in elements:
-            name = self._get_mandatory_attribute(element, "name")
-            target = self._compile_target(element)
-            audio_url = self._compile_audio_url(element)
-            parameters = self._compile_parameters(element)
-            action = PlayAudioActionInterface(name, target, parameters, audio_url)
-            yield action
 
     def _compile_actions(self):
         elements = self._document.getElementsByTagName("action")
@@ -1097,12 +1086,6 @@ class ServiceInterfaceCompiler(XmlCompiler):
             failure_reasons = self._compile_failure_reasons(element)
             action = ServiceActionInterface(name, target, parameters, failure_reasons)
             yield action
-
-    def _compile_audio_url(self, element):
-        audio_url_elements = element.getElementsByTagName("audio_url_parameter")
-        audio_url_element = audio_url_elements[0]
-        name = self._get_mandatory_attribute(audio_url_element, "predicate")
-        return AudioURLServiceParameter(name)
 
     def _compile_parameters(self, element):
         parameter_elements = element.getElementsByTagName("parameter")

@@ -4,7 +4,7 @@ import pytest
 
 from tala.ddd.services.service_interface import ServiceActionInterface, ServiceInterface, \
     UnexpectedActionException, ServiceQueryInterface, ServiceValidatorInterface, \
-    DuplicateNameException, PlayAudioActionInterface, AudioURLServiceParameter, FrontendTarget, HttpTarget, \
+    DuplicateNameException, FrontendTarget, HttpTarget, \
     FailureReasonsNotAllowedException, ActionFailureReason, UnsupportedServiceInterfaceTarget
 from tala.testing.utils import EqualityAssertionTestCaseMixin
 
@@ -17,28 +17,12 @@ if 'unittest.util' in __import__('sys').modules:
 
 class ServiceInterfaceTests(unittest.TestCase):
     def setUp(self):
-        self._play_audio_actions = []
         self._custom_actions = []
         self._queries = []
         self._validators = []
         self._http_target = HttpTarget("mock_endpoint")
-        self._audio_url_parameter = AudioURLServiceParameter("audio_url")
         self._service_interface = None
         self._result = None
-
-    def test_has_play_audio_action_when_action_exists(self):
-        self._given_play_audio_actions(["mocked_action"])
-        self._given_service_interface()
-        self._when_calling_has_action("mocked_action")
-        self._then_result_is(True)
-
-    def _create_play_audio_action(self, name):
-        return PlayAudioActionInterface(
-            name, FrontendTarget(), parameters=[], audio_url_parameter=self._audio_url_parameter
-        )
-
-    def _given_play_audio_actions(self, names):
-        self._play_audio_actions = [self._create_play_audio_action(name) for name in names]
 
     def test_has_action_when_action_exists(self):
         self._given_actions(["mocked_action"])
@@ -56,7 +40,7 @@ class ServiceInterfaceTests(unittest.TestCase):
         self._create_service_interface()
 
     def _create_service_interface(self):
-        actions = self._play_audio_actions + self._custom_actions
+        actions = self._custom_actions
         service_interface = ServiceInterface(actions, self._queries, self._validators)
         self._service_interface = JSONServiceInterfaceParser().parse(service_interface.as_json())
 
@@ -66,39 +50,17 @@ class ServiceInterfaceTests(unittest.TestCase):
     def _then_result_is(self, expected_result):
         self.assertEqual(self._result, expected_result)
 
-    def test_has_play_audio_action_when_action_missing(self):
-        self._given_play_audio_actions(["mocked_action"])
-        self._given_service_interface()
-        self._when_calling_has_action("another_action")
-        self._then_result_is(False)
-
     def test_has_action_when_action_missing(self):
         self._given_actions(["mocked_action"])
         self._given_service_interface()
         self._when_calling_has_action("another_action")
         self._then_result_is(False)
 
-    def test_has_play_audio_action_when_action_exists_among_several(self):
-        self._given_play_audio_actions(["mocked_action", "another_action", "third_action"])
-        self._given_service_interface()
-        self._when_calling_has_action("another_action")
-        self._then_result_is(True)
-
     def test_has_action_when_action_exists_among_several(self):
         self._given_actions(["mocked_action", "another_action", "third_action"])
         self._given_service_interface()
         self._when_calling_has_action("another_action")
         self._then_result_is(True)
-
-    def test_get_play_audio_action_when_action_exists(self):
-        self._given_play_audio_actions(["mocked_action"])
-        self._given_service_interface()
-        self._when_calling_get_action("mocked_action")
-        self._then_result_is_play_audio_action("mocked_action")
-
-    def _then_result_is_play_audio_action(self, name):
-        expected_action = self._create_play_audio_action(name)
-        self.assertEqual(self._result, expected_action)
 
     def test_get_action_when_action_exists(self):
         self._given_actions(["mocked_action"])
@@ -112,14 +74,6 @@ class ServiceInterfaceTests(unittest.TestCase):
     def _then_result_is_action_named(self, name):
         expected_action = self._create_action(name)
         self.assertEqual(self._result, expected_action)
-
-    def test_get_play_audio_action_when_action_missing(self):
-        self._given_play_audio_actions(["mocked_action"])
-        self._given_service_interface()
-        self._when_calling_get_action_then_exception_is_raised_matching(
-            "another_action", UnexpectedActionException,
-            r"Expected one of the known actions \['mocked_action'\] but got 'another_action'"
-        )
 
     def test_get_action_when_action_missing(self):
         self._given_actions(["mocked_action"])
@@ -169,31 +123,6 @@ class ServiceInterfaceTests(unittest.TestCase):
 
     def _create_validator(self, name):
         return ServiceValidatorInterface(name, self._http_target, [])
-
-
-class ActionInterfaceTests(unittest.TestCase):
-    def setUp(self):
-        self._action = None
-        self._result = None
-
-    def test_action_interface(self):
-        self._given_action(ServiceActionInterface("mocked_action", FrontendTarget(), [], []))
-        self._when_asking_is_play_audio_action()
-        self._then_result_is(False)
-
-    def _given_action(self, action):
-        self._action = action
-
-    def _then_result_is(self, expected_result):
-        self.assertEqual(self._result, expected_result)
-
-    def _when_asking_is_play_audio_action(self):
-        self._result = self._action.is_play_audio_action
-
-    def test_play_audio_action_interface(self):
-        self._given_action(PlayAudioActionInterface("mocked_action", FrontendTarget(), [], "mocked_url"))
-        self._when_asking_is_play_audio_action()
-        self._then_result_is(True)
 
 
 class ActionInterfaceCreationTests(unittest.TestCase):
