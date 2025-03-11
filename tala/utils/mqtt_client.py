@@ -4,7 +4,14 @@ import queue
 import uuid
 import warnings
 
+import requests
 import paho.mqtt.client as mqtt
+
+STREAMING_DONE = "STREAMING_DONE"
+STREAMING_SET_PERSONA = "STREAMING_SET_PERSONA"
+STREAMING_SET_VOICE = "STREAMING_SET_VOICE"
+STREAMING_CHUNK = "STREAMING_CHUNK"
+TIMEOUT = 5.0
 
 
 class MQTTClient:
@@ -18,7 +25,6 @@ class MQTTClient:
         self._port = int(port)
         self._connected = threading.Event()
         self._session_id = None
-        self._request_id = None
         self._client_id = f"{client_id_base}-{str(uuid.uuid4())}"
 
         self._client = mqtt.Client(
@@ -53,39 +59,33 @@ class MQTTClient:
         return self._session_id
 
     @property
-    def request_id(self):
-        return self._request_id
-
-    @property
     def streamed(self):
         return self._streamed
 
     @property
-    def topics(self):
-        yield f'tm/id/{self.session_id}'
-        if self.request_id:
-            yield f'tm/id/{self.session_id}-{self.request_id}'
+    def topic(self):
+        return f'tm/id/{self.session_id}'
 
-    def prepare_session(self, session_id, request_id=None, s_and_r_dict=None):
+    def prepare_session(self, session_id, s_and_r_dict=None):
         warnings.warn(
             "MQTTClient.prepare_session() is deprecated. Use MQTTClient.open_session instead.",
             DeprecationWarning,
             stacklevel=2
         )
-        self.open_session(session_id, request_id, s_and_r_dict)
+        self.open_session(session_id, s_and_r_dict)
 
-    def open_session(self, session_id, request_id=None, s_and_r_dict=None, logger=None):
+    def open_session(self, session_id, s_and_r_dict=None, logger=None):
         if logger:
             self._set_logger(logger)
         self._session_id = session_id
-        self._request_id = request_id
         self._search_and_replace_dict = s_and_r_dict if s_and_r_dict else {}
-        self.logger.info(
-            "open_session", client_id=self._client_id, session_id=self.session_id, request_id=self.request_id
-        )
+        self.logger.info("open_session", client_id=self._client_id, session_id=self.session_id)
         self._message_counter = 0
         self._streamed = []
         self._prepare_streamer_thread()
+        self._stream_listener = StreamListener(session_id)
+        self._stream_listener.start()
+        self._stream_listener.stream_started.wait()
 
     def _apply_dictionary(self, chunk):
         def key_matches_beginning_of_chunk(key, chunk):
@@ -125,7 +125,7 @@ class MQTTClient:
                     chunk = self._apply_dictionary(chunk)
                 except BaseException:
                     self.logger.exception("Exception raised in streamer thread")
-                self._stream_to_frontend({"event": "STREAMING_CHUNK", "data": chunk})
+                self._stream_to_frontend({"event": STREAMING_CHUNK, "data": chunk})
                 self._streamed.append(chunk)
 
         self._chunk_joiner = ChunkJoiner(self.logger)
@@ -138,18 +138,22 @@ class MQTTClient:
         self.stream_chunk(utterance + " ")
 
     def set_persona(self, persona):
-        self._stream_to_frontend({"event": "STREAMING_SET_PERSONA", "data": persona if persona else ""})
+        self._stream_to_frontend({"event": STREAMING_SET_PERSONA, "data": persona if persona else ""})
 
     def set_voice(self, voice):
-        self._stream_to_frontend({"event": "STREAMING_SET_VOICE", "data": voice if voice else ""})
+        self._stream_to_frontend({"event": STREAMING_SET_VOICE, "data": voice if voice else ""})
 
     def _stream_to_frontend(self, message):
+        def remove_final_space(message):
+            if "data" in message:
+                message["data"] = message["data"].strip()
+            return message
+
         self._message_counter += 1
-        message |= {"id": f"{self._message_counter}_{self._client_id}"}
         self.logger.debug("streaming to frontend", message=message, session_id=self.session_id)
         self._connected.wait()
-        for topic in self.topics:
-            self._client.publish(topic, json.dumps(message))
+        self._client.publish(self.topic, json.dumps(message))
+        self._stream_listener.wait_for_message(json.dumps(remove_final_space(message)))
 
     def stream_chunk(self, chunk):
         self._chunk_joiner.add_chunk(chunk)
@@ -163,7 +167,7 @@ class MQTTClient:
 
     def end_stream(self):
         self.logger.info("ending stream")
-        self._stream_to_frontend({"event": "STREAMING_DONE"})
+        self._stream_to_frontend({"event": STREAMING_DONE})
 
     def finalize_session(self):
         warnings.warn(
@@ -174,13 +178,82 @@ class MQTTClient:
         self.close_session()
 
     def close_session(self):
-        self.logger.info(
-            "close session", client_id=self._client_id, session_id=self.session_id, request_id=self.request_id
-        )
+        self.logger.info("close session", client_id=self._client_id, session_id=self.session_id)
         self.logger.info("Streamed in session", num_messages=self._message_counter, streamed=self._streamed)
         self._reset_logger()
         self._session_id = None
-        self._request_id = None
+
+
+class StreamListener(threading.Thread):
+    def __init__(self, session_id):
+        super().__init__(daemon=True)
+        self._current_data = None
+        self._current_event = None
+        self._stream_started = threading.Event()
+        self._session_id = session_id
+        self._streamed_messages = queue.Queue()
+
+    @property
+    def stream_started(self):
+        return self._stream_started
+
+    def wait_for_message(self, expected_message):
+        try:
+            next_message = self._streamed_messages.get(TIMEOUT)
+        except queue.Empty:
+            raise BaseException(
+                f"waited {TIMEOUT} seconds for {expected_message}, but no message was received from MQTT service for "
+                f"session with id {self._session_id}."
+            )
+        if expected_message != next_message:
+            raise BaseException(f"Expected '{expected_message}', but received '{next_message}'.")
+
+    @property
+    def session_id(self):
+        return self._session_id
+
+    def run(self):
+        self._please_stop = False
+        r = requests.get(f'https://tala-event-sse.azurewebsites.net/event-sse/{self.session_id}', stream=True)
+        self._stream_started.set()
+        for line in r.iter_lines():
+            if line:
+                decoded_line = line.decode('utf-8')
+                self._process_line(decoded_line)
+            if self._please_stop:
+                break
+
+    def _process_line(self, line):
+        def is_event():
+            return line.startswith("event: ")
+
+        def is_data():
+            return line.startswith("data: ")
+
+        def extract_event():
+            return line[len("event: "):]
+
+        def extract_data():
+            return line[len("data: "):]
+
+        if is_event():
+            self._current_event = extract_event()
+        if is_data() and self._current_event:
+            self._current_data = extract_data()
+            self.create_event_and_store()
+
+    def create_event_and_store(self):
+        if self._current_event == STREAMING_DONE:
+            json_event = f'{{"event": "{self._current_event}"}}'
+            self.please_stop()
+            self._streamed_messages.put(json_event)
+        if self._current_event in [STREAMING_CHUNK, STREAMING_SET_PERSONA, STREAMING_SET_VOICE]:
+            json_event = f'{{"event": "{self._current_event}", "data": "{self._current_data.strip()}"}}'
+            self._streamed_messages.put(json_event)
+        self._current_event = None
+
+    def please_stop(self):
+        self._please_stop = True
 
 
 class ChunkJoiner:
