@@ -4,6 +4,7 @@ import os
 import re
 import warnings
 import xml.dom.minidom
+from xml.parsers.expat import ExpatError
 
 from lxml import etree
 
@@ -59,8 +60,11 @@ class XmlCompiler(object):
         if attribute != "":
             return attribute
 
-    def _parse_xml(self, string):
-        self._document = xml.dom.minidom.parseString(string)
+    def _parse_xml(self, document_as_string):
+        try:
+            self._document = xml.dom.minidom.parseString(document_as_string)
+        except ExpatError as e:
+            raise DDDXMLCompilerException(f"ExpatError when parsing XML file: {e}. XML string: '{document_as_string}'")
 
     def _get_root_element(self, name):
         elements = self._document.getElementsByTagName(name)
