@@ -3,7 +3,7 @@ import time
 import threading
 import random
 
-from tala.utils.mqtt_client import MQTTClient, ChunkJoiner
+from tala.utils.mqtt_client import MQTTClient, ChunkJoiner, normalized_equals
 from tala.utils.func import configure_stdout_logging, getenv
 
 logger = structlog.get_logger(__name__)
@@ -11,7 +11,7 @@ log_level = getenv("LOG_LEVEL", default="DEBUG")
 configure_stdout_logging(log_level)
 
 
-class TestMQTTClient(object):
+class TestMQTTClient:
     def setup_method(self):
         pass
 
@@ -38,6 +38,23 @@ class TestMQTTClient(object):
 
     def then_client_id_matches(self, id_):
         assert self._mqtt_client._client_id.startswith(f"{id_}-")
+
+
+class TestUtils:
+    def test_equality(self):
+        self.given_strings("är", "\u00e4r")
+        self.when_checking_equality()
+        self.then_result_is(True)
+
+    def given_strings(self, string_1, string_2):
+        self._string_1 = string_1
+        self._string_2 = string_2
+
+    def when_checking_equality(self):
+        self._result = normalized_equals(self._string_1, self._string_2)
+
+    def then_result_is(self, result):
+        assert self._result == result
 
 
 class TestChunkJoiner:

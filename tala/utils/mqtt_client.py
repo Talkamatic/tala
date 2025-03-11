@@ -3,6 +3,7 @@ import threading
 import queue
 import uuid
 import warnings
+import unicodedata
 
 import requests
 import paho.mqtt.client as mqtt
@@ -184,6 +185,13 @@ class MQTTClient:
         self._session_id = None
 
 
+def normalized_equals(str1, str2):
+    # Normalize both strings to NFC (Normalization Form C) or NFD as needed
+    normalized_str1 = unicodedata.normalize('NFC', str1)
+    normalized_str2 = unicodedata.normalize('NFC', str2)
+    return normalized_str1 == normalized_str2
+
+
 class StreamListener(threading.Thread):
     def __init__(self, session_id):
         super().__init__(daemon=True)
@@ -205,7 +213,7 @@ class StreamListener(threading.Thread):
                 f"waited {TIMEOUT} seconds for {expected_message}, but no message was received from MQTT service for "
                 f"session with id {self._session_id}."
             )
-        if expected_message != next_message:
+        if not normalized_equals(expected_message, next_message):
             raise BaseException(f"Expected '{expected_message}', but received '{next_message}'.")
 
     @property
