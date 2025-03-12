@@ -3,7 +3,9 @@ import time
 import threading
 import random
 
-from tala.utils.mqtt_client import MQTTClient, ChunkJoiner, normalized_equals
+import pytest
+
+from tala.utils.mqtt_client import MQTTClient, ChunkJoiner
 from tala.utils.func import configure_stdout_logging, getenv
 
 logger = structlog.get_logger(__name__)
@@ -32,29 +34,37 @@ class TestMQTTClient:
         assert self._mqtt_client._port == port
 
     def test_creation_with_client_id(self):
-        self.given_args_for_client_creation(["cliend_id", logger, "some_endpoint", 443])
+        self.given_args_for_client_creation(["client_id", logger, "some_endpoint", 443])
         self.when_mqtt_client_created()
-        self.then_client_id_matches("cliend_id")
+        self.then_client_id_matches("client_id")
 
     def then_client_id_matches(self, id_):
         assert self._mqtt_client._client_id.startswith(f"{id_}-")
 
+    @pytest.mark.parametrize("chunk", ["This is an unproblematic test utterance.", "Frölunda ", "Fr\u00f6lunda"])
+    def test_stream_single_chunk(self, chunk):
+        self.given_mqtt_client_started("test_client", logger, "tala-sse.azurewebsites.net", 443)
+        self.given_session_id("test-session-id")
+        self.when_chunk_streamed(chunk)
+        self.then_everything_is_ok()
 
-class TestUtils:
-    def test_equality(self):
-        self.given_strings("är", "\u00e4r")
-        self.when_checking_equality()
-        self.then_result_is(True)
+    def given_mqtt_client_started(self, name, logger, endpoint, port):
+        self._client = MQTTClient(name, logger, endpoint, port)
+        self._client.start()
 
-    def given_strings(self, string_1, string_2):
-        self._string_1 = string_1
-        self._string_2 = string_2
+    def given_session_id(self, id_):
+        self._session_id = id_
 
-    def when_checking_equality(self):
-        self._result = normalized_equals(self._string_1, self._string_2)
+    def when_chunk_streamed(self, chunk):
+        self._client.open_session(self._session_id, None)
+        self._client.set_persona("some-persona")
+        self._client.set_voice("some-voice")
+        self._client.stream_chunk(chunk)
+        self._client.flush_stream()
+        self._client.close_session()
 
-    def then_result_is(self, result):
-        assert self._result == result
+    def then_everything_is_ok(self):
+        assert True
 
 
 class TestChunkJoiner:

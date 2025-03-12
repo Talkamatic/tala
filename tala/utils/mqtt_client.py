@@ -3,7 +3,6 @@ import threading
 import queue
 import uuid
 import warnings
-import unicodedata
 
 import requests
 import paho.mqtt.client as mqtt
@@ -84,7 +83,7 @@ class MQTTClient:
         self._message_counter = 0
         self._streamed = []
         self._prepare_streamer_thread()
-        self._stream_listener = StreamListener(session_id)
+        self._stream_listener = StreamListener(session_id, self.logger)
         self._stream_listener.start()
         self._stream_listener.stream_started.wait()
 
@@ -185,16 +184,10 @@ class MQTTClient:
         self._session_id = None
 
 
-def normalized_equals(str1, str2):
-    # Normalize both strings to NFC (Normalization Form C) or NFD as needed
-    normalized_str1 = unicodedata.normalize('NFC', str1)
-    normalized_str2 = unicodedata.normalize('NFC', str2)
-    return normalized_str1 == normalized_str2
-
-
 class StreamListener(threading.Thread):
-    def __init__(self, session_id):
+    def __init__(self, session_id, logger):
         super().__init__(daemon=True)
+        self.logger = logger
         self._current_data = None
         self._current_event = None
         self._stream_started = threading.Event()
@@ -213,7 +206,8 @@ class StreamListener(threading.Thread):
                 f"waited {TIMEOUT} seconds for {expected_message}, but no message was received from MQTT service for "
                 f"session with id {self._session_id}."
             )
-        if not normalized_equals(expected_message, next_message):
+        if json.loads(expected_message) != json.loads(next_message):
+            self.logger("received unexpected message", expected=expected_message, received=next_message)
             raise BaseException(f"Expected '{expected_message}', but received '{next_message}'.")
 
     @property
