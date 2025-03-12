@@ -14,6 +14,10 @@ STREAMING_CHUNK = "STREAMING_CHUNK"
 TIMEOUT = 5.0
 
 
+class MQTTClientException(BaseException):
+    pass
+
+
 class MQTTClient:
     def __init__(self, client_id_base, logger, endpoint, port=None):
         def on_connect(client, userdata, connect_flags, reason_code, properties):
@@ -120,13 +124,15 @@ class MQTTClient:
 
     def _prepare_streamer_thread(self):
         def stream_chunks():
+            self._streaming_exception = None
             for chunk in self._chunk_joiner:
                 try:
                     chunk = self._apply_dictionary(chunk)
-                except BaseException:
+                    self._stream_to_frontend({"event": STREAMING_CHUNK, "data": chunk})
+                    self._streamed.append(chunk)
+                except Exception as e:
+                    self._streaming_exception = e
                     self.logger.exception("Exception raised in streamer thread")
-                self._stream_to_frontend({"event": STREAMING_CHUNK, "data": chunk})
-                self._streamed.append(chunk)
 
         self._chunk_joiner = ChunkJoiner(self.logger)
         self.streamer_thread = threading.Thread(target=stream_chunks)
@@ -178,6 +184,10 @@ class MQTTClient:
         self.close_session()
 
     def close_session(self):
+        if self._streaming_exception:
+            raise MQTTClientException(
+                f"{self._streaming_exception} was raised during streaming in {self.session_id}. Streamed: {self._streamed}."
+            )
         self.logger.info("close session", client_id=self._client_id, session_id=self.session_id)
         self.logger.info("Streamed in session", num_messages=self._message_counter, streamed=self._streamed)
         self._reset_logger()
@@ -202,13 +212,13 @@ class StreamListener(threading.Thread):
         try:
             next_message = self._streamed_messages.get(TIMEOUT)
         except queue.Empty:
-            raise BaseException(
+            raise MQTTClientException(
                 f"waited {TIMEOUT} seconds for {expected_message}, but no message was received from MQTT service for "
                 f"session with id {self._session_id}."
             )
         if json.loads(expected_message) != json.loads(next_message):
             self.logger("received unexpected message", expected=expected_message, received=next_message)
-            raise BaseException(f"Expected '{expected_message}', but received '{next_message}'.")
+            raise MQTTClientException(f"Expected '{expected_message}', but received '{next_message}'.")
 
     @property
     def session_id(self):
