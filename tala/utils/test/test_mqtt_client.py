@@ -2,6 +2,7 @@ import structlog
 import time
 import threading
 import random
+import uuid
 
 import pytest
 
@@ -53,7 +54,7 @@ class TestMQTTClient:
         self._client.start()
 
     def given_session_id(self, id_):
-        self._session_id = id_
+        self._session_id = id_ + str(uuid.uuid4)
 
     def when_chunk_streamed(self, chunk):
         self._client.open_session(self._session_id, None)
