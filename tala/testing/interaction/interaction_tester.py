@@ -80,6 +80,7 @@ class InteractionTester:
             self._initialize_session_object()
         self._session_data["neural"] = self._neural
         self._latest_response = self._client.start_session(self._session_data)
+        logger.info("starting session", session_id=self._session_id)
         self._session_data = self._latest_response[SESSION]
 
     def _initialize_session_object(self):
@@ -135,6 +136,7 @@ class InteractionTester:
         return url
 
     def _buffer_output(self, output):
+        logger.info("interaction test output", output=output)
         self._output_buffer.add(output)
 
     def _print_buffer(self):
@@ -283,12 +285,14 @@ class InteractionTester:
         min_results = self._latest_response["min_results"]
         max_results = self._latest_response["max_results"]
 
+        logger.info("invoking service query", predicate=predicate, parameters=parameters)
         query_results = self._make_query_to_http_service(predicate, url, parameters, min_results, max_results, session)
         if query_results["status"] != "success":
             raise QueryException(
                 f"HTTP service query failed: url: {url}, parameters:{parameters}, result: {query_results}"
             )
 
+        logger.info("requesting dme with", results=query_results)
         self._make_results_request_for_dme(
             "query_results", {
                 "predicate": predicate,
@@ -338,6 +342,7 @@ class InteractionTester:
         parameters = self._latest_response["parameters"]
         session = self._latest_response["session"]
 
+        logger.info("invoking service validator", validator=validator_name, parameters=parameters)
         query_results = self._validate_in_http_service(validator_name, url, parameters, session)
         self._make_results_request_for_dme(
             "validation_results", {
@@ -369,6 +374,7 @@ class InteractionTester:
         parameters = self._latest_response["parameters"]
         session = self._latest_response["session"]
 
+        logger.info("invoking service request", action=action_name, parameters=parameters)
         action_result = self._perform_action_in_http_service(action_name, url, parameters, session)
         self._make_results_request_for_dme(
             "action_results", {
