@@ -91,8 +91,6 @@ class MQTTClient:
         self._message_counter = 0
         self._streamed = []
         self._prepare_streamer_thread()
-        self._stream_listener = StreamIterator(session_id, self.logger)
-        self._stream_listener.start_stream()
 
     def _apply_dictionary(self, chunk):
         def key_matches_beginning_of_chunk(key, chunk):
@@ -165,7 +163,6 @@ class MQTTClient:
         self._connected.wait()
         self.logger.debug("publish message", message=message, session_id=self.session_id, client_id=self.client_id)
         self._client.publish(self.topic, json.dumps(message))
-        self._stream_listener.wait_for_message(json.dumps(remove_final_space(message)))
 
     def stream_chunk(self, chunk):
         self._chunk_joiner.add_chunk(chunk)
@@ -198,8 +195,6 @@ class MQTTClient:
         self.logger.info("Streamed in session", num_messages=self._message_counter, streamed=self._streamed)
         self._reset_logger()
         self._session_id = None
-        if self._stream_listener:
-            self._stream_listener.close_stream()
 
 
 class StreamIterator:
