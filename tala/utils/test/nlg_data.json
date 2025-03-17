@@ -1,0 +1,230 @@
+{
+  "icm_slot_entries": {
+    "docs": [
+      {
+        "match": "icm:per*pos:&utterance",
+        "utterance": "I heard you say &utterance."
+      }
+    ]
+  },
+  "individual_entries": {
+    "docs": []
+  },
+  "propositional_entries": {
+    "docs": []
+  },
+  "predicate_wildcard_entries": {
+    "docs": []
+  },
+  "proposition_set_wildcard_entries": {
+    "docs": []
+  },
+  "validity_wildcard_entries": {
+    "docs": []
+  },
+  "personas": {
+    "match": "personas",
+    "personas": [
+      {
+        "role": "tutor",
+        "voice": "en-US-AriaNeural"
+      }
+    ]
+  },
+  "answer(qna_response(qna_what_is_your_name_026c0821332b_mock_uuid_6_answer))": {
+    "match": "answer(qna_response(qna_what_is_your_name_026c0821332b_mock_uuid_6_answer))",
+    "utterance": "My name is Weather Boy.",
+    "persona": "tutor"
+  },
+  "ask(?X.city_mock_uuid_1(X))": {
+    "match": "ask(?X.city_mock_uuid_1(X))",
+    "utterance": "What city do you want the temperature for?",
+    "persona": "tutor"
+  },
+  "answer(temperature_mock_uuid_0(*))": {
+    "match": "answer(temperature_mock_uuid_0(*))",
+    "utterance": "The temperature in {city_mock_uuid_1} is {temperature_mock_uuid_0} degrees centigrade.",
+    "persona": "tutor"
+  },
+    "answer(temperature_mock_uuid_0(3000_mock_uuid_10))": {
+    "match": "answer(temperature_mock_uuid_0(3000_mock_uuid_10))",
+    "utterance": "The temperature in hell can't be measured in centigrades.",
+    "persona": "tutor"
+  },
+  "answer(10_mock_uuid_5)": {
+    "match": "answer(10_mock_uuid_5)",
+    "utterance": "10",
+    "persona": "tutor"
+  },
+  "answer(3000_mock_uuid_10)": {
+    "match": "answer(3000_mock_uuid_10)",
+    "utterance": "3000",
+    "persona": "tutor"
+  },
+  "answer(20_mock_uuid_5)": {
+    "match": "answer(20_mock_uuid_5)",
+    "utterance": "20",
+    "persona": "tutor"
+  },
+  "answer(hell)": {
+    "match": "answer(hell)",
+    "utterance": "hell",
+    "persona": "tutor"
+  },
+  "answer(gothenburg_mock_uuid_2)": {
+    "match": "answer(gothenburg_mock_uuid_2)",
+    "utterance": "Gothenburg",
+    "persona": "tutor"
+  },
+  "answer(stockholm_mock_uuid_4)": {
+    "match": "answer(stockholm_mock_uuid_4)",
+    "utterance": "Stockholm",
+    "persona": "tutor"
+  },
+  "greet": {
+    "match": "greet",
+    "utterance": "Hello!|Hi!"
+  },
+  "ask(?X.goal(X))": {
+    "match": "ask(?X.goal(X))",
+    "utterance": "What do you want to do?",
+    "persona": "tutor"
+  },
+  "icm:reraise:perform(top)": {
+    "match": "icm:reraise:perform(top)",
+    "utterance": "Going back to the main menu.",
+    "persona": "tutor"
+  },
+  "icm:loadplan": {
+    "match": "icm:loadplan",
+    "utterance": "Let's see."
+  },
+  "icm:reraise": {
+    "match": "icm:reraise",
+    "utterance": "So"
+  },
+  "icm:sem*neg": {
+    "match": "icm:sem*neg",
+    "utterance": "I don't quite understand."
+  },
+  "icm:und*neg": {
+    "match": "icm:und*neg",
+    "utterance": "I don't understand. | I didn't understand that."
+  },
+  "icm:per*neg": {
+    "match": "icm:per*neg",
+    "utterance": "I didn't hear. | I didn't hear that."
+  },
+  "icm:per*pos:&utterance": {
+    "match": "icm:per*pos:&utterance",
+    "utterance": "I heard you say &utterance."
+  },
+  "answer(explanation_of_word(explanation_of_word_no_input_feedback))": {
+    "match": "answer(explanation_of_word(explanation_of_word_no_input_feedback))",
+    "utterance": "I thought that I heard you ask a question about word meanings. Ask again if you want!"
+  },
+  "report(action_status(switch_language, done))": {
+    "match": "report(action_status(switch_language, done))",
+    "utterance": "OK."
+  },
+  "icm:acc*pos": {
+    "match": "icm:acc*pos",
+    "utterance": "Ok."
+  },
+  "icm:try_again": {
+    "match": "icm:try_again",
+    "utterance": "Try again."
+  },
+  "icm:acc*neg": {
+    "match": "icm:acc*neg",
+    "utterance": "Hmm. | Let's see. | Well."
+  },
+  "icm:keep-turn": {
+    "match": "icm:keep-turn",
+    "utterance": "Uh. | Um. | Uhm."
+  },
+  "icm:per*pos": {
+    "match": "icm:per*pos",
+    "utterance": "Uhm."
+  },
+  "filler_feedback_correct": {
+    "match": "filler_feedback_correct",
+    "utterance": "That sounds right to me. | I like what I'm hearing. | I like that answer. | That makes a lot of sense to me."
+  },
+  "filler_feedback_unknown": {
+    "match": "filler_feedback_unknown",
+    "utterance": "That's not what I had in mind actually. | That's not exactly what I had in mind."
+  },
+  "filler_feedback_related": {
+    "match": "filler_feedback_related",
+    "utterance": "I guess you could say that. | I guess that could be one way of thinking about it. | You may be on to something there. | I'm not saying that's wrong."
+  },
+  "icm:confusion": {
+    "match": "icm:confusion",
+    "utterance": "I'm sorry, I got confused."
+  },
+  "icm:incomplete": {
+    "match": "icm:incomplete",
+    "utterance": "I didn't get that. Please say again."
+  },
+  "icm:acc*neg:goal(perform(how))": {
+    "match": "icm:acc*neg:goal(perform(how))",
+    "utterance": "Sorry, I don't have more information about that instruction.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:1": {
+    "match": "icm:cardinal_sequencing:1",
+    "utterance": "Let's start with the first step:",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:2": {
+    "match": "icm:cardinal_sequencing:2",
+    "utterance": "Step number 2. | Second step. | Secondly:",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:3": {
+    "match": "icm:cardinal_sequencing:3",
+    "utterance": "Step number 3. | Third step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:4": {
+    "match": "icm:cardinal_sequencing:4",
+    "utterance": "Step number 4. | Fourth step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:5": {
+    "match": "icm:cardinal_sequencing:5",
+    "utterance": "Step number 5. | Fifth step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:6": {
+    "match": "icm:cardinal_sequencing:6",
+    "utterance": "Step number 6. | Sixth step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:7": {
+    "match": "icm:cardinal_sequencing:7",
+    "utterance": "Step number 7. | Seventh step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:8": {
+    "match": "icm:cardinal_sequencing:8",
+    "utterance": "Step number 8. | Eighth step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:9": {
+    "match": "icm:cardinal_sequencing:9",
+    "utterance": "Step number 9. | Ninth step.",
+    "persona": "tutor"
+  },
+  "icm:cardinal_sequencing:-1": {
+    "match": "icm:cardinal_sequencing:-1",
+    "utterance": "Finally:| Lastly: | Final step:",
+    "persona": "tutor"
+  },
+  "answer(that_is_all_folks(that_is_all_folks_individual))": {
+    "match": "answer(that_is_all_folks(that_is_all_folks_individual))",
+    "utterance": "That was all for this session. See you around.",
+    "persona": "tutor"
+  }
+}
