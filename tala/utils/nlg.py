@@ -3,7 +3,7 @@ import random
 from string import Formatter
 
 from tala.utils.func import log_models
-from tala.utils.compression import decompress_json
+from tala.utils.compression import ensure_decompressed_json
 
 PROTOCOL_VERSION = "1.0"
 
@@ -55,10 +55,19 @@ def list_of_strings_to_string(list_of_strings):
 
 
 def generate(moves, context, session, logger):
-    request = {"moves": [{"semantic_expression": move} for move in moves], "context": context, "session": session}
+    moves = [{"semantic_expression": move} for move in moves]
+
+    request = {"moves": moves, "context": context, "session": session}
     result = nlg(request, logger)
     logger.info("generate() returns", result=result)
     return result
+
+
+def generate_utterance(moves, context, session, logger):
+    result = generate(moves, context, session, logger)
+    if result["status"] == SUCCESS:
+        return result["utterance"]
+    return ""
 
 
 def nlg(body, logger):
@@ -70,9 +79,8 @@ def nlg(body, logger):
             if "session" in body and body["session"].get("nlg"):
                 logger.debug("Collecting NLG data from the session object")
                 nlg_model = body["session"].get("nlg")
-            if isinstance(nlg_model, str):
-                nlg_model = decompress_json(nlg_model)
-            return nlg_model
+
+            return ensure_decompressed_json(nlg_model)
         except UnboundLocalError as e:
             logger.warning("No NLG model could be found in the request body or the session object", error=e)
 
@@ -104,12 +112,18 @@ def nlg(body, logger):
         logger.info("responding", response=response)
         return response
 
+    def get_facts():
+        return body.get("context", {}).get("facts", {})
+
+    def get_facts_being_grounded():
+        return body.get("context", {}).get("facts_being_grounded", {})
+
+    def get_entities_under_discussion():
+        return body.get("context", {}).get("entities_under_discussion", {})
+
     log_models(body, logger, ["nlg"])
     logger.info("incoming request", body=body)
     moves = [move["semantic_expression"] for move in body["moves"]]
-    facts = body["context"]["facts"]
-    facts_being_grounded = body["context"]["facts_being_grounded"]
-    entities_under_discussion = body["context"]["entities_under_discussion"]
 
     nlg_data = get_nlg_model()
     if not nlg_data:
@@ -120,7 +134,7 @@ def nlg(body, logger):
             }
         )
 
-    g = Generator(nlg_data, facts, facts_being_grounded, entities_under_discussion, logger)
+    g = Generator(nlg_data, get_facts(), get_facts_being_grounded(), get_entities_under_discussion(), logger)
 
     try:
         utterance = g.generate_sequence(moves)

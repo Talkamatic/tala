@@ -76,6 +76,18 @@ class TestGenerator():
         self.when_generate_is_called()
         self.then_result_contains({'persona': 'tutor', 'utterance': 'Ok. What city do you want the temperature for?'})
 
+    def test_get_utterance_of_two_moves(self):
+        self.given_moves(["icm:acc*pos", "ask(?X.city_mock_uuid_1(X))"])
+        self.when_generate_utterance_is_called()
+        self.then_result_is('Ok. What city do you want the temperature for?')
+
+    def when_generate_utterance_is_called(self):
+        session = {"nlg": self._data}
+        self._result = nlg.generate_utterance(self._moves, {}, session, self.logger)
+
+    def then_result_is(self, result):
+        assert result == self._result
+
     def test_generalized_slots_for_grammar_entries_in_db(self):
         self.given_facts({
             "temperature_mock_uuid_0": {
