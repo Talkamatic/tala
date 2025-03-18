@@ -1,0 +1,312 @@
+{
+    "icm_slot_entries": {
+        "docs": [
+            {
+                "match": "icm:per*pos:&utterance",
+                "utterance": "Jag hörde att du sa &utterance.",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "individual_entries": {
+        "docs": [
+            {
+                "match": "answer(explanation_of_word(&individual)",
+                "utterance": "&individual",
+                "persona": "tutor"
+            },
+            {
+                "match": "icm:report_inference:number_retrieved_from_eniro_api(&individual)",
+                "utterance": "I found the number &individual",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "propositional_entries": {
+        "docs": [
+            {
+                "match": "ask(?$proposition)",
+                "utterance": "$proposition, is that OK?",
+                "persona": "tutor"
+            },
+            {
+                "match": "icm:und*pos:USR*$proposition",
+                "utterance": "I got $proposition.",
+                "persona": "tutor"
+            },
+            {
+                "match": "icm:report_inference:$proposition",
+                "utterance": "I found $proposition",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "predicate_wildcard_entries": {
+        "docs": [
+            {
+                "match": "icm:acc*neg:rejected(set([*predicate(fiskpinnar)]), *validity)",
+                "utterance": "fel fiskpinne!",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "proposition_set_wildcard_entries": {
+        "docs": [
+            {
+                "match": "icm:acc*neg:rejected(*proposition_set, TaskFiskpinnarValidity)",
+                "utterance": "fel fiskpinne!",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "validity_wildcard_entries": {
+        "docs": [
+            {
+                "match": "icm:acc*neg:rejected(set([selected_task_fiskpinnar(fiskpinnar)]), *validity)",
+                "utterance": "fel fiskpinne!",
+                "persona": "tutor"
+            }
+        ]
+    },
+    "personas": {
+        "tutor": {
+            "role": "tutor",
+            "voice": "sv-SE-SofieNeural"
+        }
+    },
+    "answer(qna_response(qna_vad_heter_du_cf50294df8ef_mock_uuid_6_answer))": {
+        "match": "answer(qna_response(qna_vad_heter_du_cf50294df8ef_mock_uuid_6_answer))",
+        "utterance": "Jag heter Cykelia Styrén.",
+        "persona": "tutor"
+    },
+    "answer(qna_response(qna_unknown_answer))": {
+        "match": "answer(qna_response(qna_unknown_answer))",
+        "utterance": "Jag vet tyvärr inte svaret på den frågan.",
+        "persona": "tutor"
+    },
+    "answer(qna_response(qna_content_from_ndg))": {
+        "match": "answer(qna_response(qna_content_from_ndg))",
+        "utterance": "Jag tror att svaret finns där någonstans bland vanliga frågor, men jag lyckas tyvärr inte hitta det.",
+        "persona": "tutor"
+    },
+    "answer(qna_response(qna_several_answers_matching))": {
+        "match": "answer(qna_response(qna_several_answers_matching))",
+        "utterance": "Det finns flera svar på den frågan. Kan du förtydliga vad du menar?",
+        "persona": "tutor"
+    },
+    "answer(closest_station_mock_uuid_4(*))": {
+        "match": "answer(closest_station_mock_uuid_4(*))",
+        "utterance": "Din närmaste station är {closest_station_mock_uuid_4}.",
+        "persona": "tutor"
+    },
+    "answer(free_bikes_at_selected_station_mock_uuid_2(*))": {
+        "match": "answer(free_bikes_at_selected_station_mock_uuid_2(*))",
+        "utterance": "Det finns {free_bikes_at_selected_station_mock_uuid_2} lediga cyklar på {selected_station_mock_uuid_3}.",
+        "persona": "tutor"
+    },
+    "ask(?X.selected_station_mock_uuid_3(X))": {
+        "match": "ask(?X.selected_station_mock_uuid_3(X))",
+        "utterance": "Vilken station?",
+        "persona": "tutor"
+    },
+    "answer(28031717)": {
+        "match": "answer(28031717)",
+        "utterance": "Dalgångsgatan",
+        "persona": "tutor"
+    },
+    "answer(28031764)": {
+        "match": "answer(28031764)",
+        "utterance": "Krokslätts fabriker (A)",
+        "persona": "tutor"
+    },
+    "answer(1054422)": {
+        "match": "answer(1054422)",
+        "utterance": "Tredje långgatan/Värmlandsgatan",
+        "persona": "tutor"
+    },
+    "ask(?X.goal(X))": {
+        "match": "ask(?X.goal(X))",
+        "utterance": "Vad vill du göra?",
+        "persona": "tutor"
+    },
+    "icm:reraise:perform(top)": {
+        "match": "icm:reraise:perform(top)",
+        "utterance": "Går tillbaka till huvudmenyn.",
+        "persona": "tutor"
+    },
+    "icm:sem*neg": {
+        "match": "icm:sem*neg",
+        "utterance": "Jag förstår inte riktigt.",
+        "persona": "tutor"
+    },
+    "icm:und*neg": {
+        "match": "icm:und*neg",
+        "utterance": "Jag förstår inte. | Jag förstod inte det.",
+        "persona": "tutor"
+    },
+    "filler_feedback_correct": {
+        "match": "filler_feedback_correct",
+        "utterance": "Det låter rätt för mig. | Jag gillar vad jag hör. | Jag gillar det svaret. | Det låter mycket logiskt för mig.",
+        "persona": "tutor"
+    },
+    "filler_feedback_unknown": {
+        "match": "filler_feedback_unknown",
+        "utterance": "Det var faktiskt inte vad jag hade i åtanke. | Det är inte riktigt vad jag hade i åtanke.",
+        "persona": "tutor"
+    },
+    "filler_feedback_related": {
+        "match": "filler_feedback_related",
+        "utterance": "Jag antar att man skulle kunna säga det. | Jag antar att det kan vara ett sätt att tänka på det. | Du kanske är inne på något där. | Jag säger inte att det är fel.",
+        "persona": "tutor"
+    },
+    "icm:acc*neg:goal(perform(how))": {
+        "match": "icm:acc*neg:goal(perform(how))",
+        "utterance": "Tyvärr, jag har inte mer information om den instruktionen.",
+        "persona": "tutor"
+    },
+    "answer(that_is_all_folks(that_is_all_folks_individual))": {
+        "match": "answer(that_is_all_folks(that_is_all_folks_individual))",
+        "utterance": "Det var allt för denna session. Vi ses.",
+        "persona": "tutor"
+    },
+    "icm:reraise": {
+        "match": "icm:reraise",
+        "utterance": "Så",
+        "persona": "tutor"
+    },
+    "answer(explanation_of_word(explanation_of_word_no_input_feedback))": {
+        "match": "answer(explanation_of_word(explanation_of_word_no_input_feedback))",
+        "utterance": "Jag tyckte att du sade att du undrade vad något betydde. Fråga igen, om du kommer på vad du undrade om!",
+        "persona": "tutor"
+    },
+    "report(action_status(switch_language, done))": {
+        "match": "report(action_status(switch_language, done))",
+        "utterance": "Okej.",
+        "persona": "tutor"
+    },
+    "icm:acc*pos": {
+        "match": "icm:acc*pos",
+        "utterance": "Okej.",
+        "persona": "tutor"
+    },
+    "icm:try_again": {
+        "match": "icm:try_again",
+        "utterance": "Försök igen.",
+        "persona": "tutor"
+    },
+    "icm:acc*neg": {
+        "match": "icm:acc*neg",
+        "utterance": "Då ska vi se.",
+        "persona": "tutor"
+    },
+    "icm:keep-turn": {
+        "match": "icm:keep-turn",
+        "utterance": "Okej.",
+        "persona": "tutor"
+    },
+    "icm:per*pos": {
+        "match": "icm:per*pos",
+        "utterance": "Okej.",
+        "persona": "tutor"
+    },
+    "filler_feedback_neutral": {
+        "match": "filler_feedback_neutral",
+        "utterance": "Okej. Då ska vi se. | Okej. Låt oss se.",
+        "persona": "tutor"
+    },
+    "neutral_filler": {
+        "match": "neutral_filler",
+        "utterance": "Då ska vi se. | Så. ",
+        "persona": "tutor"
+    },
+    "gpt_reservation": {
+        "match": "gpt_reservation",
+        "utterance": "Jag är inte säker, men jag tror att det är såhär:",
+        "persona": "tutor"
+    },
+    "gpt_problems": {
+        "match": "gpt_problems",
+        "utterance": "Jag har svårt att få fram ett svar på den frågan just nu. Testa att fråga igen om en liten stund.",
+        "persona": "tutor"
+    },
+    "icm:confusion": {
+        "match": "icm:confusion",
+        "utterance": "Ursäkta, jag blev lite förvirrad. Säg det igen.",
+        "persona": "tutor"
+    },
+    "icm:incomplete": {
+        "match": "icm:incomplete",
+        "utterance": "Jag förstod inte riktigt. Säg det igen.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:1": {
+        "match": "icm:cardinal_sequencing:1",
+        "utterance": "Låt oss börja med det första steget:",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:2": {
+        "match": "icm:cardinal_sequencing:2",
+        "utterance": "Steg nummer 2. | Andra steget. | För det andra:",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:3": {
+        "match": "icm:cardinal_sequencing:3",
+        "utterance": "Steg nummer 3. | Tredje steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:4": {
+        "match": "icm:cardinal_sequencing:4",
+        "utterance": "Steg nummer 4. | Fjärde steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:5": {
+        "match": "icm:cardinal_sequencing:5",
+        "utterance": "Steg nummer 5. | Femte steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:6": {
+        "match": "icm:cardinal_sequencing:6",
+        "utterance": "Steg nummer 6. | Sjätte steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:7": {
+        "match": "icm:cardinal_sequencing:7",
+        "utterance": "Steg nummer 7. | Sjunde steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:8": {
+        "match": "icm:cardinal_sequencing:8",
+        "utterance": "Steg nummer 8. | Åttonde steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:9": {
+        "match": "icm:cardinal_sequencing:9",
+        "utterance": "Steg nummer 9. | Nionde steget.",
+        "persona": "tutor"
+    },
+    "icm:cardinal_sequencing:-1": {
+        "match": "icm:cardinal_sequencing:-1",
+        "utterance": "Slutligen: | Sista steget:",
+        "persona": "tutor"
+    },
+    "greet": {
+        "match": "greet",
+        "utterance": "Hallå!|Hej!",
+        "persona": "tutor"
+    },
+    "icm:loadplan": {
+        "match": "icm:loadplan",
+        "utterance": "Låt oss se. | Då ska vi se.",
+        "persona": "tutor"
+    },
+    "icm:per*neg": {
+        "match": "icm:per*neg",
+        "utterance": "Jag hörde inte. | Det där hörde jag inte.",
+        "persona": "tutor"
+    },
+    "icm:per*pos:&utterance": {
+        "match": "icm:per*pos:&utterance",
+        "utterance": "Jag hörde dig säga &utterance.",
+        "persona": "tutor"
+    }
+}

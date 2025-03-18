@@ -1,0 +1,47 @@
+{
+  "icm_slot_entries": {
+    "docs": [
+    ]
+  },
+  "individual_entries": {
+    "docs": [
+    ]
+  },
+  "propositional_entries": {
+    "docs": [
+    ]
+  },
+  "predicate_wildcard_entries": {
+    "docs": [
+    ]
+  },
+  "proposition_set_wildcard_entries": {
+    "docs": [
+    ]
+  },
+  "validity_wildcard_entries": {
+    "docs": [
+      {
+        "match": "icm:acc*neg:rejected(set([selected_task_fiskpinnar(fiskpinnar)]), *validity)",
+        "utterance": "fel fiskpinne!",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "personas": {
+    "tutor": {
+      "role": "tutor",
+      "voice": "sv-SE-SofieNeural"
+    }
+  },
+  "icm:acc*pos": {
+    "match": "icm:acc*pos",
+    "utterance": "Okay.",
+    "persona": "tutor"
+  },
+  "icm:reraise": {
+    "match": "icm:reraise",
+    "utterance": "So",
+    "persona": "tutor"
+  }
+}

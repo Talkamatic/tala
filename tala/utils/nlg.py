@@ -113,7 +113,10 @@ def nlg(body, logger):
         return response
 
     def get_facts():
-        return body.get("context", {}).get("facts", {})
+        try:
+            return body["context"]["facts"]
+        except (KeyError, TypeError):
+            return {}
 
     def get_facts_being_grounded():
         return body.get("context", {}).get("facts_being_grounded", {})

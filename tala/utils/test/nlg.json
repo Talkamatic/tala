@@ -1,0 +1,127 @@
+{
+  "icm_slot_entries": {
+    "docs": [
+      {
+        "match": "icm:per*pos:&utterance",
+        "utterance": "Jag hörde att du sa &utterance.",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "individual_entries": {
+    "docs": [
+      {
+        "match": "answer(explanation_of_word(&individual)",
+        "utterance": "&individual",
+        "persona": "tutor"
+      },
+      {
+        "match": "icm:report_inference:number_retrieved_from_eniro_api(&individual)",
+        "utterance": "I found the number &individual",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "propositional_entries": {
+    "docs": [
+      {
+        "match": "ask(?$proposition)",
+        "utterance": "$proposition, is that OK?",
+        "persona": "tutor"
+      },
+      {
+        "match": "icm:und*pos:USR*$proposition",
+        "utterance": "I got $proposition.",
+        "persona": "tutor"
+      },
+      {
+        "match": "icm:report_inference:$proposition",
+        "utterance": "I found $proposition",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "predicate_wildcard_entries": {
+    "docs": [
+      {
+        "match": "icm:acc*neg:rejected(set([*predicate(fiskpinnar)]), *validity)",
+        "utterance": "fel fiskpinne!",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "proposition_set_wildcard_entries": {
+    "docs": [
+      {
+        "match": "icm:acc*neg:rejected(*proposition_set, TaskFiskpinnarValidity)",
+        "utterance": "fel fiskpinne!",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "validity_wildcard_entries": {
+    "docs": [
+      {
+        "match": "icm:acc*neg:rejected(set([selected_task_fiskpinnar(fiskpinnar)]), *validity)",
+        "utterance": "fel fiskpinne!",
+        "persona": "tutor"
+      }
+    ]
+  },
+  "personas": {
+    "tutor": {
+      "role": "tutor",
+      "voice": "sv-SE-SofieNeural"
+    }
+  },
+  "ask(?yn_sida_1_har_flickan_en_korgx)": {
+    "match": "ask(?yn_sida_1_har_flickan_en_korgx)",
+    "utterance": "Har flickan en korg?",
+    "persona": "tutor"
+  },
+  "answer(helpful_information_yn_sida_1_har_flickan_en_korgx(yn_sida_1_har_flickan_en_korgx_hint))": {
+    "match": "answer(helpful_information_yn_sida_1_har_flickan_en_korgx(yn_sida_1_har_flickan_en_korgx_hint))",
+    "utterance": "This utterance should not appear in any test.",
+    "persona": "tutor"
+  },
+  "['answer(helpful_information_yn_sida_1_har_flickan_en_korgx(yn_sida_1_har_flickan_en_korgx_hint))', 'ask(?yn_sida_1_har_flickan_en_korgx)']": {
+    "match": "['answer(helpful_information_yn_sida_1_har_flickan_en_korgx(yn_sida_1_har_flickan_en_korgx_hint))', 'ask(?yn_sida_1_har_flickan_en_korgx)']",
+    "utterance": "Titta på bilden igen!",
+    "persona": "tutor"
+  },
+  "['answer(helpful_information_rw_sida_1_vilken_farg_har_flickan_pa_sinx(rw_sida_1_vilken_farg_har_flickan_pa_sinx_hint))', 'ask(?X.rw_sida_1_vilken_farg_har_flickan_pa_sinx(X))']": {
+    "match": "['answer(helpful_information_rw_sida_1_vilken_farg_har_flickan_pa_sinx(rw_sida_1_vilken_farg_har_flickan_pa_sinx_hint))', 'ask(?X.rw_sida_1_vilken_farg_har_flickan_pa_sinx(X))']",
+    "utterance": "Färgen finns i flickans namn. | Flickans namn är en ledtråd.",
+    "persona": "tutor"
+  },
+  "icm:acc*neg:rejected(set([selected_task_fiskpinnar(fiskpinnar)]), TaskFiskpinnarValidity)": {
+    "match": "icm:acc*neg:rejected(set([selected_task_fiskpinnar(fiskpinnar)]), TaskFiskpinnarValidity)",
+    "utterance": "Fiskpinnar, det är inte rätt.",
+    "persona": "tutor"
+  },
+  "icm:acc*pos": {
+    "match": "icm:acc*pos",
+    "utterance": "Okej.",
+    "persona": "tutor"
+  },
+  "icm:sem*neg": {
+    "match": "icm:sem*neg",
+    "utterance": "Jag förstod inte riktigt. | Det där förstod jag inte riktigt.",
+    "persona": "tutor"
+  },
+  "icm:reraise": {
+    "match": "icm:reraise",
+    "utterance": "Så",
+    "persona": "tutor"
+  },
+  "ask(?X.destination_city(X))": {
+    "match": "ask(?X.destination_city(X))",
+    "utterance": "Where do you want to send @contact?",
+    "persona": "tutor"
+  },
+  "answer(temperature_mock_uuid_0(*))": {
+    "match": "answer(temperature_mock_uuid_0(*))",
+    "utterance": "Temperaturen i {city_mock_uuid_1} är {temperature_mock_uuid_0} grader.",
+    "persona": "tutor"
+  }
+}
