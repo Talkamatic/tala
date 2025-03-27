@@ -204,6 +204,7 @@ class InteractionTester:
         self._start_stream_listener()
         self._request_times.append(time.time())
         self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
+        logger.info("semantic_input response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
 
@@ -218,6 +219,7 @@ class InteractionTester:
         self._start_stream_listener()
         self._request_times.append(time.time())
         self._latest_response = self._client.request_passivity(self._session_data)
+        logger.info("passivity response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
 
@@ -226,6 +228,7 @@ class InteractionTester:
         self._start_stream_listener()
         self._request_times.append(time.time())
         self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
+        logger.info("speech_input response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
 
@@ -312,6 +315,7 @@ class InteractionTester:
         }
         request["request"][type_] = results
         self._latest_response = self._client.make_request(request)
+        logger.info("results request response", response=self._latest_response)
 
     def _make_query_to_http_service(self, name, url, parameters, min_results, max_results, session):
         data = {
@@ -443,7 +447,6 @@ class InteractionTester:
             self._buffer_output(f"S> {json.dumps(actual_move_content)}: {self._turn_times[-1]:.2f} s")
         else:
             self._buffer_output(f"S> {json.dumps(actual_move_content)}")
-
         return True
 
     def _assert_system_utterance_is_matched_by(self, expected_speech_content):

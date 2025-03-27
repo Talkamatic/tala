@@ -219,7 +219,8 @@ class TestOntologyCompiler(DDDXMLCompilerTestCase):
             """
 <ontology name="Ontology">
   <predicate name="dest_city" sort="undefined_sort"/>
-</ontology>""", "Expected a defined sort but got 'undefined_sort'. Adding it to the ontology as a static sort."
+</ontology>""",
+            """Expected a defined sort but got 'undefined_sort'. Adding it to the ontology as a static sort:\n <sort name="undefined_sort" dynamic="false"/>"""
         )
 
     def _when_compile_ontology_then_warning_is_issued(self, ontology_xml, expected_warning_message):

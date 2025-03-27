@@ -210,8 +210,10 @@ class OntologyCompiler(XmlCompiler):
             return self._custom_sorts_dict[name]
 
     def _add_undeclared_static_sort(self, name):
+        sort_xml_entry = f'<sort name="{name}" dynamic="false"/>'
         warnings.warn(
-            f"Expected a defined sort but got '{name}'. Adding it to the ontology as a static sort.", OntologyWarning
+            f"Expected a defined sort but got '{name}'. Adding it to the ontology as a static sort:\n {sort_xml_entry}",
+            OntologyWarning
         )
         self._custom_sorts_dict[name] = CustomSort(self._ontology_name, name, False)
 

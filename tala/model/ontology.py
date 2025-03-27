@@ -187,8 +187,9 @@ class Ontology(AsJSONMixin):
         try:
             return self._predicates[name]
         except KeyError:
+            template = f'<predicate name="{name}" sort=" "/>'
             raise OntologyError(
-                f"The predicate '{name}' is not known in ontology '{self}'. Known predicates: {self._predicates.keys()}"
+                f"The predicate '{name}' is not known in ontology '{self}'. Known predicates: {[key for key in self._predicates.keys()]}. Missing predicate definition:\n  {template}"
             )
 
     def has_predicate(self, name):
