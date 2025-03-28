@@ -1,6 +1,6 @@
 import unittest
 
-from tala.model.openqueue import OpenQueue, OpenQueueError
+from tala.model.openqueue import OpenQueue, OpenQueueError, Interpretation
 
 
 class MockElement:
@@ -30,6 +30,14 @@ class OpenQueueTests(unittest.TestCase):
         actual_element = self.queue.first()
         self.assertEqual(element, actual_element)
 
+    def test_first_element_property(self):
+        self._given_an_element_enqueued("a")
+        self._when_an_element_enqueued("b")
+        self._first_element_property_returns("a")
+
+    def _first_element_property_returns(self, value):
+        self.assertEqual(value, self.queue.first_element)
+
     def test_is_first(self):
         self._given_an_element_enqueued("a")
         self._is_first("a")
@@ -52,9 +60,20 @@ class OpenQueueTests(unittest.TestCase):
         self._when_an_element_enqueued("b")
         self._last_returns("b")
 
+    def test_last_element_property(self):
+        self._given_an_element_enqueued("a")
+        self._when_an_element_enqueued("b")
+        self._last_element_property_returns("b")
+
+    def _last_element_property_returns(self, value):
+        self.assertEqual(value, self.queue.last_element)
+
     def _last_returns(self, element):
         actual_element = self.queue.last()
         self.assertEqual(element, actual_element)
+
+    def test_empty(self):
+        self.assertTrue(self.queue.empty)
 
     def test_size_0(self):
         self.assertEqual(0, len(self.queue))
@@ -80,7 +99,7 @@ class OpenQueueTests(unittest.TestCase):
         self.queue.dequeue()
 
     def _queue_is_empty(self):
-        self.assertTrue(len(self.queue) == 0)
+        self.assertTrue(self.queue.empty)
 
     def test_dequeue_on_empty_queue_raises_exception(self):
         with self.assertRaises(OpenQueueError):
@@ -219,3 +238,32 @@ class OpenQueueTests(unittest.TestCase):
     def test_getitem(self):
         queue = OpenQueue(["a", "b", "c"])
         self.assertEqual("a", queue[0])
+
+
+class InterpretationTests(unittest.TestCase):
+    def test_creation(self):
+        self.given_moves(["move1", "move2"])
+        self.given_utterance("utterance")
+        self.given_confidence(0.5)
+        self.when_create_interpretation()
+        self.then_interpretation_basic_tests_hold()
+
+    def given_moves(self, moves):
+        self._moves = OpenQueue()
+        for move in moves:
+            self._moves.enqueue(move)
+
+    def given_utterance(self, utterance):
+        self._utterance = utterance
+
+    def given_confidence(self, confidence):
+        self._confidence = confidence
+
+    def when_create_interpretation(self):
+        self._interpretation = Interpretation(self._moves, self._utterance, self._confidence)
+
+    def then_interpretation_basic_tests_hold(self):
+        self.assertTrue(self._interpretation.is_first(self._moves[0]))
+        self.assertEqual(self._moves[0], self._interpretation.first_element)
+        self.assertEqual(self._moves[-1], self._interpretation.last_element)
+        self.assertEqual(len(self._moves), len(self._interpretation))

@@ -1,4 +1,5 @@
 import copy
+import warnings
 
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -25,14 +26,19 @@ class Interpretation(AsJSONMixin, EqualityMixin):
     def enqueue_first(self, element):
         self._moves.enqueue_first(element)
 
-    def first(self, element):
-        self._moves.first(element)
+    @property
+    def first_element(self):
+        return self._moves.first_element
 
     def is_first(self, element):
-        self._moves.is_first(element)
+        return self._moves.is_first(element)
 
-    def last(self, element):
-        self._moves.last(element)
+    @property
+    def last_element(self):
+        return self._moves.last_element
+
+    def is_last(self, element):
+        return self._moves.is_last(element)
 
     def dequeue(self):
         self._moves.dequeue()
@@ -129,7 +135,8 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
         if element not in self:
             self.front_content[0:0] = [element]
 
-    def first(self):
+    @property
+    def first_element(self):
         if self.is_empty():
             raise OpenQueueError("tried to get first item from empty queue")
         if len(self.front_content) > 0:
@@ -137,16 +144,29 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
         else:
             return self.back_content[0]
 
+    def first(self):
+        warnings.warn(
+            "OpenQueue.first() is deprecated. Use property OpenQueue.first instead.", DeprecationWarning, stacklevel=2
+        )
+        return self.first_element
+
     def is_first(self, element):
         if self.is_empty():
             return False
         return self.first() == element
 
-    def last(self):
+    @property
+    def last_element(self):
         if len(self.back_content) > 0:
             return self.back_content[-1]
         else:
             return self.front_content[-1]
+
+    def last(self):
+        warnings.warn(
+            "OpenQueue.last() is deprecated. Use property OpenQueue.last instead.", DeprecationWarning, stacklevel=2
+        )
+        return self.last_element
 
     def __len__(self):
         return len(self.front_content) + len(self.back_content)
@@ -175,8 +195,12 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
         self.front_content = []
         self.back_content = []
 
-    def is_empty(self):
+    @property
+    def empty(self):
         return len(self) == 0
+
+    def is_empty(self):
+        return self.empty
 
     def shift(self):
         self.back_content.append(self.front_content[0])
