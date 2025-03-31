@@ -722,7 +722,10 @@ class NonCheckingJSONParser():
     def parse_invoke_service_query_plan_item(self, data):
         issue = self.parse_question(data["issue"])
         min_results = int(data["min_results"])
-        max_results = int(data["max_results"])
+        try:
+            max_results = int(data["max_results"])
+        except TypeError:
+            max_results = None
         return plan_item.InvokeServiceQuery(issue, min_results=min_results, max_results=max_results)
 
     def parse_invoke_domain_query_plan_item(self, data):

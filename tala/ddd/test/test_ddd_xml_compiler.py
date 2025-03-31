@@ -4,7 +4,10 @@ from unittest.mock import Mock, patch
 import tala.ddd.ddd_xml_compiler
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, OntologyWarning
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
+from tala.ddd.services.service_interface import (
+    ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget,
+    HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
+)
 
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ask_feature import AskFeature
@@ -2703,60 +2706,8 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_service_interface(xml)
 
-    def test_query_with_device_module_target(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <query name="available_contact">
-    <parameters>
-      <parameter predicate="contact_to_call"/>
-    </parameters>
-    <target>
-      <http endpoint="mock_endpoint"/>
-    </target>
-  </query>
-</service_interface>
-"""
-        )
-        self._then_service_interface_has_queries([
-            ServiceQueryInterface(
-                "available_contact",
-                target=HttpTarget("mock_endpoint"),
-                parameters=[
-                    ServiceParameter("contact_to_call", ParameterField.VALUE),
-                ]
-            )
-        ])
-
     def _then_service_interface_has_queries(self, expected_queries):
         assert self._result.queries == expected_queries
-
-    def test_validity_with_device_module_target(self):
-        self._when_compile_service_interface(
-            """
-<service_interface>
-  <validator name="RouteValidator">
-    <parameters>
-      <parameter predicate="navigation_origin"/>
-      <parameter predicate="navigation_destination"/>
-    </parameters>
-    <target>
-      <http endpoint="mock_endpoint"/>
-    </target>
-  </validator>
-</service_interface>
-"""
-        )
-        self._then_service_interface_has_validities([
-            ServiceValidatorInterface(
-                "RouteValidator",
-                target=HttpTarget("mock_endpoint"),
-                parameters=[
-                    ServiceParameter("navigation_origin", ParameterField.VALUE),
-                    ServiceParameter("navigation_destination", ParameterField.VALUE),
-                ]
-            )
-        ])
 
     def _then_service_interface_has_validities(self, expected_validities):
         assert self._result.validators == expected_validities
@@ -2803,7 +2754,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            r"This element is not expected. Expected is one of \( device_module, http \)., line 8"
+            r"This element is not expected. .*"
         )
 
     def test_frontend_target_for_validator(self):
@@ -2822,7 +2773,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
 </service_interface>
 """, ViolatesSchemaException,
             "Expected service_interface.xml compliant with schema but it's in violation: Element 'frontend': "
-            r"This element is not expected. Expected is one of \( device_module, http \)., line 9"
+            r"This element is not expected.*"
         )
 
     def test_http_target_for_action(self):

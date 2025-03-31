@@ -1,4 +1,5 @@
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.json_api import JSONAPIMixin, JSONAPIObject
 
 
 class UnexpectedParameterFieldException(Exception):
@@ -44,7 +45,27 @@ FRONTEND_TARGET = "frontend_target"
 HTTP_TARGET = "http_target"
 
 
-class ServiceInterface(AsJSONMixin):
+class ServiceInterface(AsJSONMixin, JSONAPIMixin):
+    @classmethod
+    def create_from_json_api_data(cls, json_dict, _included):
+
+        actions = [
+            ServiceActionInterface.create_from_json_api_dict(action)
+            for action in json_dict["attributes"].get("actions", [])
+        ]
+
+        queries = [
+            ServiceQueryInterface.create_from_json_api_dict(query)
+            for query in json_dict["attributes"].get("queries", [])
+        ]
+
+        validators = [
+            ServiceValidatorInterface.create_from_json_api_dict(validator)
+            for validator in json_dict["attributes"].get("validators", [])
+        ]
+
+        return cls(actions, queries, validators)
+
     def __init__(self, actions, queries, validators):
         self._validate(actions)
         self._actions = {action.name: action for action in actions}
@@ -52,6 +73,24 @@ class ServiceInterface(AsJSONMixin):
         self._queries = {query.name: query for query in queries}
         self._validate(validators)
         self._validators = {validator.name: validator for validator in validators}
+
+    def as_json_api_dict(self):
+
+        service_interface = JSONAPIObject("tala.ddd.services.ServiceInterface", "ServiceInterface")
+
+        for _name, action in self._actions.items():
+            action_dict = action.as_json_api_dict()
+            service_interface.append_attribute("actions", action_dict)
+
+        for _name, query in self._queries.items():
+            query_dict = query.as_json_api_dict()
+            service_interface.append_attribute("queries", query_dict)
+
+        for _name, validator in self._validators.items():
+            validator_dict = validator.as_json_api_dict()
+            service_interface.append_attribute("validators", validator_dict)
+
+        return service_interface.as_dict
 
     def _validate(self, specific_interfaces):
         names = [interface.name for interface in specific_interfaces]
@@ -129,7 +168,7 @@ class ServiceInterface(AsJSONMixin):
         return json
 
 
-class SpecificServiceInterface(AsJSONMixin):
+class SpecificServiceInterface(AsJSONMixin, JSONAPIMixin):
     def __init__(self, interface_type, name, target):
         super(SpecificServiceInterface, self).__init__()
         self._interface_type = interface_type
@@ -169,6 +208,18 @@ class ParameterizedSpecificServiceInterface(SpecificServiceInterface):
         super(ParameterizedSpecificServiceInterface, self).__init__(interface_type, name, target)
         self._parameters = parameters
 
+    @classmethod
+    def create_parameters_from_json_api_dict(cls, data):
+        name = data["id"]
+        attributes = data["attributes"]
+        if attributes["target"]["target_type"] == HTTP_TARGET:
+            target = HttpTarget(attributes["target"]["endpoint"])
+        elif attributes["target"]["target_type"] == FRONTEND_TARGET:
+            target = FrontendTarget()
+        parameters = [ServiceParameter.create_from_json_api_dict(parameter) for parameter in attributes["parameters"]]
+
+        return name, target, parameters
+
     @property
     def parameters(self):
         return self._parameters
@@ -183,9 +234,9 @@ class ParameterizedSpecificServiceInterface(SpecificServiceInterface):
         )
 
 
-class BaseActionInterface(ParameterizedSpecificServiceInterface):
+class ServiceActionInterface(ParameterizedSpecificServiceInterface):
     def __init__(self, name, target, parameters, failure_reasons):
-        super(BaseActionInterface, self).__init__("action", name, target, parameters)
+        super(ServiceActionInterface, self).__init__("action", name, target, parameters)
         self._failure_reasons = failure_reasons
         self._validate_target_and_failure_reasons()
 
@@ -197,6 +248,13 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
                     "Expected no failure reasons for action '%s' with target 'frontend', but got %s" %
                     (self.name, failure_reason_names)
                 )
+
+    @classmethod
+    def create_from_json_api_dict(cls, data):
+        parameters = super().create_parameters_from_json_api_dict(data)
+        failure_reasons = [ActionFailureReason(reason) for reason in data["attributes"]["failure_reasons"]]
+        parameters += (failure_reasons, )
+        return cls(*parameters)
 
     @property
     def failure_reasons(self):
@@ -213,9 +271,16 @@ class BaseActionInterface(ParameterizedSpecificServiceInterface):
             and self.parameters == other.parameters and self.failure_reasons == other.failure_reasons
         )
 
-
-class ServiceActionInterface(BaseActionInterface):
-    pass
+    def as_json_api_dict(self):
+        return {
+            "type": "tala.ddd.services.service_interface.ServiceActionInterface",
+            "id": self.name,
+            "attributes": {
+                "target": self.target.as_json_api_attribute(),
+                "parameters": [parameter.as_json_api_attribute() for parameter in self.parameters],
+                "failure_reasons": [reason.name for reason in self.failure_reasons]
+            }
+        }
 
 
 class ServiceQueryInterface(ParameterizedSpecificServiceInterface):
@@ -223,11 +288,41 @@ class ServiceQueryInterface(ParameterizedSpecificServiceInterface):
         super(ServiceQueryInterface, self).__init__("query", *args, **kwargs)
         self.ensure_target_is_not_frontend()
 
+    @classmethod
+    def create_from_json_api_dict(cls, data):
+        parameters = super().create_parameters_from_json_api_dict(data)
+        return cls(*parameters)
+
+    def as_json_api_dict(self):
+        return {
+            "type": "tala.ddd.services.service_interface.ServiceQueryInterface",
+            "id": self.name,
+            "attributes": {
+                "target": self.target.as_json_api_attribute(),
+                "parameters": [parameter.as_json_api_attribute() for parameter in self.parameters],
+            }
+        }
+
 
 class ServiceValidatorInterface(ParameterizedSpecificServiceInterface):
     def __init__(self, *args, **kwargs):
         super(ServiceValidatorInterface, self).__init__("validator", *args, **kwargs)
         self.ensure_target_is_not_frontend()
+
+    def as_json_api_dict(self):
+        return {
+            "type": "tala.ddd.services.service_interface.ServiceValidatorInterface",
+            "id": self.name,
+            "attributes": {
+                "target": self.target.as_json_api_attribute(),
+                "parameters": [parameter.as_json_api_attribute() for parameter in self.parameters],
+            }
+        }
+
+    @classmethod
+    def create_from_json_api_dict(cls, data):
+        parameters = super().create_parameters_from_json_api_dict(data)
+        return cls(*parameters)
 
 
 class ServiceImplicationInterface(SpecificServiceInterface):
@@ -238,10 +333,23 @@ class ServiceImplicationInterface(SpecificServiceInterface):
         return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.target)
 
 
-class AbstractServiceParameter(AsJSONMixin):
-    def __init__(self, name, format):
+class ServiceParameter(AsJSONMixin):
+    VALID_FORMATS = [ParameterField.VALUE, ParameterField.GRAMMAR_ENTRY]
+
+    @classmethod
+    def create_from_json_api_dict(cls, data):
+        return cls(data["name"], data["format"], data["optional"])
+
+    def __init__(self, name, format=None, is_optional=None):
         self._name = name
+        is_optional = is_optional or False
+        format = format or ParameterField.VALUE
+        if format not in self.VALID_FORMATS:
+            raise UnexpectedParameterFieldException(
+                "Expected format as one of %s but got '%s' for parameter '%s'" % (self.VALID_FORMATS, format, name)
+            )
         self._format = format
+        self._is_optional = is_optional
 
     @property
     def name(self):
@@ -251,23 +359,8 @@ class AbstractServiceParameter(AsJSONMixin):
     def format(self):
         return self._format
 
-    @property
-    def is_optional(self):
-        raise NotImplementedError("Needs to be implemented")
-
-
-class ServiceParameter(AbstractServiceParameter):
-    VALID_FORMATS = [ParameterField.VALUE, ParameterField.GRAMMAR_ENTRY]
-
-    def __init__(self, name, format=None, is_optional=None):
-        is_optional = is_optional or False
-        format = format or ParameterField.VALUE
-        if format not in self.VALID_FORMATS:
-            raise UnexpectedParameterFieldException(
-                "Expected format as one of %s but got '%s' for parameter '%s'" % (self.VALID_FORMATS, format, name)
-            )
-        super(ServiceParameter, self).__init__(name, format)
-        self._is_optional = is_optional
+    def as_json_api_attribute(self):
+        return {"name": self.name, "format": self.format, "optional": self.is_optional}
 
     @property
     def is_optional(self):
@@ -325,6 +418,9 @@ class FrontendTarget(ServiceTarget):
     def __init__(self):
         super(FrontendTarget, self).__init__(FRONTEND_TARGET)
 
+    def as_json_api_attribute(self):
+        return {"target_type": FRONTEND_TARGET}
+
 
 class HttpTarget(ServiceTarget):
     def __init__(self, endpoint):
@@ -334,6 +430,9 @@ class HttpTarget(ServiceTarget):
     @property
     def endpoint(self):
         return self._endpoint
+
+    def as_json_api_attribute(self):
+        return {"target_type": HTTP_TARGET, "endpoint": self.endpoint}
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.endpoint)

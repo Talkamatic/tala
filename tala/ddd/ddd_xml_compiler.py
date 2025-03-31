@@ -16,7 +16,7 @@ from tala.ddd.services.service_interface import (
 from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.domain import Domain
-from tala.model.goal import PerformGoal, ResolveGoal
+from tala.model.goal import Perform, Resolve
 from tala.model.speaker import SYS, USR
 from tala.model.plan import Plan
 from tala.model.polarity import Polarity
@@ -392,10 +392,10 @@ class DomainCompiler(XmlCompiler):
         if goal_type == "perform":
             action_name = self._get_mandatory_attribute(element, "action")
             action = self._ontology.create_action(action_name)
-            return PerformGoal(action, SYS)
+            return Perform(action, SYS)
         elif goal_type == "resolve":
             question = self._compile_question(element, "question_type")
-            return ResolveGoal(question, SYS)
+            return Resolve(question, SYS)
         else:
             raise DDDXMLCompilerException("unsupported goal type %r" % goal_type)
 
@@ -444,8 +444,10 @@ class DomainCompiler(XmlCompiler):
         return flatten(plan_items)
 
     def _compile_plan_item_element(self, element):
-        if element.localName in ["findout", "raise", "bind"]:
+        if element.localName in ["findout", "raise"]:
             return self._compile_question_raising_plan_item_element(element.localName, element)
+        elif element.localName == "bind":
+            return self._compile_bind_element(element)
         elif element.localName == "if":
             return self._compile_if_element(element)
         elif element.localName == "once":
@@ -505,6 +507,10 @@ class DomainCompiler(XmlCompiler):
         if answer_from_pcom is None:
             return False
         return True
+
+    def _compile_bind_element(self, element):
+        question = self._compile_question(element)
+        return [plan_item.Bind(question)]
 
     def _compile_if_element(self, element):
         def compile_condition():
@@ -821,7 +827,7 @@ class DomainCompiler(XmlCompiler):
     def _compile_perform_proposition(self, element):
         action_name = self._get_mandatory_attribute(element, "action")
         action = self._ontology.create_action(action_name)
-        return GoalProposition(PerformGoal(action))
+        return GoalProposition(Perform(action))
 
     def _compile_resolve_proposition(self, element):
         question = self._compile_question(element, "type")
@@ -829,7 +835,7 @@ class DomainCompiler(XmlCompiler):
         speaker_attribute = element.getAttribute("speaker")
         if speaker_attribute == "user":
             speaker = USR
-        return GoalProposition(ResolveGoal(question, speaker))
+        return GoalProposition(Resolve(question, speaker))
 
     def _compile_if_then_child_plan(self, element, node_name):
         def compile_then_or_else_node(then_or_else_node):

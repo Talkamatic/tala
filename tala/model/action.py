@@ -9,12 +9,20 @@ HOW = "how"
 
 
 class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
+    @classmethod
+    def create_from_json_api_data(cls, action_data, included):
+        return cls(action_data["attributes"]["name"], action_data["attributes"]["ontology_name"])
+
     def __init__(self, value, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         self.value = value
 
     def is_action(self):
         return True
+
+    @property
+    def name(self):
+        return self.value
 
     def get_value(self):
         warnings.warn("Action.get_value() is deprecated. Use Action.value instead.", DeprecationWarning, stacklevel=2)
@@ -43,6 +51,19 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __ne__(self, other):
         return not (self == other)
+
+    def as_json_api_dict(self):
+        return {
+            "data": {
+                "type": "tala.model.action",
+                "id": f"{self.ontology_name}:{self.name}",
+                "attributes": {
+                    "ontology_name": self.ontology_name,
+                    "name": self.name
+                }
+            },
+            "included": []
+        }
 
 
 class TopAction(Action):

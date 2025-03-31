@@ -1,18 +1,20 @@
 import copy
 import re
+from typing import Iterable, Dict
 import warnings
 
+from tala.model.action import Action
 from tala.model.error import OntologyError
 from tala.model.individual import Individual, NegativeIndividual
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
 from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
-from tala.model.action import Action
 from tala.model.sort import DomainSort, Sort, BuiltinSortRepository
-from tala.model.polarity import Polarity
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unique import unique
+from tala.utils.json_api import JSONAPIObject, JSONAPIMixin
 
 
 class IndividualExistsException(Exception):
@@ -47,22 +49,102 @@ class DddOntology:
     pass
 
 
-class Ontology(AsJSONMixin):
-    DEFAULT_ACTIONS = {"top", "up", "how"}
+DEFAULT_ACTIONS = {"top", "up", "how"}
 
-    def __init__(self, name, sorts, predicates, individuals, actions):
+
+class Ontology(AsJSONMixin, JSONAPIMixin):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        def get_sorts(data, included):
+            for sort in data["relationships"]["sorts"]["data"]:
+                sort_data = included.get_object_from_relationship(sort)
+                yield Sort.create_from_json_api_data(sort_data, included)
+
+        def get_predicates(data, included):
+            for predicate in data["relationships"]["predicates"]["data"]:
+                predicate_data = included.get_object_from_relationship(predicate)
+                yield Predicate.create_from_json_api_data(predicate_data, included)
+
+        def get_individuals(data, included, sorts):
+            for individual in data["relationships"]["individuals"]["data"]:
+                individual_data = included.get_object_from_relationship(individual)
+                individual = Individual.create_from_json_api_data(individual_data, included)
+                yield individual.value, individual.sort
+
+        def get_sort(name, sorts):
+            for sort in sorts:
+                if sort.name == name:
+                    return sort
+
+        def get_actions(data, included):
+            for action in data["relationships"]["actions"]["data"]:
+                action_data = included.get_object_from_relationship(action)
+                yield action_data["attributes"]["name"]
+
+        name = data["id"]
+        sorts = list(get_sorts(data, included))
+        predicates = list(get_predicates(data, included))
+        individuals = {individual_name: sort for individual_name, sort in get_individuals(data, included, sorts)}
+        actions = list(get_actions(data, included))
+        return cls(name, sorts, predicates, individuals, actions)
+
+    def __init__(
+        self, name: str, sorts: Iterable[Sort], predicates: Iterable[Predicate], individuals: Dict[str, Sort],
+        actions: Iterable[str]
+    ):
         super(Ontology, self).__init__()
         self._name = name
         self._sorts = self._set_to_dict(sorts)
         self._predicates = self._set_to_dict(predicates)
         self._individuals = individuals
         self._original_individuals = copy.deepcopy(individuals)
-        self._actions = self.DEFAULT_ACTIONS.union(actions)
+        self._actions = DEFAULT_ACTIONS.union(actions)
         self._add_default_sorts()
         self._add_builtin_sorts_for_predicates()
         self._validate_individuals()
         self._validate_predicates()
         self._check_predicate_action_integrity()
+
+    def as_json_api_dict(self):
+        def create_relationship_data_and_include(resource_object):
+            data = {"type": resource_object["type"], "id": resource_object["id"]}
+            include = resource_object
+            return data, include
+
+        d = JSONAPIObject(
+            "tala.model.ontology", self._name, {"name": self._name}, {
+                "predicates": {
+                    "data": []
+                },
+                "individuals": {
+                    "data": []
+                },
+                "sorts": {
+                    "data": []
+                },
+                "actions": {
+                    "data": []
+                }
+            }, []
+        )
+
+        for predicate in self.predicates:
+            predicate_data = predicate.as_json_api_dict()
+            d.append_relationship("predicates", predicate_data)
+
+        for individual in self.individuals_as_objects:
+            individual_data = individual.as_json_api_dict()
+            d.append_relationship("individuals", individual_data)
+
+        for action in self.ddd_specific_actions:
+            action_data = self.create_action(action).as_json_api_dict()
+            d.append_relationship("actions", action_data)
+
+        for sort in self.sorts:
+            sort_data = sort.as_json_api_dict()
+            d.append_relationship("sorts", sort_data)
+
+        return d.as_dict
 
     def as_dict(self):
         json = super(Ontology, self).as_dict()
@@ -77,6 +159,22 @@ class Ontology(AsJSONMixin):
     @property
     def name(self):
         return self._name
+
+    @property
+    def sorts(self):
+        return [sort for _name, sort in self._sorts.items() if not sort.is_builtin()]
+
+    @property
+    def individuals(self):
+        return self._individuals.items()
+
+    @property
+    def predicates(self):
+        return [predicate for name, predicate in self._predicates.items()]
+
+    @property
+    def ddd_specific_actions(self):
+        return self._actions.difference(DEFAULT_ACTIONS)
 
     def _set_to_dict(self, set_):
         dict_ = {}
@@ -139,15 +237,6 @@ class Ontology(AsJSONMixin):
 
     def get_actions(self):
         return self._actions
-
-    def get_ddd_specific_actions(self):
-        return self._actions.difference(self.DEFAULT_ACTIONS)
-
-    def get_action(self, name):
-        if name not in self._actions:
-            raise ActionDoesNotExistException("Expected one of the known sorts %s but got '%s'" % (self._actions, name))
-        else:
-            return Action(name, ontology_name=self.name)
 
     @property
     def individuals_as_objects(self):

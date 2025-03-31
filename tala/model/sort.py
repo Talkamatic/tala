@@ -24,6 +24,13 @@ BUILTIN_SORTS = [BOOLEAN, INTEGER, DATETIME, REAL, STRING, IMAGE, DOMAIN, WEBVIE
 
 
 class Sort(SemanticObject):
+    @classmethod
+    def create_from_json_api_data(cls, sort_entry, included):
+        if sort_entry["type"].endswith("CustomSort"):
+            return CustomSort.create_from_json_api_data(sort_entry)
+        else:
+            return create_builtin_sort(sort_entry["id"])
+
     def __init__(self, name, dynamic=False):
         self._name = name
         self._dynamic = dynamic
@@ -35,8 +42,12 @@ class Sort(SemanticObject):
     def name(self):
         return self._name
 
-    def is_dynamic(self):
+    @property
+    def dynamic(self):
         return self._dynamic
+
+    def is_dynamic(self):
+        return self.dynamic
 
     def is_builtin(self):
         return False
@@ -135,6 +146,47 @@ class Sort(SemanticObject):
         except InvalidValueException:
             return False
         return True
+
+    @property
+    def json_api_id(self):
+        try:
+            return f"{self.ontology_name}:{self.name}"
+        except Exception:
+            return self.name
+
+    @property
+    def json_api_attributes(self):
+        if self.is_builtin():
+            return []
+        else:
+            return ["ontology_name", "name", "dynamic"]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
+
+def create_builtin_sort(sort_name):
+    if sort_name in BUILTIN_SORTS:
+        if sort_name == DATETIME:
+            return DateTimeSort()
+        if sort_name == REAL:
+            return RealSort()
+        if sort_name == PERSON_NAME:
+            return PersonNameSort()
+        if sort_name == INTEGER:
+            return IntegerSort()
+        if sort_name == BOOLEAN:
+            return BooleanSort()
+        if sort_name == STRING:
+            return StringSort()
+        if sort_name == DOMAIN:
+            return DomainSort()
+        if sort_name == IMAGE:
+            return ImageSort()
+        if sort_name == WEBVIEW:
+            return WebviewSort()
+    raise BuiltinSortException(f"sort {sort_name} is not a built-in sort.")
 
 
 class UnsupportedValue(Exception):
@@ -315,6 +367,11 @@ class PersonNameSort(BuiltinSort):
 
 
 class CustomSort(Sort, OntologySpecificSemanticObject):
+    @classmethod
+    def create_from_json_api_data(cls, dict_):
+        sort = cls(dict_["attributes"]["ontology_name"], dict_["attributes"]["name"], dict_["attributes"]["dynamic"])
+        return sort
+
     def __init__(self, ontology_name, name, dynamic=False):
         Sort.__init__(self, name, dynamic=dynamic)
         OntologySpecificSemanticObject.__init__(self, ontology_name)

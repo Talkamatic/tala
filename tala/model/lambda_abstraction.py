@@ -1,10 +1,9 @@
-import warnings
-
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
+from tala.model.predicate import Predicate
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
-class LambdaAbstractedProposition():
+class LambdaAbstractedProposition:
     LAMBDA_ABSTRACTED_PREDICATE_PROPOSITION = "LambdaAbstractedPredicateProposition"
     LAMBDA_ABSTRACTED_IMPLICATION_PROPOSITION_FOR_CONSEQUENT = "LambdaAbstractedImplicationPropositionForConsequent"
     LAMBDA_ABSTRACTED_GOAL_PROPOSITION = "LambdaAbstractedGoalProposition"
@@ -20,6 +19,15 @@ class LambdaAbstractedProposition():
 class LambdaAbstractedPredicateProposition(
     LambdaAbstractedProposition, OntologySpecificSemanticObject, AsSemanticExpressionMixin
 ):
+    @classmethod
+    def create_from_json_api_data(cls, lambda_abstraction_data, included):
+        predicate_entry = included.get_object_from_relationship(
+            lambda_abstraction_data["relationships"]["predicate"]["data"]
+        )
+        predicate = Predicate.create_from_json_api_data(predicate_entry, included)
+        ontology_name = lambda_abstraction_data["attributes"]["ontology_name"]
+        return cls(predicate, ontology_name)
+
     def __init__(self, predicate, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         LambdaAbstractedProposition.__init__(self, self.LAMBDA_ABSTRACTED_PREDICATE_PROPOSITION)
@@ -41,30 +49,24 @@ class LambdaAbstractedPredicateProposition(
     def __ne__(self, other):
         return not (self == other)
 
-    def getPredicate(self):
-        warnings.warn(
-            "LambdaAbstractedPredicateProposition.getPredicate() is deprecated. "
-            "Use LambdaAbstractedPredicateProposition.predicate instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.predicate
-
     @property
     def sort(self):
         return self.predicate.sort
 
-    def getSort(self):
-        warnings.warn(
-            "LambdaAbstractedPredicateProposition.getSort() is deprecated. "
-            "Use LambdaAbstractedPredicateProposition.sort instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.sort
-
     def __hash__(self):
         return hash((self.__class__.__name__, self.predicate))
+
+    @property
+    def json_api_id(self):
+        return f"{self}"
+
+    @property
+    def json_api_attributes(self):
+        return ["ontology_name"]
+
+    @property
+    def json_api_relationships(self):
+        return ["predicate"]
 
 
 class LambdaAbstractedImplicationPropositionForConsequent(LambdaAbstractedProposition, OntologySpecificSemanticObject):

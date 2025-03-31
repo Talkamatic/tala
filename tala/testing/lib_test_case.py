@@ -29,6 +29,7 @@ class LibTestCase(unittest.TestCase, EqualityAssertionTestCaseMixin):
 
         self._create_semantic_objects()
         self.ddd = self._create_and_add_ddd()
+        self.maxDiff = None
 
     def _create_ontology(self):
         sorts = {

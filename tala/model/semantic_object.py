@@ -1,7 +1,8 @@
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.json_api import JSONAPIMixin
 
 
-class SemanticObject(AsJSONMixin):
+class SemanticObject(AsJSONMixin, JSONAPIMixin):
     def is_yes(self):
         return False
 

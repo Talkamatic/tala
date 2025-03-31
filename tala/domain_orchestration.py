@@ -35,30 +35,11 @@ def create_odb_as_json(
     odb_as_json["log_to_stdout"] = log_to_stdout
     odb_as_json["log_level"] = log_level
 
-    ddds = load_ddds(odb_as_json["ddd_names"], overridden_ddd_config_paths, raw_config["rerank_amount"])
+    extended_ddds = load_ddds(odb_as_json["ddd_names"], overridden_ddd_config_paths, raw_config["rerank_amount"])
 
-    odb_as_json["ddds"] = [ddd.as_json() for ddd in ddds]
-
-    _check_integrity(odb_as_json)
+    odb_as_json["ddds"] = [extended_ddd.ddd.as_json_api_dict() for extended_ddd in extended_ddds]
 
     return odb_as_json
-
-
-def _check_integrity(odb_as_json):
-    def check_active_ddd():
-        if odb_as_json["active_ddd_name"] is None:
-            raise UnknownActiveDddException(
-                f"Expected active_ddd to be defined in backend config ({odb_as_json['ddd_names']}), "
-                "but active_ddd was undefined."
-            )
-
-        if odb_as_json["active_ddd_name"] not in odb_as_json["ddd_names"]:
-            raise UnknownActiveDddException(
-                "Expected active_ddd as one of %s, but got %r." %
-                (odb_as_json["active_ddd_name"], odb_as_json["ddd_names"])
-            )
-
-    check_active_ddd()
 
 
 def load_ddds(ddd_names, overridden_config_paths, rerank_amount):

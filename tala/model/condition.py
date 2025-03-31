@@ -1,4 +1,7 @@
 from tala.model.semantic_object import SemanticObject
+from tala.model.predicate import Predicate
+from tala.model.proposition import PredicateProposition
+from tala.model.question import Question
 
 HAS_VALUE = "HasValue"
 IS_TRUE = "IsTrue"
@@ -32,6 +35,12 @@ def create_condition(type_, parameter):
         return HasValue(parameter)
     if type_ == IS_TRUE:
         return IsTrue(parameter)
+
+
+def create_from_json_api_data(condition_data, included):
+    class_name = condition_data["attributes"]["condition_type"]
+    target_cls = globals().get(class_name)
+    return target_cls.create_from_json_api_data(condition_data, included)
 
 
 class Condition(SemanticObject):
@@ -68,6 +77,12 @@ class Condition(SemanticObject):
 
 
 class HasValue(Condition):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        predicate_entry = included.get_object_from_relationship(data["relationships"]["predicate"]["data"])
+        predicate = Predicate.create_from_json_api_data(predicate_entry, included)
+        return cls(predicate)
+
     def __init__(self, predicate, type_=HAS_VALUE):
         super().__init__(type_)
         self._predicate = predicate
@@ -94,6 +109,18 @@ class HasValue(Condition):
 
     def __repr__(self):
         return "{}({})".format(self.condition_type, self.predicate)
+
+    @property
+    def json_api_id(self):
+        return f"{self.condition_type}:{self.predicate}"
+
+    @property
+    def json_api_attributes(self):
+        return ["condition_type"]
+
+    @property
+    def json_api_relationships(self):
+        return ["predicate"]
 
 
 class HasSharedValue(HasValue):
@@ -122,6 +149,12 @@ class HasSharedOrPrivateValue(HasValue):
 
 
 class IsTrue(Condition):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        proposition_entry = included.get_object_from_relationship(data["relationships"]["proposition"]["data"])
+        proposition = PredicateProposition.create_from_json_api_data(proposition_entry, included)
+        return cls(proposition)
+
     def __init__(self, proposition, type_=IS_TRUE):
         super().__init__(type_)
         self._proposition = proposition
@@ -141,6 +174,18 @@ class IsTrue(Condition):
 
     def __repr__(self):
         return "{}({})".format(self.condition_type, self.proposition)
+
+    @property
+    def json_api_id(self):
+        return f"{self.condition_type}:{self.proposition}"
+
+    @property
+    def json_api_attributes(self):
+        return ["condition_type"]
+
+    @property
+    def json_api_relationships(self):
+        return ["proposition"]
 
 
 class IsSharedCommitment(IsTrue):
@@ -169,6 +214,15 @@ class IsPrivateBeliefOrSharedCommitment(IsTrue):
 
 
 class QueryHasMoreItems(Condition):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        try:
+            query = data["attributes"]["query"]
+        except KeyError:
+            query_entry = included.get_object_from_relationship(data["relationships"]["query"]["data"])
+            query = Question.create_from_json_api_data(query_entry, included)
+        return cls(query)
+
     def __init__(self, query, type_=QUERY_HAS_MORE_ITEMS):
         super().__init__(type_)
         self._query = query
@@ -192,3 +246,21 @@ class QueryHasMoreItems(Condition):
 
     def __repr__(self):
         return "{}({})".format(self.condition_type, self.query)
+
+    @property
+    def json_api_id(self):
+        return f"{self.condition_type}:{self.query}"
+
+    @property
+    def json_api_attributes(self):
+        if str(self.query) == self.query:
+            return ["condition_type", "query"]
+        else:
+            return ["condition_type"]
+
+    @property
+    def json_api_relationships(self):
+        if str(self.query) == self.query:
+            return []
+        else:
+            return ["query"]

@@ -1,10 +1,11 @@
-import warnings
-
-from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.lambda_abstraction import (
+    LambdaAbstractedPredicateProposition, LambdaAbstractedProposition, LambdaAbstractedGoalProposition
+)
+from tala.model.predicate import Predicate  # noqa
+from tala.model.proposition import Proposition, PropositionSet
 from tala.model.semantic_object import SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
-from tala.model.goal import PERFORM
 
 
 class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
@@ -16,9 +17,18 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     TYPES = [TYPE_WH, TYPE_YESNO, TYPE_ALT, TYPE_KPQ, TYPE_CONSEQUENT]
 
-    def __init__(self, type, content):
+    @classmethod
+    def create_from_json_api_data(cls, question_data, included):
+        class_name = question_data["type"].rsplit(".", 1)[-1]
+        target_cls = globals().get(class_name)
+
+        if target_cls is not None:
+            return target_cls.create_from_json_api_data(question_data, included)
+        raise Exception(f"cannot instantiate object of class {class_name}")
+
+    def __init__(self, type_, content):
         SemanticObjectWithContent.__init__(self, content)
-        self._type = type
+        self._type = type_
         self._content = content
 
     def __eq__(self, other):
@@ -28,8 +38,24 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
         except AttributeError:
             return False
 
-    def __ne__(self, other):
-        return not (self == other)
+    @property
+    def json_api_id(self):
+        if self.is_ontology_specific():
+            return f"{self.ontology_name}:{self.type_}:{self.content}"
+        else:
+            return f"{self.type_}:{self.content}"
+
+    @property
+    def json_api_attributes(self):
+        try:
+            if self.ontology_name:
+                return ["ontology_name", "type_"]
+        except NotImplementedError:
+            return ["type_"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content"]
 
     def __hash__(self):
         return hash((self._content, self._type))
@@ -45,7 +71,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
                 return False
         elif self.is_alt_question():
             for alt in self.content:
-                if (alt.is_goal_proposition() and alt.get_goal().type_ == PERFORM):
+                if (alt.is_goal_proposition() and alt.get_goal().type_ == "PERFORM_GOAL"):
                     return True
         elif self.is_yes_no_question():
             return self.content.is_goal_proposition()
@@ -75,45 +101,39 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
     def sort(self):
         return self.predicate.sort
 
-    def get_sort(self):
-        warnings.warn("Question.get_sort() is deprecated. Use Question.sort instead.", DeprecationWarning, stacklevel=2)
-        return self.sort
-
     @property
     def content(self):
         return self._content
-
-    def get_content(self):
-        warnings.warn(
-            "Question.get_content() is deprecated. Use Question.content instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.content
 
     @property
     def type_(self):
         return self._type
 
-    def get_type(self):
-        warnings.warn(
-            "Question.get_predicate() is deprecated. Use Question.predicate instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.type_
-
     @property
     def predicate(self):
         return self.content.predicate
 
-    def get_predicate(self):
-        warnings.warn(
-            "Question.get_predicate() is deprecated. Use Question.predicate instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.predicate
-
     def __str__(self):
-        return "?" + unicodify(self._content)
+        return "?" + unicodify(self.content)
 
 
 class WhQuestion(Question):
+    @classmethod
+    def create_from_json_api_data(cls, lambda_abstraction_data, included):
+        lambda_abstraction_entry = included.get_object_from_relationship(
+            lambda_abstraction_data["relationships"]["content"]["data"]
+        )
+        if lambda_abstraction_entry["type"].endswith(
+            LambdaAbstractedProposition.LAMBDA_ABSTRACTED_PREDICATE_PROPOSITION
+        ):
+            lambda_abstraction = LambdaAbstractedPredicateProposition.create_from_json_api_data(
+                lambda_abstraction_entry, included
+            )
+            return cls(lambda_abstraction)
+        if lambda_abstraction_entry["type"].endswith(LambdaAbstractedProposition.LAMBDA_ABSTRACTED_GOAL_PROPOSITION):
+            return cls(LambdaAbstractedGoalProposition())
+        raise NotImplementedError(f'{lambda_abstraction_entry["type"]} is not implemented')
+
     def __init__(self, lambda_abstraction):
         Question.__init__(self, Question.TYPE_WH, lambda_abstraction)
 
@@ -122,6 +142,12 @@ class WhQuestion(Question):
 
 
 class AltQuestion(Question):
+    @classmethod
+    def create_from_json_api_data(cls, question_data, included):
+        propositions = included.get_object_from_relationship(question_data["relationships"]["content"]["data"])
+        proposition_set = PropositionSet.create_from_json_api_data(propositions, included)
+        return cls(proposition_set)
+
     def __init__(self, proposition_set):
         Question.__init__(self, Question.TYPE_ALT, proposition_set)
 
@@ -140,6 +166,12 @@ class AltQuestion(Question):
 
 
 class YesNoQuestion(Question):
+    @classmethod
+    def create_from_json_api_data(cls, question_data, included):
+        proposition_entry = included.get_object_from_relationship(question_data["relationships"]["content"]["data"])
+        proposition = Proposition.create_from_json_api_data(proposition_entry, included)
+        return cls(proposition)
+
     def __init__(self, proposition):
         Question.__init__(self, Question.TYPE_YESNO, proposition)
 

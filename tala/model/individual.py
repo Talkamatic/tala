@@ -1,12 +1,20 @@
-import warnings
 import re
 
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.model.polarity import Polarity
+from tala.model.sort import Sort
 
 
 class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
+    @classmethod
+    def create_from_json_api_data(cls, individual_data, included):
+        sort_entry = included.get_object_from_relationship(individual_data["relationships"]["sort"]["data"])
+        sort = Sort.create_from_json_api_data(sort_entry, included)
+        ontology_name = individual_data["attributes"]["ontology_name"]
+        value = individual_data["attributes"]["value"]
+        return cls(ontology_name, value, sort)
+
     def __init__(self, ontology_name, value, sort):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         if sort.is_string_sort():
@@ -14,18 +22,6 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         self.value = value
         self.sort = sort
         self.polarity = Polarity.POS
-
-    def getValue(self):
-        warnings.warn(
-            "Individual.getValue() is deprecated. Use Individual.value instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.value
-
-    def getSort(self):
-        warnings.warn(
-            "Individual.getSort() is deprecated. Use Individual.sort instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.sort
 
     def is_individual(self):
         return True
@@ -71,6 +67,21 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def value_as_json_object(self):
         return self.sort.value_as_json_object(self.value)
+
+    @property
+    def json_api_id(self):
+        try:
+            return f"{self.ontology_name}:{self.value}"
+        except Exception:
+            return self.value
+
+    @property
+    def json_api_attributes(self):
+        return ["ontology_name", "value"]
+
+    @property
+    def json_api_relationships(self):
+        return ["sort"]
 
 
 class NegativeIndividual(Individual):

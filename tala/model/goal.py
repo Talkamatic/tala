@@ -1,6 +1,6 @@
-import warnings
-
 from tala.model.move import RequestMove, AskMove
+from tala.model.question import Question
+from tala.model.action import Action
 from tala.model import speaker
 from tala.model.semantic_object import SemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -11,6 +11,20 @@ RESOLVE = "RESOLVE_GOAL"
 
 
 class Goal(SemanticObject, AsSemanticExpressionMixin):
+    @classmethod
+    def create_from_json_api_data(self, data, included):
+        content = included.get_object_from_relationship(data["relationships"]["content"]["data"])
+        type_ = data["attributes"]["type_"]
+        target = data["attributes"]["target"]
+
+        if type_.endswith(RESOLVE):
+            question = Question.create_from_json_api_data(content, included)
+            return Resolve(question, target)
+        if type_.endswith(PERFORM):
+            action = Action.create_from_json_api_data(content, included)
+            return Perform(action, target)
+        raise Exception(f"Unsupported goal: '{type_}'")
+
     def __init__(self, goal_type, target):
         self._goal_type = goal_type
         self._target = target
@@ -25,20 +39,12 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
     def is_resolve_goal(self):
         return False
 
-    def is_handle_goal(self):
-        return False
-
     def is_top_goal(self):
         return False
 
     @property
     def type_(self):
         return self._goal_type
-
-    @property
-    def type(self):
-        warnings.warn("Goal.type is deprecated. Use Goal.type_ instead.", DeprecationWarning, stacklevel=2)
-        return self.type_
 
     @property
     def target(self):
@@ -84,14 +90,6 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
     def content(self):
         return self._content
 
-    def get_content(self):
-        warnings.warn(
-            "GoalWithSemanticContent.get_content() is deprecated. Use GoalWithSemanticContent.content instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self._content
-
     def is_goal_with_semantic_content(self):
         return True
 
@@ -132,6 +130,18 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
     def as_move(self):
         raise NotImplementedError()
 
+    @property
+    def json_api_id(self):
+        return f"{self.type_}.{self.target}:{self.content}"
+
+    @property
+    def json_api_attributes(self):
+        return ["type_", "target"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content"]
+
 
 class Perform(GoalWithSemanticContent):
     def __init__(self, action, target=speaker.SYS):
@@ -144,10 +154,6 @@ class Perform(GoalWithSemanticContent):
     @staticmethod
     def filter():
         return Goal.goal_filter(PERFORM)
-
-    def get_action(self):
-        warnings.warn("Goal.get_action() is deprecated. Use Goal.action instead.", DeprecationWarning, stacklevel=2)
-        return self.action
 
     @property
     def action(self):
@@ -184,10 +190,6 @@ class Resolve(GoalWithSemanticContent):
 
     @property
     def issue(self):
-        return self.content
-
-    def get_question(self):
-        warnings.warn("Goal.get_question() is deprecated. Use Goal.question instead.", DeprecationWarning, stacklevel=2)
         return self.content
 
     @staticmethod

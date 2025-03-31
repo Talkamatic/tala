@@ -1,12 +1,18 @@
 import copy
-import warnings
 
+from tala import model
 from tala.model.error import DomainError
 from tala.model.move import ICMMove
-from tala.model.proposition import Proposition
+from tala.model.proposition import Proposition, PredicateProposition
+from tala.model.question import Question, WhQuestion  # noqa
+from tala.model.goal import Perform, Resolve  # noqa
+from tala.model.predicate import Predicate  # noqa
+from tala.model.action import Action
+from tala.model.condition import Condition, create_condition  # noqa
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
+from tala.utils.json_api import JSONAPIObject, get_attribute
 
 TYPE_RESPOND = "respond"
 TYPE_GREET = "greet"
@@ -90,9 +96,18 @@ ALL_PLAN_ITEM_TYPES = [
 
 
 class PlanItem(SemanticObject, AsSemanticExpressionMixin):
-    def __init__(self, type):
+    @classmethod
+    def create_from_json_api_data(cls, plan_item_data, included):
+        class_name = plan_item_data["type"].rsplit(".", 1)[-1]
+        target_cls = globals().get(class_name)
+
+        if target_cls is not None:
+            return target_cls.create_from_json_api_data(plan_item_data, included)
+        raise DomainError(f"cannot instantiate object of class {class_name}")
+
+    def __init__(self, type_):
         SemanticObject.__init__(self)
-        self._type = type
+        self._type = type_
 
     def __repr__(self):
         return "%s%s" % (PlanItem.__class__.__name__, (self._type, ))
@@ -113,18 +128,8 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
     def type_(self):
         return self._type
 
-    def get_type(self):
-        warnings.warn(
-            "PlanItem.get_type() is deprecated. Use PlanItem.type_ instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.type_
-
     def is_plan_item(self):
         return True
-
-    def getType(self):
-        warnings.warn("PlanItem.getType() is deprecated. Use PlanItem.type_ instead.", DeprecationWarning, stacklevel=2)
-        return self._type
 
     def is_question_raising_item(self):
         return False
@@ -170,8 +175,14 @@ class PlanItemWithContent(PlanItem):
 
 
 class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
-    def __init__(self, type, content):
-        PlanItem.__init__(self, type)
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        semantic_content_entry = included.get_object_from_relationship(data["relationships"]["content"]["data"])
+        semantic_content = PlanItem.create_from_json_api_data(semantic_content_entry, included)
+        return cls(semantic_content)
+
+    def __init__(self, type_, content):
+        PlanItem.__init__(self, type_)
         SemanticObjectWithContent.__init__(self, content)
         self._content = content
 
@@ -191,37 +202,24 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
     def __hash__(self):
         return hash((self.__class__.__name__, self._type, self._content))
 
-    def get_type(self):
-        warnings.warn(
-            "PlanItemWithSemanticContent.get_type() is deprecated. Use PlanItemWithSemanticContent.type_ instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-
-        return self._type
-
     @property
     def content(self):
         return self._content
 
-    def get_content(self):
-        warnings.warn(
-            "PlanItemWithSemanticContent.get_content() is deprecated. Use PlanItemWithSemanticContent.content instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self._content
-
-    def getContent(self):
-        warnings.warn(
-            "PlanItemWithSemanticContent.getContent() is deprecated. Use PlanItemWithSemanticContent.content instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.content
-
     def as_dict(self):
         return {self.type_: self._content}
+
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.content.json_api_id}"
+
+    @property
+    def json_api_attributes(self):
+        return ["type_"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content"]
 
 
 class Assume(PlanItemWithSemanticContent):
@@ -243,16 +241,39 @@ class AssumeSharedPlanItem(AssumeShared):
 
 
 class AssumeIssue(PlanItemWithSemanticContent):
-    def __init__(self, content, insist=False):
-        PlanItemWithSemanticContent.__init__(self, TYPE_ASSUME_ISSUE, content=content)
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        issue_data = included.get_object_from_relationship(data["relationships"]["issue"]["data"])
+        issue = Question.create_from_json_api_data(issue_data, included)
+        insist = data["attributes"]["should_insist"]
+        return cls(issue, insist)
+
+    def __init__(self, issue, insist=False):
+        PlanItemWithSemanticContent.__init__(self, TYPE_ASSUME_ISSUE, content=issue)
         self._should_insist = insist
 
     @property
     def should_insist(self):
         return self._should_insist
 
+    @property
+    def issue(self):
+        return self.content
+
     def as_dict(self):
         return {"insist": self.should_insist} | super().as_dict()
+
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.content.json_api_id}:{self.should_insist}"
+
+    @property
+    def json_api_attributes(self):
+        return ["should_insist"]
+
+    @property
+    def json_api_relationships(self):
+        return ["issue"]
 
 
 class AssumeIssuePlanItem(AssumeIssue):
@@ -359,6 +380,12 @@ class EmitIcm(EmitICM):
 
 
 class Bind(PlanItemWithSemanticContent):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        question_entry = included.get_object_from_relationship(data["relationships"]["question"]["data"])
+        question = PlanItem.create_from_json_api_data(question_entry, included)
+        return cls(question)
+
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_BIND, content)
 
@@ -366,9 +393,17 @@ class Bind(PlanItemWithSemanticContent):
     def question(self):
         return self.content
 
-    def get_question(self):
-        warnings.warn("Bind.get_question() is deprecated. Use Bind.question instead.", DeprecationWarning, stacklevel=2)
-        return self.question
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.question.json_api_id}"
+
+    @property
+    def json_api_attributes(self):
+        return []
+
+    @property
+    def json_api_relationships(self):
+        return ["question"]
 
 
 class BindPlanItem(Bind):
@@ -389,6 +424,29 @@ class JumpToPlanItem(JumpTo):
 
 
 class IfThenElse(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        condition_data = included.get_object_from_relationship(data["relationships"]["condition"]["data"])
+        if condition_data["type"].endswith("PredicateProposition"):
+            condition = PredicateProposition.create_from_json_api_data(condition_data, included)
+        else:
+            condition = model.condition.create_from_json_api_data(condition_data, included)
+        consequent = []
+        try:
+            for consequent_data in data["relationships"]["consequent"]["data"]:
+                item_data = included.get_object_from_relationship(consequent_data)
+                consequent.append(PlanItem.create_from_json_api_data(item_data, included))
+        except KeyError:
+            pass
+        alternative = []
+        try:
+            for alternative_data in data["relationships"]["alternative"]["data"]:
+                item_data = included.get_object_from_relationship(alternative_data)
+                alternative.append(PlanItem.create_from_json_api_data(item_data, included))
+        except KeyError:
+            pass
+        return cls(condition, consequent, alternative)
+
     def __init__(self, condition, consequent, alternative):
         self.condition = condition
         self.consequent = consequent
@@ -457,8 +515,21 @@ class IfThenElse(PlanItem):
             }
         }
 
+    def as_json_api_dict(self):
+        obj = JSONAPIObject("tala.model.plan_item.IfThenElse")
+        obj.add_relationship("condition", self.condition.as_json_api_dict())
+        for item in self.consequent:
+            obj.append_relationship("consequent", item.as_json_api_dict())
+        for item in self.alternative:
+            obj.append_relationship("alternative", item.as_json_api_dict())
+        return obj.as_dict
+
 
 class ForgetAll(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, plan_item_data, included):
+        return cls()
+
     def __init__(self):
         PlanItem.__init__(self, TYPE_FORGET_ALL)
 
@@ -503,6 +574,18 @@ class MaxResultsNotSupportedException(Exception):
 
 
 class InvokeQuery(PlanItemWithSemanticContent):
+    def __init__(self, issue, type_, min_results=None, max_results=None):
+        PlanItemWithSemanticContent.__init__(self, type_, issue)
+        min_results = min_results or 0
+        if min_results < 0:
+            raise MinResultsNotSupportedException("Expected 'min_results' to be 0 or above but got %r." % min_results)
+        if max_results is not None and max_results < 1:
+            raise MaxResultsNotSupportedException(
+                "Expected 'max_results' to be None or above 0 but got %r." % max_results
+            )
+        self._min_results = min_results
+        self._max_results = max_results
+
     @property
     def min_results(self):
         return self._min_results
@@ -514,23 +597,6 @@ class InvokeQuery(PlanItemWithSemanticContent):
     @property
     def question(self):
         return self._content
-
-    def get_min_results(self):
-        warnings.warn(
-            "InvokeQuery.get_min_results() is deprecated. Use InvokeQuery.min_results instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-
-        return self.min_results
-
-    def get_max_results(self):
-        warnings.warn(
-            "InvokeQuery.get_max_results() is deprecated. Use InvokeQuery.max_results instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.max_results
 
     def __str__(self):
         return "invoke_service_query(%s, min_results=%s, max_results=%s)" % (
@@ -556,41 +622,65 @@ class InvokeQuery(PlanItemWithSemanticContent):
             }
         }
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.question.json_api_id}"
+
+    @property
+    def json_api_attributes(self):
+        return ["min_results", "max_results"]
+
+    @property
+    def json_api_relationships(self):
+        return ["question"]
+
 
 class InvokeQueryPlanItem(InvokeQuery):
     pass
 
 
-class InvokeServiceQuery(InvokeQueryPlanItem):
+class InvokeServiceQuery(InvokeQuery):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        question_data = included.get_object_from_relationship(data["relationships"]["question"]["data"])
+        question = Question.create_from_json_api_data(question_data, included)
+        min_results = data["attributes"]["min_results"]
+        max_results = data["attributes"]["max_results"]
+        min_results = int(min_results) if min_results else min_results
+        max_results = int(max_results) if max_results else max_results
+        return cls(question, min_results, max_results)
+
     def __init__(self, issue, min_results=None, max_results=None):
-        min_results = min_results or 0
-        if min_results < 0:
-            raise MinResultsNotSupportedException("Expected 'min_results' to be 0 or above but got %r." % min_results)
-        if max_results is not None and max_results < 1:
-            raise MaxResultsNotSupportedException(
-                "Expected 'max_results' to be None or above 0 but got %r." % max_results
-            )
-        PlanItemWithSemanticContent.__init__(self, TYPE_INVOKE_SERVICE_QUERY, issue)
-        self._min_results = min_results
-        self._max_results = max_results
+        InvokeQuery.__init__(self, issue, TYPE_INVOKE_SERVICE_QUERY, min_results, max_results)
 
 
 class InvokeServiceQueryPlanItem(InvokeServiceQuery):
     pass
 
 
-class InvokeDomainQuery(InvokeQueryPlanItem):
+class InvokeDomainQuery(InvokeQuery):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        question_data = included.get_object_from_relationship(data["relationships"]["question"]["data"])
+        question = Question.create_from_json_api_data(question_data, included)
+        min_results = int(data["attributes"]["min_results"])
+        max_results = int(data["attributes"]["max_results"])
+        return cls(question, min_results, max_results)
+
     def __init__(self, issue, min_results=None, max_results=None):
-        min_results = min_results or 0
-        if min_results < 0:
-            raise MinResultsNotSupportedException("Expected 'min_results' to be 0 or above but got %r." % min_results)
-        if max_results is not None and max_results < 1:
-            raise MaxResultsNotSupportedException(
-                "Expected 'max_results' to be None or above 0 but got %r." % max_results
-            )
-        PlanItemWithSemanticContent.__init__(self, TYPE_INVOKE_DOMAIN_QUERY, issue)
-        self._min_results = min_results
-        self._max_results = max_results
+        InvokeQuery.__init__(self, issue, TYPE_INVOKE_DOMAIN_QUERY, min_results, max_results)
+
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.question.json_api_id}"
+
+    @property
+    def json_api_attributes(self):
+        return ["min_results", "max_results"]
+
+    @property
+    def json_api_relationships(self):
+        return ["question"]
 
 
 class InvokeDomainQueryPlanItem(InvokeDomainQuery):
@@ -600,6 +690,15 @@ class InvokeDomainQueryPlanItem(InvokeDomainQuery):
 class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
     INTERROGATIVE = "INTERROGATIVE"
     ASSERTIVE = "ASSERTIVE"
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        ontology_name = data["attributes"]["ontology_name"]
+        service_action = data["attributes"]["service_action"]
+        preconfirm = data["attributes"]["preconfirm"]
+        postconfirm = data["attributes"]["postconfirm"]
+        should_downdate_plan = data["attributes"]["_downdate_plan"]
+        return cls(ontology_name, service_action, preconfirm, postconfirm, should_downdate_plan)
 
     def __init__(self, ontology_name, service_action, preconfirm=None, postconfirm=False, downdate_plan=True):
         self.service_action = service_action
@@ -625,11 +724,12 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         return self._downdate_plan
 
     def __eq__(self, other):
-        return super(InvokeServiceAction, self).__eq__(other) and other.get_service_action() == self.get_service_action(
-        ) and other.has_interrogative_preconfirmation() == self.has_interrogative_preconfirmation(
-        ) and other.has_assertive_preconfirmation() == self.has_assertive_preconfirmation(
-        ) and other.has_postconfirmation() == self.has_postconfirmation() and other.should_downdate_plan(
-        ) == self.should_downdate_plan()
+        return super(InvokeServiceAction, self).__eq__(other) \
+            and other.get_service_action() == self.get_service_action() \
+            and other.has_interrogative_preconfirmation() == self.has_interrogative_preconfirmation() \
+            and other.has_assertive_preconfirmation() == self.has_assertive_preconfirmation() \
+            and other.has_postconfirmation() == self.has_postconfirmation() \
+            and other.should_downdate_plan() == self.should_downdate_plan()
 
     def __str__(self):
         return "invoke_service_action(%s, {preconfirm=%s, postconfirm=%s, downdate_plan=%s})" % (
@@ -646,12 +746,20 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         return {
             self.type_: {
                 "service_action": self.service_action,
-                "ontology": self.ontology_name,
+                "ontology": self._ontology_name,
                 "preconfirm": self.preconfirm,
                 "postconfirm": self.postconfirm,
                 "downdate_plan": self._downdate_plan,
             }
         }
+
+    @property
+    def json_api_id(self):
+        return f"{self.ontology_name}.{self.service_action}.{self.preconfirm}.{self.postconfirm}.{self._downdate_plan}"
+
+    @property
+    def json_api_attributes(self):
+        return ["service_action", "ontology_name", "preconfirm", "postconfirm", "_downdate_plan", "type_"]
 
 
 class InvokeServiceActionPlanItem(InvokeServiceAction):
@@ -724,6 +832,12 @@ class Handle(PlanItem, OntologySpecificSemanticObject):
             }
         }
 
+    def as_json_api_dict(self):
+        obj = JSONAPIObject.create_from_dict(super().as_json_api_dict())
+        obj.add_attribute("service_action", self.service_action)
+        obj.add_attribute("ontology", self.ontology_name)
+        return obj.as_dict
+
 
 class HandlePlanItem(Handle):
     pass
@@ -735,6 +849,12 @@ class UnexpectedLogLevelException(Exception):
 
 class Log(PlanItem):
     LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        message = get_attribute("message", data)
+        level = get_attribute("level", data)
+        return cls(message, level)
 
     def __init__(self, message, log_level="debug"):
         if log_level not in self.LOG_LEVELS:
@@ -763,12 +883,27 @@ class Log(PlanItem):
     def as_dict(self):
         return {self.type_: {"message": self.message, "level": self.level}}
 
+    @property
+    def json_api_relationships(self):
+        return []
+
+    @property
+    def json_api_attributes(self):
+        return ["message", "level"]
+
 
 class LogPlanItem(Log):
     pass
 
 
 class GetDone(PlanItemWithSemanticContent):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        action_entry = included.get_object_from_relationship(data["relationships"]["action"]["data"])
+        action = Action.create_from_json_api_data(action_entry, included)
+        step = data["attributes"]["step"]
+        return cls(action, step)
+
     def __init__(self, action, step=None):
         PlanItemWithSemanticContent.__init__(self, TYPE_GET_DONE, action)
         self._step = step
@@ -784,12 +919,29 @@ class GetDone(PlanItemWithSemanticContent):
     def as_dict(self):
         return {"step": self._step} | super().as_dict()
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.step}:{self.action}"
+
+    @property
+    def json_api_relationships(self):
+        return ["action"]
+
+    @property
+    def json_api_attributes(self):
+        return ["step"]
+
 
 class GetDonePlanItem(GetDone):
     pass
 
 
 class GoalPerformed(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        postconfirm = data["attributes"]["postconfirm"]
+        return cls(postconfirm)
+
     def __init__(self, postconfirm):
         PlanItem.__init__(self, TYPE_ACTION_PERFORMED)
         self._postconfirm = postconfirm
@@ -801,12 +953,29 @@ class GoalPerformed(PlanItem):
     def as_dict(self):
         return {self.type_: self._postconfirm}
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.postconfirm}"
+
+    @property
+    def json_api_attributes(self):
+        return ["postconfirm"]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
 
 class GoalPerformedPlanItem(GoalPerformed):
     pass
 
 
 class GoalAborted(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, object_as_json, included):
+        reason = object_as_json["attributes"]["reason"]
+        return cls(reason)
+
     def __init__(self, reason):
         PlanItem.__init__(self, TYPE_ACTION_ABORTED)
         self._reason = reason
@@ -824,12 +993,24 @@ class GoalAborted(PlanItem):
     def as_dict(self):
         return {self.type_: self._reason}
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.reason}"
+
+    @property
+    def json_api_attributes(self):
+        return ["reason"]
+
 
 class GoalAbortedPlanItem(GoalAborted):
     pass
 
 
 class EndTurn(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, endturn_data, included):
+        return cls(endturn_data["attributes"]["timeout"])
+
     def __init__(self, timeout):
         PlanItem.__init__(self, TYPE_END_TURN)
         self._timeout = timeout
@@ -847,12 +1028,30 @@ class EndTurn(PlanItem):
     def as_dict(self):
         return {self.type_: self._timeout}
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.timeout}"
+
+    @property
+    def json_api_attributes(self):
+        return ["timeout", "type_"]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
 
 class EndTurnPlanItem(EndTurn):
     pass
 
 
 class ResetDomainQuery(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        query_entry = included.get_object_from_relationship(data["relationships"]["query"]["data"])
+        query = Question.create_from_json_api_data(query_entry, included)
+        return cls(query)
+
     def __init__(self, query):
         PlanItem.__init__(self, TYPE_RESET_DOMAIN_QUERY)
         self._query = query
@@ -870,12 +1069,28 @@ class ResetDomainQuery(PlanItem):
     def as_dict(self):
         return {self.type_: self._query}
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.query}"
+
+    @property
+    def json_api_attributes(self):
+        return []
+
+    @property
+    def json_api_relationships(self):
+        return ["query"]
+
 
 class ResetDomainQueryPlanItem(ResetDomainQuery):
     pass
 
 
 class Iterate(PlanItemWithContent):
+    @classmethod
+    def create_from_json_api_data(cls, endturn_data, _included):
+        return cls(endturn_data["attributes"]["iterator"])
+
     def __init__(self, iterator):
         PlanItemWithContent.__init__(self, TYPE_ITERATE, iterator)
 
@@ -889,12 +1104,28 @@ class Iterate(PlanItemWithContent):
     def __repr__(self):
         return f"IteratePlanItem('{self.iterator}')"
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.iterator}"
+
+    @property
+    def json_api_attributes(self):
+        return ["iterator"]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
 
 class IteratePlanItem(Iterate):
     pass
 
 
 class ChangeDDD(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, data, _included):
+        return cls(data["attributes"]["ddd"])
+
     def __init__(self, ddd):
         PlanItem.__init__(self, TYPE_CHANGE_DDD)
         self._ddd = ddd
@@ -912,6 +1143,18 @@ class ChangeDDD(PlanItem):
     def as_dict(self):
         return {self.type_: self._ddd}
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.ddd}"
+
+    @property
+    def json_api_attributes(self):
+        return ["ddd"]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
 
 class ChangeDDDPlanItem(ChangeDDD):
     pass
@@ -922,12 +1165,12 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
     SOURCE_DOMAIN = "domain"
     ALPHABETIC = "alphabetic"
 
-    def __init__(self, domain_name, type, content, allow_pcom_answer=False):
+    def __init__(self, domain_name, type_, content, allow_pcom_answer=False):
         if not content.is_question():
             raise DomainError("cannot create QuestionRaisingPlanItem " + "from non-question %s" % content)
         self._domain_name = domain_name
         self._allow_answer_from_pcom = allow_pcom_answer
-        PlanItemWithSemanticContent.__init__(self, type, content)
+        PlanItemWithSemanticContent.__init__(self, type_, content)
 
     @property
     def domain_name(self):
@@ -939,14 +1182,6 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
 
     def is_question_raising_item(self):
         return True
-
-    def get_question(self):
-        warnings.warn(
-            "QuestionRaisingPlanItem.get_question() is deprecated. Use QuestionRaisingPlanItem.question instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.question
 
     @property
     def question(self):
@@ -971,8 +1206,37 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
             "allow_answer_from_pcom": self._allow_answer_from_pcom
         }
 
+    @property
+    def json_api_type(self):
+        if self._type == TYPE_FINDOUT:
+            return f"{self.__class__.__module__}.Findout"
+        if self._type == TYPE_RAISE:
+            return f"{self.__class__.__module__}.Raise"
+        if self._type == TYPE_BIND:
+            return f"{self.__class__.__module__}.Bind"
+
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{self.content.json_api_id}:{self.allow_answer_from_pcom}"
+
+    @property
+    def json_api_attributes(self):
+        return ["type_", "domain_name", "allow_answer_from_pcom"]
+
+    @property
+    def json_api_relationships(self):
+        return ["question"]
+
 
 class Findout(QuestionRaisingPlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, plan_item_data, included):
+        question_entry = included.get_object_from_relationship(plan_item_data["relationships"]["question"]["data"])
+        question = Question.create_from_json_api_data(question_entry, included)
+        domain_name = plan_item_data["attributes"]["domain_name"]
+        allow_answer_from_pcom = plan_item_data["attributes"]["allow_answer_from_pcom"]
+        return cls(domain_name, question, allow_answer_from_pcom)
+
     def __init__(self, domain_name, content, allow_answer_from_pcom=False):
         QuestionRaisingPlanItem.__init__(self, domain_name, TYPE_FINDOUT, content, allow_answer_from_pcom)
 
@@ -982,6 +1246,13 @@ class FindoutPlanItem(Findout):
 
 
 class Raise(QuestionRaisingPlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, plan_item_data, included):
+        question_entry = included.get_object_from_relationship(plan_item_data["relationships"]["question"]["data"])
+        question = Question.create_from_json_api_data(question_entry, included)
+        domain_name = plan_item_data["attributes"]["domain_name"]
+        return cls(domain_name, question)
+
     def __init__(self, domain_name, content):
         QuestionRaisingPlanItem.__init__(self, domain_name, TYPE_RAISE, content)
 

@@ -135,7 +135,6 @@
             <xs:documentation>A target on the backend side that is fast enough to be called several times per session.</xs:documentation>
         </xs:annotation>
         <xs:choice minOccurs="1" maxOccurs="1">
-            <xs:element ref="device_module" minOccurs="1" maxOccurs="1"/>
             <xs:element ref="http" minOccurs="1" maxOccurs="1"/>
         </xs:choice>
     </xs:complexType>
@@ -146,7 +145,6 @@
         </xs:annotation>
         <xs:choice minOccurs="1" maxOccurs="1">
             <xs:element ref="frontend" minOccurs="1" maxOccurs="1"/>
-            <xs:element ref="device_module" minOccurs="1" maxOccurs="1"/>
             <xs:element ref="http" minOccurs="1" maxOccurs="1"/>
         </xs:choice>
     </xs:complexType>
@@ -158,14 +156,6 @@
         <xs:complexType/>
     </xs:element>
 
-    <xs:element name="device_module">
-        <xs:annotation>
-            <xs:documentation>Delegate to the 'device_module' specified in the DDD config.</xs:documentation>
-        </xs:annotation>
-        <xs:complexType>
-            <xs:attribute name="device" type="xs:string" use="required"/>
-        </xs:complexType>
-    </xs:element>
 
     <xs:element name="http">
       <xs:annotation>
@@ -178,7 +168,7 @@
 
     <xs:simpleType name="parameter_format">
         <xs:annotation>
-            <xs:documentation>'value' is the semantic value while 'grammar_entry' is the corresponding grammar entry on the given language. Note: the parameter format is only used when the target is '<frontend/>' or '<device_module/>'. When the target is '<http/>', both the value and the grammar entry are passed to the service.</xs:documentation>
+            <xs:documentation>'value' is the semantic value while 'grammar_entry' is the corresponding grammar entry on the given language. Note: the parameter format is only used when the target is '<frontend/>'. When the target is '<http/>', both the value and the grammar entry are passed to the service.</xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:enumeration value="value"/>

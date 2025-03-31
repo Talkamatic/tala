@@ -1,7 +1,8 @@
 from tala.utils.as_json import AsJSONMixin
+from tala.utils.json_api import JSONAPIMixin
 
 
-class ExtendedDDD(AsJSONMixin):
+class ExtendedDDD(AsJSONMixin, JSONAPIMixin):
     """ This is in practice a DDD with the addition of a parameter retriever and a parser """
     def __init__(self, ddd, parameter_retriever, parser, path=None):
         super(ExtendedDDD, self).__init__()

@@ -4,6 +4,7 @@ from tala.ddd.services.parameters.retriever import ParameterRetriever
 from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.domain_manager import DomainManager
 from tala.model.semantic_logic import SemanticLogic
+from tala.model.ddd import DDD
 
 
 class DDDAlreadyExistsException(Exception):
@@ -82,7 +83,7 @@ class DDDManager(object):
 
     def load_ddd_for_ontology_name(self, name):
         for ddd_as_json in self.ddds_as_json:
-            ontology_name = ddd_as_json["ontology"]["_name"]
+            ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
             if ontology_name == name:
                 self._parse_and_add(ddd_as_json)
                 return
@@ -96,12 +97,20 @@ class DDDManager(object):
         self.ddds_as_json = ddds_as_json
 
     def _get_ddd_as_json(self, name):
-        for ddd in self.ddds_as_json:
-            if name == ddd["ddd_name"]:
-                return ddd
+        for ddd_as_json in self.ddds_as_json:
+            if "data" in ddd_as_json and "version:id" in ddd_as_json["data"] and ddd_as_json["data"]["version:id"
+                                                                                                     ] == "2":
+                if name == ddd_as_json["data"]["attributes"]["name"]:
+                    return ddd_as_json
+            else:
+                if name == ddd_as_json["ddd_name"]:
+                    return ddd_as_json
 
     def _parse_and_add(self, ddd_as_json):
-        ddd = JSONDDDParser().parse(ddd_as_json)
+        if "data" in ddd_as_json and "version:id" in ddd_as_json["data"] and ddd_as_json["data"]["version:id"] == "2":
+            ddd = DDD.create_from_json_api_data(ddd_as_json)
+        else:
+            ddd = JSONDDDParser().parse(ddd_as_json)
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
         extended_ddd = ExtendedDDD(ddd, parameter_retriever, parser)

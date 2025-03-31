@@ -119,7 +119,7 @@ class TestOntologyBasic(TestOntology):
         self._then_result_is(set())
 
     def _when_get_ddd_specific_actions_is_called(self):
-        self._result = self._ontology.get_ddd_specific_actions()
+        self._result = self._ontology.ddd_specific_actions
 
     def test_individual_sort_for_custom_sort(self):
         self._given_ontology(

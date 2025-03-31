@@ -22,16 +22,18 @@ class DDDLoader(object):
     def _compile_ontology(self):
         ontology_xml = self._load_xml_resource("ontology.xml")
         ontology_args = self._xml_compiler.compile_ontology(ontology_xml)
-
-        return Ontology(**ontology_args)
+        ontology = Ontology(**ontology_args)
+        return ontology
 
     def _compile_service_interface(self):
         service_interface_xml = self._load_xml_resource("service_interface.xml")
-        return self._xml_compiler.compile_service_interface(service_interface_xml)
+        service_interface = self._xml_compiler.compile_service_interface(service_interface_xml)
+        return service_interface
 
     def _compile_domain(self, ontology, parser, service_interface):
         domain_args = self._domain_as_dict(ontology, parser)
-        return Domain(ontology=ontology, **domain_args)
+        domain = Domain(ontology=ontology, **domain_args)
+        return domain
 
     def _domain_as_dict(self, ontology, parser):
         domain_xml = self._load_xml_resource("domain.xml")
