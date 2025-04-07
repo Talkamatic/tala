@@ -1,6 +1,8 @@
 from unittest.mock import Mock
 
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, DeviceModuleTarget
+from tala.ddd.services.service_interface import (
+    ServiceInterface, ServiceActionInterface, ServiceValidatorInterface, HttpTarget
+)
 
 
 class DddCompilerTestCase(object):
@@ -11,7 +13,7 @@ class DddCompilerTestCase(object):
         self.mock_service_target = self._create_mock_service_target()
 
     def _create_mock_service_target(self):
-        mock_target = Mock(spec=DeviceModuleTarget)
+        mock_target = Mock(spec=HttpTarget)
         mock_target.is_frontend = False
         return mock_target
 

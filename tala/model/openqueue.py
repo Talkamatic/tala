@@ -146,14 +146,16 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
 
     def first(self):
         warnings.warn(
-            "OpenQueue.first() is deprecated. Use property OpenQueue.first instead.", DeprecationWarning, stacklevel=2
+            "OpenQueue.first() is deprecated. Use property OpenQueue.first_element instead.",
+            DeprecationWarning,
+            stacklevel=2
         )
         return self.first_element
 
     def is_first(self, element):
         if self.is_empty():
             return False
-        return self.first() == element
+        return self.first_element == element
 
     @property
     def last_element(self):
@@ -267,7 +269,7 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
             return False
 
     def _check_single_element_equality(self, other):
-        return self.first() == other.first()
+        return self.first_element == other.first_element
 
     def __hash__(self):
         return hash(self.front_content) + 17 * hash(self.back_content)

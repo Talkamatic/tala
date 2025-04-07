@@ -9,7 +9,10 @@ import xml.dom.minidom
 
 from lxml import etree
 
-from tala.ddd.services.service_interface import ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceInterface, DeviceModuleTarget, FrontendTarget, HttpTarget, ActionFailureReason
+from tala.ddd.services.service_interface import (
+    ServiceActionInterface, ServiceParameter, ServiceQueryInterface, ServiceValidatorInterface, ServiceInterface,
+    FrontendTarget, HttpTarget, ActionFailureReason
+)
 from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.domain import Domain
@@ -461,15 +464,10 @@ class DomainCompiler(XmlCompiler):
             return self._compile_iterate_element(element)
         elif element.localName == "change_ddd":
             return self._compile_change_ddd_element(element)
-        elif element.localName == "dev_query":
-            return self._compile_deprecated_dev_query_element(element)
         elif element.localName == "invoke_service_action":
             return self._compile_invoke_service_action_element(element)
         elif element.localName == "get_done":
             return self._compile_get_done_element(element)
-        elif element.localName == "dev_perform":
-            warnings.warn("<dev_perform> is deprecated. Use <invoke_service_action> instead.", DeprecationWarning)
-            return self._compile_deprecated_dev_perform_element(element)
         elif element.localName == "jumpto":
             return self._compile_jumpto_element(element)
         elif element.localName == "assume_shared":
@@ -571,13 +569,6 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_invoke_service_query_element(self, element):
         question = self._compile_question(element)
-        self._check_deprecation_of_device(question, element, "invoke_service_query")
-        return [plan_item.InvokeServiceQuery(question, min_results=1, max_results=1)]
-
-    def _compile_deprecated_dev_query_element(self, element):
-        warnings.warn('<dev_query> is deprecated. Use <invoke_service_query> instead.', DeprecationWarning)
-        question = self._compile_question(element)
-        self._check_deprecation_of_device(question, element, "dev_query")
         return [plan_item.InvokeServiceQuery(question, min_results=1, max_results=1)]
 
     def _compile_invoke_domain_query_element(self, element):
@@ -592,41 +583,14 @@ class DomainCompiler(XmlCompiler):
         ddd_name = self._get_mandatory_attribute(element, "name")
         return [plan_item.ChangeDDD(ddd_name)]
 
-    def _check_deprecation_of_device(self, question, element, name):
-        def fail(query, device, tag_name):
-            message = "Attribute 'device=\"%s\"' is not supported in <%s ... predicate='%s'>. " "Use 'service_interface.xml' instead." % (
-                device, tag_name, query
-            )
-            raise UnexpectedAttributeException(message)
-
-        device = self._get_optional_attribute(element, "device")
-        if device:
-            query = question.predicate.get_name()
-            fail(query, device, name)
-
     def _compile_invoke_service_action_element(self, element):
-        return self._compile_invoke_service_action_or_deprecated_dev_perform_element(element, "name")
-
-    def _compile_deprecated_dev_perform_element(self, element):
-        return self._compile_invoke_service_action_or_deprecated_dev_perform_element(element, "action")
-
-    def _compile_invoke_service_action_or_deprecated_dev_perform_element(self, element, action_attribute):
-        def fail(action, device):
-            message = "Attribute 'device=\"%s\"' is not supported in <invoke_service_action name='%s'>. Use 'service_interface.xml' instead." % (
-                device, action
-            )
-            raise UnexpectedAttributeException(message)
-
         def parse_downdate_plan():
             if element.hasAttribute("downdate_plan"):
                 return self._parse_boolean(element.getAttribute("downdate_plan"))
             else:
                 return True
 
-        action = self._get_mandatory_attribute(element, action_attribute)
-        device = self._get_optional_attribute(element, "device")
-        if device:
-            fail(action, device)
+        action = self._get_mandatory_attribute(element, "name")
         preconfirm = self._parse_preconfirm_value(element.getAttribute("preconfirm"))
         postconfirm = self._parse_boolean(element.getAttribute("postconfirm"))
         downdate_plan = parse_downdate_plan()
@@ -1151,19 +1115,12 @@ class ServiceInterfaceCompiler(XmlCompiler):
     def _compile_target(self, element):
         target_elements = element.getElementsByTagName("target")
         target_element = target_elements[0]
-        device_module_elements = target_element.getElementsByTagName("device_module")
-        if any(device_module_elements):
-            return self._compile_device_module_target(device_module_elements[0])
         frontend_elements = target_element.getElementsByTagName("frontend")
         if any(frontend_elements):
             return self._compile_frontend_target(frontend_elements[0])
         http_elements = target_element.getElementsByTagName("http")
         if any(http_elements):
             return self._compile_http_target(http_elements[0])
-
-    def _compile_device_module_target(self, element):
-        device = self._get_mandatory_attribute(element, "device")
-        return DeviceModuleTarget(device)
 
     def _compile_frontend_target(self, element):
         return FrontendTarget()

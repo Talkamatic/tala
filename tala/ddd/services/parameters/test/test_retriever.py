@@ -7,8 +7,9 @@ from tala.model.person_name import PersonName
 
 from tala.ddd.services.parameters.retriever import ParameterRetriever, ParameterNotFoundException
 from tala.ddd.services.parameters.binding import SingleInstanceParameterBinding, MultiInstanceParameterBinding
-from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface, DeviceModuleTarget, \
-    ServiceParameter, ParameterField
+from tala.ddd.services.service_interface import (
+    ServiceInterface, ServiceActionInterface, HttpTarget, ServiceParameter, ParameterField
+)
 from tala.model.individual import Individual
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.set import Set
@@ -74,7 +75,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("dest_city")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("dest_city")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -95,7 +96,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("dest_city")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("dest_city")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -125,7 +126,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("dest_city")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("dest_city")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -142,7 +143,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("dest_city")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("dest_city")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -166,7 +167,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("dest_city")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("dest_city")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -212,7 +213,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         )
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"),
+                "MakeReservation", HttpTarget("https://some-service.se"),
                 [ServiceParameter("dest_city", format=ParameterField.VALUE)], []
             )
         )
@@ -228,7 +229,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         self._given_ontology(predicates=set([self._predicate("n_stops", IntegerSort())]))
         self._given_service_interface(
             action=ServiceActionInterface(
-                "MakeReservation", DeviceModuleTarget(device="MockedDevice"), [ServiceParameter("n_stops")], []
+                "MakeReservation", HttpTarget("https://some-service.se"), [ServiceParameter("n_stops")], []
             )
         )
         self._given_created_parameter_retriever()
@@ -243,7 +244,7 @@ class ParameterRetrieverTestCase(unittest.TestCase):
         self._given_ontology(predicates=set([self._predicate("name_of_contact_to_call", PersonNameSort())]))
         self._given_service_interface(
             action=ServiceActionInterface(
-                "Call", DeviceModuleTarget(device="MockedDevice"),
+                "Call", HttpTarget("https://some-service.se"),
                 [ServiceParameter("name_of_contact_to_call", ParameterField.VALUE)], []
             )
         )

@@ -379,8 +379,6 @@ class JSONServiceInterfaceParser():
         return interface
 
     def parse_target(self, target_dict):
-        if target_dict.get("target_type") == service_interface.DEVICE_MODULE_TARGET:
-            return service_interface.DeviceModuleTarget(target_dict["_device"])
         if target_dict.get("target_type") == service_interface.FRONTEND_TARGET:
             return service_interface.FrontendTarget()
         if target_dict.get("target_type") == service_interface.HTTP_TARGET:

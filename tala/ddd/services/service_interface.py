@@ -40,7 +40,6 @@ class ParameterField:
 
 SEMANTIC_OBJECT_TYPE = "service_interface"
 
-DEVICE_MODULE_TARGET = "device_module_target"
 FRONTEND_TARGET = "frontend_target"
 HTTP_TARGET = "http_target"
 
@@ -305,10 +304,6 @@ class ServiceTarget(AsJSONMixin):
         self.target_type = target_type
 
     @property
-    def is_device_module(self):
-        return self.target_type == DEVICE_MODULE_TARGET
-
-    @property
     def is_frontend(self):
         return self.target_type == FRONTEND_TARGET
 
@@ -324,24 +319,6 @@ class ServiceTarget(AsJSONMixin):
 
     def __ne__(self, other):
         return not (self == other)
-
-
-class DeviceModuleTarget(ServiceTarget):
-    def __init__(self, device):
-        super(DeviceModuleTarget, self).__init__(DEVICE_MODULE_TARGET)
-        self._device = device
-
-    @property
-    def device(self):
-        return self._device
-
-    def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.device)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.device == other.device
 
 
 class FrontendTarget(ServiceTarget):

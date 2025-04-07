@@ -2,9 +2,9 @@ import pytest
 from unittest.mock import Mock, patch
 
 import tala.ddd.ddd_xml_compiler
-from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, UnexpectedAttributeException, OntologyWarning
+from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, OntologyWarning
 from tala.ddd.parser import Parser
-from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, DeviceModuleTarget, HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
+from tala.ddd.services.service_interface import ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget, HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
 
 from tala.ddd.test.ddd_compiler_test_case import DddCompilerTestCase
 from tala.model.ask_feature import AskFeature
@@ -2158,57 +2158,11 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             Plan([InvokeDomainQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
-    def test_invoke_service_action_with_device_attribute(self):
-        self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<invoke_service_action device="MockupDevice" name="MockupAction" />', UnexpectedAttributeException,
-            "Attribute 'device=\"MockupDevice\"' is not supported in <invoke_service_action name='MockupAction'>. "
-            "Use 'service_interface.xml' instead."
-        )
-
-    def test_invoke_service_query_with_device_attribute(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="dest_city" sort="city"/>
-  <sort name="city"/>
-</ontology>"""
-        )
-        self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<invoke_service_query type="wh_question" predicate="dest_city" device="MockupDevice"/>',
-            UnexpectedAttributeException, "Attribute 'device=\"MockupDevice\"' is not supported in "
-            "<invoke_service_query ... predicate='dest_city'>. Use 'service_interface.xml' instead."
-        )
-
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
         self, plan_xml, expected_exception, expected_message
     ):
         with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_domain_with_plan(plan_xml)
-
-    def test_dev_query_deprecation_warning(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
-            '<dev_query type="wh_question" predicate="price" />',
-            '<dev_query> is deprecated. Use <invoke_service_query> instead.'
-        )
-
-    def test_deprecated_dev_query(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="price" sort="real"/>
-</ontology>"""
-        )
-        self._when_compile_domain_with_plan_ignoring_warnings('<dev_query type="wh_question" predicate="price" />')
-        self._then_result_has_plan(
-            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
-        )
 
     def _when_compile_domain_with_plan_and_ignoring_warnings_then_exception_is_raised_matching(self, *args, **kwargs):
         with self._mock_warnings():
@@ -2250,42 +2204,12 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", downdate_plan=False)])
         )
 
-    def test_deprecated_dev_perform_default_attributes(self):
-        self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_ignoring_warnings('<dev_perform action="MockupAction" />')
-        self._then_result_has_plan(Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
-
     def _when_compile_domain_with_plan_ignoring_warnings(self, plan_xml):
         with self._mock_warnings():
             self._when_compile_domain_with_plan(plan_xml)
 
-    def test_deprecated_dev_perform_override_preconfirm(self):
-        self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_ignoring_warnings(
-            """
-          <dev_perform action="MockupAction" preconfirm="assertive" />"""
-        )
-        self._then_result_has_plan(
-            Plan([
-                InvokeServiceActionPlanItem(
-                    "MockupOntology", "MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
-                )
-            ])
-        )
-
-    def test_deprecated_dev_perform_override_postconfirm(self):
-        self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_ignoring_warnings(
-            '<dev_perform action="MockupAction" postconfirm="true" />'
-        )
         self._then_result_has_plan(
             Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)])
-        )
-
-    def test_dev_perform_deprecation_warning(self):
-        self._given_compiled_ontology()
-        self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
-            '<dev_perform action="MockupAction" />', "<dev_perform> is deprecated. Use <invoke_service_action> instead."
         )
 
     def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(self, plan_xml, expected_warning_message):
@@ -2619,16 +2543,14 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     <parameters/>
     <failure_reasons/>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
 """
         )
         self._then_service_interface_has_actions([
-            ServiceActionInterface(
-                "EndCall", target=DeviceModuleTarget("CallDevice"), parameters=[], failure_reasons=[]
-            )
+            ServiceActionInterface("EndCall", target=HttpTarget("mock_endpoint"), parameters=[], failure_reasons=[])
         ])
 
     def _when_compile_service_interface(self, device_xml):
@@ -2648,7 +2570,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     </parameters>
     <failure_reasons/>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
@@ -2657,7 +2579,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_actions([
             ServiceActionInterface(
                 "CallContact",
-                target=DeviceModuleTarget("CallDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
                     ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
@@ -2680,7 +2602,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
       <failure_reason name="missing_number"/>
     </failure_reasons>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
@@ -2689,7 +2611,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_actions([
             ServiceActionInterface(
                 "CallContact",
-                target=DeviceModuleTarget("CallDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("contact_to_call", ParameterField.VALUE, is_optional=False),
                     ServiceParameter("number_to_call", ParameterField.VALUE, is_optional=False),
@@ -2711,7 +2633,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     </parameters>
     <failure_reasons/>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
@@ -2720,7 +2642,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_actions([
             ServiceActionInterface(
                 "Snooze",
-                target=DeviceModuleTarget("CallDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("minutes_to_snooze", ParameterField.VALUE, is_optional=True),
                 ],
@@ -2738,7 +2660,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     </parameters>
     <failure_reasons/>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
@@ -2747,7 +2669,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_actions([
             ServiceActionInterface(
                 "CallContact",
-                target=DeviceModuleTarget("CallDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("contact_to_call", ParameterField.GRAMMAR_ENTRY),
                 ],
@@ -2765,7 +2687,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
     </parameters>
     <failure_reasons/>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </action>
 </service_interface>
@@ -2790,7 +2712,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
       <parameter predicate="contact_to_call"/>
     </parameters>
     <target>
-      <device_module device="CallDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </query>
 </service_interface>
@@ -2799,7 +2721,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_queries([
             ServiceQueryInterface(
                 "available_contact",
-                target=DeviceModuleTarget("CallDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("contact_to_call", ParameterField.VALUE),
                 ]
@@ -2819,7 +2741,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
       <parameter predicate="navigation_destination"/>
     </parameters>
     <target>
-      <device_module device="NavigationDevice"/>
+      <http endpoint="mock_endpoint"/>
     </target>
   </validator>
 </service_interface>
@@ -2828,7 +2750,7 @@ class TestServiceInterfaceCompiler(DDDXMLCompilerTestCase):
         self._then_service_interface_has_validities([
             ServiceValidatorInterface(
                 "RouteValidator",
-                target=DeviceModuleTarget("NavigationDevice"),
+                target=HttpTarget("mock_endpoint"),
                 parameters=[
                     ServiceParameter("navigation_origin", ParameterField.VALUE),
                     ServiceParameter("navigation_destination", ParameterField.VALUE),

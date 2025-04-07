@@ -27,7 +27,7 @@ class OpenQueueTests(unittest.TestCase):
         self.queue.enqueue(elem)
 
     def _first_returns(self, element):
-        actual_element = self.queue.first()
+        actual_element = self.queue.first_element
         self.assertEqual(element, actual_element)
 
     def test_first_element_property(self):
@@ -53,7 +53,7 @@ class OpenQueueTests(unittest.TestCase):
 
     def test_first_on_empty_queue_raises_exception(self):
         with self.assertRaises(OpenQueueError):
-            self.queue.first()
+            self.queue.first_element
 
     def test_last(self):
         self._given_an_element_enqueued("a")
@@ -69,7 +69,7 @@ class OpenQueueTests(unittest.TestCase):
         self.assertEqual(value, self.queue.last_element)
 
     def _last_returns(self, element):
-        actual_element = self.queue.last()
+        actual_element = self.queue.last_element
         self.assertEqual(element, actual_element)
 
     def test_empty(self):
@@ -198,7 +198,7 @@ class OpenQueueTests(unittest.TestCase):
     def test_enqueue_first(self):
         queue = OpenQueue(["b"])
         queue.enqueue_first("a")
-        self.assertEqual("a", queue.first())
+        self.assertEqual("a", queue.first_element)
 
     def test_remove_if_exists_for_existing_element(self):
         queue = OpenQueue(["first", "second"])
