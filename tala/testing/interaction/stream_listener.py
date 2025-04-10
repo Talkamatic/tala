@@ -7,7 +7,11 @@ TIMEOUT = 2.0
 
 
 class StreamListener(threading.Thread):
-    def __init__(self, session_id):
+    LEGACY_STREAMER_BASE_URL = 'https://tala-event-sse.azurewebsites.net/event-sse'
+    STREAMER_BASE_URL = 'https://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net/event-sse'
+
+    def __init__(self, streamer_url, session_id):
+        self._streamer_url = streamer_url
         self.current_data = None
         self.current_event = None
         self.stream_started = threading.Event()
@@ -20,7 +24,7 @@ class StreamListener(threading.Thread):
 
     def run(self):
         self._streamed_messages = []
-        response = requests.get(f'https://tala-event-sse.azurewebsites.net/event-sse/{self._session_id}', stream=True)
+        response = requests.get(f"{self._streamer_url}/{self._session_id}", stream=True)
         self.stream_started.set()
         for line in response.iter_lines():
             if line:  # filter out keep-alive new lines
@@ -51,8 +55,6 @@ class StreamListener(threading.Thread):
 
     def create_event_and_store(self):
         try:
-            if self.current_event == "STREAMING_CLEAR":
-                json_event = f'{{"event": "{self.current_event}"}}'
             if self.current_event == "STREAMING_DONE":
                 json_event = f'{{"event": "{self.current_event}"}}'
                 self._streaming_ended = time.time()
