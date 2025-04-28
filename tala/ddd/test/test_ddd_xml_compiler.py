@@ -2524,6 +2524,28 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             ])
         )
 
+    def test_run_once_syntactic_sugar(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan("""
+<once id="plan_id">
+  <raise predicate="price"/>
+</once>
+""")
+        self._then_result_has_plan(
+            Plan([
+                IfThenElse(
+                    condition.IsPrivateBelief(self._parse("plan_id()")), [],
+                    [self._parse("raise(?X.price(X))"),
+                     self._parse("assume(plan_id())")]
+                )
+            ])
+        )
+
     def test_signal_action_completion(self):
 
         self._given_compiled_ontology(

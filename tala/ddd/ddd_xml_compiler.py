@@ -1,10 +1,11 @@
 # flake8: noqa
 
+from xml.parsers.expat import ExpatError
 import os
 import re
+import uuid
 import warnings
 import xml.dom.minidom
-from xml.parsers.expat import ExpatError
 
 from lxml import etree
 
@@ -444,6 +445,8 @@ class DomainCompiler(XmlCompiler):
             return self._compile_question_raising_plan_item_element(element.localName, element)
         elif element.localName == "if":
             return self._compile_if_element(element)
+        elif element.localName == "once":
+            return self._compile_once_element(element)
         elif element.localName == "forget":
             return self._compile_forget_element(element)
         elif element.localName == "forget_shared":
@@ -681,6 +684,22 @@ class DomainCompiler(XmlCompiler):
         if insist == "true":
             return create_forgetting_plan()
         return create_non_forgetting_plan()
+
+    def _compile_once_element(self, element):
+        id_ = self._get_optional_attribute(element, "id")
+        predicate_name = id_ if id_ else f"_once_{str(uuid.uuid4())}"
+
+        if not self._ontology.has_predicate(predicate_name):
+            self._ontology.add_predicate(predicate_name, "boolean")
+
+        predicate = self._ontology.get_predicate(predicate_name)
+        proposition = PredicateProposition(predicate)
+        cond = condition.IsPrivateBelief(proposition)
+
+        plan = self._compile_plan_item_nodes(element.childNodes)
+        plan.append(plan_item.Assume(proposition))
+
+        return [plan_item.IfThenElse(cond, [], plan)]
 
     def _compile_predicate_proposition_child_of(self, element):
         child = self._get_single_child_element(element, ["proposition"])

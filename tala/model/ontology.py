@@ -5,10 +5,11 @@ import warnings
 from tala.model.error import OntologyError
 from tala.model.individual import Individual, NegativeIndividual
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.predicate import Predicate
 from tala.model.proposition import PredicateProposition
 from tala.model.question import YesNoQuestion, WhQuestion
 from tala.model.action import Action
-from tala.model.sort import DomainSort, Sort
+from tala.model.sort import DomainSort, Sort, BuiltinSortRepository
 from tala.model.polarity import Polarity
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unique import unique
@@ -162,6 +163,15 @@ class Ontology(AsJSONMixin):
         if name in list(self._individuals.keys()):
             raise IndividualExistsException("invididual %r already exists" % name)
         self._validate_name_and_add_individual(name, sort_as_string)
+
+    def add_predicate(self, name, sort_as_string):
+        if name in list(self._predicates.keys()):
+            raise OntologyError(f"predicate '{name}' already exists")
+        if self.has_sort(sort_as_string):
+            sort = self.get_sort(sort_as_string)
+        else:
+            sort = BuiltinSortRepository.get_sort(sort_as_string)
+        self._predicates[name] = Predicate(self.name, name, sort)
 
     def _validate_name_and_add_individual(self, name, sort_as_string):
         self._validate_individual_name(name)

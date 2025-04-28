@@ -124,6 +124,7 @@
                   minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="inform" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="if" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="once" type="once"/>
       <xs:element name="jumpto" type="has_goal" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="signal_action_completion" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="signal_action_failure" minOccurs="0" maxOccurs="unbounded"/>
@@ -216,6 +217,15 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+
+
+  <xs:complexType name="once">
+    <xs:complexContent>
+      <xs:extension base="plan">
+        <xs:attribute name="id" type="xs:string" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
 
   <xs:element name="invoke_service_action">
     <xs:annotation>
