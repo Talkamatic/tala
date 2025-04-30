@@ -27,6 +27,12 @@ class SemanticObjectException(Exception):
     pass
 
 
+def get_ddd_json_version(ddd_as_json):
+    if "data" in ddd_as_json and "version:id" in ddd_as_json["data"]:
+        return ddd_as_json["data"]["version:id"]
+    return "1"
+
+
 class DDDManager(object):
     def __init__(self):
         self.reset()
@@ -83,7 +89,10 @@ class DDDManager(object):
 
     def load_ddd_for_ontology_name(self, name):
         for ddd_as_json in self.ddds_as_json:
-            ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
+            if get_ddd_json_version(ddd_as_json) == "2":
+                ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
+            elif get_ddd_json_version(ddd_as_json) == "1":
+                ontology_name = ddd_as_json["ontology"]["_name"]
             if ontology_name == name:
                 self._parse_and_add(ddd_as_json)
                 return
@@ -98,11 +107,10 @@ class DDDManager(object):
 
     def _get_ddd_as_json(self, name):
         for ddd_as_json in self.ddds_as_json:
-            if "data" in ddd_as_json and "version:id" in ddd_as_json["data"] and ddd_as_json["data"]["version:id"
-                                                                                                     ] == "2":
+            if get_ddd_json_version(ddd_as_json) == "2":
                 if name == ddd_as_json["data"]["attributes"]["name"]:
                     return ddd_as_json
-            else:
+            if get_ddd_json_version(ddd_as_json) == "1":
                 if name == ddd_as_json["ddd_name"]:
                     return ddd_as_json
 
