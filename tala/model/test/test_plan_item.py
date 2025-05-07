@@ -394,3 +394,59 @@ class LogPlanItemTests(LibTestCase):
 
     def test_is_log_plan_item(self):
         self.assertEqual(self.log_plan_item.type_, plan_item.TYPE_LOG)
+
+
+class EndTurnTests(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+        self.timeout = 0.3
+        self.end_turn_plan_item = plan_item.EndTurn(self.timeout)
+
+    def test_string(self):
+        self.assertEqual(str(self.end_turn_plan_item), "end_turn(0.3)")
+
+    def test_is_endturn_plan_item(self):
+        self.assertEqual(self.end_turn_plan_item.type_, plan_item.TYPE_END_TURN)
+
+    def test_convert_to_json_api_dict(self):
+        self.assertEqual(
+            self.end_turn_plan_item.as_json_api_dict(), {
+                'data': {
+                    'attributes': {
+                        'timeout': 0.3,
+                        'type_': 'end_turn'
+                    },
+                    'id': 'tala.model.plan_item.EndTurn:0.3',
+                    'relationships': {},
+                    'type': 'tala.model.plan_item.EndTurn',
+                    'version:id': '2'
+                },
+                'included': []
+            }
+        )
+
+    def test_create_from_json_api_dict(self):
+        json_api_dict = self.end_turn_plan_item.as_json_api_dict()
+        self.assertEqual(
+            plan_item.EndTurn.create_from_json_api_data(json_api_dict["data"], json_api_dict["included"]),
+            self.end_turn_plan_item
+        )
+
+    def test_create_from_json_api_dict_handles_timeout_as_string(self):
+        json_api_dict = {
+            'data': {
+                'attributes': {
+                    'timeout': "0.3",
+                    'type_': 'end_turn'
+                },
+                'id': 'tala.model.plan_item.EndTurn:0.3',
+                'relationships': {},
+                'type': 'tala.model.plan_item.EndTurn',
+                'version:id': '2'
+            },
+            'included': []
+        }
+        self.assertEqual(
+            plan_item.EndTurn.create_from_json_api_data(json_api_dict["data"], json_api_dict["included"]),
+            self.end_turn_plan_item
+        )

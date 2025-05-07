@@ -1013,17 +1013,17 @@ class EndTurn(PlanItem):
 
     def __init__(self, timeout):
         PlanItem.__init__(self, TYPE_END_TURN)
-        self._timeout = timeout
+        self._timeout = float(timeout)
 
     @property
     def timeout(self):
         return self._timeout
 
     def __str__(self):
-        return f"end_turn('{self.timeout}')"
+        return f"end_turn({self.timeout})"
 
     def __repr__(self):
-        return f"EndTurnPlanItem('{self.timeout}')"
+        return f"EndTurn({self.timeout})"
 
     def as_dict(self):
         return {self.type_: self._timeout}
