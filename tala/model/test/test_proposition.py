@@ -139,6 +139,7 @@ class ServiceResultPropositionTests(LibTestCase):
 class PropositionSetTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
+        self.emtpy_prop_set = PropositionSet([])
         self.positive_prop_set = PropositionSet([self.proposition_dest_city_london, self.proposition_dest_city_paris])
         self.negative_prop_set = PropositionSet([self.proposition_dest_city_london, self.proposition_dest_city_paris],
                                                 polarity=Polarity.NEG)
@@ -405,6 +406,12 @@ class PropositionSetTests(LibTestCase):
 
     def then_sets_are_equal(self, set_1, set_2):
         self.assertEqual(set_1, set_2)
+
+    def test_recreated_empty_proposition_set_from_json_api_is_equal(self):
+        self.given_proposition_set(self.emtpy_prop_set)
+        self.given_proposition_set_as_json_api()
+        self.when_proposition_set_created_from_json_api()
+        self.then_sets_are_equal(self._recreated_proposition_set, self._proposition_set)
 
 
 class ServiceActionTerminatedTests(LibTestCase):

@@ -798,7 +798,10 @@ class RejectedPropositions(PropositionWithSemanticContent):
 class PropositionSet(Proposition):
     @classmethod
     def create_from_json_api_data(cls, data, included):
-        relationships = data["relationships"]["propositions_data"]["data"]
+        if data["relationships"]:
+            relationships = data["relationships"]["propositions_data"]["data"]
+        else:
+            relationships = []
         propositions_data = [included.get_object_from_relationship(relationship) for relationship in relationships]
         propositions = [Proposition.create_from_json_api_data(data, included) for data in propositions_data]
         polarity = data["attributes"]["polarity"]

@@ -47,10 +47,9 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
 
     @property
     def json_api_attributes(self):
-        try:
-            if self.ontology_name:
-                return ["ontology_name", "type_"]
-        except NotImplementedError:
+        if self.is_ontology_specific() and self.ontology_name:
+            return ["ontology_name", "type_"]
+        else:
             return ["type_"]
 
     @property

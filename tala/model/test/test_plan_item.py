@@ -2,9 +2,10 @@
 
 from tala.model.move import ICMMove, ICMMoveWithSemanticContent
 from tala.model import plan_item
-from tala.model.proposition import ServiceResultProposition
+from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase
 from tala.utils.unicodify import unicodify
+from tala.model import question
 
 
 class PlanItemTests(LibTestCase):
@@ -181,10 +182,13 @@ class PlanItemTests(LibTestCase):
         findout_plan_item = plan_item.Findout(self.domain_name, self.question, allow_answer_from_pcom=True)
         self.assertTrue(findout_plan_item.allow_answer_from_pcom)
 
-    #/// FindoutPlanItem is not used by ddd_xml_compiler. Only
-    # QuestionRaisingPlanItem is.
-    # 1. Tests?
-    # 2. Remove FindoutPlanItem?
+    def test_serialize_findout_with_empty_alts(self):
+        proposition_set = PropositionSet([])
+        alt_question = question.AltQuestion(proposition_set)
+        item = plan_item.Findout(self.domain_name, alt_question)
+        serialized_item = item.as_json_api_dict()
+        self.assertEqual(len(serialized_item["data"]), 5)
+        self.assertEqual(len(serialized_item["included"]), 2)
 
 
 class InvokeServiceActionPlanItemTests(LibTestCase):
