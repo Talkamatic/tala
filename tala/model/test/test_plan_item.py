@@ -450,3 +450,21 @@ class EndTurnTests(LibTestCase):
             plan_item.EndTurn.create_from_json_api_data(json_api_dict["data"], json_api_dict["included"]),
             self.end_turn_plan_item
         )
+
+
+class ContentlessPlanItemTests(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+        self.target_classes = [
+            plan_item.Greet, plan_item.Mute, plan_item.Unmute, plan_item.Quit, plan_item.RespondToInsult,
+            plan_item.RespondToThankYou
+        ]
+
+    def test_create_from_json_api_dict(self):
+        for target_class in self.target_classes:
+            target_instance = target_class()
+            json_api_dict = target_instance.as_json_api_dict()
+            self.assertEqual(
+                target_class.create_from_json_api_data(json_api_dict["data"], json_api_dict["included"]),
+                target_instance
+            )

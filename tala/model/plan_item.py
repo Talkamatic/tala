@@ -102,7 +102,10 @@ class PlanItem(SemanticObject, AsSemanticExpressionMixin):
         target_cls = globals().get(class_name)
 
         if target_cls is not None:
-            return target_cls.create_from_json_api_data(plan_item_data, included)
+            try:
+                return target_cls.create_from_json_api_data(plan_item_data, included)
+            except RecursionError as e:
+                raise Exception(f"recursion error when creating data from {plan_item_data}", e)
         raise DomainError(f"cannot instantiate object of class {class_name}")
 
     def __init__(self, type_):
@@ -302,7 +305,13 @@ class DoPlanItem(Do):
     pass
 
 
-class Quit(PlanItem):
+class PlanItemWithoutContent(PlanItem):
+    @classmethod
+    def create_from_json_api_data(cls, _data, _included):
+        return cls()
+
+
+class Quit(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_QUIT)
 
@@ -311,7 +320,7 @@ class QuitPlanItem(Quit):
     pass
 
 
-class Mute(PlanItem):
+class Mute(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_MUTE)
 
@@ -320,7 +329,7 @@ class MutePlanItem(Mute):
     pass
 
 
-class Unmute(PlanItem):
+class Unmute(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_UNMUTE)
 
@@ -329,7 +338,7 @@ class UnmutePlanItem(Unmute):
     pass
 
 
-class Greet(PlanItem):
+class Greet(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_GREET)
 
@@ -341,7 +350,7 @@ class GreetPlanItem(Greet):
     pass
 
 
-class RespondToInsult(PlanItem):
+class RespondToInsult(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_RESPOND_TO_INSULT)
 
@@ -350,7 +359,7 @@ class RespondToInsultPlanItem(RespondToInsult):
     pass
 
 
-class RespondToThankYou(PlanItem):
+class RespondToThankYou(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_RESPOND_TO_THANK_YOU)
 
