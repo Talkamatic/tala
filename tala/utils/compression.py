@@ -25,7 +25,7 @@ def compress_json(element_to_compress):
     compress data: dump as JSON, create bytes object, zip it and encode as base64.
 
     """
-    return compress_string(json.dumps(element_to_compress), 'utf-8')
+    return compress_string(json.dumps(element_to_compress))
 
 
 def compress(element):
