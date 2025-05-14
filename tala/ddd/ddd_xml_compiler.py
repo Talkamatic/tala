@@ -666,8 +666,7 @@ class DomainCompiler(XmlCompiler):
         proposition = PredicateProposition(predicate)
         cond = condition.IsPrivateBelief(proposition)
 
-        plan = self._compile_plan_item_nodes(element.childNodes)
-        plan.append(plan_item.Assume(proposition))
+        plan = [plan_item.Assume(proposition)] + self._compile_plan_item_nodes(element.childNodes)
 
         return [plan_item.IfThenElse(cond, [], plan)]
 

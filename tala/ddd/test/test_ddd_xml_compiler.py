@@ -2467,8 +2467,8 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             Plan([
                 IfThenElse(
                     condition.IsPrivateBelief(self._parse("plan_id()")), [],
-                    [self._parse("raise(?X.price(X))"),
-                     self._parse("assume(plan_id())")]
+                    [self._parse("assume(plan_id())"),
+                     self._parse("raise(?X.price(X))")]
                 )
             ])
         )
