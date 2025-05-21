@@ -73,11 +73,10 @@ class InteractionTester:
         self._port = port
         self._use_streaming = use_streaming
 
-    def start_session(self, session_data=None):
-        if session_data:
-            self._session_data = session_data
-        else:
-            self._initialize_session_object()
+    def start_session(self, offer=None):
+        self._initialize_session_object()
+        if offer:
+            self._session_data.update(offer)
         self._session_data["neural"] = self._neural
         self._latest_response = self._client.start_session(self._session_data)
         logger.info("starting session", session_id=self._session_id)
@@ -86,10 +85,10 @@ class InteractionTester:
     def _initialize_session_object(self):
         self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
 
-    def run_testcase(self, case):
+    def run_testcase(self, case, offer=None):
         self._initialize_testcase(case)
         self._start_clock()
-        self.start_session()
+        self.start_session(offer)
         success = True
         self._previous_entry_type = None
         for entry in case["interaction"]:
