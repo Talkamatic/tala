@@ -35,12 +35,18 @@ TDM_PROTOCOL_VERSION = "3.4"
 
 DEFAULT_DEVICE_ID = "interaction-tester"
 
+NO_VOICE_ACTIVATION = {"no_content": {}}
+
 logger = structlog.get_logger(__name__)
 log_level = getenv("LOG_LEVEL", "INFO")
 configure_stdout_logging(log_level)
 
 
 class InteractionTesterException(BaseException):
+    pass
+
+
+class NoInputAcceptedException(InteractionTesterException):
     pass
 
 
@@ -143,7 +149,7 @@ class InteractionTester:
 
     def check_for_consecutive_speaker(self, speaker):
         if self._previous_entry_type == speaker:
-            raise Exception(f"Two consecutive entries define '{speaker}' input")
+            raise InteractionTesterException(f"Two consecutive entries define '{speaker}' input")
 
     def _do_user_turn(self, user_entry):
         def create_interpretation(moves, utterance_content=""):
@@ -194,7 +200,7 @@ class InteractionTester:
             self._buffer_output(f"U> {utterance}")
             self._request_speech_input(utterance)
         else:
-            raise Exception("Nothing to do in user entry:", user_entry)
+            raise InteractionTesterException("Nothing to do in user entry:", user_entry)
         end_time = time.time()
         self._turn_times.append(end_time - start_time)
         return True
@@ -208,11 +214,14 @@ class InteractionTester:
         self._update_session_data()
 
     def _add_streamed_output(self):
-        if self._use_streaming:
-            self._latest_response[OUTPUT][UTTERANCE] = self._stream_listener_thread.system_utterance
-            self._stream_start_times.append(self._stream_listener_thread.streaming_started)
-            self._stream_end_times.append(self._stream_listener_thread.streaming_ended)
-            self._stream_listener_thread = None
+        if self._use_streaming and OUTPUT:
+            try:
+                self._latest_response[OUTPUT][UTTERANCE] = self._stream_listener_thread.system_utterance
+                self._stream_start_times.append(self._stream_listener_thread.streaming_started)
+                self._stream_end_times.append(self._stream_listener_thread.streaming_ended)
+                self._stream_listener_thread = None
+            except KeyError as e:
+                warnings.warn(f"latest response has no '{OUTPUT}' field: {e}")
 
     def _request_passivity(self):
         self._start_stream_listener()
@@ -232,7 +241,10 @@ class InteractionTester:
         self._update_session_data()
 
     def _update_session_data(self):
-        self._session_data = self._latest_response["session"]
+        try:
+            self._session_data = self._latest_response["session"]
+        except KeyError:
+            warnings.warn(f"response has no session data: {self._latest_response}")
 
     def _create_user_move(self, move):
         if self._ddd_name:
@@ -244,6 +256,10 @@ class InteractionTester:
         while self._is_request_for_service_invocation():
             self._make_service_request_and_create_tdm_request_with_service_invocation_result()
         else:
+
+            if self._latest_response == NO_VOICE_ACTIVATION:
+                return self._create_no_voice_activation_response()
+
             if EXPECTED_PASSIVITY in system_entry and self._passivity_mismatch(system_entry[EXPECTED_PASSIVITY]):
                 return self._create_passivity_mismatch_description(system_entry[EXPECTED_PASSIVITY])
             if MOVE_CONTENT in system_entry:
@@ -412,6 +428,14 @@ class InteractionTester:
         if expected_passivity_value == actual_value:
             return False
         return True
+
+    def _create_no_voice_activation_response(self):
+        self._result = {
+            "success": False,
+            "failure_description": "Backend requires voice activation to process content."
+        }
+        self._buffer_output("S> <Backend requires voice activation to process content>")
+        return False
 
     def _create_passivity_mismatch_description(self, expected_passivity_value):
         actual_value = self._latest_response[OUTPUT].get(EXPECTED_PASSIVITY, False)
