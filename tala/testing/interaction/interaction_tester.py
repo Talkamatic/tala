@@ -506,7 +506,7 @@ class InteractionTester:
                     f"\tstream_start_times = {self._stream_start_times}", ZeroDivisionWarning
                 )
 
-            response["max_stream_start"] = max(onset_times)
+            response["max_stream_start"] = max(onset_times) if onset_times else -1
 
             try:
                 response["avg_streaming_time"] = sum(streaming_times) / len(streaming_times)
@@ -519,7 +519,7 @@ class InteractionTester:
                     f"\tstream_start_times = {self._stream_start_times}"
                     f"\tstream_end_times = {self._stream_end_times}", ZeroDivisionWarning
                 )
-            response["max_streaming_time"] = max(streaming_times)
+            response["max_streaming_time"] = max(streaming_times) if streaming_times else -1
 
         response["avg_turn_time"] = sum(self._turn_times) / len(self._turn_times) if self._turn_times else 0
         response["max_turn_time"] = max(self._turn_times) if self._turn_times else 0
