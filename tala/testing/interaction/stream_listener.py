@@ -10,7 +10,7 @@ class StreamListener(threading.Thread):
     LEGACY_STREAMER_BASE_URL = 'https://tala-event-sse.azurewebsites.net/event-sse'
     STREAMER_BASE_URL = 'https://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net/event-sse'
 
-    def __init__(self, streamer_url, session_id):
+    def __init__(self, streamer_url, session_id, logger):
         self._streamer_url = streamer_url
         self.current_data = None
         self.current_event = None
@@ -20,18 +20,21 @@ class StreamListener(threading.Thread):
         self._session_id = session_id
         self._streaming_started = None
         self._streaming_ended = None
+        self._logger = logger
         super().__init__(daemon=True)
 
     def run(self):
         self._streamed_messages = []
         response = requests.get(f"{self._streamer_url}/{self._session_id}", stream=True)
         self.stream_started.set()
+        self._logger.info("listening to stream")
         for line in response.iter_lines():
             if line:  # filter out keep-alive new lines
                 decoded_line = line.decode('utf-8')
                 self.process_line(decoded_line)
             if self._please_stop.is_set():
                 break
+        self._logger.info("stream listener stopped listening", received_messages=self._streamed_messages)
         self._stopped.set()
 
     def process_line(self, line):
@@ -47,6 +50,7 @@ class StreamListener(threading.Thread):
         def extract_data():
             return line[len("data: "):]
 
+        self._logger.info("stream listener processing line", line=line)
         if is_event():
             self.current_event = extract_event()
         if is_data() and self.current_event:

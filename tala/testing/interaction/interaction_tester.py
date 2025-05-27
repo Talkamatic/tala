@@ -126,7 +126,7 @@ class InteractionTester:
 
     def _start_stream_listener(self):
         if self._use_streaming:
-            self._stream_listener_thread = StreamListener(StreamListener.STREAMER_BASE_URL, self._session_id)
+            self._stream_listener_thread = StreamListener(StreamListener.STREAMER_BASE_URL, self._session_id, logger)
             self._stream_listener_thread.start()
             self._stream_listener_thread.stream_started.wait()
 
