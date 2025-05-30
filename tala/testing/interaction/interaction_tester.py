@@ -97,18 +97,24 @@ class InteractionTester:
         self.start_session(offer)
         success = True
         self._previous_entry_type = None
-        for entry in case["interaction"]:
-            if entry[SPEAKER] == USER:
-                success = self._do_user_turn(entry)
-            elif entry[SPEAKER] == SYSTEM:
-                success = self._do_system_turn(entry)
-            if not success:
-                self._stop_clock()
-                return self._create_response(self._result)
-            self._previous_entry_type = entry[SPEAKER]
-        self._buffer_output('=== End interaction test ===')
+        try:
+            for entry in case["interaction"]:
+                if entry[SPEAKER] == USER:
+                    success = self._do_user_turn(entry)
+                elif entry[SPEAKER] == SYSTEM:
+                    success = self._do_system_turn(entry)
+                if not success:
+                    self._stop_clock()
+                    return self._create_response(self._result)
+                self._previous_entry_type = entry[SPEAKER]
+        except InteractionTesterException as e:
+            self._buffer_output('!!!! Exception raised during test !!!!')
+            self._buffer_output(f"Exception: {e}")
+            self._result = {"success": False}
+        else:
+            self._buffer_output('=== End interaction test ===')
+            self._result = {"success": True}
         self._stop_clock()
-        self._result = {"success": True}
         return self._create_response(self._result)
 
     def _initialize_testcase(self, testcase):
@@ -208,7 +214,10 @@ class InteractionTester:
     def _request_semantic_input(self, interpretations, entities=None):
         self._start_stream_listener()
         self._request_times.append(time.time())
-        self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
+        try:
+            self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
+        except Exception as e:
+            raise InteractionTesterException("Exception when executing test", e)
         logger.info("semantic_input response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
@@ -226,7 +235,10 @@ class InteractionTester:
     def _request_passivity(self):
         self._start_stream_listener()
         self._request_times.append(time.time())
-        self._latest_response = self._client.request_passivity(self._session_data)
+        try:
+            self._latest_response = self._client.request_passivity(self._session_data)
+        except Exception as e:
+            raise InteractionTesterException("Exception when executing test", e)
         logger.info("passivity response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
@@ -235,7 +247,10 @@ class InteractionTester:
         hypotheses = [InputHypothesis(utterance, 1.0)]
         self._start_stream_listener()
         self._request_times.append(time.time())
-        self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
+        try:
+            self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
+        except Exception as e:
+            raise InteractionTesterException("Exception when executing test", e)
         logger.info("speech_input response", response=self._latest_response)
         self._add_streamed_output()
         self._update_session_data()
