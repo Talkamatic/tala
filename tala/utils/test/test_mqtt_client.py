@@ -55,11 +55,11 @@ class TestMQTTClient:
 
     def when_chunk_streamed(self, chunk):
         self._client.open_session(self._session_id, None)
-        self._client.set_persona("some-persona")
-        self._client.set_voice("some-voice")
-        self._client.stream_chunk(chunk)
-        self._client.flush_stream()
-        self._client.close_session()
+        self._client.set_persona(self._session_id, "some-persona")
+        self._client.set_voice(self._session_id, "some-voice")
+        self._client.stream_chunk(self._session_id, chunk)
+        self._client.flush_stream(self._session_id)
+        self._client.close_session(self._session_id)
 
     def then_everything_is_ok(self):
         assert True

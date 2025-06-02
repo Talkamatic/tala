@@ -1,5 +1,4 @@
 import threading
-import warnings
 import json
 
 import paho.mqtt.client as mqtt
@@ -12,6 +11,8 @@ class MQTTClientException(BaseException):
 
 
 class MQTTClient(sse_client.AbstractSSEClient):
+    sessions = {}
+
     def __init__(self, client_id_base, logger, endpoint, port=None):
         super().__init__(client_id_base, logger, endpoint, port)
 
@@ -36,49 +37,40 @@ class MQTTClient(sse_client.AbstractSSEClient):
         self._client.connect(self._endpoint, self._port)
         self._client.loop_start()
 
-    @property
-    def topic(self):
-        return f'tm/id/{self.session_id}'
+    def _get_topic(self, streamer_session):
+        return f'tm/id/{streamer_session["session_id"]}'
 
-    def prepare_session(self, session_id, s_and_r_dict=None):
-        warnings.warn(
-            "MQTTClient.prepare_session() is deprecated. Use MQTTClient.open_session instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        self.open_session(session_id, s_and_r_dict)
-
-    def _stream_to_frontend(self, message):
+    def _stream_to_frontend(self, streamer_session, message):
         def remove_final_space(message):
             if "data" in message:
                 message["data"] = message["data"].strip()
             return message
 
-        self._message_counter += 1
+        streamer_session["message_counter"] += 1
         self.logger.debug(
-            "MQTT Client streaming to frontend", message=message, session_id=self.session_id, client_id=self.client_id
+            "MQTT Client streaming to frontend",
+            message=message,
+            session_id=streamer_session["session_id"],
+            client_id=self.client_id
         )
         self._connected.wait()
-        self.logger.debug("publish message", message=message, session_id=self.session_id, client_id=self.client_id)
-        self._client.publish(self.topic, json.dumps(message))
+        self._client.publish(self._get_topic(streamer_session), json.dumps(message))
 
-    def finalize_session(self):
-        warnings.warn(
-            "MQTTClient.finalize_session() is deprecated. Use MQTTClient.close_session() instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        self.close_session()
-
-    def close_session(self):
-        if self._streaming_exception:
+    def close_session(self, session_id):
+        streamer_session = self.sessions[session_id]
+        streamer_exception = streamer_session.get("streaming_exception")
+        if streamer_exception:
             raise MQTTClientException(
-                f"{self._streaming_exception} was raised during streaming in {self.session_id}. Streamed: {self._streamed}."
+                f'{streamer_exception} was raised during streaming in {streamer_session["session_id"]}. Streamed: {self._streamed}.'
             )
-        self.logger.info("close session", client_id=self.client_id, session_id=self.session_id)
-        self.logger.info("Streamed in session", num_messages=self._message_counter, streamed=self._streamed)
+        self.logger.info("close session", client_id=self.client_id, session_id=streamer_session["session_id"])
+        self.logger.info(
+            "Streamed in session",
+            num_messages=streamer_session["message_counter"],
+            streamed=streamer_session["streamed"]
+        )
         self._reset_logger()
-        self._session_id = None
+        del self.sessions[session_id]
 
 
 class ChunkJoiner(sse_client.ChunkJoiner):

@@ -52,14 +52,63 @@ class TestSSEClient:
 
     def when_chunk_streamed(self, chunk):
         self._client.open_session(self._session_id, None)
-        self._client.set_persona("some-persona")
-        self._client.set_voice("some-voice")
-        self._client.stream_chunk(chunk)
-        self._client.flush_stream()
-        self._client.close_session()
+        self._client.set_persona(self._session_id, "some-persona")
+        self._client.set_voice(self._session_id, "some-voice")
+        self._client.stream_chunk(self._session_id, chunk)
+        self._client.flush_stream(self._session_id)
+        self._client.close_session(self._session_id)
 
     def then_everything_is_ok(self):
         assert True
+
+    def test_multi_sessions_single_client_no_message_confusion(self):
+        self.given_mocked_stream_to_frontend()
+        self.given_single_client()
+        self.when_client_streaming_to_num_sessions(10)
+        self.then_all_streams_correct()
+
+    def given_mocked_stream_to_frontend(self):
+        def mocked_stream_to_frontend(_self, streamer_session, message):
+            session_id = streamer_session["session_id"]
+            if session_id not in self._streams:
+                self._streams[session_id] = []
+            self._streams[session_id].append(message)
+
+        self._streams = {}
+        SSEClient._stream_to_frontend = mocked_stream_to_frontend
+
+    def given_single_client(self):
+        print("create client")
+        self._client = SSEClient(
+            "some-id", logger, "wss://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net", 443
+        )
+        print("client created")
+
+    def when_client_streaming_to_num_sessions(self, num_sessions):
+        for i in range(0, num_sessions):
+            session_id = f"session-{i}"
+            print("open session for session id", session_id)
+            self._client.open_session(session_id)
+
+        for round in range(0, 4):
+            print("round", round)
+            for i in random.sample(range(0, num_sessions), num_sessions):
+                print("stream to", i)
+                self._client.stream_chunk(f"session-{i}", f"session-{i} ")
+
+        for i in range(0, num_sessions):
+            print("close stream", i)
+            client = self._client
+            client.flush_stream(f"session-{i}")
+            client.end_stream(f"session-{i}")
+            client.close_session(f"session-{i}")
+            print("done")
+
+    def then_all_streams_correct(self):
+        for session_id, streamed in self._streams.items():
+            for item in streamed:
+                if item["event"] == "STREAMING_CHUNK":
+                    assert session_id + " " == item["data"]
 
 
 class TestChunkJoiner:
