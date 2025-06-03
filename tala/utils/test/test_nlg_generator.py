@@ -161,3 +161,21 @@ class TestGenerator():
             'persona': "tutor",
             'utterance': "The temperature in hell can't be measured in centigrades."
         })
+
+    def test_generalized_slots_for_string_individuals(self):
+        self.given_facts({
+            "temperature_mock_uuid_0": {
+                "sort": "some_sort",
+                "value": "20_mock_uuid_5",
+            },
+            "city_mock_uuid_1": {
+                "sort": "string",
+                "value": "Barcelona"
+            }
+        })
+        self.given_moves(["answer(temperature_mock_uuid_0(20_mock_uuid_5))"])
+        self.when_generate_is_called()
+        self.then_result_contains({
+            'persona': "tutor",
+            'utterance': 'The temperature in Barcelona is 20 degrees centigrade.'
+        })

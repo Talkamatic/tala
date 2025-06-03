@@ -1,6 +1,5 @@
 import re
 import random
-from string import Formatter
 
 from tala.utils.func import log_models
 from tala.utils.compression import ensure_decompressed_json
@@ -255,13 +254,6 @@ class Generator:
         return self._populate_slots_in(utterance)
 
     def _handle_utterance_with_ng_slots(self, utterance_candidates):
-        def is_utterance_with_ng_slots(utterance):
-            fields = list(Formatter().parse(utterance))
-            if len(fields) > 1:
-                self._fields = fields
-                return True
-            return False
-
         utterance = self._select_candidate_utterance_from_string(utterance_candidates)
         return self._populate_ng_slots_in(utterance)
 
@@ -279,7 +271,7 @@ class Generator:
         def grammar_entry(entry, all_facts):
             if all_facts[entry].get("grammar_entry", None):
                 return all_facts[entry].get("grammar_entry", None)
-            if all_facts[entry]["sort"] in ["integer", "real"]:
+            if all_facts[entry]["sort"] in ["integer", "real", "string"]:
                 return all_facts[entry].get("value")
             individual = all_facts[entry].get("value", None)
             result = self.generate(f"answer({individual})")
