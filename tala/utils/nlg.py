@@ -1,5 +1,6 @@
 import re
 import random
+from string import Formatter
 
 from tala.utils.func import log_models
 from tala.utils.compression import ensure_decompressed_json
@@ -51,6 +52,13 @@ def list_of_strings_to_string(list_of_strings):
         return [quote_string(string) for string in list_of_strings]
 
     return "[" + (", ".join(quote_strings(list_of_strings))) + "]"
+
+
+def is_utterance_with_ng_slots(utterance):
+    fields = list(Formatter().parse(utterance))
+    if len(fields) > 1:
+        return True
+    return False
 
 
 def generate(moves, context, session, logger):
@@ -194,7 +202,10 @@ class Generator:
         sequence_content = self._nlg_data.get(moves_as_string)
         if sequence_content:
             utterance = self._select_candidate_utterance_from_string(sequence_content["utterance"])
-            sequence_content["utterance"] = utterance
+            if is_utterance_with_ng_slots(utterance):
+                sequence_content["utterance"] = self._populate_ng_slots_in(utterance)
+            else:
+                sequence_content["utterance"] = utterance
             return sequence_content
         raise NoMoveSequenceFoundException(f"no sequence matching '{moves}' found")
 
@@ -278,6 +289,7 @@ class Generator:
             return result["utterance"]
 
         filler_dict = create_filler_dict()
+        print("FILLER DICT", filler_dict)
         return utterance.format_map(filler_dict)
 
     def _select_candidate_utterance_from_string(self, candidates):

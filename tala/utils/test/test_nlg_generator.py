@@ -179,3 +179,19 @@ class TestGenerator():
             'persona': "tutor",
             'utterance': 'The temperature in Barcelona is 20 degrees centigrade.'
         })
+
+    def test_naturalistic_string_slot_handling(self):
+        self.given_facts({
+            "user_name": {
+                "grammar_entry": None,
+                "perception_confidence": None,
+                "sort": "string",
+                "understanding_confidence": None,
+                "value": "Fred",
+                "weighted_confidence": None,
+                "weighted_understanding_confidence": None
+            }
+        })
+        self.given_moves(['icm:acc*pos', 'ask(?X.goal(X))'])
+        self.when_generate_is_called()
+        self.then_result_contains({'persona': "tutor", 'utterance': "Yes, how can I help you, Fred?"})
