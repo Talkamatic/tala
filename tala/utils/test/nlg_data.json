@@ -37,6 +37,12 @@
         "persona": "tutor"
     },
 
+    "answer(end_segment_information_predicate(*))": {
+        "match": "answer(end_segment_information_predicate(*))",
+        "utterance": "Keep up the good work, {user_name}!| Keep up the good work, {user_name}!| Keep up the good work, {user_name}!",
+        "persona": "tutor"
+    },
+
   "answer(qna_response(qna_what_is_your_name_026c0821332b_mock_uuid_6_answer))": {
     "match": "answer(qna_response(qna_what_is_your_name_026c0821332b_mock_uuid_6_answer))",
     "utterance": "My name is Weather Boy.",

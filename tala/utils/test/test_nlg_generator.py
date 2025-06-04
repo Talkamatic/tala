@@ -180,7 +180,23 @@ class TestGenerator():
             'utterance': 'The temperature in Barcelona is 20 degrees centigrade.'
         })
 
-    def test_naturalistic_string_slot_handling(self):
+    def test_naturalistic_string_slot_handling_for_single_move_utterance(self):
+        self.given_facts({
+            "user_name": {
+                "grammar_entry": None,
+                "perception_confidence": None,
+                "sort": "string",
+                "understanding_confidence": None,
+                "value": "Fred",
+                "weighted_confidence": None,
+                "weighted_understanding_confidence": None
+            }
+        })
+        self.given_moves(["answer(end_segment_information_predicate(end_segment_information))"])
+        self.when_generate_is_called()
+        self.then_result_contains({'persona': "tutor", 'utterance': "Keep up the good work, Fred!"})
+
+    def test_naturalistic_string_slot_handling_for_multi_move_utterance(self):
         self.given_facts({
             "user_name": {
                 "grammar_entry": None,

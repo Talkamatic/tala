@@ -217,7 +217,10 @@ class Generator:
 
         nlg_data_doc = self._nlg_data.get(move)
         if _is_move_in_patterns_with_exact_match(nlg_data_doc):
-            utterance = self._handle_utterance_possibly_with_og_slots(nlg_data_doc["utterance"])
+            if is_utterance_with_ng_slots(nlg_data_doc["utterance"]):
+                utterance = self._handle_utterance_with_ng_slots(nlg_data_doc["utterance"])
+            else:
+                utterance = self._handle_utterance_possibly_with_og_slots(nlg_data_doc["utterance"])
             if "_" in utterance:
                 self._logger.warning("base case: move in mappings", utterance=utterance)
             return {"utterance": utterance, "persona": nlg_data_doc.get("persona")}
@@ -289,7 +292,6 @@ class Generator:
             return result["utterance"]
 
         filler_dict = create_filler_dict()
-        print("FILLER DICT", filler_dict)
         return utterance.format_map(filler_dict)
 
     def _select_candidate_utterance_from_string(self, candidates):
