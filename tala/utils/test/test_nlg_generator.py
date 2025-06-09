@@ -211,3 +211,11 @@ class TestGenerator():
         self.given_moves(['icm:acc*pos', 'ask(?X.goal(X))'])
         self.when_generate_is_called()
         self.then_result_contains({'persona': "tutor", 'utterance': "Yes, how can I help you, Fred?"})
+
+    def test_move_subsequence(self):
+        self.given_moves(['icm:per*pos:"wolla bolla kolla"', 'icm:sem*neg', 'icm:reraise', 'ask(?X.goal(X))'])
+        self.when_generate_is_called()
+        self.then_result_contains({
+            'persona': "tutor",
+            'utterance': "Sorry, I didn't catch that. Say \"coach\" if you want to talk to me again."
+        })

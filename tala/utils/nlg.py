@@ -77,6 +77,11 @@ def generate_utterance(moves, context, session, logger):
     return ""
 
 
+def generate_moves_subsequences(moves):
+    for i in range(0, len(moves) - 1):
+        yield list_of_strings_to_string(moves[i:])
+
+
 def nlg(body, logger):
     def get_nlg_model():
         try:
@@ -132,7 +137,7 @@ def nlg(body, logger):
         return body.get("context", {}).get("entities_under_discussion", {})
 
     log_models(body, logger, ["nlg"])
-    logger.info("incoming request", body=body)
+    logger.info("incoming NLG request", body=body)
     moves = [move["semantic_expression"] for move in body["moves"]]
 
     nlg_data = get_nlg_model()
@@ -198,15 +203,15 @@ class Generator:
         self._logger = logger
 
     def generate_sequence(self, moves):
-        moves_as_string = list_of_strings_to_string(moves)
-        sequence_content = self._nlg_data.get(moves_as_string)
-        if sequence_content:
-            utterance = self._select_candidate_utterance_from_string(sequence_content["utterance"])
-            if is_utterance_with_ng_slots(utterance):
-                sequence_content["utterance"] = self._populate_ng_slots_in(utterance)
-            else:
-                sequence_content["utterance"] = utterance
-            return sequence_content
+        for moves_as_string in generate_moves_subsequences(moves):
+            sequence_content = self._nlg_data.get(moves_as_string)
+            if sequence_content:
+                utterance = self._select_candidate_utterance_from_string(sequence_content["utterance"])
+                if is_utterance_with_ng_slots(utterance):
+                    sequence_content["utterance"] = self._populate_ng_slots_in(utterance)
+                else:
+                    sequence_content["utterance"] = utterance
+                return sequence_content
         raise NoMoveSequenceFoundException(f"no sequence matching '{moves}' found")
 
     def generate(self, move):
