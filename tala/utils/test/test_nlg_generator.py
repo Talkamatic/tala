@@ -212,6 +212,22 @@ class TestGenerator():
         self.when_generate_is_called()
         self.then_result_contains({'persona': "tutor", 'utterance': "Yes, how can I help you, Fred?"})
 
+    def test_string_slot_handling_in_string_proposition(self):
+        self.given_facts({
+            "user_name": {
+                "grammar_entry": None,
+                "perception_confidence": None,
+                "sort": "string",
+                "understanding_confidence": None,
+                "value": "Fred",
+                "weighted_confidence": None,
+                "weighted_understanding_confidence": None
+            }
+        })
+        self.given_moves(["answer(user_name(\"Fred\"))"])
+        self.when_generate_is_called()
+        self.then_result_contains({'utterance': "I'll call you Fred."})
+
     def test_move_subsequence(self):
         self.given_moves(['icm:per*pos:"wolla bolla kolla"', 'icm:sem*neg', 'icm:reraise', 'ask(?X.goal(X))'])
         self.when_generate_is_called()

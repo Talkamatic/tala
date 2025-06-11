@@ -8,7 +8,13 @@
         ]
     },
     "individual_entries": {
-        "docs": []
+        "docs": [
+            {
+                "match": "answer(user_name(&individual))",
+                "utterance": "I'll call you &individual.",
+                "persona": "tutor"
+            }
+        ]
     },
     "propositional_entries": {
         "docs": []
