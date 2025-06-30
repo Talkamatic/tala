@@ -48,6 +48,7 @@ class AbstractSSEClient:
         return f'tm/{streamer_session["session_id"]}'
 
     def open_session(self, session_id, s_and_r_dict=None, logger=None):
+        self.logger.info("sse client open session", session_id=session_id)
         streamer_thread, chunk_joiner = self._prepare_streamer_thread(session_id)
 
         streamer_session = {

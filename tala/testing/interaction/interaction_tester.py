@@ -278,6 +278,11 @@ class InteractionTester:
             if EXPECTED_PASSIVITY in system_entry and self._passivity_mismatch(system_entry[EXPECTED_PASSIVITY]):
                 return self._create_passivity_mismatch_description(system_entry[EXPECTED_PASSIVITY])
             if MOVE_CONTENT in system_entry:
+                if SPEECH_CONTENT in system_entry:
+                    return (
+                        self._assert_system_moves_are_matched_by(system_entry[MOVE_CONTENT])
+                        and self._assert_system_utterance_is_matched_by(system_entry[SPEECH_CONTENT])
+                    )
                 return self._assert_system_moves_are_matched_by(system_entry[MOVE_CONTENT])
             if SPEECH_CONTENT in system_entry:
                 return self._assert_system_utterance_is_matched_by(system_entry[SPEECH_CONTENT])
