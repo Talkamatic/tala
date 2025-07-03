@@ -1,4 +1,4 @@
-from tala.model.move import RequestMove, AskMove
+from tala.model import move
 from tala.model.question import Question
 from tala.model.action import Action
 from tala.model import speaker
@@ -166,7 +166,7 @@ class Perform(GoalWithSemanticContent):
         return "perform(%s)" % self.action
 
     def as_move(self):
-        return RequestMove(self.content)
+        return move.Request(self.content)
 
     def is_top_goal(self):
         return self.action.is_top_action()
@@ -212,7 +212,7 @@ class Resolve(GoalWithSemanticContent):
         return result
 
     def as_move(self):
-        return AskMove(self.content)
+        return move.Ask(self.content)
 
 
 class ResolveGoal(Resolve):

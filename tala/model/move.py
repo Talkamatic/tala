@@ -13,22 +13,39 @@ class MoveException(Exception):
     pass
 
 
-class Move(SemanticObject, AsSemanticExpressionMixin):
-    QUIT = "quit"
-    GREET = "greet"
-    THANK_YOU = "thanks"
-    THANK_YOU_RESPONSE = "thank_you_response"
-    INSULT_RESPONSE = "insult_response"
-    INSULT = "insult"
-    NO_MOVE = "no_move"
-    MUTE = "mute"
-    UNMUTE = "unmute"
+QUIT = "quit"
+GREET = "greet"
+THANK_YOU = "thanks"
+THANK_YOU_RESPONSE = "thank_you_response"
+INSULT_RESPONSE = "insult_response"
+INSULT = "insult"
+NO_MOVE = "no_move"
+MUTE = "mute"
+UNMUTE = "unmute"
 
-    ASK = "ask"
-    ANSWER = "answer"
-    REQUEST = "request"
-    REPORT = "report"
-    PREREPORT = "prereport"
+ASK = "ask"
+ANSWER = "answer"
+REQUEST = "request"
+REPORT = "report"
+PREREPORT = "prereport"
+
+
+class Move(SemanticObject, AsSemanticExpressionMixin):
+    QUIT = QUIT
+    GREET = GREET
+    THANK_YOU = THANK_YOU
+    THANK_YOU_RESPONSE = THANK_YOU_RESPONSE
+    INSULT_RESPONSE = INSULT_RESPONSE
+    INSULT = INSULT
+    NO_MOVE = NO_MOVE
+    MUTE = MUTE
+    UNMUTE = UNMUTE
+
+    ASK = ASK
+    ANSWER = ANSWER
+    REQUEST = REQUEST
+    REPORT = REPORT
+    PREREPORT = PREREPORT
 
     def __init__(
         self,
@@ -326,7 +343,7 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
         return self._content == other._content
 
 
-class ICMMove(Move):
+class ICM(Move):
     RERAISE = "reraise"
     PER = "per"
     ACC = "acc"
@@ -459,22 +476,47 @@ class ICMMove(Move):
         return super().as_dict() | result
 
 
-class IssueICMMove(ICMMove):
+class ICMMove(ICM):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class ICMAccPos(ICM):
+    def __init__(self, *args, **kwargs):
+        super().__init__(ICM.ACC, polarity=ICM.POS)
+
+
+class IssueICM(ICM):
     def is_issue_icm(self):
         return True
 
     def is_negative_acceptance_issue_icm(self):
-        if (self.type_ == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
+        if (self.type_ == ICM.ACC and self.get_polarity() == ICM.NEG):
             return True
         return False
 
     def _icm_to_string(self):
-        return f"{ICMMove._icm_to_string(self)}:issue"
+        return f"{ICM._icm_to_string(self)}:issue"
 
 
-class ICMMoveWithContent(ICMMove):
-    def __init__(self, type, content, content_speaker=None, *args, **kwargs):
-        ICMMove.__init__(self, type, *args, **kwargs)
+class IssueICMMove(IssueICM):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class ICMWithContent(ICM):
+    def __init__(self, type_, content, content_speaker=None, *args, **kwargs):
+        ICM.__init__(self, type_, *args, **kwargs)
         self._content = content
         self._content_speaker = self._get_checked_content_speaker(content_speaker)
 
@@ -534,7 +576,17 @@ class ICMMoveWithContent(ICMMove):
         return super().as_dict() | {"content": self.content, "content_speaker": self.get_content_speaker()}
 
 
-class CardinalSequencingICM(ICMMoveWithContent):
+class ICMMoveWithContent(ICMWithContent):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class CardinalSequencingICM(ICMWithContent):
     def __init__(self, step):
         super().__init__(ICMMove.CARDINAL_SEQUENCING, step)
 
@@ -545,11 +597,21 @@ class CardinalSequencingICM(ICMMoveWithContent):
             return False
 
 
-class ICMMoveWithStringContent(ICMMoveWithContent):
+class ICMWithStringContent(ICMWithContent):
     pass
 
 
-class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
+class ICMMoveWithStringContent(ICMWithStringContent):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class ICMWithSemanticContent(ICMWithContent, MoveWithSemanticContent):
     def __init__(
         self,
         type,
@@ -570,7 +632,7 @@ class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
             ddd_name=ddd_name,
             perception_confidence=perception_confidence
         )
-        ICMMoveWithContent.__init__(
+        ICMWithContent.__init__(
             self,
             type,
             content,
@@ -583,7 +645,17 @@ class ICMMoveWithSemanticContent(ICMMoveWithContent, MoveWithSemanticContent):
         )
 
 
-class ReportMove(MoveWithSemanticContent):
+class ICMMoveWithSemanticContent(ICMWithSemanticContent):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Report(MoveWithSemanticContent):
     def __init__(self, content, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.REPORT, content, *args, **kwargs)
 
@@ -606,7 +678,17 @@ class ReportMove(MoveWithSemanticContent):
         return self.content == other.content
 
 
-class PrereportMove(Move, OntologySpecificSemanticObject):
+class ReportMove(Report):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Prereport(Move, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, service_action, arguments):
         self.service_action = service_action
         self.arguments = arguments
@@ -654,55 +736,145 @@ class PrereportMove(Move, OntologySpecificSemanticObject):
         }
 
 
+class PrereportMove(Prereport):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
 class NoMove(Move):
     def __init__(self, *args, **kwargs):
         super(NoMove, self).__init__(Move.NO_MOVE, *args, **kwargs)
 
 
-class GreetMove(Move):
+class Greet(Move):
     def __init__(self, *args, **kwargs):
-        super(GreetMove, self).__init__(Move.GREET, *args, **kwargs)
+        super(Greet, self).__init__(Move.GREET, *args, **kwargs)
 
     def is_turn_yielding(self):
         return True
 
 
-class ThankYouMove(Move):
+class GreetMove(Greet):
     def __init__(self, *args, **kwargs):
-        super(ThankYouMove, self).__init__(Move.THANK_YOU, *args, **kwargs)
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
 
 
-class ThankYouResponseMove(Move):
+class ThankYou(Move):
     def __init__(self, *args, **kwargs):
-        super(ThankYouResponseMove, self).__init__(Move.THANK_YOU_RESPONSE, *args, **kwargs)
+        super(ThankYou, self).__init__(Move.THANK_YOU, *args, **kwargs)
 
 
-class InsultResponseMove(Move):
+class ThankYouMove(ThankYou):
     def __init__(self, *args, **kwargs):
-        super(InsultResponseMove, self).__init__(Move.INSULT_RESPONSE, *args, **kwargs)
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
 
 
-class InsultMove(Move):
+class ThankYouResponse(Move):
     def __init__(self, *args, **kwargs):
-        super(InsultMove, self).__init__(Move.INSULT, *args, **kwargs)
+        super(ThankYouResponse, self).__init__(Move.THANK_YOU_RESPONSE, *args, **kwargs)
 
 
-class MuteMove(Move):
+class ThankYouResponseMove(ThankYouResponse):
     def __init__(self, *args, **kwargs):
-        super(MuteMove, self).__init__(Move.MUTE, *args, **kwargs)
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
 
 
-class UnmuteMove(Move):
+class InsultResponse(Move):
     def __init__(self, *args, **kwargs):
-        super(UnmuteMove, self).__init__(Move.UNMUTE, *args, **kwargs)
+        super(InsultResponse, self).__init__(Move.INSULT_RESPONSE, *args, **kwargs)
 
 
-class QuitMove(Move):
+class InsultResponseMove(InsultResponse):
     def __init__(self, *args, **kwargs):
-        super(QuitMove, self).__init__(Move.QUIT, *args, **kwargs)
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
 
 
-class AskMove(MoveWithSemanticContent):
+class Insult(Move):
+    def __init__(self, *args, **kwargs):
+        super(Insult, self).__init__(Move.INSULT, *args, **kwargs)
+
+
+class InsultMove(Insult):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Mute(Move):
+    def __init__(self, *args, **kwargs):
+        super(Mute, self).__init__(Move.MUTE, *args, **kwargs)
+
+
+class MuteMove(Mute):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Unmute(Move):
+    def __init__(self, *args, **kwargs):
+        super(Unmute, self).__init__(Move.UNMUTE, *args, **kwargs)
+
+
+class UnmuteMove(Unmute):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Quit(Move):
+    def __init__(self, *args, **kwargs):
+        super(Quit, self).__init__(Move.QUIT, *args, **kwargs)
+
+
+class QuitMove(Quit):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Ask(MoveWithSemanticContent):
     def __init__(self, question, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.ASK, question, *args, **kwargs)
 
@@ -717,7 +889,17 @@ class AskMove(MoveWithSemanticContent):
         return True
 
 
-class AnswerMove(MoveWithSemanticContent):
+class AskMove(Ask):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Answer(MoveWithSemanticContent):
     def __init__(self, answer, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.ANSWER, answer, *args, **kwargs)
 
@@ -729,7 +911,17 @@ class AnswerMove(MoveWithSemanticContent):
         return self.content
 
 
-class RequestMove(MoveWithSemanticContent):
+class AnswerMove(Answer):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+
+
+class Request(MoveWithSemanticContent):
     def __init__(self, action, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.REQUEST, action, *args, **kwargs)
 
@@ -742,3 +934,13 @@ class RequestMove(MoveWithSemanticContent):
 
     def is_turn_yielding(self):
         return True
+
+
+class RequestMove(Request):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)

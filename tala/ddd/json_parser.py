@@ -832,11 +832,11 @@ class NonCheckingJSONParser():
             "polarity": data.get("polarity"),
         } | move_args
 
-        if data["move_type"] == move.Move.ANSWER:
+        if data["move_type"] == move.ANSWER:
             return self.parse_answer_move(data, non_icm_args)
-        if data["move_type"] == move.Move.REQUEST:
+        if data["move_type"] == move.REQUEST:
             return self.parse_request_move(data, non_icm_args)
-        if data["move_type"] == move.Move.ASK:
+        if data["move_type"] == move.ASK:
             return self.parse_ask_move(data, non_icm_args)
         if data["move_type"] == move.ICMMove.ACC:
             return self.parse_acc_icm(data, icm_args)
@@ -858,25 +858,25 @@ class NonCheckingJSONParser():
             return self.parse_cardinal_sequencing_icm(data, icm_args)
         if data["move_type"] == move.ICMMove.REPORT_INFERENCE:
             return self.parse_report_inference_icm(data, icm_args)
-        if data["move_type"] == move.Move.GREET:
+        if data["move_type"] == move.GREET:
             return self.parse_greet_move(non_icm_args)
-        if data["move_type"] == move.Move.INSULT:
+        if data["move_type"] == move.INSULT:
             return self.parse_insult_move(non_icm_args)
-        if data["move_type"] == move.Move.INSULT_RESPONSE:
+        if data["move_type"] == move.INSULT_RESPONSE:
             return self.parse_insult_response_move(non_icm_args)
-        if data["move_type"] == move.Move.MUTE:
+        if data["move_type"] == move.MUTE:
             return self.parse_mute_move(non_icm_args)
-        if data["move_type"] == move.Move.UNMUTE:
+        if data["move_type"] == move.UNMUTE:
             return self.parse_unmute_move(non_icm_args)
-        if data["move_type"] == move.Move.PREREPORT:
+        if data["move_type"] == move.PREREPORT:
             return self.parse_prereport_move(data)
-        if data["move_type"] == move.Move.REPORT:
+        if data["move_type"] == move.REPORT:
             return self.parse_report_move(data, non_icm_args)
-        if data["move_type"] == move.Move.QUIT:
+        if data["move_type"] == move.QUIT:
             return self.parse_quit_move(non_icm_args)
-        if data["move_type"] == move.Move.THANK_YOU:
+        if data["move_type"] == move.THANK_YOU:
             return self.parse_thank_you_move(non_icm_args)
-        if data["move_type"] == move.Move.THANK_YOU_RESPONSE:
+        if data["move_type"] == move.THANK_YOU_RESPONSE:
             return self.parse_thank_you_response_move(non_icm_args)
         raise JSONParseFailure(f"cannot parse {data} as move.")
 
@@ -887,11 +887,11 @@ class NonCheckingJSONParser():
 
     def parse_answer_move(self, data, kwargs):
         content = self.parse(data["content"])
-        return move.AnswerMove(content, **kwargs)
+        return move.Answer(content, **kwargs)
 
     def parse_request_move(self, data, kwargs):
         action = self.parse_action(data["content"])
-        return move.RequestMove(action, **kwargs)
+        return move.Request(action, **kwargs)
 
     def parse_proposition(self, data):
         if data["_type"] == Proposition.PREDICATE:
@@ -1015,63 +1015,63 @@ class NonCheckingJSONParser():
         if data.get("content"):
             content = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithContent(move.ICMMove.ACC, content, content_speaker=content_speaker, **kwargs)
+            return move.ICMWithContent(move.ICM.ACC, content, content_speaker=content_speaker, **kwargs)
 
-        return move.ICMMove(move.ICMMove.ACC, **kwargs)
+        return move.ICM(move.ICM.ACC, **kwargs)
 
     def parse_accommodate_icm(self, data, kwargs):
         if data.get("content"):
             content = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithContent(move.ICMMove.ACCOMMODATE, content, content_speaker=content_speaker, **kwargs)
+            return move.ICMWithContent(move.ICM.ACCOMMODATE, content, content_speaker=content_speaker, **kwargs)
         else:
-            return move.ICMMove(move.ICMMove.ACCOMMODATE, **kwargs)
+            return move.ICM(move.ICM.ACCOMMODATE, **kwargs)
 
     def parse_resume_icm(self, data, kwargs):
         goal = self.parse_goal(data["content"])
         content_speaker = data.get("content_speaker")
-        return move.ICMMoveWithContent(move.ICMMove.RESUME, goal, content_speaker=content_speaker, **kwargs)
+        return move.ICMWithContent(move.ICM.RESUME, goal, content_speaker=content_speaker, **kwargs)
 
     def parse_reraise_icm(self, data, kwargs):
         if data.get("content"):
             action = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithContent(move.ICMMove.RERAISE, action, content_speaker=content_speaker, **kwargs)
+            return move.ICMWithContent(move.ICM.RERAISE, action, content_speaker=content_speaker, **kwargs)
         else:
-            return move.ICMMove(move.ICMMove.RERAISE, **kwargs)
+            return move.ICM(move.ICM.RERAISE, **kwargs)
 
     def parse_per_icm(self, data, kwargs):
         string = data.get("content", None)
         if string:
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithContent(move.ICMMove.PER, string, content_speaker=content_speaker, **kwargs)
-        return move.ICMMove(move.ICMMove.PER, **kwargs)
+            return move.ICMWithContent(move.ICM.PER, string, content_speaker=content_speaker, **kwargs)
+        return move.ICM(move.ICM.PER, **kwargs)
 
     def parse_und_icm(self, data, kwargs):
         content_data = data.get("content")
         if content_data:
             content = self.parse(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithSemanticContent(move.ICMMove.UND, content, content_speaker=content_speaker, **kwargs)
+            return move.ICMWithSemanticContent(move.ICM.UND, content, content_speaker=content_speaker, **kwargs)
         else:
-            return move.ICMMove(move.ICMMove.UND, **kwargs)
+            return move.ICM(move.ICM.UND, **kwargs)
 
     def parse_sem_icm(self, data, kwargs):
         content_data = data.get("content")
         if content_data:
             content = self.parse_proposition(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithSemanticContent(move.ICMMove.SEM, content, content_speaker=content_speaker, **kwargs)
+            return move.ICMWithSemanticContent(move.ICM.SEM, content, content_speaker=content_speaker, **kwargs)
         content_speaker = data.get("content_speaker")
-        return move.ICMMove(move.ICMMove.SEM, **kwargs)
+        return move.ICM(move.ICM.SEM, **kwargs)
 
     def parse_loadplan_icm(self, data, kwargs):
-        return move.ICMMove(move.ICMMove.LOADPLAN, **kwargs)
+        return move.ICM(move.ICM.LOADPLAN, **kwargs)
 
     def parse_cardinal_sequencing_icm(self, data, kwargs):
         content_speaker = data.get("content_speaker")
-        return move.ICMMoveWithContent(
-            move.ICMMove.CARDINAL_SEQUENCING, int(data["content"]), content_speaker=content_speaker, **kwargs
+        return move.ICMWithContent(
+            move.ICM.CARDINAL_SEQUENCING, int(data["content"]), content_speaker=content_speaker, **kwargs
         )
 
     def parse_report_inference_icm(self, data, kwargs):
@@ -1079,48 +1079,48 @@ class NonCheckingJSONParser():
         if content_data:
             content = self.parse(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMMoveWithSemanticContent(
-                move.ICMMove.REPORT_INFERENCE, content, content_speaker=content_speaker, **kwargs
+            return move.ICMWithSemanticContent(
+                move.ICM.REPORT_INFERENCE, content, content_speaker=content_speaker, **kwargs
             )
 
     def parse_greet_move(self, kwargs):
-        return move.GreetMove(**kwargs)
+        return move.Greet(**kwargs)
 
     def parse_insult_move(self, kwargs):
-        return move.InsultMove(**kwargs)
+        return move.Insult(**kwargs)
 
     def parse_insult_response_move(self, kwargs):
-        return move.InsultResponseMove(**kwargs)
+        return move.InsultResponse(**kwargs)
 
     def parse_mute_move(self, kwargs):
-        return move.MuteMove(**kwargs)
+        return move.Mute(**kwargs)
 
     def parse_unmute_move(self, kwargs):
-        return move.UnmuteMove(**kwargs)
+        return move.Unmute(**kwargs)
 
     def parse_quit_move(self, kwargs):
-        return move.QuitMove(**kwargs)
+        return move.Quit(**kwargs)
 
     def parse_thank_you_move(self, kwargs):
-        return move.ThankYouMove(**kwargs)
+        return move.ThankYou(**kwargs)
 
     def parse_thank_you_response_move(self, kwargs):
-        return move.ThankYouResponseMove(**kwargs)
+        return move.ThankYouResponse(**kwargs)
 
     def parse_prereport_move(self, data):
         service_action = data["service_action"]
         arguments = data["arguments"]
         argument_list = [self.parse_proposition(argument) for argument in arguments]
         ontology_name = data["ontology_name"]
-        return move.PrereportMove(ontology_name, service_action, argument_list)
+        return move.Prereport(ontology_name, service_action, argument_list)
 
     def parse_report_move(self, data, kwargs):
         content = self.parse(data["content"])
-        return move.ReportMove(content, **kwargs)
+        return move.Report(content, **kwargs)
 
     def parse_ask_move(self, data, kwargs):
         question = self.parse_question(data["content"])
-        return move.AskMove(question, **kwargs)
+        return move.Ask(question, **kwargs)
 
     def parse_service_action_outcome(self, json):
         if json["service_action_outcome"]:

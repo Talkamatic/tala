@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model import speaker
-from tala.model.move import Move, ICMMove, ReportMove, ICMMoveWithSemanticContent, AskMove, CardinalSequencingICM
+from tala.model.move import Move, ICM, Report, ICMWithSemanticContent, Ask, CardinalSequencingICM
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -157,13 +157,13 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name, ddd_name="mockup_ddd")
-        self.icm_acc_neg = self.move_factory.create_icm_move(ICMMove.ACC, speaker=speaker.SYS, polarity=ICMMove.NEG)
+        self.icm_acc_neg = self.move_factory.create_icm_move(ICM.ACC, speaker=speaker.SYS, polarity=ICM.NEG)
         self.icm_acc_neg_issue = self.move_factory.create_icm_move(
-            ICMMove.ACC, speaker=speaker.SYS, polarity=ICMMove.NEG, content="issue"
+            ICM.ACC, speaker=speaker.SYS, polarity=ICM.NEG, content="issue"
         )
-        self.icm_per_neg = self.move_factory.create_icm_move(ICMMove.PER, speaker=speaker.SYS, polarity=ICMMove.NEG)
-        self.icm_per_pos = self.move_factory.create_icm_move(ICMMove.PER, speaker=speaker.SYS, polarity=ICMMove.POS)
-        self.icm_acc_pos = self.move_factory.create_icm_move(ICMMove.ACC, speaker=speaker.SYS, polarity=ICMMove.POS)
+        self.icm_per_neg = self.move_factory.create_icm_move(ICM.PER, speaker=speaker.SYS, polarity=ICM.NEG)
+        self.icm_per_pos = self.move_factory.create_icm_move(ICM.PER, speaker=speaker.SYS, polarity=ICM.POS)
+        self.icm_acc_pos = self.move_factory.create_icm_move(ICM.ACC, speaker=speaker.SYS, polarity=ICM.POS)
         self.report_move = self.move_factory.create_report_move(
             ServiceResultProposition(self.ontology_name, "service_action", [], SuccessfulServiceAction())
         )
@@ -199,7 +199,7 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
     def test_as_semantic_expression_for_icm_with_propositional_content(self):
         self.given_move(
             self.move_factory.create_icm_move(
-                ICMMove.SEM, speaker=speaker.SYS, polarity=ICMMove.NEG, content=self.proposition_dest_city_paris
+                ICM.SEM, speaker=speaker.SYS, polarity=ICM.NEG, content=self.proposition_dest_city_paris
             )
         )
         self.when_generating_semantic_expression()
@@ -250,30 +250,30 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_is_question_raising_true_for_contentful_icm_und_neg(self):
         propositional_content = self.proposition_dest_city_paris
-        contentful_icm_und_neg = ICMMoveWithSemanticContent(ICMMove.UND, propositional_content, polarity=ICMMove.NEG)
+        contentful_icm_und_neg = ICMWithSemanticContent(ICM.UND, propositional_content, polarity=ICM.NEG)
         self.assertTrue(contentful_icm_und_neg.is_question_raising())
 
     def test_is_question_raising_false_for_contentless_icm_und_neg(self):
-        contentless_icm_und_neg = ICMMove(ICMMove.UND, polarity=ICMMove.NEG)
+        contentless_icm_und_neg = ICM(ICM.UND, polarity=ICM.NEG)
         self.assertFalse(contentless_icm_und_neg.is_question_raising())
 
     def test_is_question_raising_true_for_icm_und_int(self):
         propositional_content = self.proposition_dest_city_paris
-        icm_und_int = ICMMoveWithSemanticContent(ICMMove.UND, propositional_content, polarity=ICMMove.INT)
+        icm_und_int = ICMWithSemanticContent(ICM.UND, propositional_content, polarity=ICM.INT)
         self.assertTrue(icm_und_int.is_question_raising())
 
     def test_is_question_raising_true_for_icm_und_pos_for_positive_content(self):
         positive_content = self.proposition_dest_city_paris
-        icm = ICMMoveWithSemanticContent(ICMMove.UND, positive_content, polarity=ICMMove.POS)
+        icm = ICMWithSemanticContent(ICM.UND, positive_content, polarity=ICM.POS)
         self.assertTrue(icm.is_question_raising())
 
     def test_is_question_raising_false_for_icm_und_pos_for_negated_content(self):
         negation = self.proposition_not_dest_city_paris
-        icm = ICMMoveWithSemanticContent(ICMMove.UND, negation, polarity=ICMMove.POS)
+        icm = ICMWithSemanticContent(ICM.UND, negation, polarity=ICM.POS)
         self.assertFalse(icm.is_question_raising())
 
     def test_is_question_raising_false_for_icm_acc_neg(self):
-        icm_acc_neg = ICMMove(ICMMove.ACC, polarity=ICMMove.NEG)
+        icm_acc_neg = ICM(ICM.ACC, polarity=ICM.NEG)
         self.assertFalse(icm_acc_neg.is_question_raising())
 
     def test_create_greet_move(self):
@@ -392,8 +392,8 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(move1, move2)
 
     def test_move_inequality_between_move_classes(self):
-        icm = self.move_factory.create_icm_move(ICMMove.ACC, content=ICMMove.POS)
-        report = ReportMove(ServiceResultProposition(self.ontology_name, "action", [], SuccessfulServiceAction()))
+        icm = self.move_factory.create_icm_move(ICM.ACC, content=ICM.POS)
+        report = Report(ServiceResultProposition(self.ontology_name, "action", [], SuccessfulServiceAction()))
         self.assertFalse(report.move_content_equals(icm))
 
     def test_is_negative_perception_icm(self):
@@ -459,201 +459,185 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.then_result_is("Move(greet)")
 
     def test_semantic_expression_without_realization_data_for_move_with_content(self):
-        self.given_move(AskMove(self.price_question))
+        self.given_move(Ask(self.price_question))
         self.given_set_realization_data_was_called(speaker=speaker.SYS, ddd_name="mock_ddd")
         self.when_get_semantic_expression_without_realization_data()
         self.then_result_is("Move(ask(?X.price(X)))")
 
 
-class ICMMoveTests(LibTestCase, SemanticExpressionTestMixin):
+class ICMTests(LibTestCase, SemanticExpressionTestMixin):
     def setUp(self):
         self.setUpLibTestCase()
         self.move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)
 
     def test_create_reraise_icm_move(self):
-        move = self.move_factory.create_icm_move(ICMMove.RERAISE, content=self.ontology.create_action("top"))
-        self.assertTrue(move.type_ == ICMMove.RERAISE)
+        move = self.move_factory.create_icm_move(ICM.RERAISE, content=self.ontology.create_action("top"))
+        self.assertTrue(move.type_ == ICM.RERAISE)
 
     def test_reraise_to_string(self):
-        move = self.move_factory.create_icm_move(ICMMove.RERAISE, content=self.ontology.create_action("top"))
+        move = self.move_factory.create_icm_move(ICM.RERAISE, content=self.ontology.create_action("top"))
         self.assertEqual("ICMMove(icm:reraise:top)", str(move))
 
     def test_loadplan_to_string(self):
-        move = self.move_factory.create_icm_move(ICMMove.LOADPLAN)
+        move = self.move_factory.create_icm_move(ICM.LOADPLAN)
         self.assertEqual("ICMMove(icm:loadplan)", str(move))
 
     def test_string_representation_with_score_and_speaker(self):
         move = self.move_factory.create_icm_move(
-            ICMMove.ACC,
-            polarity=ICMMove.POS,
-            understanding_confidence=1.0,
-            speaker=speaker.SYS,
-            perception_confidence=0.9
+            ICM.ACC, polarity=ICM.POS, understanding_confidence=1.0, speaker=speaker.SYS, perception_confidence=0.9
         )
         self.assertEqual(
             "ICMMove(icm:acc*pos, speaker=SYS, understanding_confidence=1.0, perception_confidence=0.9)", str(move)
         )
 
     def test_create_und_int(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.INT, speaker=speaker.SYS)
-        self.assertEqual(ICMMove.UND, icm.type_)
-        self.assertEqual(ICMMove.INT, icm.get_polarity())
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.INT, speaker=speaker.SYS)
+        self.assertEqual(ICM.UND, icm.type_)
+        self.assertEqual(ICM.INT, icm.get_polarity())
 
     def test_inequality_due_to_polarity_difference(self):
-        icm_int = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.INT)
-        icm_pos = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS)
-        icm_neg = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.NEG)
+        icm_int = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.INT)
+        icm_pos = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS)
+        icm_neg = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.NEG)
         self.assertNotEqual(icm_pos, icm_int)
         self.assertNotEqual(icm_pos, icm_neg)
         self.assertNotEqual(icm_int, icm_neg)
 
     def test_inequality_due_to_type_difference(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS)
-        non_identical_icm = self.move_factory.create_icm_move(ICMMove.ACC, polarity=ICMMove.POS)
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS)
+        non_identical_icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.POS)
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(icm, non_identical_icm)
 
     def test_inequality_due_to_content_difference(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS, content="dummy_content")
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, content="dummy_content")
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content="different_dummy_content"
+            ICM.UND, polarity=ICM.POS, content="different_dummy_content"
         )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(icm, non_identical_icm)
 
     def test_inequality_due_to_content_speaker_difference(self):
-        icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content=Mock(), content_speaker=speaker.USR
-        )
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, content=Mock(), content_speaker=speaker.USR)
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content=Mock(), content_speaker=speaker.SYS
+            ICM.UND, polarity=ICM.POS, content=Mock(), content_speaker=speaker.SYS
         )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(icm, non_identical_icm)
 
     def test_inequality_due_to_speaker_difference(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, understanding_confidence=1.0, speaker=speaker.SYS
+            ICM.UND, polarity=ICM.POS, understanding_confidence=1.0, speaker=speaker.SYS
         )
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.NEG, understanding_confidence=1.0, speaker=speaker.SYS
+            ICM.UND, polarity=ICM.NEG, understanding_confidence=1.0, speaker=speaker.SYS
         )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(icm, non_identical_icm)
 
     def test_inequality_due_to_score_difference(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, speaker=speaker.USR, understanding_confidence=0.9, ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, speaker=speaker.USR, understanding_confidence=0.9, ddd_name="mockup_ddd"
         )
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND,
-            polarity=ICMMove.POS,
-            speaker=speaker.USR,
-            understanding_confidence=0.77,
-            ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, speaker=speaker.USR, understanding_confidence=0.77, ddd_name="mockup_ddd"
         )
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(icm, non_identical_icm)
 
     def test_content_inequality_due_to_polarity_difference(self):
-        icm_int = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.INT)
-        icm_pos = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS)
+        icm_int = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.INT)
+        icm_pos = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS)
         self.assertFalse(icm_pos.move_content_equals(icm_int))
 
     def test_content_inequality_due_to_type_difference(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS)
-        non_identical_icm = self.move_factory.create_icm_move(ICMMove.ACC, polarity=ICMMove.POS)
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS)
+        non_identical_icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.POS)
         self.assertFalse(icm.move_content_equals(non_identical_icm))
 
     def test_content_inequality_due_to_content_difference(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS, content="dummy_content")
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, content="dummy_content")
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content="different_dummy_content"
+            ICM.UND, polarity=ICM.POS, content="different_dummy_content"
         )
         self.assertFalse(icm.move_content_equals(non_identical_icm))
 
     def test_content_inequality_due_to_content_speaker_difference(self):
-        icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content=Mock(), content_speaker=speaker.USR
-        )
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, content=Mock(), content_speaker=speaker.USR)
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content=Mock(), content_speaker=speaker.SYS
+            ICM.UND, polarity=ICM.POS, content=Mock(), content_speaker=speaker.SYS
         )
         self.assertFalse(icm.move_content_equals(non_identical_icm))
 
     def test_content_equality_tolerates_speaker_difference(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, understanding_confidence=1.0, speaker=speaker.USR, ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, understanding_confidence=1.0, speaker=speaker.USR, ddd_name="mockup_ddd"
         )
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, understanding_confidence=1.0, speaker=speaker.SYS, ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, understanding_confidence=1.0, speaker=speaker.SYS, ddd_name="mockup_ddd"
         )
         self.assertTrue(icm.move_content_equals(non_identical_icm))
 
     def test_content_equality_tolerates_score_difference(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, speaker=speaker.USR, understanding_confidence=0.9, ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, speaker=speaker.USR, understanding_confidence=0.9, ddd_name="mockup_ddd"
         )
         non_identical_icm = self.move_factory.create_icm_move(
-            ICMMove.UND,
-            polarity=ICMMove.POS,
-            speaker=speaker.USR,
-            understanding_confidence=0.77,
-            ddd_name="mockup_ddd"
+            ICM.UND, polarity=ICM.POS, speaker=speaker.USR, understanding_confidence=0.77, ddd_name="mockup_ddd"
         )
         self.assertTrue(icm.move_content_equals(non_identical_icm))
 
     def test_und_neg_to_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.NEG)
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.NEG)
         expected_string = "ICMMove(icm:und*neg)"
         self.assertEqual(expected_string, str(icm))
 
     def test_und_int_to_string(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.INT, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
+            ICM.UND, polarity=ICM.INT, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
         )
         expected_string = "ICMMove(icm:und*int:USR*dest_city(paris))"
         self.assertEqual(expected_string, str(icm))
 
     def test_create_und_pos(self):
-        icm = self.move_factory.create_icm_move(ICMMove.UND, polarity=ICMMove.POS, speaker=speaker.SYS)
-        self.assertEqual(ICMMove.UND, icm.type_)
-        self.assertEqual(ICMMove.POS, icm.get_polarity())
+        icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, speaker=speaker.SYS)
+        self.assertEqual(ICM.UND, icm.type_)
+        self.assertEqual(ICM.POS, icm.get_polarity())
 
     def test_und_pos_to_string(self):
         icm = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.POS, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
+            ICM.UND, polarity=ICM.POS, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
         )
         expected_string = "ICMMove(icm:und*pos:USR*dest_city(paris))"
         self.assertEqual(expected_string, str(icm))
 
     def test_per_neg_to_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.PER, polarity=ICMMove.NEG)
+        icm = self.move_factory.create_icm_move(ICM.PER, polarity=ICM.NEG)
         self.assertEqual("ICMMove(icm:per*neg)", str(icm))
 
     def test_per_pos_to_string_with_content_as_double_quoted_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.PER, polarity=ICMMove.POS, content='a string')
+        icm = self.move_factory.create_icm_move(ICM.PER, polarity=ICM.POS, content='a string')
         self.assertEqual('ICMMove(icm:per*pos:"a string")', str(icm))
 
     def test_acc_pos_to_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.ACC, polarity=ICMMove.POS)
+        icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.POS)
         self.assertEqual("ICMMove(icm:acc*pos)", str(icm))
 
     def test_sem_neg_to_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.SEM, polarity=ICMMove.NEG)
+        icm = self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG)
         expected_string = "ICMMove(icm:sem*neg)"
         self.assertEqual(expected_string, str(icm))
 
     def test_acc_neg_issue_to_string(self):
-        icm = self.move_factory.create_icm_move(ICMMove.ACC, polarity=ICMMove.NEG, content="issue")
+        icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.NEG, content="issue")
         self.assertEqual("ICMMove(icm:acc*neg:issue)", str(icm))
 
     def test_icm_move_getters(self):
         move = self.move_factory.create_icm_move(
-            ICMMove.UND, polarity=ICMMove.INT, content=self.price_question, content_speaker=speaker.USR
+            ICM.UND, polarity=ICM.INT, content=self.price_question, content_speaker=speaker.USR
         )
         self.assertTrue(move.is_icm())
-        self.assertEqual(ICMMove.INT, move.get_polarity())
+        self.assertEqual(ICM.INT, move.get_polarity())
         self.assertEqual(self.price_question, move.content)
         self.assertEqual(speaker.USR, move.get_content_speaker())
 
     def test_semantic_expression_without_realization_data(self):
-        self.given_move(self.move_factory.create_icm_move(ICMMove.SEM, polarity=ICMMove.NEG))
+        self.given_move(self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG))
         self.given_set_realization_data_was_called(speaker=speaker.SYS, ddd_name="mock_ddd")
         self.when_get_semantic_expression_without_realization_data()
         self.then_result_is("ICMMove(icm:sem*neg)")
@@ -705,13 +689,13 @@ class MoveRealizationTests(LibTestCase):
 
     def test_get_score_returns_one_for_move_with_speaker_sys(self):
         greet_move = self.move_factory.create_move(Move.GREET, speaker=speaker.SYS)
-        icm_move = self.move_factory.create_icm_move(ICMMove.ACC, content=ICMMove.POS, speaker=speaker.SYS)
+        icm_move = self.move_factory.create_icm_move(ICM.ACC, content=ICM.POS, speaker=speaker.SYS)
         for sys_move in [greet_move, icm_move]:
             self.assertEqual(1.0, sys_move.understanding_confidence)
 
     def test_move_speech_modality_is_default(self):
         quit_move = self.move_factory.create_move(Move.QUIT, speaker=speaker.SYS)
-        icm_move = self.move_factory.create_icm_move(ICMMove.ACC, content=ICMMove.POS, speaker=speaker.SYS)
+        icm_move = self.move_factory.create_icm_move(ICM.ACC, content=ICM.POS, speaker=speaker.SYS)
         for move in [quit_move, icm_move]:
             self.assertEqual(Modality.SPEECH, move.get_modality())
 
@@ -747,19 +731,19 @@ class MoveTestsFromTdmLib(LibTestCase):
         self.assertEqual("Move(ask(?X.dest_city(X)))", moveAsString)
 
 
-class TestICMMoves(object):
+class TestICMs(object):
     def setup_method(self):
         self._move = None
         self._actual_result = None
 
     @pytest.mark.parametrize("move,expected_result", [
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.INT), True),
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.POS), True),
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.NEG), False),
-        (ICMMoveWithSemanticContent(ICMMove.SEM, content="content", polarity=ICMMove.POS), False),
-        (ICMMoveWithSemanticContent(ICMMove.PER, content="content", polarity=ICMMove.POS), False),
-        (ICMMove(ICMMove.UND, polarity=ICMMove.INT), False),
-        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.INT), True),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.POS), True),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.NEG), False),
+        (ICMWithSemanticContent(ICM.SEM, content="content", polarity=ICM.POS), False),
+        (ICMWithSemanticContent(ICM.PER, content="content", polarity=ICM.POS), False),
+        (ICM(ICM.UND, polarity=ICM.INT), False),
+        (ICM(ICM.UND, polarity=ICM.POS), False),
         (CardinalSequencingICM(1), False)
     ])  # yapf: disable
     def test_is_grounding_move(self, move, expected_result):
@@ -777,13 +761,13 @@ class TestICMMoves(object):
         assert self._actual_result == expected_result
 
     @pytest.mark.parametrize("move, expected_result", [
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.INT), False),
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.POS), False),
-        (ICMMoveWithSemanticContent(ICMMove.UND, content="content", polarity=ICMMove.NEG), False),
-        (ICMMoveWithSemanticContent(ICMMove.SEM, content="content", polarity=ICMMove.POS), False),
-        (ICMMoveWithSemanticContent(ICMMove.PER, content="content", polarity=ICMMove.POS), False),
-        (ICMMove(ICMMove.UND, polarity=ICMMove.INT), False),
-        (ICMMove(ICMMove.UND, polarity=ICMMove.POS), False),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.INT), False),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.POS), False),
+        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.NEG), False),
+        (ICMWithSemanticContent(ICM.SEM, content="content", polarity=ICM.POS), False),
+        (ICMWithSemanticContent(ICM.PER, content="content", polarity=ICM.POS), False),
+        (ICM(ICM.UND, polarity=ICM.INT), False),
+        (ICM(ICM.UND, polarity=ICM.POS), False),
         (CardinalSequencingICM(1), False),
         (CardinalSequencingICM(99), True)
     ])  # yapf: disable

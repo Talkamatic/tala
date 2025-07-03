@@ -127,18 +127,14 @@ class XmlCompiler(object):
     def _schema_name(self):
         raise NotImplementedError("Needs to be implemented in subclass %s" % self.__class__.__name__)
 
-    def load_schema(self):
-        schema_object = open(self._schema_absolute_path, "r")
-        return schema_object
-
     def parse_schema(self, loaded_schema):
         parsed_as_xml = etree.parse(loaded_schema)
         parsed_as_schema = etree.XMLSchema(parsed_as_xml)
         return parsed_as_schema
 
     def get_schema(self):
-        loaded_schema = self.load_schema()
-        parsed_schema = self.parse_schema(loaded_schema)
+        with open(self._schema_absolute_path, "r") as loaded_schema:
+            parsed_schema = self.parse_schema(loaded_schema)
         return parsed_schema
 
 

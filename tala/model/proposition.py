@@ -3,7 +3,7 @@ import uuid
 
 import tala
 from tala.model.error import OntologyError
-from tala.model.move import AnswerMove
+from tala.model.move import Answer
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
 from tala.model.individual import Individual
@@ -312,7 +312,7 @@ class PredicateProposition(PropositionWithSemanticContent):
     def as_move(self):
         if self.individual is None:
             raise MissingIndividualException(f"Expected an individual but got none for {self!r}")
-        return AnswerMove(self)
+        return Answer(self)
 
     def is_incompatible_with(self, other):
         if self.negate() == other:

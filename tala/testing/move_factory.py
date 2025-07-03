@@ -1,6 +1,8 @@
 from tala.model.speaker import USR
-from tala.model.move import MoveWithSemanticContent, Move, ICMMove, IssueICMMove, ICMMoveWithStringContent, \
-    ICMMoveWithSemanticContent, ReportMove, PrereportMove, AnswerMove, RequestMove, AskMove
+from tala.model.move import (
+    MoveWithSemanticContent, Move, ICM, IssueICM, ICMWithStringContent, ICMWithSemanticContent, Report, Prereport,
+    Answer, Request, Ask
+)
 
 
 class MoveFactoryWithPredefinedBoilerplate(object):
@@ -53,9 +55,9 @@ class MoveFactoryWithPredefinedBoilerplate(object):
 
         if content is not None:
             classes = {
-                Move.ANSWER: AnswerMove,
-                Move.REQUEST: RequestMove,
-                Move.ASK: AskMove,
+                Move.ANSWER: Answer,
+                Move.REQUEST: Request,
+                Move.ASK: Ask,
             }
             if type_ in classes:
                 Class = classes[type_]
@@ -91,7 +93,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
 
         if content is not None:
             if content == "issue":
-                return IssueICMMove(
+                return IssueICM(
                     icm_type,
                     understanding_confidence=understanding_confidence,
                     speaker=speaker,
@@ -100,7 +102,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
                     perception_confidence=perception_confidence
                 )
             if isinstance(content, str):
-                return ICMMoveWithStringContent(
+                return ICMWithStringContent(
                     icm_type,
                     content,
                     understanding_confidence=understanding_confidence,
@@ -110,7 +112,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
                     ddd_name=ddd_name,
                     perception_confidence=perception_confidence
                 )
-            return ICMMoveWithSemanticContent(
+            return ICMWithSemanticContent(
                 icm_type,
                 content,
                 understanding_confidence=understanding_confidence,
@@ -120,7 +122,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
                 ddd_name=ddd_name,
                 perception_confidence=perception_confidence
             )
-        return ICMMove(
+        return ICM(
             icm_type,
             understanding_confidence=understanding_confidence,
             speaker=speaker,
@@ -130,7 +132,7 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         )
 
     def create_report_move(self, report_proposition):
-        return ReportMove(report_proposition)
+        return Report(report_proposition)
 
     def create_prereport_move(self, service_action, arguments):
-        return PrereportMove(self._ontology_name, service_action, arguments)
+        return Prereport(self._ontology_name, service_action, arguments)

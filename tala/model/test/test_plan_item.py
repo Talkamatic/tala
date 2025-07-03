@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from tala.model.move import ICMMove, ICMMoveWithSemanticContent
+from tala.model.move import ICM, ICMWithSemanticContent
 from tala.model import plan_item
 from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase
@@ -88,19 +88,19 @@ class PlanItemTests(LibTestCase):
         self.assertFalse(self.respond_plan_item.is_question_raising_item())
 
     def test_emit_item_for_icm_und_non_pos_is_question_raising_item(self):
-        icm_und = ICMMove(ICMMove.UND, polarity=ICMMove.NEG)
+        icm_und = ICM(ICM.UND, polarity=ICM.NEG)
         emit_item = plan_item.EmitIcm(icm_und)
         self.assertTrue(emit_item.is_question_raising_item())
 
     def test_emit_item_for_icm_und_pos_for_positive_content_is_question_raising_item(self):
         positive_content = self.proposition_dest_city_paris
-        icm = ICMMoveWithSemanticContent(ICMMove.UND, positive_content, polarity=ICMMove.POS)
+        icm = ICMWithSemanticContent(ICM.UND, positive_content, polarity=ICM.POS)
         emit_item = plan_item.EmitIcm(icm)
         self.assertTrue(emit_item.is_question_raising_item())
 
     def test_emit_item_for_icm_und_pos_for_negated_content_is_not_question_raising_item(self):
         negation = self.proposition_not_dest_city_paris
-        icm = ICMMoveWithSemanticContent(ICMMove.UND, negation, polarity=ICMMove.POS)
+        icm = ICMWithSemanticContent(ICM.UND, negation, polarity=ICM.POS)
         emit_item = plan_item.EmitIcm(icm)
         self.assertFalse(emit_item.is_question_raising_item())
 
@@ -111,12 +111,12 @@ class PlanItemTests(LibTestCase):
         self.assertTrue(self.respond_plan_item.is_turn_yielding())
 
     def test_emit_item_for_acc_neg_is_turn_yielding(self):
-        icm_acc_neg = ICMMove(ICMMove.ACC, polarity=ICMMove.NEG)
+        icm_acc_neg = ICM(ICM.ACC, polarity=ICM.NEG)
         emit_item = plan_item.EmitIcm(icm_acc_neg)
         self.assertTrue(emit_item.is_turn_yielding())
 
     def test_emit_item_for_acc_pos_is_not_turn_yielding(self):
-        icm_acc_pos = ICMMove(ICMMove.ACC, polarity=ICMMove.POS)
+        icm_acc_pos = ICM(ICM.ACC, polarity=ICM.POS)
         emit_item = plan_item.EmitIcm(icm_acc_pos)
         self.assertFalse(emit_item.is_turn_yielding())
 
