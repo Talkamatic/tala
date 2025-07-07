@@ -115,11 +115,13 @@ class StackSet(Stack):
             self.remove(element)
 
     def create_view(self, philter):
+        warnings.warn("StackSet.create_view is deprecated.", DeprecationWarning, stacklevel=2)
         return StackSetView(self, philter)
 
 
 class StackSetView:
     def __init__(self, source_object, philter):
+        warnings.warn("StackSetView is deprecated.", DeprecationWarning, stacklevel=2)
         self.source_object = source_object
         self.philter = philter
 

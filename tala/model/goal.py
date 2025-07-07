@@ -1,3 +1,5 @@
+import warnings
+
 from tala.model import move
 from tala.model.question import Question
 from tala.model.action import Action
@@ -12,7 +14,7 @@ RESOLVE = "RESOLVE_GOAL"
 
 class Goal(SemanticObject, AsSemanticExpressionMixin):
     @classmethod
-    def create_from_json_api_data(self, data, included):
+    def create_from_json_api_data(cls, data, included):
         content = included.get_object_from_relationship(data["relationships"]["content"]["data"])
         type_ = data["attributes"]["type_"]
         target = data["attributes"]["target"]
@@ -50,12 +52,9 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
     def target(self):
         return self._target
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def __eq__(self, other):
         try:
-            return (other.target == self.target and other.type_ == self.type_)
+            return other.target == self.target and other.type_ == self.type_
         except AttributeError:
             return False
 
@@ -73,6 +72,7 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     @staticmethod
     def goal_filter(goal_type):
+        warnings.warn("Goal.goal_filter() is deprecated.", DeprecationWarning, stacklevel=2)
         return lambda goal: goal.type_ == goal_type
 
     @staticmethod
@@ -111,8 +111,7 @@ class GoalWithSemanticContent(Goal, SemanticObjectWithContent):
         def ontologies_match():
             if self.is_ontology_specific():
                 return other.is_ontology_specific() and other.ontology_name == self.ontology_name
-            else:
-                return not other.is_ontology_specific()
+            return not other.is_ontology_specific()
 
         try:
             return other.is_goal() \
@@ -153,17 +152,15 @@ class Perform(GoalWithSemanticContent):
 
     @staticmethod
     def filter():
+        warnings.warn("Perform.filter() is deprecated.", DeprecationWarning, stacklevel=2)
         return Goal.goal_filter(PERFORM)
 
     @property
     def action(self):
         return self.content
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def __str__(self):
-        return "perform(%s)" % self.action
+        return f"perform({self.action})"
 
     def as_move(self):
         return move.Request(self.content)
@@ -194,6 +191,7 @@ class Resolve(GoalWithSemanticContent):
 
     @staticmethod
     def filter():
+        warnings.warn("Resolve.filter() is deprecated.", DeprecationWarning, stacklevel=2)
         return Goal.goal_filter(RESOLVE)
 
     def __ne__(self, other):
