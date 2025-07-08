@@ -111,6 +111,10 @@ class InteractionTester:
             self._buffer_output('!!!! Exception raised during test !!!!')
             self._buffer_output(f"Exception: {e}")
             self._result = {"success": False}
+        except Exception as e:
+            self._buffer_output('!!!! General exception raised during test !!!!')
+            self._buffer_output(f"Exception: {e}")
+            self._result = {"success": False}
         else:
             self._buffer_output('=== End interaction test ===')
             self._result = {"success": True}

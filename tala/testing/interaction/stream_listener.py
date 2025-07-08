@@ -1,4 +1,3 @@
-import json
 import requests
 import threading
 import time
@@ -21,10 +20,10 @@ class StreamListener(threading.Thread):
         self._streaming_started = None
         self._streaming_ended = None
         self._logger = logger
+        self._streamed_messages = []
         super().__init__(daemon=True)
 
     def run(self):
-        self._streamed_messages = []
         response = requests.get(f"{self._streamer_url}/{self._session_id}", stream=True)
         self.stream_started.set()
         self._logger.info("listening to stream")
@@ -60,16 +59,16 @@ class StreamListener(threading.Thread):
     def create_event_and_store(self):
         try:
             if self.current_event == "STREAMING_DONE":
-                json_event = f'{{"event": "{self.current_event}"}}'
+                event = {"event": self.current_event}
                 self._streaming_ended = time.time()
                 self.please_stop()
             if self.current_event == "STREAMING_CHUNK":
                 if not bool(self._streaming_started):
                     self._streaming_started = time.time()
 
-                json_event = f'{{"event": "{self.current_event}", "data": "{self.current_data}"}}'
-            if json_event:
-                self._streamed_messages.append(json.loads(json_event))
+                event = {"event": self.current_event, "data": self.current_data}
+            if event:
+                self._streamed_messages.append(event)
         except UnboundLocalError:
             pass
         self.current_event = None

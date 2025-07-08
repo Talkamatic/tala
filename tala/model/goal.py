@@ -194,9 +194,6 @@ class Resolve(GoalWithSemanticContent):
         warnings.warn("Resolve.filter() is deprecated.", DeprecationWarning, stacklevel=2)
         return Goal.goal_filter(RESOLVE)
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def __str__(self):
         result = ""
         if self._target == speaker.USR:
