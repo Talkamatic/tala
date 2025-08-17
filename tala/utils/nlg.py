@@ -70,6 +70,15 @@ def generate(moves, context, session, logger):
     return result
 
 
+def generate_all_utterances(move, context, session, logger):
+    moves = [{"semantic_expression": move}]
+
+    request = {"moves": moves, "context": context, "session": session, "generate_all_alternatives": True}
+    result = nlg(request, logger)
+    logger.info("generate() returns", result=result)
+    return result
+
+
 def generate_utterance(moves, context, session, logger):
     result = generate(moves, context, session, logger)
     if result["status"] == SUCCESS:
@@ -164,6 +173,25 @@ def nlg(body, logger):
         )
     except NoMoveSequenceFoundException:
         pass
+
+    if body.get("generate_all_alternatives", False):
+        try:
+            utterances = g.generate(moves[0], all_alternatives=True)
+            logger.debug("utterances", utterances=utterances)
+            clean_utterances = [utterance for utterance in utterances["utterances"] if utterance]
+        except SlotDefinitionException as exception:
+            logger.warning(exception.message)
+            return make_and_log_response(response={"status": FAIL, "message": exception.message})
+        persona = decide_persona([utterances])
+        return make_and_log_response(
+            response={
+                "status": SUCCESS,
+                "utterances": clean_utterances,
+                "persona": persona,
+                "voice": get_voice(nlg_data, persona)
+            }
+        )
+
     try:
         utterances = list(g.generate(move) for move in moves)
         logger.debug("utterances", utterances=utterances)
@@ -214,7 +242,7 @@ class Generator:
                 return sequence_content
         raise NoMoveSequenceFoundException(f"no sequence matching '{moves}' found")
 
-    def generate(self, move):
+    def generate(self, move, all_alternatives=False):
         def _is_move_in_patterns_with_exact_match(nlg_data_doc):
             if nlg_data_doc:
                 return True
@@ -224,9 +252,12 @@ class Generator:
         if _is_move_in_patterns_with_exact_match(nlg_data_doc):
             if is_utterance_with_ng_slots(nlg_data_doc["utterance"]):
                 utterance = self._handle_utterance_with_ng_slots(nlg_data_doc["utterance"])
+            elif all_alternatives:
+                utterances = self._handle_utterances_possibly_with_og_slots(nlg_data_doc["utterance"])
+                return {"utterances": utterances, "persona": nlg_data_doc.get("persona")}
             else:
                 utterance = self._handle_utterance_possibly_with_og_slots(nlg_data_doc["utterance"])
-            if "_" in utterance:
+            if utterance and "_" in utterance:
                 self._logger.warning("base case: move in mappings", utterance=utterance)
             return {"utterance": utterance, "persona": nlg_data_doc.get("persona")}
 
@@ -272,6 +303,10 @@ class Generator:
         utterance = self._select_candidate_utterance_from_string(utterance_candidates)
         return self._populate_slots_in(utterance)
 
+    def _handle_utterances_possibly_with_og_slots(self, utterance_candidates):
+        utterances = self._get_all_candidate_utterances_from_string(utterance_candidates)
+        return [self._populate_slots_in(utterance) for utterance in utterances]
+
     def _handle_utterance_with_ng_slots(self, utterance_candidates):
         utterance = self._select_candidate_utterance_from_string(utterance_candidates)
         return self._populate_ng_slots_in(utterance)
@@ -298,6 +333,9 @@ class Generator:
 
         filler_dict = create_filler_dict()
         return utterance.format_map(filler_dict)
+
+    def _get_all_candidate_utterances_from_string(self, candidates):
+        return candidates.split("|")
 
     def _select_candidate_utterance_from_string(self, candidates):
         candidate_utterances = candidates.split("|")

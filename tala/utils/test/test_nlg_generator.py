@@ -235,3 +235,15 @@ class TestGenerator():
             'persona': "tutor",
             'utterance': "Sorry, I didn't catch that. Say \"coach\" if you want to talk to me again."
         })
+
+    def test_generate_all_utterances_for_move(self):
+        self.given_move('greet')
+        self.when_generate_all_utterances()
+        self.then_result_is({"status": "success", "persona": None, "utterances": ["Hello!", "Hi!"], "voice": None})
+
+    def given_move(self, data):
+        self._move = data
+
+    def when_generate_all_utterances(self):
+        session = {"nlg": self._data}
+        self._result = nlg.generate_all_utterances(self._move, self._context, session, self.logger)
