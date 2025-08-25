@@ -64,6 +64,11 @@
         "utterance": "The temperature in {city_mock_uuid_1} is {temperature_mock_uuid_0} degrees centigrade.",
         "persona": "tutor"
     },
+    "answer(temperature_alternatives(*))": {
+        "match": "answer(temperature_alternatives(*))",
+        "utterance": "The temperature in {city_mock_uuid_1} is {temperature_mock_uuid_0} degrees centigrade. | It's {temperature_mock_uuid_0} degrees centigrade in {city_mock_uuid_1}.",
+        "persona": "tutor"
+    },
     "answer(temperature_mock_uuid_0(3000_mock_uuid_10))": {
         "match": "answer(temperature_mock_uuid_0(3000_mock_uuid_10))",
         "utterance": "The temperature in hell can't be measured in centigrades.",

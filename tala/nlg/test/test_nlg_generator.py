@@ -4,7 +4,7 @@ import os
 from jinja2 import Environment
 import structlog
 
-from tala.utils import nlg
+from tala.nlg import nlg
 from tala.utils.func import configure_stdout_logging
 
 environment = Environment()
@@ -16,10 +16,10 @@ class TestGenerator():
     def setup_method(self):
         self.logger = structlog.get_logger(__name__)
         configure_stdout_logging("DEBUG")
-        self.load_default_model()
-        self.given_context(DEFAULT_CONTEXT)
+        self._load_default_model()
+        self._load_context(DEFAULT_CONTEXT)
 
-    def load_default_model(self):
+    def _load_default_model(self):
         self._path_of_this_script = os.path.dirname(os.path.realpath(__file__))
         self._load_model(f"{self._path_of_this_script}/nlg_data.json")
 
@@ -27,39 +27,16 @@ class TestGenerator():
         with open(path) as nlg_data:
             self._data = json.load(nlg_data)
 
-    def given_context(self, data):
+    def _load_context(self, data):
         self._context = data
-
-    def given_facts(self, facts):
-        self._context["facts"] = facts
-
-    def given_moves(self, data):
-        self._moves = data
-
-    def when_generate_is_called(self):
-        session = {"nlg": self._data}
-        self._result = nlg.generate(self._moves, self._context, session, self.logger)
 
     def then_result_contains(self, expected):
         for key in expected:
-            assert expected[key] == self._result[key]
-
-    def then_result_contains_one_of(self, possible_results):
-        def entry_lists_match(expected, actual):
-            for i in range(0, len(expected)):
-                if not entries_match(expected[i], actual):
-                    print("no match:", expected[i], actual)
-                    return False
-            return True
-
-        def entries_match(expected, actual):
-            return expected.get("uttrance", None) == actual.get("uttrance", None) \
-                and expected.get("persona", None) == actual.get("persona", None)
-
-        assert any([entry_lists_match(expected, self._result) for expected in possible_results])
+            assert expected[key] == self._nlg.result[key]
 
     def test_basic_request(self):
         self.given_moves(["greet"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains_one_of([[{
             "utterance": "Hello!",
@@ -71,22 +48,43 @@ class TestGenerator():
             "voice": None
         }]])
 
+    def given_moves(self, data):
+        self._moves = data
+
+    def given_nlg(self):
+        session = {"nlg": self._data}
+        self._nlg = nlg.NLG(self._moves, self._context, session, self.logger)
+
+    def when_generate_is_called(self):
+        self._nlg.generate()
+
+    def then_result_contains_one_of(self, possible_results):
+        def entry_lists_match(expected, actual):
+            for i in range(0, len(expected)):
+                if not entries_match(expected[i], actual):
+                    return False
+            return True
+
+        def entries_match(expected, actual):
+            return expected.get("uttrance", None) == actual.get("uttrance", None) \
+                and expected.get("persona", None) == actual.get("persona", None)
+
+        assert any([entry_lists_match(expected, self._nlg.result) for expected in possible_results])
+
     def test_two_moves(self):
         self.given_moves(["icm:acc*pos", "ask(?X.city_mock_uuid_1(X))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({'persona': 'tutor', 'utterance': 'Ok. What city do you want the temperature for?'})
 
     def test_get_utterance_of_two_moves(self):
         self.given_moves(["icm:acc*pos", "ask(?X.city_mock_uuid_1(X))"])
-        self.when_generate_utterance_is_called()
-        self.then_result_is('Ok. What city do you want the temperature for?')
+        self.given_nlg()
+        self.when_generate_is_called()
+        self.then_utterance_is('Ok. What city do you want the temperature for?')
 
-    def when_generate_utterance_is_called(self):
-        session = {"nlg": self._data}
-        self._result = nlg.generate_utterance(self._moves, {}, session, self.logger)
-
-    def then_result_is(self, result):
-        assert result == self._result
+    def then_utterance_is(self, expected_utterance):
+        assert expected_utterance == self._nlg.utterance
 
     def test_generalized_slots_for_grammar_entries_in_db(self):
         self.given_facts({
@@ -100,11 +98,15 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(temperature_mock_uuid_0(20_mock_uuid_5))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
             'utterance': 'The temperature in Gothenburg is 20 degrees centigrade.'
         })
+
+    def given_facts(self, facts):
+        self._context["facts"] = facts
 
     def test_generalized_slots_for_grammar_entries_in_db_dont_care_about_individual(self):
         self.given_facts({
@@ -118,6 +120,7 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(temperature_mock_uuid_0(some_random_string))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
@@ -138,6 +141,7 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(temperature_mock_uuid_0(30_mock_uuid_5))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
@@ -156,6 +160,7 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(temperature_mock_uuid_0(3000_mock_uuid_10))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
@@ -174,10 +179,35 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(temperature_mock_uuid_0(20_mock_uuid_5))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
             'utterance': 'The temperature in Barcelona is 20 degrees centigrade.'
+        })
+
+    def test_generalized_slots_for_string_individuals_all_answers(self):
+        self.given_facts({
+            "temperature_mock_uuid_0": {
+                "sort": "some_sort",
+                "value": "20_mock_uuid_5",
+            },
+            "city_mock_uuid_1": {
+                "sort": "string",
+                "value": "Barcelona"
+            }
+        })
+        self.given_moves(["answer(temperature_alternatives(20_mock_uuid_5))"])
+        self.given_nlg()
+        self.when_generate_all_utterances_is_called()
+        self.then_result_is({
+            'persona': 'tutor',
+            'status': 'success',
+            'utterances': [
+                'The temperature in Barcelona is 20 degrees centigrade.',
+                "It's 20 degrees centigrade in Barcelona.",
+            ],
+            'voice': None,
         })
 
     def test_naturalistic_string_slot_handling_for_single_move_utterance(self):
@@ -193,6 +223,7 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(end_segment_information_predicate(end_segment_information))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({'persona': "tutor", 'utterance': "Keep up the good work, Fred!"})
 
@@ -209,6 +240,7 @@ class TestGenerator():
             }
         })
         self.given_moves(['icm:acc*pos', 'ask(?X.goal(X))'])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({'persona': "tutor", 'utterance': "Yes, how can I help you, Fred?"})
 
@@ -225,11 +257,13 @@ class TestGenerator():
             }
         })
         self.given_moves(["answer(user_name(\"Fred\"))"])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({'utterance': "I'll call you Fred."})
 
     def test_move_subsequence(self):
         self.given_moves(['icm:per*pos:"wolla bolla kolla"', 'icm:sem*neg', 'icm:reraise', 'ask(?X.goal(X))'])
+        self.given_nlg()
         self.when_generate_is_called()
         self.then_result_contains({
             'persona': "tutor",
@@ -237,13 +271,19 @@ class TestGenerator():
         })
 
     def test_generate_all_utterances_for_move(self):
-        self.given_move('greet')
-        self.when_generate_all_utterances()
+        self.given_moves(['greet'])
+        self.given_nlg()
+        self.when_generate_all_utterances_is_called()
         self.then_result_is({"status": "success", "persona": None, "utterances": ["Hello!", "Hi!"], "voice": None})
 
-    def given_move(self, data):
-        self._move = data
+    def test_generate_all_utterances_for_failing_move(self):
+        self.given_moves(['greetings'])
+        self.given_nlg()
+        self.when_generate_all_utterances_is_called()
+        self.then_result_is({"status": "fail", "message": "Could not generate utterances for ['greetings']"})
 
-    def when_generate_all_utterances(self):
-        session = {"nlg": self._data}
-        self._result = nlg.generate_all_utterances(self._move, self._context, session, self.logger)
+    def when_generate_all_utterances_is_called(self):
+        self._nlg.generate_all_utterances()
+
+    def then_result_is(self, expected_result):
+        assert self._nlg.result == expected_result

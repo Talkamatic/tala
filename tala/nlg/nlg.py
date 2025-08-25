@@ -2,7 +2,6 @@ import re
 import random
 from string import Formatter
 
-from tala.utils.func import log_models
 from tala.utils.compression import ensure_decompressed_json
 
 PROTOCOL_VERSION = "1.0"
@@ -38,6 +37,26 @@ class NoMoveSequenceFoundException(Exception):
     pass
 
 
+def generate(moves, context, session, logger):
+    nlg = NLG(moves, context, session, logger)
+    nlg.generate()
+    return nlg.result
+
+
+def generate_utterance(moves, context, session, logger):
+    nlg = NLG(moves, context, session, logger)
+    nlg.generate()
+    return nlg.utterance
+
+
+def generate_all_utterances(moves, context, session, logger):
+    nlg = NLG(moves, context, session, logger)
+    nlg.generate_all_utterances()
+    if nlg.result["status"] == SUCCESS:
+        return nlg.result["utterances"]
+    return []
+
+
 def get_predicate(proposition_expression):
     m = re.match(r"([a-zA-Z0-9_]+)\(.*", proposition_expression)
     if m:
@@ -61,165 +80,172 @@ def is_utterance_with_ng_slots(utterance):
     return False
 
 
-def generate(moves, context, session, logger):
-    moves = [{"semantic_expression": move} for move in moves]
-
-    request = {"moves": moves, "context": context, "session": session}
-    result = nlg(request, logger)
-    logger.info("generate() returns", result=result)
-    return result
-
-
-def generate_all_utterances(move, context, session, logger):
-    moves = [{"semantic_expression": move}]
-
-    request = {"moves": moves, "context": context, "session": session, "generate_all_alternatives": True}
-    result = nlg(request, logger)
-    logger.info("generate() returns", result=result)
-    return result
-
-
-def generate_utterance(moves, context, session, logger):
-    result = generate(moves, context, session, logger)
-    if result["status"] == SUCCESS:
-        return result["utterance"]
-    return ""
-
-
 def generate_moves_subsequences(moves):
     for i in range(0, len(moves) - 1):
         yield list_of_strings_to_string(moves[i:])
 
 
-def nlg(body, logger):
-    def get_nlg_model():
+class NLG:
+    def __init__(self, moves, context, session, logger):
+        self._moves = moves
+        self._context = context
+        self._session = session
+        self._logger = logger
+        self._nlg_model = None
+        self._generator = Generator(
+            self.nlg_model, self.facts, self.facts_being_grounded, self.entities_under_discussion, self.logger
+        )
+
+    @property
+    def nlg_model(self):
+        if not self._nlg_model:
+            nlg_model = self.session.get("nlg")
+            self._nlg_model = ensure_decompressed_json(nlg_model)
+        return self._nlg_model
+
+    @property
+    def moves(self):
         try:
-            if body.get("nlg"):
-                logger.debug("Collecting NLG data from the request")
-                nlg_model = body["nlg"]
-            if "session" in body and body["session"].get("nlg"):
-                logger.debug("Collecting NLG data from the session object")
-                nlg_model = body["session"].get("nlg")
+            return [move["semantic_expression"] for move in self._moves]
+        except TypeError:
+            return self._moves
 
-            return ensure_decompressed_json(nlg_model)
-        except UnboundLocalError as e:
-            logger.warning("No NLG model could be found in the request body or the session object", error=e)
+    @property
+    def context(self):
+        return self._context
 
-    def lowercase_question_with_reraise_sw_en(utterance):
-        for target_token in [RERAISE_EN, RERAISE_SV]:
-            if target_token in utterance:
-                index = utterance.find(target_token) + len(target_token)
-                utterance = utterance[:index] + utterance[index].lower() + utterance[index + 1:]
-                return utterance
-        return utterance
+    @property
+    def session(self):
+        return self._session
 
-    def decide_persona(utterances):
+    @property
+    def facts(self):
+        return self.context.get("facts", {})
+
+    @property
+    def facts_being_grounded(self):
+        return self.context.get("facts_being_grounded", {})
+
+    @property
+    def entities_under_discussion(self):
+        return self.context.get("entities_under_discussion", {})
+
+    @property
+    def logger(self):
+        return self._logger
+
+    @property
+    def result(self):
+        return self._result
+
+    @property
+    def utterance(self):
+        if self.result["status"] == SUCCESS:
+            return self.result["utterance"]
+        return ""
+
+    def generate(self):
+        self.logger.info("generate", moves=self.moves, context=self.context, model=self.nlg_model)
+
+        if not self.nlg_model:
+            self._create_failure("No NLG model could be found in the session object")
+
+        try:
+            self._generate_sequence()
+            return
+        except NoMoveSequenceFoundException:
+            pass
+
+        self._generate_utterance()
+
+    def _generate_sequence(self):
+        generation = self._generator.generate_sequence(self.moves)
+        persona = generation.get("persona", "tutor")
+        self._create_success(generation["utterance"], persona)
+
+    def generate_all_utterances(self):
+        self.logger.info("generate", moves=self.moves, context=self.context, model=self.nlg_model)
+        if not self.nlg_model:
+            self._create_failure("No NLG model could be found in the request body or the session object")
+        try:
+            utterances = self._generator.generate_all_utterances(self.moves[0])
+            self.logger.debug("utterances", utterances=utterances)
+        except SlotDefinitionException as exception:
+            self.logger.warning(exception.message)
+            self._create_failure(exception.message)
+        if utterances:
+            clean_utterances = [utterance for utterance in utterances["utterances"] if utterance]
+            persona = self._decide_persona([utterances])
+            self._create_success_list(clean_utterances, persona)
+        else:
+            self._create_failure(f"Could not generate utterances for {self.moves}")
+
+    def _generate_utterance(self):
+        try:
+            utterances = list(self._generator.generate(move) for move in self.moves)
+            self.logger.debug("utterances", utterances=utterances)
+            clean_utterances = [utterance for utterance in utterances if utterance["utterance"]]
+            final_utterance = " ".join(utterance["utterance"] for utterance in clean_utterances)
+            potentially_lowercased_utterance = self._lowercase_question_with_reraise_sw_en(final_utterance)
+            self.logger.debug(
+                "potentially_lowercased_utterance", potentially_lowercased_utterance=potentially_lowercased_utterance
+            )
+            if potentially_lowercased_utterance == "":
+                self._create_failure(f"moves {self.moves} was generated as the empty string.")
+                return
+        except SlotDefinitionException as exception:
+            self.logger.warning(exception.message)
+            self._create_failure(exception.message)
+            return
+        persona = self._decide_persona(utterances)
+        self._create_success(potentially_lowercased_utterance, persona)
+
+    def _create_failure(self, message):
+        self._create_result({"status": FAIL, "message": message})
+
+    def _create_success(self, utterance, persona):
+        self._create_result({
+            "status": SUCCESS,
+            "utterance": utterance,
+            "persona": persona,
+            "voice": self._get_voice_for(persona)
+        })
+
+    def _create_success_list(self, utterances, persona):
+        self._create_result({
+            "status": SUCCESS,
+            "utterances": utterances,
+            "persona": persona,
+            "voice": self._get_voice_for(persona)
+        })
+
+    def _create_result(self, result):
+        try:
+            if "_" in result["utterance"]:
+                self.logger.warning("response contains an underscore character: _", utterance=result["utterance"])
+        except Exception:
+            pass
+        self.logger.info("NLG result", result=result)
+        self._result = result
+
+    def _get_voice_for(self, utterance_persona):
+        persona = self.nlg_model["personas"].get(utterance_persona, {})
+        return persona.get("voice")
+
+    def _decide_persona(self, utterances):
         for utterance in utterances:
             persona = utterance.get("persona", "tutor")
             if persona is not None:
                 return persona
         return None
 
-    def get_voice(nlg_data, utterance_persona):
-        persona = nlg_data["personas"].get(utterance_persona, {})
-        return persona.get("voice")
-
-    def make_and_log_response(response):
-        try:
-            if "_" in response["utterance"]:
-                logger.warning("response contains an underscore character: _", utterance=response["utterance"])
-        except Exception:
-            pass
-        logger.info("responding", response=response)
-        return response
-
-    def get_facts():
-        try:
-            return body["context"]["facts"]
-        except (KeyError, TypeError):
-            return {}
-
-    def get_facts_being_grounded():
-        return body.get("context", {}).get("facts_being_grounded", {})
-
-    def get_entities_under_discussion():
-        return body.get("context", {}).get("entities_under_discussion", {})
-
-    log_models(body, logger, ["nlg"])
-    logger.info("incoming NLG request", body=body)
-    moves = [move["semantic_expression"] for move in body["moves"]]
-
-    nlg_data = get_nlg_model()
-    if not nlg_data:
-        return make_and_log_response(
-            response={
-                "status": FAIL,
-                "message": "No NLG model could be found in the request body or the session object"
-            }
-        )
-
-    g = Generator(nlg_data, get_facts(), get_facts_being_grounded(), get_entities_under_discussion(), logger)
-
-    try:
-        utterance = g.generate_sequence(moves)
-        persona = utterance.get("persona", "tutor")
-        return make_and_log_response(
-            response={
-                "status": SUCCESS,
-                "utterance": utterance["utterance"],
-                "persona": persona,
-                "voice": get_voice(nlg_data, persona)
-            }
-        )
-    except NoMoveSequenceFoundException:
-        pass
-
-    if body.get("generate_all_alternatives", False):
-        try:
-            utterances = g.generate(moves[0], all_alternatives=True)
-            logger.debug("utterances", utterances=utterances)
-            clean_utterances = [utterance for utterance in utterances["utterances"] if utterance]
-        except SlotDefinitionException as exception:
-            logger.warning(exception.message)
-            return make_and_log_response(response={"status": FAIL, "message": exception.message})
-        persona = decide_persona([utterances])
-        return make_and_log_response(
-            response={
-                "status": SUCCESS,
-                "utterances": clean_utterances,
-                "persona": persona,
-                "voice": get_voice(nlg_data, persona)
-            }
-        )
-
-    try:
-        utterances = list(g.generate(move) for move in moves)
-        logger.debug("utterances", utterances=utterances)
-        clean_utterances = [utterance for utterance in utterances if utterance["utterance"]]
-        final_utterance = " ".join(utterance["utterance"] for utterance in clean_utterances)
-        potentially_lowercased_utterance = lowercase_question_with_reraise_sw_en(final_utterance)
-        logger.debug(
-            "potentially_lowercased_utterance", potentially_lowercased_utterance=potentially_lowercased_utterance
-        )
-        if potentially_lowercased_utterance == "":
-            return make_and_log_response(
-                response={
-                    "status": FAIL,
-                    "message": f"moves {moves} was generated as the empty string."
-                }
-            )
-    except SlotDefinitionException as exception:
-        logger.warning(exception.message)
-        return make_and_log_response(response={"status": FAIL, "message": exception.message})
-    persona = decide_persona(utterances)
-    return make_and_log_response(
-        response={
-            "status": SUCCESS,
-            "utterance": potentially_lowercased_utterance,
-            "persona": persona,
-            "voice": get_voice(nlg_data, persona)
-        }
-    )
+    def _lowercase_question_with_reraise_sw_en(self, utterance):
+        for target_token in [RERAISE_EN, RERAISE_SV]:
+            if target_token in utterance:
+                index = utterance.find(target_token) + len(target_token)
+                utterance = utterance[:index] + utterance[index].lower() + utterance[index + 1:]
+                return utterance
+        return utterance
 
 
 class Generator:
@@ -242,30 +268,30 @@ class Generator:
                 return sequence_content
         raise NoMoveSequenceFoundException(f"no sequence matching '{moves}' found")
 
-    def generate(self, move, all_alternatives=False):
-        def _is_move_in_patterns_with_exact_match(nlg_data_doc):
-            if nlg_data_doc:
-                return True
-            return False
-
+    def generate_all_utterances(self, move):
         nlg_data_doc = self._nlg_data.get(move)
-        if _is_move_in_patterns_with_exact_match(nlg_data_doc):
-            if is_utterance_with_ng_slots(nlg_data_doc["utterance"]):
-                utterance = self._handle_utterance_with_ng_slots(nlg_data_doc["utterance"])
-            elif all_alternatives:
-                utterances = self._handle_utterances_possibly_with_og_slots(nlg_data_doc["utterance"])
-                return {"utterances": utterances, "persona": nlg_data_doc.get("persona")}
+        if nlg_data_doc:
+            utterances = self._handle_utterances_possibly_with_og_slots(nlg_data_doc["utterance"])
+        else:
+            slot_pattern = self._get_generalized_slot_pattern(move)
+            self._logger.debug("slot_pattern", slot_pattern)
+            if slot_pattern:
+                nlg_data_doc = self._nlg_data.get(slot_pattern)
+                utterances = self._handle_utterances_with_ng_slots(nlg_data_doc["utterance"])
             else:
-                utterance = self._handle_utterance_possibly_with_og_slots(nlg_data_doc["utterance"])
-            if utterance and "_" in utterance:
-                self._logger.warning("base case: move in mappings", utterance=utterance)
-            return {"utterance": utterance, "persona": nlg_data_doc.get("persona")}
+                return None
+        return {"utterances": utterances, "persona": nlg_data_doc.get("persona")}
+
+    def generate(self, move):
+        nlg_data_doc = self._nlg_data.get(move)
+        if nlg_data_doc:
+            return self._handle_exact_match(nlg_data_doc)
 
         self._logger.debug("move is not exact match, try slots.")
         slot_pattern = self._get_generalized_slot_pattern(move)
         self._logger.debug("slot_pattern", slot_pattern)
-        nlg_data_doc = self._nlg_data.get(slot_pattern)
 
+        nlg_data_doc = self._nlg_data.get(slot_pattern)
         if nlg_data_doc:
             self._logger.debug("calling _handle_utterance_with_ng_slots", nlg_data_doc["utterance"])
             utterance = self._handle_utterance_with_ng_slots(nlg_data_doc["utterance"])
@@ -282,7 +308,10 @@ class Generator:
             self._populate_icm_references,
             self._get_string_from_string_answer_move,
         ]:
-            result = population_function(move)
+            try:
+                result = population_function(move)
+            except KeyError:
+                result = None
             if result and result["utterance"] is not None:
                 if "_" in result:
                     self._logger.warning(f"{population_function.__name__} applied to utterance", utterance=result)
@@ -290,6 +319,15 @@ class Generator:
         self._logger.warning(f"The move '{move}' was not found in the database. Generating the empty string.")
 
         return {"utterance": "", "persona": None}
+
+    def _handle_exact_match(self, nlg_data_doc):
+        if is_utterance_with_ng_slots(nlg_data_doc["utterance"]):
+            utterance = self._handle_utterance_with_ng_slots(nlg_data_doc["utterance"])
+        else:
+            utterance = self._handle_utterance_possibly_with_og_slots(nlg_data_doc["utterance"])
+        if utterance and "_" in utterance:
+            self._logger.warning("base case: move in mappings", utterance=utterance)
+        return {"utterance": utterance, "persona": nlg_data_doc.get("persona")}
 
     def _get_generalized_slot_pattern(self, move):
         self._logger.debug("_get_generalized_slot_pattern for move", move)
@@ -310,6 +348,10 @@ class Generator:
     def _handle_utterance_with_ng_slots(self, utterance_candidates):
         utterance = self._select_candidate_utterance_from_string(utterance_candidates)
         return self._populate_ng_slots_in(utterance)
+
+    def _handle_utterances_with_ng_slots(self, utterance_candidates):
+        utterances = self._get_all_candidate_utterances_from_string(utterance_candidates)
+        return [self._populate_ng_slots_in(utterance) for utterance in utterances]
 
     def _populate_ng_slots_in(self, utterance):
         def all_facts_dict():
@@ -335,7 +377,7 @@ class Generator:
         return utterance.format_map(filler_dict)
 
     def _get_all_candidate_utterances_from_string(self, candidates):
-        return candidates.split("|")
+        return [candidate.strip() for candidate in candidates.split("|")]
 
     def _select_candidate_utterance_from_string(self, candidates):
         candidate_utterances = candidates.split("|")
