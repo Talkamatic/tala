@@ -158,11 +158,11 @@ class TestHandlerUserRates:
 
     def test_create_entity(self):
         self.given_handler()
-        self.when_create_entity("new_offer", "new_user", OFFER_USAGE_QUOTA)
+        self.when_create_entity("new_offer", "new_ts_id", "new_user", OFFER_USAGE_QUOTA)
         self.then_incrementing_works_flawlessly("new_offer")
 
-    def when_create_entity(self, offer_id, user_id, offer_quota):
-        self._handler.create_entity(offer_id, user_id, offer_quota)
+    def when_create_entity(self, offer_id, ts_dialogue_id, user_id, offer_quota):
+        self._handler.create_entity(offer_id, ts_dialogue_id, user_id, offer_quota)
 
     def then_incrementing_works_flawlessly(self, offer_id):
         self._handler.increment_num_calls(offer_id)

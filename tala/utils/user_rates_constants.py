@@ -1,4 +1,5 @@
 OFFER_ID = "OfferID"
+TS_DIALOGUE_ID = "TSDialogueID"
 
 OFFER_AUTHOR_ID = "UserID"
 AUTHOR_ID = "AuthorUserID"

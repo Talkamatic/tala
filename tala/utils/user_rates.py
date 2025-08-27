@@ -82,8 +82,8 @@ class HandlerUserRates(AbstractTableHandler):
     partition_key = constants.HANDLER_DATA
     fields_to_jsonify = [constants.CALLS_LAST_PERIOD]
 
-    def create_entity(self, offer_id: str, user_id: str, offer_quota: int):
-        entity = self._make_new_entity(offer_id, user_id, offer_quota)
+    def create_entity(self, offer_id: str, ts_dialogue_id: str, user_id: str, offer_quota: int):
+        entity = self._make_new_entity(offer_id, ts_dialogue_id, user_id, offer_quota)
         self._create_entity(entity)
 
     def create_entity_author_quota(self, user_id: str, author_quota: int):
@@ -139,13 +139,14 @@ class HandlerUserRates(AbstractTableHandler):
         entity[constants.OFFER_QUOTA] = offer_quota
         self._update_entity(entity)
 
-    def _make_new_entity(self, offer_id: str, user_id: str, offer_quota: int):
+    def _make_new_entity(self, offer_id: str, ts_dialogue_id: str, user_id: str, offer_quota: int):
         return {
             constants.PARTITION_KEY: self.partition_key,
             constants.ROW_KEY: str(uuid.uuid4()),
             constants.NUM_CALLS: 0,
             constants.CALLS_LAST_PERIOD: [],
             constants.OFFER_ID: offer_id,
+            constants.TS_DIALOGUE_ID: ts_dialogue_id,
             constants.OFFER_AUTHOR_ID: user_id,
             constants.OFFER_QUOTA: offer_quota
         }
