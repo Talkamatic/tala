@@ -108,12 +108,16 @@ class HandlerUserRates(AbstractTableHandler):
             self._update_entity(entity)
         return entities
 
-    def increment_num_calls(self, offer_id, age_limit=DEFAULT_AGE_LIMIT):
+    def increment_num_calls(self, offer_id, ts_dialogue_id, age_limit=DEFAULT_AGE_LIMIT):
         def increment_calls(entity):
             if entity[constants.NUM_CALLS] < 0:
                 pass
             else:
                 entity[constants.NUM_CALLS] += 1
+
+        def add_dialogue_id_if_needed(entity, ts_dialogue_id):
+            if not entity.get(constants.TS_DIALOGUE_ID):
+                entity[constants.TS_DIALOGUE_ID] = ts_dialogue_id
 
         def log_call_in_last_period(entity):
             try:
@@ -131,6 +135,7 @@ class HandlerUserRates(AbstractTableHandler):
 
         entity = get_entry_for_offer_id(offer_id)
         increment_calls(entity)
+        add_dialogue_id_if_needed(entity, ts_dialogue_id)
         log_call_in_last_period(entity)
         self._update_entity(entity)
 

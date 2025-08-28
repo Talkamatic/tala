@@ -81,13 +81,13 @@ class TestHandlerUserRates:
     def test_first_call(self):
         self.given_user_rates([(0, "offer-id-2", "id-2")])
         self.given_handler()
-        self.when_increment_calls("offer-id-2")
+        self.when_increment_calls("offer-id-2", "ts-id-2")
         self.then_num_calls_are("offer-id-2", 1)
 
     def test_total_calls_incremented(self):
         self.given_user_rates([(499, "offer-id-1", "id_1")])
         self.given_handler()
-        self.when_increment_calls("offer-id-1")
+        self.when_increment_calls("offer-id-1", "ts-id-2")
         self.then_num_calls_are("offer-id-1", 500)
 
     def given_user_rates(self, rate_entry_values):
@@ -103,8 +103,8 @@ class TestHandlerUserRates:
         except AttributeError:
             self._handler = MockHandlerUserRates(MockTableClient([]))
 
-    def when_increment_calls(self, offer_id):
-        self._handler.increment_num_calls(offer_id)
+    def when_increment_calls(self, offer_id, ts_id):
+        self._handler.increment_num_calls(offer_id, ts_id)
 
     def then_num_calls_are(self, offer_id, num_calls):
         entities = self._handler.query_offer_id(offer_id)
@@ -113,14 +113,14 @@ class TestHandlerUserRates:
     def test_rate_increased(self):
         self.given_user_rates([(500, "offer-id-2", "id-2")])
         self.given_handler()
-        self.when_increment_calls("offer-id-2")
+        self.when_increment_calls("offer-id-2", "ts-id-2")
         self.then_num_calls_last_hour_is("offer-id-2", 1)
 
     def test_entry_updated_with_new_field(self):
         self.given_user_rates([(0, "offer-id-1", "id_1")])
         self.given_field_removed(constants.CALLS_LAST_PERIOD)
         self.given_handler()
-        self.when_increment_calls("offer-id-1")
+        self.when_increment_calls("offer-id-1", "ts-id-2")
         self.then_num_calls_last_hour_is("offer-id-1", 1)
 
     def given_field_removed(self, field_name):
@@ -135,7 +135,7 @@ class TestHandlerUserRates:
         self.given_user_rates([(500, "offer-id-2", "id-2")])
         self.given_old_call(61)
         self.given_handler()
-        self.when_increment_calls("offer-id-2")
+        self.when_increment_calls("offer-id-2", "ts-id-2")
         self.then_num_calls_last_hour_is("offer-id-2", 1)
 
     def given_old_call(self, age_in_minutes):
@@ -148,24 +148,24 @@ class TestHandlerUserRates:
         self.given_user_rates([(500, "offer-id-2", "id-2")])
         self.given_old_call(59)
         self.given_handler()
-        self.when_increment_calls("offer-id-2")
+        self.when_increment_calls("offer-id-2", "ts-id-2")
         self.then_num_calls_last_hour_is("offer-id-2", 2)
 
     def test_offer_not_in_db(self):
         self.given_handler()
         with pytest.raises(OfferNotInDB):
-            self.when_increment_calls("new_offer")
+            self.when_increment_calls("new_offer", "ts-id-2")
 
     def test_create_entity(self):
         self.given_handler()
         self.when_create_entity("new_offer", "new_ts_id", "new_user", OFFER_USAGE_QUOTA)
-        self.then_incrementing_works_flawlessly("new_offer")
+        self.then_incrementing_works_flawlessly("new_offer", "new_ts_id")
 
     def when_create_entity(self, offer_id, ts_dialogue_id, user_id, offer_quota):
         self._handler.create_entity(offer_id, ts_dialogue_id, user_id, offer_quota)
 
-    def then_incrementing_works_flawlessly(self, offer_id):
-        self._handler.increment_num_calls(offer_id)
+    def then_incrementing_works_flawlessly(self, offer_id, ts_id):
+        self._handler.increment_num_calls(offer_id, ts_id)
         assert True
 
     def test_create_entity_author_usage_quota(self):
