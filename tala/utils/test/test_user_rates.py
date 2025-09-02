@@ -64,7 +64,9 @@ def create_rate_entry(handler_calls, offer_id, row_key):
         constants.OFFER_ID: str(offer_id),
         constants.CALLS_LAST_PERIOD: json.dumps([]),
         constants.OFFER_AUTHOR_ID: '2',
-        constants.OFFER_QUOTA: OFFER_USAGE_QUOTA
+        constants.OFFER_QUOTA: OFFER_USAGE_QUOTA,
+        constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+        constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
     }
 
 
@@ -73,7 +75,9 @@ def create_author_quota_entry(user_id, row_key):
         constants.PARTITION_KEY: constants.HANDLER_DATA,
         constants.ROW_KEY: row_key,
         constants.AUTHOR_ID: user_id,
-        constants.AUTHOR_QUOTA: AUTHOR_USAGE_QUOTA
+        constants.AUTHOR_QUOTA: AUTHOR_USAGE_QUOTA,
+        constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+        constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
     }
 
 
@@ -200,6 +204,50 @@ class TestHandlerUserRates:
         except AttributeError:
             self._user_rates_table = author_rates
 
+    def test_change_offer_quota_approached_notification_sent(self):
+        self.given_user_rates([(499, "offer-id-1", "id_1")])
+        self.given_handler()
+        self.when_setting_offer_quota_approached_notification_sent("offer-id-1", True)
+        self.then_parameter_in_offer_entity_is(constants.QUOTA_APPROACHED_NOTIFICATION_SENT, "offer-id-1", True)
+
+    def when_setting_offer_quota_approached_notification_sent(self, offer_id: str, value: bool):
+        self._handler.set_offer_quota_approached_notification_sent(offer_id, value)
+
+    def then_parameter_in_offer_entity_is(self, parameter: str, offer_id: str, expected_value: bool):
+        entities = self._handler.query_offer_id(offer_id)
+        assert expected_value == entities[0][parameter]
+
+    def test_change_offer_quota_exhausted_notification_sent(self):
+        self.given_user_rates([(500, "offer-id-1", "id_1")])
+        self.given_handler()
+        self.when_setting_offer_quota_exhausted_notification_sent("offer-id-1", True)
+        self.then_parameter_in_offer_entity_is(constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT, "offer-id-1", True)
+
+    def when_setting_offer_quota_exhausted_notification_sent(self, offer_id: str, value: bool):
+        self._handler.set_offer_quota_exhausted_notification_sent(offer_id, value)
+
+    def test_change_notification_author_quota_approached(self):
+        self.given_author_in_user_rates([("author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_setting_author_quota_approached_notification_sent("author-user-id-2", True)
+        self.then_parameter_in_author_entity_is(constants.QUOTA_APPROACHED_NOTIFICATION_SENT, "author-user-id-2", True)
+
+    def when_setting_author_quota_approached_notification_sent(self, author_id: str, value: bool):
+        self._handler.set_author_quota_approached_notification_sent(author_id, value)
+
+    def then_parameter_in_author_entity_is(self, parameter: str, author_id: str, expected_value: bool):
+        entities = self._handler.query_author_user_id(author_id)
+        assert expected_value == entities[0][parameter]
+
+    def test_change_notification_author_quota_exhausted(self):
+        self.given_author_in_user_rates([("author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_setting_author_quota_exhausted_notification_sent("author-user-id-2", True)
+        self.then_parameter_in_author_entity_is(constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT, "author-user-id-2", True)
+
+    def when_setting_author_quota_exhausted_notification_sent(self, author_id: str, value: bool):
+        self._handler.set_author_quota_exhausted_notification_sent(author_id, value)
+
 
 def create_buddy_generator_rate_entry(num_calls, author_user_id, row_key, author_quota=None):
     return {
@@ -207,7 +255,9 @@ def create_buddy_generator_rate_entry(num_calls, author_user_id, row_key, author
         constants.ROW_KEY: row_key,
         constants.NUM_CALLS: num_calls,
         constants.AUTHOR_ID: author_user_id,
-        constants.AUTHOR_QUOTA: author_quota if author_quota else AUTHOR_GENERATION_QUOTA
+        constants.AUTHOR_QUOTA: author_quota if author_quota else AUTHOR_GENERATION_QUOTA,
+        constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+        constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
     }
 
 
@@ -262,3 +312,25 @@ class TestBuddyGeneratorUserRates:
     def then_author_quota_is(self, author_user_id, author_quota):
         entities = self._handler.query_author_user_id(author_user_id)
         assert author_quota == entities[0][constants.AUTHOR_QUOTA]
+
+    def test_change_notification_quota_approached(self):
+        self.given_user_rates([(0, "author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_setting_quota_approached_notification_sent("author-user-id-2", True)
+        self.then_parameter_in_entity_is(constants.QUOTA_APPROACHED_NOTIFICATION_SENT, "author-user-id-2", True)
+
+    def when_setting_quota_approached_notification_sent(self, author_id: str, value: bool):
+        self._handler.set_author_quota_approached_notification_sent(author_id, value)
+
+    def then_parameter_in_entity_is(self, parameter: str, author_id: str, expected_value: bool):
+        entities = self._handler.query_author_user_id(author_id)
+        assert expected_value == entities[0][parameter]
+
+    def test_change_notification_quota_exhausted(self):
+        self.given_user_rates([(0, "author-user-id-2", "id-2")])
+        self.given_handler()
+        self.when_setting_quota_exhausted_notification_sent("author-user-id-2", True)
+        self.then_parameter_in_entity_is(constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT, "author-user-id-2", True)
+
+    def when_setting_quota_exhausted_notification_sent(self, author_id: str, value: bool):
+        self._handler.set_author_quota_exhausted_notification_sent(author_id, value)

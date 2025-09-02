@@ -36,6 +36,14 @@ class AbstractTableHandler():
     def query_offer_id(self, offer_id: str):
         return self._query_entities(constants.OFFER_ID, offer_id)
 
+    def set_quota_approached_notification_sent(self, entity: dict, value: bool):
+        entity[constants.QUOTA_APPROACHED_NOTIFICATION_SENT] = value
+        self._update_entity(entity)
+
+    def set_quota_exhausted_notification_sent(self, entity: dict, value: bool):
+        entity[constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT] = value
+        self._update_entity(entity)
+
     def update_author_quota(self, author_user_id: str, author_quota: int):
         entity = self.query_author_user_id(author_user_id)[0]
         entity[constants.AUTHOR_QUOTA] = author_quota
@@ -46,7 +54,7 @@ class AbstractTableHandler():
         self._table_client.create_entity(table_entity)
 
     def _dump_json_fields(self, entity: dict):
-        for field in self.fields_to_jsonify:
+        for field in self.fields_to_jsonify:  # type: ignore
             try:
                 entity[field] = json.dumps(entity[field])
             except KeyError:
@@ -54,7 +62,7 @@ class AbstractTableHandler():
         return entity
 
     def _load_json_fields(self, entity: dict):
-        for field in self.fields_to_jsonify:
+        for field in self.fields_to_jsonify:  # type: ignore
             try:
                 entity[field] = json.loads(entity[field])
             except KeyError:
@@ -67,7 +75,7 @@ class AbstractTableHandler():
             self._update_entity(entity)
 
     def _query_entities(self, key: str, value: str):
-        filters = f"PartitionKey eq '{self.partition_key}' and {key} eq '{value}'"
+        filters = f"PartitionKey eq '{self.partition_key}' and {key} eq '{value}'"  # type: ignore
         entities = list(self._table_client.query_entities(filters))
         for entity in entities:
             self._load_json_fields(entity)
@@ -139,6 +147,22 @@ class HandlerUserRates(AbstractTableHandler):
         log_call_in_last_period(entity)
         self._update_entity(entity)
 
+    def set_offer_quota_approached_notification_sent(self, offer_id: str, value: bool):
+        entity = self.query_offer_id(offer_id)[0]
+        self.set_quota_approached_notification_sent(entity, value)
+
+    def set_offer_quota_exhausted_notification_sent(self, offer_id: str, value: bool):
+        entity = self.query_offer_id(offer_id)[0]
+        self.set_quota_exhausted_notification_sent(entity, value)
+
+    def set_author_quota_approached_notification_sent(self, author_user_id: str, value: bool):
+        entity = self.query_author_user_id(author_user_id)[0]
+        self.set_quota_approached_notification_sent(entity, value)
+
+    def set_author_quota_exhausted_notification_sent(self, author_user_id: str, value: bool):
+        entity = self.query_author_user_id(author_user_id)[0]
+        self.set_quota_exhausted_notification_sent(entity, value)
+
     def update_offer_quota(self, offer_id: str, offer_quota: int):
         entity = self.query_offer_id(offer_id)[0]
         entity[constants.OFFER_QUOTA] = offer_quota
@@ -153,7 +177,9 @@ class HandlerUserRates(AbstractTableHandler):
             constants.OFFER_ID: offer_id,
             constants.TS_DIALOGUE_ID: ts_dialogue_id,
             constants.OFFER_AUTHOR_ID: user_id,
-            constants.OFFER_QUOTA: offer_quota
+            constants.OFFER_QUOTA: offer_quota,
+            constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+            constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
         }
 
     def _make_new_entity_author_quota(self, user_id: str, author_quota: int):
@@ -161,7 +187,9 @@ class HandlerUserRates(AbstractTableHandler):
             constants.PARTITION_KEY: self.partition_key,
             constants.ROW_KEY: str(uuid.uuid4()),
             constants.AUTHOR_ID: user_id,
-            constants.AUTHOR_QUOTA: author_quota
+            constants.AUTHOR_QUOTA: author_quota,
+            constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+            constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
         }
 
 
@@ -177,11 +205,21 @@ class BuddyGeneratorUserRates(AbstractTableHandler):
         entities = self.query_author_user_id(user_id)
         self._increment_calls(constants.NUM_CALLS, entities[0])
 
+    def set_author_quota_approached_notification_sent(self, user_id: str, value: bool):
+        entity = self.query_author_user_id(user_id)[0]
+        self.set_quota_approached_notification_sent(entity, value)
+
+    def set_author_quota_exhausted_notification_sent(self, user_id: str, value: bool):
+        entity = self.query_author_user_id(user_id)[0]
+        self.set_quota_exhausted_notification_sent(entity, value)
+
     def _make_new_entity(self, author_user_id: str, author_quota: int):
         return {
             constants.PARTITION_KEY: self.partition_key,
             constants.ROW_KEY: str(uuid.uuid4()),
             constants.NUM_CALLS: 0,
             constants.AUTHOR_ID: author_user_id,
-            constants.AUTHOR_QUOTA: author_quota
+            constants.AUTHOR_QUOTA: author_quota,
+            constants.QUOTA_APPROACHED_NOTIFICATION_SENT: False,
+            constants.QUOTA_EXHAUSTED_NOTIFICATION_SENT: False
         }
