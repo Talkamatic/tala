@@ -1,5 +1,5 @@
 from tala.model.common import Modality
-from tala.model.user_move import UserMove, create  # noqa: F401
+from tala.model.user_move import UserMove, create
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.equality import EqualityMixin
 from tala.utils.unicodify import unicodify
@@ -18,8 +18,7 @@ class Interpretation(EqualityMixin, AsJSONMixin):
         perception_confidence = json_data.get("perception_confidence")
         return cls(moves, modality, utterance, perception_confidence)
 
-    def __init__(self, moves, modality, utterance=None, perception_confidence=None):
-        # type: ([UserMove], str, str) -> None
+    def __init__(self, moves: [UserMove], modality: str, utterance: str = None, perception_confidence: str = None):
         self._moves = moves
         if modality not in Modality.SUPPORTED_MODALITIES:
             raise UnexpectedModalityException(
@@ -38,18 +37,15 @@ class Interpretation(EqualityMixin, AsJSONMixin):
         self._perception_confidence = perception_confidence
 
     @property
-    def moves(self):
-        # type: () -> [UserMove]
+    def moves(self) -> [UserMove]:
         return self._moves
 
     @property
-    def modality(self):
-        # type: () -> str
+    def modality(self) -> str:
         return self._modality
 
     @property
-    def utterance(self):
-        # type: () -> str
+    def utterance(self) -> str:
         return self._utterance
 
     @property
@@ -67,13 +63,15 @@ class Interpretation(EqualityMixin, AsJSONMixin):
         return d
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance}, {self._perception_confidence})"
+        return (
+            f"{self.__class__.__name__}({unicodify(self._moves)}, {self._modality}, {self._utterance}, "
+            f"{self._perception_confidence})"
+        )
 
 
 class InterpretationWithoutUtterance(Interpretation):
-    def __init__(self, moves, modality):
-        # type: ([UserMove], str) -> None
-        super(InterpretationWithoutUtterance, self).__init__(moves, modality)
+    def __init__(self, moves: [UserMove], modality: str):
+        super().__init__(moves, modality)
         self._moves = moves
         self._modality = modality
 

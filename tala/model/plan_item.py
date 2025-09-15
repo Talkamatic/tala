@@ -4,15 +4,16 @@ from tala import model
 from tala.model.error import DomainError
 from tala.model.move import ICMMove
 from tala.model.proposition import Proposition, PredicateProposition
-from tala.model.question import Question, WhQuestion  # noqa
-from tala.model.goal import Perform, Resolve  # noqa
-from tala.model.predicate import Predicate  # noqa
 from tala.model.action import Action
-from tala.model.condition import Condition, create_condition  # noqa
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 from tala.utils.json_api import JSONAPIObject, get_attribute
+#  These are imported so that they are available in "globals()" for retrieval in PlanItem.create_from_json_api_data()
+from tala.model.question import Question, WhQuestion  # noqa
+from tala.model.goal import Perform, Resolve  # noqa
+from tala.model.condition import Condition  # noqa
+from tala.model.predicate import Predicate  # noqa
 
 TYPE_RESPOND = "respond"
 TYPE_GREET = "greet"
@@ -230,17 +231,9 @@ class Assume(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_ASSUME, content=content)
 
 
-class AssumePlanItem(Assume):
-    pass
-
-
 class AssumeShared(PlanItemWithSemanticContent):
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_ASSUME_SHARED, content=content)
-
-
-class AssumeSharedPlanItem(AssumeShared):
-    pass
 
 
 class AssumeIssue(PlanItemWithSemanticContent):
@@ -279,10 +272,6 @@ class AssumeIssue(PlanItemWithSemanticContent):
         return ["issue"]
 
 
-class AssumeIssuePlanItem(AssumeIssue):
-    pass
-
-
 class Respond(PlanItemWithSemanticContent):
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_RESPOND, content=content)
@@ -291,18 +280,10 @@ class Respond(PlanItemWithSemanticContent):
         return True
 
 
-class RespondPlanItem(Respond):
-    pass
-
-
 class Do(PlanItemWithSemanticContent):
     def __init__(self, action):
         assert action.is_action()
         PlanItemWithSemanticContent.__init__(self, TYPE_DO, content=action)
-
-
-class DoPlanItem(Do):
-    pass
 
 
 class PlanItemWithoutContent(PlanItem):
@@ -316,26 +297,14 @@ class Quit(PlanItemWithoutContent):
         PlanItem.__init__(self, TYPE_QUIT)
 
 
-class QuitPlanItem(Quit):
-    pass
-
-
 class Mute(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_MUTE)
 
 
-class MutePlanItem(Mute):
-    pass
-
-
 class Unmute(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_UNMUTE)
-
-
-class UnmutePlanItem(Unmute):
-    pass
 
 
 class Greet(PlanItemWithoutContent):
@@ -346,26 +315,14 @@ class Greet(PlanItemWithoutContent):
         return True
 
 
-class GreetPlanItem(Greet):
-    pass
-
-
 class RespondToInsult(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_RESPOND_TO_INSULT)
 
 
-class RespondToInsultPlanItem(RespondToInsult):
-    pass
-
-
 class RespondToThankYou(PlanItemWithoutContent):
     def __init__(self):
         PlanItem.__init__(self, TYPE_RESPOND_TO_THANK_YOU)
-
-
-class RespondToThankYouPlanItem(RespondToThankYou):
-    pass
 
 
 class EmitICM(PlanItemWithSemanticContent):
@@ -415,10 +372,6 @@ class Bind(PlanItemWithSemanticContent):
         return ["question"]
 
 
-class BindPlanItem(Bind):
-    pass
-
-
 class JumpTo(PlanItemWithSemanticContent):
     def __init__(self, content):
         PlanItemWithSemanticContent.__init__(self, TYPE_JUMPTO, content=content)
@@ -426,10 +379,6 @@ class JumpTo(PlanItemWithSemanticContent):
     @property
     def goal(self):
         return self.content
-
-
-class JumpToPlanItem(JumpTo):
-    pass
 
 
 class IfThenElse(PlanItem):
@@ -543,17 +492,9 @@ class ForgetAll(PlanItem):
         PlanItem.__init__(self, TYPE_FORGET_ALL)
 
 
-class ForgetAllPlanItem(ForgetAll):
-    pass
-
-
 class Forget(PlanItemWithSemanticContent):
     def __init__(self, predicate_or_proposition):
         PlanItemWithSemanticContent.__init__(self, TYPE_FORGET, predicate_or_proposition)
-
-
-class ForgetPlanItem(Forget):
-    pass
 
 
 class ForgetShared(PlanItemWithSemanticContent):
@@ -561,17 +502,9 @@ class ForgetShared(PlanItemWithSemanticContent):
         PlanItemWithSemanticContent.__init__(self, TYPE_FORGET_SHARED, predicate_or_proposition)
 
 
-class ForgetSharedPlanItem(ForgetShared):
-    pass
-
-
 class ForgetIssue(PlanItemWithSemanticContent):
     def __init__(self, issue):
         PlanItemWithSemanticContent.__init__(self, TYPE_FORGET_ISSUE, issue)
-
-
-class ForgetIssuePlanItem(ForgetIssue):
-    pass
 
 
 class MinResultsNotSupportedException(Exception):
@@ -644,10 +577,6 @@ class InvokeQuery(PlanItemWithSemanticContent):
         return ["question"]
 
 
-class InvokeQueryPlanItem(InvokeQuery):
-    pass
-
-
 class InvokeServiceQuery(InvokeQuery):
     @classmethod
     def create_from_json_api_data(cls, data, included):
@@ -661,10 +590,6 @@ class InvokeServiceQuery(InvokeQuery):
 
     def __init__(self, issue, min_results=None, max_results=None):
         InvokeQuery.__init__(self, issue, TYPE_INVOKE_SERVICE_QUERY, min_results, max_results)
-
-
-class InvokeServiceQueryPlanItem(InvokeServiceQuery):
-    pass
 
 
 class InvokeDomainQuery(InvokeQuery):
@@ -692,21 +617,17 @@ class InvokeDomainQuery(InvokeQuery):
         return ["question"]
 
 
-class InvokeDomainQueryPlanItem(InvokeDomainQuery):
-    pass
-
-
 class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
     INTERROGATIVE = "INTERROGATIVE"
     ASSERTIVE = "ASSERTIVE"
 
     @classmethod
-    def create_from_json_api_data(cls, data, included):
-        ontology_name = data["attributes"]["ontology_name"]
-        service_action = data["attributes"]["service_action"]
-        preconfirm = data["attributes"]["preconfirm"]
-        postconfirm = data["attributes"]["postconfirm"]
-        should_downdate_plan = data["attributes"]["_downdate_plan"]
+    def create_from_json_api_data(cls, plan_item_data, included):
+        ontology_name = plan_item_data["attributes"]["ontology_name"]
+        service_action = plan_item_data["attributes"]["service_action"]
+        preconfirm = plan_item_data["attributes"]["preconfirm"]
+        postconfirm = plan_item_data["attributes"]["postconfirm"]
+        should_downdate_plan = plan_item_data["attributes"]["_downdate_plan"]
         return cls(ontology_name, service_action, preconfirm, postconfirm, should_downdate_plan)
 
     def __init__(self, ontology_name, service_action, preconfirm=None, postconfirm=False, downdate_plan=True):
@@ -733,7 +654,7 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         return self._downdate_plan
 
     def __eq__(self, other):
-        return super(InvokeServiceAction, self).__eq__(other) \
+        return super().__eq__(other) \
             and other.get_service_action() == self.get_service_action() \
             and other.has_interrogative_preconfirmation() == self.has_interrogative_preconfirmation() \
             and other.has_assertive_preconfirmation() == self.has_assertive_preconfirmation() \
@@ -771,20 +692,12 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         return ["service_action", "ontology_name", "preconfirm", "postconfirm", "_downdate_plan", "type_"]
 
 
-class InvokeServiceActionPlanItem(InvokeServiceAction):
-    pass
-
-
 class ServiceReport(PlanItemWithSemanticContent):
     def __init__(self, result_proposition):
         PlanItemWithSemanticContent.__init__(self, TYPE_SERVICE_REPORT, result_proposition)
 
     def is_turn_yielding(self):
         return self._content.type_ == Proposition.SERVICE_RESULT
-
-
-class ServiceReportPlanItem(ServiceReport):
-    pass
 
 
 class ActionReport(PlanItemWithSemanticContent):
@@ -795,10 +708,6 @@ class ActionReport(PlanItemWithSemanticContent):
         return self._content.type_ in [Proposition.SERVICE_RESULT, Proposition.ACTION_STATUS]
 
 
-class ActionReportPlanItem(ActionReport):
-    pass
-
-
 class QuestionReport(PlanItemWithSemanticContent):
     def __init__(self, result_proposition):
         PlanItemWithSemanticContent.__init__(self, TYPE_QUESTION_REPORT, result_proposition)
@@ -807,17 +716,9 @@ class QuestionReport(PlanItemWithSemanticContent):
         return self._content.type_ == Proposition.QUESTION_STATUS
 
 
-class QuestionReportPlanItem(QuestionReport):
-    pass
-
-
 class EmitMove(PlanItemWithSemanticContent):
     def __init__(self, move):
         PlanItemWithSemanticContent.__init__(self, TYPE_EMIT_MOVE, move)
-
-
-class EmitMovePlanItem(EmitMove):
-    pass
 
 
 class Handle(PlanItem, OntologySpecificSemanticObject):
@@ -846,10 +747,6 @@ class Handle(PlanItem, OntologySpecificSemanticObject):
         obj.add_attribute("service_action", self.service_action)
         obj.add_attribute("ontology", self.ontology_name)
         return obj.as_dict
-
-
-class HandlePlanItem(Handle):
-    pass
 
 
 class UnexpectedLogLevelException(Exception):
@@ -901,10 +798,6 @@ class Log(PlanItem):
         return ["message", "level"]
 
 
-class LogPlanItem(Log):
-    pass
-
-
 class GetDone(PlanItemWithSemanticContent):
     @classmethod
     def create_from_json_api_data(cls, data, included):
@@ -941,10 +834,6 @@ class GetDone(PlanItemWithSemanticContent):
         return ["step"]
 
 
-class GetDonePlanItem(GetDone):
-    pass
-
-
 class GoalPerformed(PlanItem):
     @classmethod
     def create_from_json_api_data(cls, data, included):
@@ -973,10 +862,6 @@ class GoalPerformed(PlanItem):
     @property
     def json_api_relationships(self):
         return []
-
-
-class GoalPerformedPlanItem(GoalPerformed):
-    pass
 
 
 class GoalAborted(PlanItem):
@@ -1009,10 +894,6 @@ class GoalAborted(PlanItem):
     @property
     def json_api_attributes(self):
         return ["reason"]
-
-
-class GoalAbortedPlanItem(GoalAborted):
-    pass
 
 
 class EndTurn(PlanItem):
@@ -1048,10 +929,6 @@ class EndTurn(PlanItem):
     @property
     def json_api_relationships(self):
         return []
-
-
-class EndTurnPlanItem(EndTurn):
-    pass
 
 
 class ResetDomainQuery(PlanItem):
@@ -1091,10 +968,6 @@ class ResetDomainQuery(PlanItem):
         return ["query"]
 
 
-class ResetDomainQueryPlanItem(ResetDomainQuery):
-    pass
-
-
 class Iterate(PlanItemWithContent):
     @classmethod
     def create_from_json_api_data(cls, endturn_data, _included):
@@ -1124,10 +997,6 @@ class Iterate(PlanItemWithContent):
     @property
     def json_api_relationships(self):
         return []
-
-
-class IteratePlanItem(Iterate):
-    pass
 
 
 class ChangeDDD(PlanItem):
@@ -1163,10 +1032,6 @@ class ChangeDDD(PlanItem):
     @property
     def json_api_relationships(self):
         return []
-
-
-class ChangeDDDPlanItem(ChangeDDD):
-    pass
 
 
 class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
@@ -1250,10 +1115,6 @@ class Findout(QuestionRaisingPlanItem):
         QuestionRaisingPlanItem.__init__(self, domain_name, TYPE_FINDOUT, content, allow_answer_from_pcom)
 
 
-class FindoutPlanItem(Findout):
-    pass
-
-
 class Raise(QuestionRaisingPlanItem):
     @classmethod
     def create_from_json_api_data(cls, plan_item_data, included):
@@ -1266,15 +1127,11 @@ class Raise(QuestionRaisingPlanItem):
         QuestionRaisingPlanItem.__init__(self, domain_name, TYPE_RAISE, content)
 
 
-class RaisePlanItem(Raise):
-    pass
-
-
 class UnexpectedDomainException(Exception):
     pass
 
 
-class QuestionRaisingPlanItemOfDomain(object):
+class QuestionRaisingPlanItemOfDomain:
     def __init__(self, domain, plan_item):
         if domain.name != plan_item.domain_name:
             raise UnexpectedDomainException(

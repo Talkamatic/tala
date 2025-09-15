@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 import tala.ddd.ddd_xml_compiler
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, OntologyWarning
@@ -14,16 +15,6 @@ from tala.model.ask_feature import AskFeature
 from tala.model.hint import Hint
 from tala.model.ontology import Ontology
 from tala.model.plan import Plan
-from tala.model.plan_item import (
-    IfThenElse,
-    ForgetAllPlanItem,
-    InvokeServiceQueryPlanItem,
-    InvokeDomainQueryPlanItem,
-    InvokeServiceActionPlanItem,
-    LogPlanItem,
-    EndTurnPlanItem,
-    UnexpectedLogLevelException,
-)
 from tala.model import plan_item
 from tala.model import condition
 from tala.model.predicate import Predicate
@@ -60,12 +51,12 @@ class DDDXMLCompilerTestCase(DddCompilerTestCase):
 
     def _when_compile_domain_with_plan(self, plan_xml):
         self._when_compile_domain(
-            """
+            f"""
 <domain name="Domain">
   <goal type="perform" action="top">
-    <plan>%s</plan>
+    <plan>{plan_xml}</plan>
   </goal>
-</domain>""" % plan_xml
+</domain>"""
         )
 
     def _when_compile_plan_with_attribute(self, key, value):
@@ -608,7 +599,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
     def test_postplan(self):
         self._given_compiled_ontology()
         self._when_compile_goal_with_content('<postplan><forget_all/></postplan>')
-        self._then_result_has_plan_with_attribute("postplan", Plan([ForgetAllPlanItem()]))
+        self._then_result_has_plan_with_attribute("postplan", Plan([plan_item.ForgetAll()]))
 
     @pytest.mark.filterwarnings("ignore:<postcond>")
     def test_postcond_with_whitespace(self):
@@ -813,7 +804,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
                 self._parse("?need_visa"): {
                     "hints": [
                         Hint([
-                            IfThenElse(
+                            plan_item.IfThenElse(
                                 condition.HasSharedValue(self._parse("dest_city")), [],
                                 [self._parse("assume(dest_city(paris))"),
                                  self._parse("assume_issue(?X.dest_city(X))")]
@@ -853,7 +844,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
                 self._parse("?need_visa"): {
                     "hints": [
                         Hint([
-                            IfThenElse(
+                            plan_item.IfThenElse(
                                 condition.HasSharedValue(self._parse("dest_city")), [],
                                 [self._parse("assume(dest_city(paris))"),
                                  self._parse("assume_issue(?X.dest_city(X))")]
@@ -1356,7 +1347,7 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
                 self._parse("?X.dest_city(X)"): {
                     "hints": [
                         Hint([
-                            IfThenElse(
+                            plan_item.IfThenElse(
                                 condition.HasSharedValue(self._parse("dest_city")), [],
                                 [self._parse("assume(dest_city(paris))"),
                                  self._parse("assume_issue(?X.dest_city(X))")]
@@ -1404,7 +1395,7 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
                 self._parse("?X.dest_city(X)"): {
                     "hints": [
                         Hint([
-                            IfThenElse(
+                            plan_item.IfThenElse(
                                 condition.HasSharedValue(self._parse("hint_about_destination")), [], [
                                     self._parse("assume(hint_about_destination(french_capital))"),
                                     self._parse("assume_issue(?X.hint_about_destination(X))")
@@ -1412,7 +1403,7 @@ class TestParameterCompilation(DDDXMLCompilerTestCase):
                             )
                         ]),
                         Hint([
-                            IfThenElse(
+                            plan_item.IfThenElse(
                                 condition.HasSharedValue(self._parse("dest_city")), [],
                                 [self._parse("assume(dest_city(paris))"),
                                  self._parse("assume_issue(?X.dest_city(X))")]
@@ -1768,7 +1759,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
@@ -1789,7 +1780,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
@@ -1822,7 +1813,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasValue(self._parse("means_of_transport")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1843,7 +1834,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("means_of_transport")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1864,7 +1855,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasPrivateValue(self._parse("means_of_transport")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1885,7 +1876,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedOrPrivateValue(self._parse("means_of_transport")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1906,7 +1897,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.IsSharedCommitment(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1927,7 +1918,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.IsPrivateBelief(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1948,7 +1939,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.IsPrivateBeliefOrSharedCommitment(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1969,7 +1960,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.QueryHasMoreItems(self._parse("?X.means_of_transport(X)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
@@ -1990,7 +1981,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
@@ -2010,7 +2001,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     self._parse("means_of_transport(train)"), [], [self._parse("findout(?X.transport_train_type(X))")]
                 )
             ])
@@ -2091,26 +2082,26 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def test_forget_all(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<forget_all />')
-        self._then_result_has_plan(Plan([ForgetAllPlanItem()]))
+        self._then_result_has_plan(Plan([plan_item.ForgetAll()]))
 
     def test_log_element(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<log message="log message" />')
-        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="debug")]))
+        self._then_result_has_plan(Plan([plan_item.Log("log message", log_level="debug")]))
 
     def test_log_element_with_default_level(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<log message="log message" level="debug"/>')
-        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="debug")]))
+        self._then_result_has_plan(Plan([plan_item.Log("log message", log_level="debug")]))
 
     def test_log_element_with_level(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<log message="log message" level="info"/>')
-        self._then_result_has_plan(Plan([LogPlanItem("log message", log_level="info")]))
+        self._then_result_has_plan(Plan([plan_item.Log("log message", log_level="info")]))
 
     def test_log_element_with_unexpected_level(self):
         self._given_compiled_ontology()
-        with pytest.raises(UnexpectedLogLevelException):
+        with pytest.raises(plan_item.UnexpectedLogLevelException):
             self._when_compile_domain_with_plan('<log message="log message" level="kalas"/>')
 
     def test_invoke_service_query(self):
@@ -2122,7 +2113,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_domain_with_plan('<invoke_service_query type="wh_question" predicate="price"/>')
         self._then_result_has_plan(
-            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+            Plan([plan_item.InvokeServiceQuery(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
     def test_invoke_service_query_use_wh_question_default(self):
@@ -2134,7 +2125,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_domain_with_plan('<invoke_service_query predicate="price"/>')
         self._then_result_has_plan(
-            Plan([InvokeServiceQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+            Plan([plan_item.InvokeServiceQuery(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
     def test_invoke_domain_query(self):
@@ -2146,7 +2137,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_domain_with_plan('<invoke_domain_query type="wh_question" predicate="price"/>')
         self._then_result_has_plan(
-            Plan([InvokeDomainQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+            Plan([plan_item.InvokeDomainQuery(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
     def test_invoke_domain_query_use_wh_question_default(self):
@@ -2158,7 +2149,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_domain_with_plan('<invoke_domain_query predicate="price"/>')
         self._then_result_has_plan(
-            Plan([InvokeDomainQueryPlanItem(self._parse("?X.price(X)"), min_results=1, max_results=1)])
+            Plan([plan_item.InvokeDomainQuery(self._parse("?X.price(X)"), min_results=1, max_results=1)])
         )
 
     def _when_compile_domain_with_plan_then_exception_is_raised_matching(
@@ -2174,7 +2165,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def test_invoke_service_action_default_attributes(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" />')
-        self._then_result_has_plan(Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction")]))
+        self._then_result_has_plan(Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction")]))
 
     def test_invoke_service_action_override_preconfirm(self):
         self._given_compiled_ontology()
@@ -2184,8 +2175,8 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan(
             Plan([
-                InvokeServiceActionPlanItem(
-                    "MockupOntology", "MockupAction", preconfirm=InvokeServiceActionPlanItem.ASSERTIVE
+                plan_item.InvokeServiceAction(
+                    "MockupOntology", "MockupAction", preconfirm=plan_item.InvokeServiceAction.ASSERTIVE
                 )
             ])
         )
@@ -2194,7 +2185,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" postconfirm="true" />')
         self._then_result_has_plan(
-            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)])
+            Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", postconfirm=True)])
         )
 
     def test_invoke_service_action_override_downdate_plan(self):
@@ -2204,7 +2195,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
           <invoke_service_action name="MockupAction" downdate_plan="false" />"""
         )
         self._then_result_has_plan(
-            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", downdate_plan=False)])
+            Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", downdate_plan=False)])
         )
 
     def _when_compile_domain_with_plan_ignoring_warnings(self, plan_xml):
@@ -2212,7 +2203,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             self._when_compile_domain_with_plan(plan_xml)
 
         self._then_result_has_plan(
-            Plan([InvokeServiceActionPlanItem("MockupOntology", "MockupAction", postconfirm=True)])
+            Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", postconfirm=True)])
         )
 
     def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(self, plan_xml, expected_warning_message):
@@ -2319,7 +2310,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 """)
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("price")), [],
                     [self._parse("assume(price(123.0))"),
                      self._parse("assume_issue(?X.price(X))")]
@@ -2367,7 +2358,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("price")), [],
                     [self._parse("assume(price(123.0))"),
                      self._parse("assume_issue(?X.price(X))")]
@@ -2391,11 +2382,11 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("price")), [], [
                         self._parse("assume(price(123.0))"),
                         self._parse("assume_issue(?X.price(X))"),
-                        EndTurnPlanItem(0.0)
+                        plan_item.EndTurn(0.0)
                     ]
                 )
             ])
@@ -2417,7 +2408,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("price")), [],
                     [self._parse("assume(price(123.0))"),
                      self._parse("assume_issue(?X.price(X))")]
@@ -2441,11 +2432,11 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.HasSharedValue(self._parse("price")), [], [
                         self._parse("assume(price(123.0))"),
                         self._parse("assume_issue(?X.price(X))"),
-                        EndTurnPlanItem(1.0)
+                        plan_item.EndTurn(1.0)
                     ]
                 )
             ])
@@ -2465,7 +2456,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 """)
         self._then_result_has_plan(
             Plan([
-                IfThenElse(
+                plan_item.IfThenElse(
                     condition.IsPrivateBelief(self._parse("plan_id()")), [],
                     [self._parse("assume(plan_id())"),
                      self._parse("raise(?X.price(X))")]
