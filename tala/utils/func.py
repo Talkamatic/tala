@@ -22,6 +22,17 @@ def getenv(key, default=None):
         )
 
 
+def setup_logger(name):
+    logger = structlog.get_logger(name)
+    try:
+        log_level = os.getenv("LOG_LEVEL", default="INFO")
+        configure_stdout_logging(log_level)
+        return logger
+    except Exception:
+        logger.exception("exception during logger setup")
+        raise
+
+
 class FuncBase:
     def _setup_logger(self, request, logger):
         def get_session_id():
