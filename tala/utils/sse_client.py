@@ -17,6 +17,10 @@ class SSEClientException(BaseException):
     pass
 
 
+class StreamIteratorException(BaseException):
+    pass
+
+
 class AbstractSSEClient:
     def __init__(self, client_id_base, logger, endpoint, port=None):
         self._setup_logger(logger)
@@ -205,7 +209,11 @@ class StreamIterator:
             return line[len("data: "):]
 
         while True:
-            line = next(self.iterator).decode('utf-8')
+            try:
+                line = next(self.iterator).decode('utf-8')
+            except AttributeError:
+                raise StreamIteratorException("tried to read beyond end")
+
             if is_event(line):
                 event = extract_event(line)
                 if event == STREAMING_DONE:
