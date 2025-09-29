@@ -3,6 +3,10 @@ import re
 
 from tala.utils.equality import EqualityMixin
 
+ANSWER = "answer"
+ASK = "ask"
+REQUEST = "request"
+
 
 class MalformedMoveStringException(BaseException):
     pass
@@ -115,11 +119,11 @@ class ProperMove:
         self._parse_move()
 
     def as_json(self):
-        if self.move_type == "answer":
+        if self.move_type == ANSWER:
             return {"move_type": self.move_type, "predicate": self.predicate, "individual": self.individual}
-        if self.move_type == "ask":
+        if self.move_type == ASK:
             return {"move_type": self.move_type, "predicate": self.predicate, "arity": self.arity}
-        if self.move_type == "request":
+        if self.move_type == REQUEST:
             return {"move_type": self.move_type, "action": self.action}
 
     @property
@@ -129,26 +133,32 @@ class ProperMove:
         return self._move_type
 
     def _parse_move(self):
-        if self._move_as_string.startswith("answer"):
-            self._move_type = "answer"
+        if self._move_as_string.startswith(ANSWER):
+            self._move_type = ANSWER
             self._parse_answer()
-        elif self._move_as_string.startswith("ask"):
-            self._move_type = "ask"
+        elif self._move_as_string.startswith(ASK):
+            self._move_type = ASK
             self._parse_ask()
-        elif self._move_as_string.startswith("request"):
-            self._move_type = "request"
+        elif self._move_as_string.startswith(REQUEST):
+            self._move_type = REQUEST
             self._parse_request()
         else:
             raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
 
     def _parse_answer(self):
-        m = re.match(r"^answer\(([a-zA-Z0-9_\-\:]+)(\(([a-zA-Z0-9_\-\:\"]+)\))?\)$", self._move_as_string)
+        m = re.match(r"^answer\(([a-zA-Z0-9_\-\:]+)(\(([a-zA-Z0-9_\-\:]+)\))?\)$", self._move_as_string)
         if m:
             self._predicate = m[1]
             if len(m.groups()) > 2:
                 self._individual = m[3]
         else:
-            raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
+            m = re.match(r"^answer\(([a-zA-Z0-9_\-\:]+)(\((\"[a-zA-Z0-9_\-\: ]+\")\))?\)$", self._move_as_string)
+            if m:
+                self._predicate = m[1]
+                if len(m.groups()) > 2:
+                    self._individual = m[3]
+            else:
+                raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
 
     def _parse_ask(self):
         m = re.match(r"^ask\(\?X.([a-zA-Z0-9_\-\:]+)\(X\)\)$", self._move_as_string)

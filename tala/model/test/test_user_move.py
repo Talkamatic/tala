@@ -53,6 +53,11 @@ class TestProperMove:
         self.when_creating_move()
         self.then_move_is({"move_type": "answer", "predicate": "user_name", "individual": "\"Fredrik\""})
 
+    def test_string_answer_move_with_spaces(self):
+        self.given_move_as_string('answer(user_name("Fredrik Kronlid"))')
+        self.when_creating_move()
+        self.then_move_is({"move_type": "answer", "predicate": "user_name", "individual": "\"Fredrik Kronlid\""})
+
     def test_nullary_answer_move(self):
         self.given_move_as_string('answer(should_succeed)')
         self.when_creating_move()
