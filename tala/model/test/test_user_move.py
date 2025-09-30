@@ -37,7 +37,7 @@ class TestProperMove:
     def test_standard_answer_move(self):
         self.given_move_as_string('answer(user_character(stupid))')
         self.when_creating_move()
-        self.then_move_is({"move_type": "answer", "predicate": "user_character", "individual": "stupid"})
+        self.then_move_is({"move_type": user_move.ANSWER, "predicate": "user_character", "individual": "stupid"})
 
     def given_move_as_string(self, move):
         self._move_as_string = move
@@ -51,32 +51,49 @@ class TestProperMove:
     def test_string_answer_move(self):
         self.given_move_as_string('answer(user_name("Fredrik"))')
         self.when_creating_move()
-        self.then_move_is({"move_type": "answer", "predicate": "user_name", "individual": "\"Fredrik\""})
+        self.then_move_is({"move_type": user_move.ANSWER, "predicate": "user_name", "individual": "\"Fredrik\""})
 
     def test_string_answer_move_with_spaces(self):
         self.given_move_as_string('answer(user_name("Fredrik Kronlid"))')
         self.when_creating_move()
-        self.then_move_is({"move_type": "answer", "predicate": "user_name", "individual": "\"Fredrik Kronlid\""})
+        self.then_move_is({
+            "move_type": user_move.ANSWER,
+            "predicate": "user_name",
+            "individual": "\"Fredrik Kronlid\""
+        })
 
     def test_nullary_answer_move(self):
         self.given_move_as_string('answer(should_succeed)')
         self.when_creating_move()
-        self.then_move_is({"move_type": "answer", "predicate": "should_succeed", "individual": None})
+        self.then_move_is({"move_type": user_move.ANSWER, "predicate": "should_succeed", "individual": None})
 
     def test_unary_ask_move(self):
         self.given_move_as_string('ask(?X.hallon(X))')
         self.when_creating_move()
-        self.then_move_is({"move_type": "ask", "predicate": "hallon", "arity": 1})
+        self.then_move_is({"move_type": user_move.ASK, "predicate": "hallon", "arity": 1})
 
     def test_nullary_ask_move(self):
         self.given_move_as_string('ask(?hallon_petunia)')
         self.when_creating_move()
-        self.then_move_is({"move_type": "ask", "predicate": "hallon_petunia", "arity": 0})
+        self.then_move_is({"move_type": user_move.ASK, "predicate": "hallon_petunia", "arity": 0})
 
     def test_request_move(self):
         self.given_move_as_string('request(some_action)')
         self.when_creating_move()
-        self.then_move_is({"move_type": "request", "action": "some_action"})
+        self.then_move_is({"move_type": user_move.REQUEST, "action": "some_action"})
+
+    @pytest.mark.parametrize(
+        "move_as_string, move_type", [
+            ("thanks", "thanks"),
+            ("greet", "greet"),
+            ("insult", "insult"),
+            ("icm:per*neg", "icm:per*neg"),
+        ]
+    )
+    def test_builtins(self, move_as_string, move_type):
+        self.given_move_as_string(move_as_string)
+        self.when_creating_move()
+        self.then_move_is({"move_type": move_type})
 
     @pytest.mark.parametrize(
         "move_as_string", ["request(some_action", 'ask(X.hallon(X))', "answer(user_name('Fredrik'))", "astrakan"]

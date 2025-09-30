@@ -2,10 +2,12 @@ from typing import Text  # noqa: F401
 import re
 
 from tala.utils.equality import EqualityMixin
+from tala.model import move
 
-ANSWER = "answer"
-ASK = "ask"
-REQUEST = "request"
+ANSWER = move.ANSWER
+ASK = move.ASK
+REQUEST = move.REQUEST
+BUILTINS = [move.QUIT, move.THANK_YOU, move.GREET, move.INSULT, move.MUTE, move.UNMUTE, "icm:per*neg"]
 
 
 class MalformedMoveStringException(BaseException):
@@ -119,6 +121,8 @@ class ProperMove:
         self._parse_move()
 
     def as_json(self):
+        if self.move_type in BUILTINS:
+            return {"move_type": self.move_type}
         if self.move_type == ANSWER:
             return {"move_type": self.move_type, "predicate": self.predicate, "individual": self.individual}
         if self.move_type == ASK:
@@ -133,7 +137,9 @@ class ProperMove:
         return self._move_type
 
     def _parse_move(self):
-        if self._move_as_string.startswith(ANSWER):
+        if self._move_as_string in BUILTINS:
+            self._move_type = self._move_as_string
+        elif self._move_as_string.startswith(ANSWER):
             self._move_type = ANSWER
             self._parse_answer()
         elif self._move_as_string.startswith(ASK):
