@@ -52,7 +52,7 @@ class AbstractSSEClient:
         return f'tm/{streamer_session["session_id"]}'
 
     def open_session(self, session_id, s_and_r_dict=None, logger=None):
-        self.logger.info("sse client open session", session_id=session_id)
+        self.logger.debug("sse client open session", session_id=session_id)
         streamer_thread, chunk_joiner = self._prepare_streamer_thread(session_id)
 
         streamer_session = {
@@ -84,19 +84,19 @@ class AbstractSSEClient:
         search_and_replace_dict = self.sessions[session_id]["search_and_replace_dict"]
 
         if chunk in search_and_replace_dict:
-            self.logger.info("Matched entire chunk", chunk=chunk)
+            self.logger.debug("Matched entire chunk", chunk=chunk)
             return search_and_replace_dict[chunk]
         for key in search_and_replace_dict:
             if key_matches_beginning_of_chunk(key, chunk):
-                self.logger.info("Matched beginning of chunk", key=key, chunk=chunk)
+                self.logger.debug("Matched beginning of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, search_and_replace_dict[key], 1)
             match = key_matches_middle_of_chunk(key, chunk)
             while match:
-                self.logger.info("Matched middle of chunk", key=key, chunk=chunk)
+                self.logger.debug("Matched middle of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, search_and_replace_dict[key], 1)
                 match = key_matches_middle_of_chunk(key, chunk)
             if key_matches_end_of_chunk(key, chunk):
-                self.logger.info("Matched end of chunk", key=key, chunk=chunk)
+                self.logger.debug("Matched end of chunk", key=key, chunk=chunk)
                 chunk = chunk.replace(key, search_and_replace_dict[key], 1)
         return chunk
 
@@ -136,7 +136,7 @@ class AbstractSSEClient:
         joiner.add_chunk(chunk)
 
     def flush_stream(self, session_id):
-        self.logger.info("flushing stream")
+        self.logger.debug("flushing stream")
         streamer_session = self.sessions[session_id]
         joiner = streamer_session["chunk_joiner"]
         joiner.last_chunk_sent()
@@ -146,7 +146,7 @@ class AbstractSSEClient:
             self.logger.warn("Streamer thread is still alive!", streamed=self._streamed)
 
     def end_stream(self, session_id):
-        self.logger.info("ending stream")
+        self.logger.debug("ending stream")
         streamer_session = self.sessions[session_id]
         self._stream_to_frontend(streamer_session, {"event": STREAMING_DONE})
 
@@ -254,10 +254,10 @@ class ChunkJoiner:
         self._collect_chunks()
         if self._collected_chunks:
             next_segment = "".join(self._collected_chunks)
-            self.logger.info("Joiner collected segment", next_segment=next_segment)
+            self.logger.debug("Joiner collected segment", next_segment=next_segment)
             return next_segment
         else:
-            self.logger.info("No more chunks collected, stopping iteration")
+            self.logger.debug("No more chunks collected, stopping iteration")
             raise StopIteration
 
     def _collect_chunks(self):
@@ -275,7 +275,7 @@ class ChunkJoiner:
             try:
                 self._next_chunk = self._chunk_queue.get_nowait()
                 if self._next_chunk:
-                    self.logger.info("there was a last chunk to handle.")
+                    self.logger.debug("there was a last chunk to handle.")
                     add_next_chunk_to_collected_chunks()
             except queue.Empty:
                 pass
@@ -290,7 +290,7 @@ class ChunkJoiner:
 
             except queue.Empty:
                 if self._received_last_chunk.is_set():
-                    self.logger.info("received last chunk")
+                    self.logger.debug("received last chunk")
                     handle_possible_last_chunk()
                     break
 
@@ -341,7 +341,7 @@ class SSEClient(AbstractSSEClient):
             raise SSEClientException(
                 f'{streamer_exception} was raised during streaming in {streamer_session["session_id"]}. Streamed: {self._streamed}.'
             )
-        self.logger.info("close session", client_id=self.client_id, session_id=streamer_session["session_id"])
+        self.logger.debug("close session", client_id=self.client_id, session_id=streamer_session["session_id"])
         self.logger.info(
             "Streamed in session",
             num_messages=streamer_session["message_counter"],
