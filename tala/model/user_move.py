@@ -169,13 +169,11 @@ class ProperMove:
     def _parse_ask(self):
         m = re.match(r"^ask\(\?X.([a-zA-Z0-9_\-\:]+)\(X\)\)$", self._move_as_string)
         if m:
-            print(m.groups())
             self._predicate = m[1]
             self._arity = 1
             return
         m = re.match(r"^ask\(\?([a-zA-Z0-9_\-\:]+)(\(\))?\)$", self._move_as_string)
         if m:
-            print(m.groups())
             self._predicate = m[1]
             self._arity = 0
         else:
