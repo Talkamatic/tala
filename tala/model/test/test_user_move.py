@@ -88,6 +88,7 @@ class TestProperMove:
             ("greet", "greet"),
             ("insult", "insult"),
             ("icm:per*neg", "icm:per*neg"),
+            ("icm:acc*pos", "icm:acc*pos"),
         ]
     )
     def test_builtins(self, move_as_string, move_type):
