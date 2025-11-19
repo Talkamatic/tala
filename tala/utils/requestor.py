@@ -138,8 +138,36 @@ class GPTRequest:
         return self._response["response_body"]
 
     @property
+    def json_response(self):
+        try:
+            return json.loads(self.response)
+        except json.JSONDecodeError:
+            self.logger.exception(
+                "decoding response raised JSONDecodeError",
+                response_content=self.response,
+                gpt_max_tokens=self.max_tokens
+            )
+        except Exception as e:
+            self.logger.info("json decoding response raised Exception", exception=e)
+
+        self.logger.info("Returning default response", default_response=self.default_gpt_response)
+        return json.loads(self.default_gpt_response)
+
+    @property
+    def text_response(self):
+        return unquote(self.response)
+
+    @property
     def default_gpt_response(self):
         return self._requestor_arguments["gpt_request"]["default_gpt_response"]
+
+    @property
+    def messages(self):
+        return self._requestor_arguments["gpt_request"]["messages"]
+
+    @property
+    def system_message(self):
+        return self._requestor_arguments["gpt_request"]["messages"][0]
 
     def make(self):
         def do_request():
@@ -170,28 +198,8 @@ class GPTRequest:
     def add_assistant_message(self, message):
         self._add_message("assistant", message)
 
-    @property
-    def json_response(self):
-        try:
-            return json.loads(self.response)
-        except json.JSONDecodeError:
-            self.logger.exception(
-                "decoding response raised JSONDecodeError",
-                response_content=self.response,
-                gpt_max_tokens=self.max_tokens
-            )
-        except Exception as e:
-            self.logger.info("json decoding response raised Exception", exception=e)
-
-        self.logger.info("Returning default response", default_response=self.default_gpt_response)
-        return json.loads(self.default_gpt_response)
-
-    @property
-    def text_response(self):
-        return unquote(self.response)
-
     def update_with_last_assistant_and_next_user_message(self, user_message):
         self.add_assistant_message(self.text_response)
         self.add_user_message(user_message)
-        self._done.unset()
+        self._done.clear()
         self._response = None
