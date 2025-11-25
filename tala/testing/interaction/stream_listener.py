@@ -24,16 +24,16 @@ class StreamListener(threading.Thread):
         super().__init__(daemon=True)
 
     def run(self):
-        response = requests.get(f"{self._streamer_url}/{self._session_id}", stream=True)
-        self.stream_started.set()
-        self._logger.info("listening to stream")
-        for line in response.iter_lines():
-            if line:  # filter out keep-alive new lines
-                decoded_line = line.decode('utf-8')
-                self.process_line(decoded_line)
-            if self._please_stop.is_set():
-                break
-        self._logger.info("stream listener stopped listening", received_messages=self._streamed_messages)
+        with requests.get(f"{self._streamer_url}/{self._session_id}", stream=True) as response:
+            self.stream_started.set()
+            self._logger.info("listening to stream")
+            for line in response.iter_lines():
+                if line:  # filter out keep-alive new lines
+                    decoded_line = line.decode('utf-8')
+                    self.process_line(decoded_line)
+                if self._please_stop.is_set():
+                    break
+        self._logger.info("stream listener stopped listening, stream closed", received_messages=self._streamed_messages)
         self._stopped.set()
 
     def process_line(self, line):
