@@ -2,12 +2,16 @@ import requests
 import threading
 import time
 
+from tala.utils.func import getenv
+
 TIMEOUT = 2.0
 
 
 class StreamListener(threading.Thread):
     LEGACY_STREAMER_BASE_URL = 'https://tala-event-sse.azurewebsites.net/event-sse'
-    STREAMER_BASE_URL = 'https://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net/event-sse'
+    SSE_BROKER_ENDPOINT_HTTPS = getenv(
+        "SSE_BROKER_ENDPOINT_HTTPS", 'https://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net/event-sse'
+    )
 
     def __init__(self, streamer_url, session_id, logger):
         self._streamer_url = streamer_url
