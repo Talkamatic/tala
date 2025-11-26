@@ -28,9 +28,10 @@ class StreamListener(threading.Thread):
         super().__init__(daemon=True)
 
     def run(self):
-        with requests.get(f"{self._streamer_url}/{self._session_id}", stream=True) as response:
+        url = f"{self._streamer_url}/{self._session_id}"
+        with requests.get(url, stream=True) as response:
             self.stream_started.set()
-            self._logger.info("listening to stream")
+            self._logger.info("listening to stream", url=url)
             for line in response.iter_lines():
                 if line:  # filter out keep-alive new lines
                     decoded_line = line.decode('utf-8')
