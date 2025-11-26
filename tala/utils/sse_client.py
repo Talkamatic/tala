@@ -314,8 +314,11 @@ class SSEClient(AbstractSSEClient):
         super().open_session(session_id, s_and_r_dict, logger)
         streamer_session = self.sessions[session_id]
         url = f"{self._endpoint}/{self._get_topic(streamer_session)}"
+        self.logger.info("create websocket")
         session_websocket = websocket.WebSocket()
+        self.logger.info("connecting websocket to URL", url=url)
         session_websocket.connect(url)
+        self.logger.info("websocket connected", url=url)
         streamer_session["websocket"] = session_websocket
 
     def _stream_to_frontend(self, streamer_session, message):
