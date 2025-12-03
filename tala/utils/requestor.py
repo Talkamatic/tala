@@ -162,6 +162,10 @@ class GPTRequest:
         return self._requestor_arguments["gpt_request"]["default_gpt_response"]
 
     @property
+    def max_tokens(self):
+        return self._requestor_arguments["gpt_request"]["max_tokens"]
+
+    @property
     def messages(self):
         return self._requestor_arguments["gpt_request"]["messages"]
 
