@@ -361,7 +361,7 @@ class StreamerQueue(threading.Thread):
         self._sse_client = sse_client
         self._session_id = session_id
         self._setup_done = threading.Event()
-        self._stop = False
+        self._please_stop = False
         self._end_stream = False
         self._logger = logger
         self._streamed_in_session = []
@@ -391,8 +391,8 @@ class StreamerQueue(threading.Thread):
     def enqueue(self, chunk):
         self._actual_q.put(chunk)
 
-    def stop(self, end_stream=False):
-        self._stop = True
+    def please_stop(self, end_stream=False):
+        self._please_stop = True
         self._end_stream = end_stream
 
     def run(self):
@@ -403,7 +403,7 @@ class StreamerQueue(threading.Thread):
                 time.sleep(0.01)
             except queue.Empty:
                 chunk = None
-                if self._stop:
+                if self._please_stop:
                     break
 
             if chunk:
