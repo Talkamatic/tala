@@ -2,7 +2,6 @@ import json
 import threading
 import queue
 import uuid
-import time
 
 import websocket
 import requests
@@ -354,15 +353,18 @@ class SSEClient(AbstractSSEClient):
         self._reset_logger()
 
 
+END_STREAM_CHUNK = "[END STREAM]"
+
+
 class StreamerQueue(threading.Thread):
-    def __init__(self, sse_client, session_id, logger):
+    def __init__(self, sse_client, session_id, default_utterance, logger):
         super().__init__()
         self._actual_q = queue.Queue()
         self._sse_client = sse_client
         self._session_id = session_id
         self._setup_done = threading.Event()
-        self._please_stop = False
         self._end_stream = False
+        self._default_utterance = default_utterance
         self._logger = logger
         self._streamed_in_session = []
 
@@ -392,21 +394,24 @@ class StreamerQueue(threading.Thread):
         self._actual_q.put(chunk)
 
     def please_stop(self, end_stream=False):
-        self._please_stop = True
+        self._actual_q.put(END_STREAM_CHUNK)
         self._end_stream = end_stream
 
     def run(self):
         self._setup_done.wait()
+        streamed_messages = False
         while True:
             try:
                 chunk = self._actual_q.get(timeout=0.01)
-                time.sleep(0.01)
             except queue.Empty:
                 chunk = None
-                if self._please_stop:
-                    break
 
             if chunk:
+                if chunk == END_STREAM_CHUNK:
+                    if not streamed_messages:
+                        self._sse_client.stream_chunk(self.session_id, self._default_utterance)
+                    break
+                streamed_messages = True
                 self._sse_client.stream_chunk(self.session_id, chunk)
 
         self._sse_client.flush_stream(self.session_id)
