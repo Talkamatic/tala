@@ -2,8 +2,9 @@ import json
 import threading
 import queue
 import uuid
-import websocket
+import time
 
+import websocket
 import requests
 
 STREAMING_DONE = "STREAMING_DONE"
@@ -351,3 +352,65 @@ class SSEClient(AbstractSSEClient):
             streamed=streamer_session["streamed"]
         )
         self._reset_logger()
+
+
+class StreamerQueue(threading.Thread):
+    def __init__(self, sse_client, session_id, logger):
+        super().__init__()
+        self._actual_q = queue.Queue()
+        self._sse_client = sse_client
+        self._session_id = session_id
+        self._setup_done = threading.Event()
+        self._stop = False
+        self._end_stream = False
+        self._logger = logger
+        self._streamed_in_session = []
+
+    @property
+    def session_id(self):
+        return self._session_id
+
+    @property
+    def streamed_in_session(self):
+        self.join()
+        return self._streamed_in_session
+
+    def setup_client(self, pronunciation_model, persona, voice):
+        def setup():
+            self.start()
+            self._sse_client.open_session(self.session_id, pronunciation_model)
+            self._sse_client.set_persona(self.session_id, persona)
+            self._sse_client.set_voice(self.session_id, voice)
+            self._setup_done.set()
+            self._logger.info("setup_client done")
+
+        self._logger.info("setup_client")
+
+        threading.Thread(target=setup).start()
+
+    def enqueue(self, chunk):
+        self._actual_q.put(chunk)
+
+    def stop(self, end_stream=False):
+        self._stop = True
+        self._end_stream = end_stream
+
+    def run(self):
+        self._setup_done.wait()
+        while True:
+            try:
+                chunk = self._actual_q.get(timeout=0.01)
+                time.sleep(0.01)
+            except queue.Empty:
+                chunk = None
+                if self._stop:
+                    break
+
+            if chunk:
+                self._sse_client.stream_chunk(self.session_id, chunk)
+
+        self._sse_client.flush_stream(self.session_id)
+        if self._end_stream:
+            self._sse_client.end_stream(self.session_id)
+        self._streamed_in_session = self._sse_client.sessions[self.session_id]["streamed"]
+        self._sse_client.close_session(self.session_id)
