@@ -82,6 +82,16 @@ class TestProperMove:
         self.when_creating_move()
         self.then_move_is({"move_type": user_move.REQUEST, "action": "some_action"})
 
+    def test_report_done(self):
+        self.given_move_as_string('report(done)')
+        self.when_creating_move()
+        self.then_move_is({"move_type": user_move.REPORT, "action": None, "status": "done"})
+
+    def test_report_done_specific_action(self):
+        self.given_move_as_string('report(action_status(some_action, done))')
+        self.when_creating_move()
+        self.then_move_is({"move_type": user_move.REPORT, "action": "some_action", "status": "done"})
+
     @pytest.mark.parametrize(
         "move_as_string, move_type", [
             ("thanks", "thanks"),

@@ -7,6 +7,7 @@ from tala.model import move
 ANSWER = move.ANSWER
 ASK = move.ASK
 REQUEST = move.REQUEST
+REPORT = move.REPORT
 BUILTINS = [move.QUIT, move.THANK_YOU, move.GREET, move.INSULT, move.MUTE, move.UNMUTE, "icm:per*neg", "icm:acc*pos"]
 
 
@@ -129,6 +130,9 @@ class ProperMove:
             return {"move_type": self.move_type, "predicate": self.predicate, "arity": self.arity}
         if self.move_type == REQUEST:
             return {"move_type": self.move_type, "action": self.action}
+        if self.move_type == REPORT:
+            return {"move_type": self.move_type, "action": self.action, "status": self._status}
+        raise Exception(f'unknown move type: "{self.move_type}"')
 
     @property
     def move_type(self):
@@ -148,6 +152,11 @@ class ProperMove:
         elif self._move_as_string.startswith(REQUEST):
             self._move_type = REQUEST
             self._parse_request()
+        elif self._move_as_string.startswith(REPORT):
+            print("this is a report")
+            self._move_type = REPORT
+            self._parse_report()
+
         else:
             raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
 
@@ -183,6 +192,20 @@ class ProperMove:
         m = re.match(r"^request\(([a-zA-Z0-9_\-\:]+)\)$", self._move_as_string)
         if m:
             self._action = m[1]
+        else:
+            raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
+
+    def _parse_report(self):
+        if self._move_as_string == "report(done)":
+            print("it's report done")
+            self._action = None
+            self._status = "done"
+            print("returning")
+            return
+        m = re.match(r"^report\(action_status\(([a-zA-Z0-9_\-\:]+), done\)\)$", self._move_as_string)
+        if m:
+            self._action = m[1]
+            self._status = "done"
         else:
             raise MalformedMoveStringException(f'could not parse "{self._move_as_string}" as a move.')
 
