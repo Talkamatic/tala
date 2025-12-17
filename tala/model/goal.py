@@ -160,7 +160,7 @@ class Perform(GoalWithSemanticContent):
         return self.content
 
     def __str__(self):
-        return f"perform({self.action})"
+        return f"perform({self.action.name})"
 
     def as_move(self):
         return move.Request(self.content)

@@ -126,7 +126,7 @@
       <xs:element ref="if" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="once" type="once"/>
       <xs:element name="jumpto" type="has_goal" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="signal_action_completion" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="signal_action_completion" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="signal_action_failure" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="end_turn" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="reset_domain_query" minOccurs="0" maxOccurs="unbounded"/>
@@ -336,9 +336,17 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="signal_action_completion">
+    <xs:complexType>
+      <xs:attribute name="postconfirm" type="xs:boolean" use="optional"/>
+      <xs:attribute name="action" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
   <xs:element name="signal_action_failure">
     <xs:complexType>
       <xs:attribute name="reason" type="xs:string" use="required"/>
+      <xs:attribute name="action" type="xs:string" use="optional"/>
     </xs:complexType>
   </xs:element>
 

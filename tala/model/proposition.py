@@ -1016,7 +1016,7 @@ class ActionStatusProposition(PropositionWithSemanticContent):
             return False
 
     def __str__(self):
-        return f"action_status({self.content}, {self.status})"
+        return f"action_status({self.content.name}, {self.status})"
 
     def __hash__(self):
         return hash((self.content, self.status))

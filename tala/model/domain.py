@@ -621,8 +621,12 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         for goal in self.plans:
             yield goal
 
-    def get_all_goals(self):
+    @property
+    def all_goals(self):
         return list(self.plans.keys())
+
+    def get_all_goals(self):
+        return self.all_goals
 
     def get_all_goals_in_defined_order(self):
         return self._goals_in_defined_order
@@ -830,7 +834,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         return question in self.get_questions_in_plan(plan)
 
     def get_invoke_service_action_items_for_action(self, action_name):
-        for goal in self.get_all_goals():
+        for goal in self.all_goals:
             plan = self.get_plan(goal)
             for item in plan:
                 if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.get_service_action() == action_name:
@@ -838,7 +842,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
 
     def get_names_of_user_targeted_actions(self):
         actions = []
-        for goal in self.get_all_goals():
+        for goal in self.all_goals:
             plan = self.get_plan(goal)
             for item in plan:
                 if item.type_ == plan_item.TYPE_GET_DONE:

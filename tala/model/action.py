@@ -1,3 +1,4 @@
+import re
 import warnings
 
 from tala.model.semantic_object import OntologySpecificSemanticObject
@@ -15,6 +16,11 @@ class Action(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __init__(self, value, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
+        try:
+            assert re.match(r'[\w_\-]+', value), f"action name '{value}' contains illegal characters."
+        except TypeError:
+            raise Exception(f"Expected a string as action name, got '{value}'")
+
         self.value = value
 
     def is_action(self):

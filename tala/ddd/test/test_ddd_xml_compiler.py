@@ -82,8 +82,7 @@ class DDDXMLCompilerTestCase(DddCompilerTestCase):
         assert expected_value == self._result[expected_key]
 
     def _then_result_has_plan(self, expected_plan):
-        actual_plans = self._result["plans"]
-        actual_plan = actual_plans[0]["plan"]
+        actual_plan = self._result["plans"][0]["plan"]
         assert expected_plan == actual_plan
 
     def _then_findout_allows_pcom(self, allow):
@@ -2490,6 +2489,22 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             """)
         self._then_result_has_plan(Plan([self._parse("signal_action_completion(false)")]))
 
+    def test_signal_action_completion_can_be_transitive(self):
+
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+  <action name="buy"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<signal_action_completion postconfirm="false" action="buy"/>
+            """
+        )
+        self._then_result_has_plan(Plan([self._parse("signal_action_completion(false, buy)")]))
+
     def test_signal_action_failure_needs_reason(self):
         self._given_compiled_ontology(
             """
@@ -2512,6 +2527,21 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 <signal_action_failure reason="some_reason"/>
             """)
         self._then_result_has_plan(Plan([self._parse("signal_action_failure(some_reason)")]))
+
+    def test_signal_action_failure_can_be_transitive(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="price" sort="real"/>
+  <action name="buy"/>
+</ontology>"""
+        )
+        self._when_compile_domain_with_plan(
+            """
+<signal_action_failure reason="some_reason" action="buy"/>
+            """
+        )
+        self._then_result_has_plan(Plan([self._parse("signal_action_failure(some_reason, buy)")]))
 
     def test_change_ddd(self):
         self._given_compiled_ontology(

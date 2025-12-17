@@ -74,7 +74,7 @@ class JSONAPIMixin:
             except AttributeError:
                 return None
 
-        obj = JSONAPIObject(self.json_api_type, self.json_api_id, {}, {}, [])
+        obj = JSONAPIObject(self.json_api_type, id_=self.json_api_id)
         for attribute in self.json_api_attributes:
             obj.add_attribute(attribute, self.__getattribute__(attribute))
         for relationship_name in self.json_api_relationships:
@@ -93,6 +93,10 @@ class JSONAPIMixin:
         return self.json_api_type
 
     @property
+    def json_api_version(self):
+        return CURRENT_FORMAT_VERSION
+
+    @property
     def json_api_attributes(self):
         return []
 
@@ -109,14 +113,15 @@ class JSONAPIObject:
 
         return cls(data["type"], data["id"], data["attributes"], data["relationships"], included)
 
-    def __init__(self, type_, id_=None, attributes=None, relationships=None, included=None):
+    def __init__(
+        self, type_, id_=None, attributes=None, relationships=None, included=None, version=CURRENT_FORMAT_VERSION
+    ):
         self.type_ = type_
         self.id_ = id_ if id_ else str(uuid.uuid4())
         self.attributes = attributes if attributes else {}
         self.relationships = relationships if relationships else {}
-
-        included = included if included else []
-        self.included = IncludedObject(included)
+        self.included = IncludedObject(included if included else [])
+        self.version = version
 
     def set_id(self, id_):
         self.id_ = id_
@@ -177,7 +182,7 @@ class JSONAPIObject:
             "data": {
                 "type": self.type_,
                 "id": self.id_,
-                "version:id": "2",
+                "version:id": self.version,
                 "attributes": self.attributes,
                 "relationships": self.relationships
             },

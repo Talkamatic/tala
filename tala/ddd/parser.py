@@ -742,18 +742,29 @@ class Parser:
             raise ParseFailure()
 
     def _parse_action_performed_plan_item(self, string):
-        if string == "signal_action_completion(true)":
-            return plan_item.GoalPerformed(True)
-        elif string == "signal_action_completion(false)":
-            return plan_item.GoalPerformed(False)
-        else:
-            raise ParseFailure()
+        m = re.search(r'^signal_action_completion\((true|false)(, (\S+))?\)$', string)
+        if m:
+            true_or_false = True if m.group(1) == "true" else False
+            possible_action = m.group(3)
+
+            if possible_action:
+                action = self._parse_action(possible_action)
+                return plan_item.GoalPerformed(true_or_false, action)
+            else:
+                return plan_item.GoalPerformed(true_or_false)
+
+        raise ParseFailure()
 
     def _parse_action_aborted_plan_item(self, string):
-        m = re.search(r'^signal_action_failure\((.+)\)$', string)
+        m = re.search(r'^signal_action_failure\(([^,)]+)(, (\S+))?\)$', string)
         if m:
             reason = m.group(1)
-            return plan_item.GoalAborted(reason)
+            possible_action = m.group(3)
+            if possible_action:
+                action = self._parse_action(possible_action)
+                return plan_item.GoalAborted(reason, action)
+            else:
+                return plan_item.GoalAborted(reason)
         else:
             raise ParseFailure()
 

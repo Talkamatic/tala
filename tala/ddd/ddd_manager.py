@@ -89,7 +89,7 @@ class DDDManager(object):
 
     def load_ddd_for_ontology_name(self, name):
         for ddd_as_json in self.ddds_as_json:
-            if get_ddd_json_version(ddd_as_json) == "2":
+            if get_ddd_json_version(ddd_as_json) >= "2":
                 ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
             elif get_ddd_json_version(ddd_as_json) == "1":
                 ontology_name = ddd_as_json["ontology"]["_name"]
@@ -107,7 +107,7 @@ class DDDManager(object):
 
     def _get_ddd_as_json(self, name):
         for ddd_as_json in self.ddds_as_json:
-            if get_ddd_json_version(ddd_as_json) == "2":
+            if get_ddd_json_version(ddd_as_json) >= "2":
                 if name == ddd_as_json["data"]["attributes"]["name"]:
                     return ddd_as_json
             if get_ddd_json_version(ddd_as_json) == "1":

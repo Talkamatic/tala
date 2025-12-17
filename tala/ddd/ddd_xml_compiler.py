@@ -683,11 +683,15 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_signal_action_completion_element(self, element):
         postconfirm = self._get_optional_attribute(element, "postconfirm", default="true")
-        return [plan_item.GoalPerformed(self._parse_boolean(postconfirm))]
+        action_name = self._get_optional_attribute(element, "action", default=None)
+        action = Action(action_name, self._ontology.name) if action_name else None
+        return [plan_item.GoalPerformed(self._parse_boolean(postconfirm), action)]
 
     def _compile_signal_action_failure_element(self, element):
         reason = self._get_mandatory_attribute(element, "reason")
-        return [plan_item.GoalAborted(reason)]
+        action_name = self._get_optional_attribute(element, "action", default=None)
+        action = Action(action_name, self._ontology.name) if action_name else None
+        return [plan_item.GoalAborted(reason, action)]
 
     def _compile_end_turn_element(self, element):
         timeout = self._get_mandatory_attribute(element, "expected_passivity")

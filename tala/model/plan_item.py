@@ -838,21 +838,48 @@ class GoalPerformed(PlanItem):
     @classmethod
     def create_from_json_api_data(cls, data, included):
         postconfirm = data["attributes"]["postconfirm"]
-        return cls(postconfirm)
+        try:
+            action_entry = included.get_object_from_relationship(data["relationships"]["action"]["data"])
+            action = Action.create_from_json_api_data(action_entry, included)
+        except KeyError:
+            action = None
+        return cls(postconfirm, action)
 
-    def __init__(self, postconfirm):
+    def __init__(self, postconfirm, action=None):
         PlanItem.__init__(self, TYPE_ACTION_PERFORMED)
         self._postconfirm = postconfirm
+        self._action = action if action else ""
+
+    def __eq__(self, other):
+        if super().__eq__(other):
+            return self.postconfirm == other.postconfirm and self.action == other.action
+        return False
+
+    def __str__(self):
+        if self.action:
+            return f"signal_action_completion({str(self.action.name)}, {str(self.postconfirm)})"
+        return f"signal_action_completion({str(self.postconfirm)})"
+
+    def __repr__(self):
+        if self.action:
+            return f"GoalPerformed('{self.action}', '{self.postconfirm}')"
+        return f"GoalPerformed('{self.postconfirm}')"
 
     @property
     def postconfirm(self):
         return self._postconfirm
 
+    @property
+    def action(self):
+        return self._action
+
     def as_dict(self):
-        return {self.type_: self._postconfirm}
+        return {self.type_: self._postconfirm, "action": self.action}
 
     @property
     def json_api_id(self):
+        if self.action:
+            return f"{self.json_api_type}:{self.postconfirm}:{self.action.name}"
         return f"{self.json_api_type}:{self.postconfirm}"
 
     @property
@@ -861,39 +888,63 @@ class GoalPerformed(PlanItem):
 
     @property
     def json_api_relationships(self):
+        if self.action is not None:
+            return ["action"]
         return []
 
 
 class GoalAborted(PlanItem):
     @classmethod
-    def create_from_json_api_data(cls, object_as_json, included):
-        reason = object_as_json["attributes"]["reason"]
-        return cls(reason)
+    def create_from_json_api_data(cls, data, included):
+        reason = data["attributes"]["reason"]
+        try:
+            action_entry = included.get_object_from_relationship(data["relationships"]["action"]["data"])
+            action = Action.create_from_json_api_data(action_entry, included)
+        except KeyError:
+            action = None
+        return cls(reason, action)
 
-    def __init__(self, reason):
+    def __init__(self, reason, action=None):
         PlanItem.__init__(self, TYPE_ACTION_ABORTED)
         self._reason = reason
+        self._action = action if action else ""
+
+    def __eq__(self, other):
+        if super().__eq__(other):
+            if self.reason == other.reason and self.action == other.action:
+                return True
+        return False
 
     @property
     def reason(self):
         return self._reason
 
+    @property
+    def action(self):
+        return self._action
+
     def __str__(self):
-        return f"signal_action_failure('{self.reason}')"
+        return f"signal_action_failure('{self.reason}, {self.action}')"
 
     def __repr__(self):
-        return f"GoalAbortedPlanItem('{self.reason}')"
+        return f"GoalAborted('{self.reason}, {self.action}')"
 
     def as_dict(self):
-        return {self.type_: self._reason}
+        return {self.type_: self._reason, "action": self.action}
 
     @property
     def json_api_id(self):
-        return f"{self.json_api_type}:{self.reason}"
+        return f"{self.json_api_type}:{self.action}:{self.reason}"
 
     @property
     def json_api_attributes(self):
         return ["reason"]
+
+    @property
+    def json_api_relationships(self):
+        if self.action is not None:
+            return ["action"]
+        return []
 
 
 class EndTurn(PlanItem):
