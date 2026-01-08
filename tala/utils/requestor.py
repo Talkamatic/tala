@@ -3,12 +3,11 @@ import json
 from threading import Event, Thread
 
 import requests
-from requests.exceptions import RequestException, ConnectTimeout
 from tala.utils.func import getenv, setup_logger
 
 REQUESTOR_URL = getenv("FUNCTION_ENDPOINT_REQUESTOR", "Define the Requestor function endpoint in the environment.")
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
-READ_TIMEOUT = 60
+READ_TIMEOUT = 10
 
 DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
 
@@ -58,20 +57,23 @@ def make_request(endpoint, json_request, logger):
             while not success and attempt_no < MAX_NUM_CONNECTION_ATTEMPTS:
                 try:
                     response_object = requests_session.post(
-                        endpoint, json=json_request, headers=headers, timeout=(CONNECTION_TIMEOUT, READ_TIMEOUT)
+                        endpoint,
+                        json=json_request,
+                        headers=headers,
+                        timeout=(CONNECTION_TIMEOUT, READ_TIMEOUT * attempt_no)
                     )
                     response_object.raise_for_status()
                     success = True
-                except ConnectTimeout:
+                except Exception:
                     logger.exception(
-                        f"ConnectTimeout during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}."
+                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}."
                     )
                     logger.info(
-                        f"ConnectTimeout during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}"
+                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}"
                     )
                 attempt_no += 1
             return response_object
-        except RequestException:
+        except Exception:
             logger.exception("Encountered exception during request")
             raise ConnectionException(f"Could not connect to {endpoint}")
 
@@ -80,7 +82,7 @@ def make_request(endpoint, json_request, logger):
             response = response_object.json()
             logger.debug("received response", body=response, endpoint=endpoint)
             return response
-        except ValueError:
+        except (ValueError, AttributeError):
             logger.exception("Encountered exception when decoding response")
             raise InvalidResponseError(f"Expected a valid JSON response from service but got {response_object}.")
 
@@ -92,10 +94,13 @@ def make_request(endpoint, json_request, logger):
 
     headers = {'Content-type': 'application/json'}
     response_object = request(headers)
-
-    response = decode(response_object)
-    validate(response)
-    return response
+    try:
+        response = decode(response_object)
+        validate(response)
+        return response
+    except Exception:
+        logger.exception("An exception occurred when making the request")
+        return {}
 
 
 class GPTRequest:
