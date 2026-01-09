@@ -7,7 +7,7 @@ from tala.utils.func import getenv, setup_logger
 
 REQUESTOR_URL = getenv("FUNCTION_ENDPOINT_REQUESTOR", "Define the Requestor function endpoint in the environment.")
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
-READ_TIMEOUT = 10
+READ_TIMEOUT = 4
 
 DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
 
