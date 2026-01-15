@@ -40,17 +40,24 @@ class TestGPTRequest:
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': True,
-                    'model': 'gpt-4o-2024-05-13'
+                    'model': 'gpt-4o-2024-05-13',
+                    'reasoning_effort': None,
                 },
                 'priority': 10,
                 'request_id': 'some-request-id'
             }
         ))
 
-    def given_gpt_request(self, messages=None, use_json=True):
+    def given_gpt_request(self, messages=None, use_json=True, model=requestor.DEFAULT_GPT_MODEL, reasoning_effort=None):
         msgs = messages if messages else []
         request_id = "some-request-id"
-        self._gpt_request = requestor.GPTRequest(messages=msgs, use_json=use_json, request_id=request_id)
+        self._gpt_request = requestor.GPTRequest(
+            messages=msgs,
+            use_json=use_json,
+            request_id=request_id,
+            model=model,
+            reasoning_effort=reasoning_effort,
+        )
 
     def when_request_is_made(self):
         self._gpt_request.make()
@@ -90,7 +97,8 @@ class TestGPTRequest:
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': True,
-                    'model': 'gpt-4o-2024-05-13'
+                    'model': 'gpt-4o-2024-05-13',
+                    'reasoning_effort': None,
                 },
                 'priority': 10,
                 'request_id': 'some-request-id'
@@ -127,7 +135,8 @@ class TestGPTRequest:
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': False,
-                    'model': 'gpt-4o-2024-05-13'
+                    'model': 'gpt-4o-2024-05-13',
+                    'reasoning_effort': None,
                 },
                 'priority': 10,
                 'request_id': 'some-request-id'
@@ -160,7 +169,8 @@ class TestGPTRequest:
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': False,
-                    'model': 'gpt-4o-2024-05-13'
+                    'model': 'gpt-4o-2024-05-13',
+                    'reasoning_effort': None,
                 },
                 'priority': 10,
                 'request_id': 'some-request-id'
@@ -195,3 +205,40 @@ class TestGPTRequest:
     def then_text_response_is(self, expected_response):
         self._then_request_is_done()
         assert self._gpt_request.text_response == expected_response, f'Expected "{expected_response}", got "{self._gpt_request.text_response}"'
+
+    def test_reasoning_effort(self):
+        self.given_gpt_request(
+            messages=[{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            model='gpt-5.1-2025-11-13',
+            reasoning_effort='low',
+        )
+        self.when_request_is_made()
+        self.then_request_call_is((
+            'URL-FOR-REQUESTOR', {
+                'gpt_request': {
+                    'messages': [{
+                        'role': 'system',
+                        'content': 'you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON.'
+                    }, {
+                        'role': 'user',
+                        'content': 'i want keys 1 2 3 with values a b c'
+                    }],
+                    'temperature': 0.1,
+                    'max_tokens': 50,
+                    'max_retries': 0,
+                    'stop': [],
+                    'default_gpt_response': '[]',
+                    'use_json': True,
+                    'model': 'gpt-5.1-2025-11-13',
+                    'reasoning_effort': 'low',
+                },
+                'priority': 10,
+                'request_id': 'some-request-id'
+            }
+        ))

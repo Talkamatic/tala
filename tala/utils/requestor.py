@@ -116,7 +116,8 @@ class GPTRequest:
         use_json=False,
         model=DEFAULT_GPT_MODEL,
         priority=MEDIUM_PRIORITY,
-        request_id=None
+        request_id=None,
+        reasoning_effort=None,
     ):
         self.logger = logger if logger else setup_logger(__name__)
         self._request_id = request_id if request_id else str(uuid.uuid4())
@@ -129,7 +130,8 @@ class GPTRequest:
                 "stop": stop if stop else [],
                 "default_gpt_response": default_gpt_response,
                 "use_json": use_json,
-                "model": model
+                "model": model,
+                "reasoning_effort": reasoning_effort
             },
             "priority": priority,
             "request_id": self._request_id
