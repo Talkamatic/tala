@@ -212,5 +212,9 @@ class GPTRequest:
     def update_with_last_assistant_and_next_user_message(self, user_message):
         self.add_assistant_message(self.text_response)
         self.add_user_message(user_message)
+        self._double_max_tokens()
         self._done.clear()
         self._response = None
+
+    def _double_max_tokens(self):
+        self._requestor_arguments["gpt_request"]["max_tokens"] *= 2

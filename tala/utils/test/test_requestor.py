@@ -242,3 +242,25 @@ class TestGPTRequest:
                 'request_id': 'some-request-id'
             }
         ))
+
+    def test_retrying_means_double_tokens(self):
+        self.given_gpt_request([{
+            "role": "system",
+            "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+        }, {
+            "role": "user",
+            "content": "i want keys 1 2 3 with values a b c"
+        }])
+        self.given_request_is_made()
+        self.when_updating_request_with_latest_messages()
+        self.then_max_tokens_is(100)
+
+    def given_request_is_made(self):
+        self._gpt_request.make()
+        self._gpt_request._response = {"response_body": "mock-response-body"}
+
+    def when_updating_request_with_latest_messages(self):
+        self._gpt_request.update_with_last_assistant_and_next_user_message("another line")
+
+    def then_max_tokens_is(self, expected_max_tokens):
+        assert self._gpt_request.max_tokens == expected_max_tokens
