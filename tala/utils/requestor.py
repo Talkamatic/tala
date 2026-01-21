@@ -7,7 +7,7 @@ from tala.utils.func import getenv, setup_logger
 
 REQUESTOR_URL = getenv("FUNCTION_ENDPOINT_REQUESTOR", "Define the Requestor function endpoint in the environment.")
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
-READ_TIMEOUT = 4
+READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4"))
 
 DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
 
@@ -47,7 +47,7 @@ def unquote(possibly_quoted_string):
     return possibly_quoted_string
 
 
-def make_request(endpoint, json_request, logger):
+def make_request(endpoint, json_request, read_timeout, logger):
     def request(headers):
         logger.info(f"making request to: {endpoint}", body=json_request)
         try:
@@ -60,7 +60,7 @@ def make_request(endpoint, json_request, logger):
                         endpoint,
                         json=json_request,
                         headers=headers,
-                        timeout=(CONNECTION_TIMEOUT, READ_TIMEOUT * attempt_no)
+                        timeout=(CONNECTION_TIMEOUT, read_timeout * attempt_no)
                     )
                     response_object.raise_for_status()
                     success = True
@@ -92,6 +92,8 @@ def make_request(endpoint, json_request, logger):
             logger.error("Received error from service", description=description)
             raise UnexpectedErrorException(description)
 
+    print("read_timeout", read_timeout)
+
     headers = {'Content-type': 'application/json'}
     response_object = request(headers)
     try:
@@ -118,6 +120,7 @@ class GPTRequest:
         priority=MEDIUM_PRIORITY,
         request_id=None,
         reasoning_effort=None,
+        read_timeout=READ_TIMEOUT
     ):
         self.logger = logger if logger else setup_logger(__name__)
         self._request_id = request_id if request_id else str(uuid.uuid4())
@@ -134,8 +137,9 @@ class GPTRequest:
                 "reasoning_effort": reasoning_effort
             },
             "priority": priority,
-            "request_id": self._request_id
+            "request_id": self._request_id,
         }
+        self._read_timeout = read_timeout
         self._response = None
         self._done = Event()
 
@@ -184,7 +188,7 @@ class GPTRequest:
         def do_request():
             self.logger.info("make request", request_id=self._request_id)
             try:
-                self._response = make_request(REQUESTOR_URL, self._requestor_arguments, self.logger)
+                self._response = make_request(REQUESTOR_URL, self._requestor_arguments, self._read_timeout, self.logger)
                 self.logger.info("received response", request_id=self._request_id, response=self._response)
             except Exception:
                 self._response = {}
