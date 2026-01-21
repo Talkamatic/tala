@@ -92,8 +92,6 @@ def make_request(endpoint, json_request, read_timeout, logger):
             logger.error("Received error from service", description=description)
             raise UnexpectedErrorException(description)
 
-    print("read_timeout", read_timeout)
-
     headers = {'Content-type': 'application/json'}
     response_object = request(headers)
     try:
