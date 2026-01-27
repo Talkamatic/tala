@@ -27,6 +27,7 @@ class TestGPTRequest:
         self.then_request_call_is((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
+                    'allow_caching': True,
                     'messages': [{
                         'role': 'system',
                         'content': 'you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON.'
@@ -48,7 +49,14 @@ class TestGPTRequest:
             }
         ))
 
-    def given_gpt_request(self, messages=None, use_json=True, model=requestor.DEFAULT_GPT_MODEL, reasoning_effort=None):
+    def given_gpt_request(
+        self,
+        messages=None,
+        use_json=True,
+        model=requestor.DEFAULT_GPT_MODEL,
+        reasoning_effort=None,
+        allow_caching=True
+    ):
         msgs = messages if messages else []
         request_id = "some-request-id"
         self._gpt_request = requestor.GPTRequest(
@@ -57,6 +65,7 @@ class TestGPTRequest:
             request_id=request_id,
             model=model,
             reasoning_effort=reasoning_effort,
+            allow_caching=allow_caching
         )
 
     def when_request_is_made(self):
@@ -81,6 +90,7 @@ class TestGPTRequest:
         self.then_request_call_is((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
+                    'allow_caching': True,
                     'messages': [{
                         'role': 'system',
                         'content': 'you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON.'
@@ -122,6 +132,7 @@ class TestGPTRequest:
         self.then_request_call_is((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
+                    'allow_caching': True,
                     'messages': [{
                         'role': 'system',
                         'content': 'you say hey to mom'
@@ -156,6 +167,7 @@ class TestGPTRequest:
         self.then_request_call_is((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
+                    'allow_caching': True,
                     'messages': [{
                         'role': 'system',
                         'content': 'you say hey to mom'
@@ -222,6 +234,7 @@ class TestGPTRequest:
         self.then_request_call_is((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
+                    'allow_caching': True,
                     'messages': [{
                         'role': 'system',
                         'content': 'you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON.'
@@ -237,6 +250,44 @@ class TestGPTRequest:
                     'use_json': True,
                     'model': 'gpt-5.1-2025-11-13',
                     'reasoning_effort': 'low',
+                },
+                'priority': 10,
+                'request_id': 'some-request-id'
+            }
+        ))
+
+    def test_no_cache(self):
+        self.given_gpt_request(
+            messages=[{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            model='gpt-5.1-2025-11-13',
+            allow_caching=False,
+        )
+        self.when_request_is_made()
+        self.then_request_call_is((
+            'URL-FOR-REQUESTOR', {
+                'gpt_request': {
+                    'allow_caching': False,
+                    'messages': [{
+                        'role': 'system',
+                        'content': 'you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON.'
+                    }, {
+                        'role': 'user',
+                        'content': 'i want keys 1 2 3 with values a b c'
+                    }],
+                    'temperature': 0.1,
+                    'max_tokens': 50,
+                    'max_retries': 0,
+                    'stop': [],
+                    'default_gpt_response': '[]',
+                    'use_json': True,
+                    'model': 'gpt-5.1-2025-11-13',
+                    'reasoning_effort': None,
                 },
                 'priority': 10,
                 'request_id': 'some-request-id'

@@ -106,6 +106,7 @@ def make_request(endpoint, json_request, read_timeout, logger):
 class GPTRequest:
     def __init__(
         self,
+        allow_caching=True,
         logger=None,
         messages=None,
         temperature=0.1,
@@ -132,6 +133,7 @@ class GPTRequest:
                 "default_gpt_response": default_gpt_response,
                 "use_json": use_json,
                 "model": model,
+                "allow_caching": allow_caching,
                 "reasoning_effort": reasoning_effort
             },
             "priority": priority,
