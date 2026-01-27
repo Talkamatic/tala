@@ -106,7 +106,7 @@ def make_request(endpoint, json_request, read_timeout, logger):
 class GPTRequest:
     def __init__(
         self,
-        allow_caching=True,
+        allow_caching=False,
         logger=None,
         messages=None,
         temperature=0.1,
