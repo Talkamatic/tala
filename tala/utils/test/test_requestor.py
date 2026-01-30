@@ -10,6 +10,7 @@ class TestGPTRequest:
         cls._original_make_request = requestor.make_request
         requestor.make_request = make_request
         requestor.REQUESTOR_URL = "URL-FOR-REQUESTOR"
+        requestor.REQUESTOR_BASE_URL = "BASE-URL-FOR-REQUESTOR"
 
     @classmethod
     def teardown_class(cls):
@@ -24,7 +25,7 @@ class TestGPTRequest:
             "content": "i want keys 1 2 3 with values a b c"
         }])
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': True,
@@ -71,13 +72,16 @@ class TestGPTRequest:
     def when_request_is_made(self):
         self._gpt_request.make()
 
-    def then_request_call_is(self, expected_response):
+    def then_request_call_is_done_with_response(self, expected_response):
         self._then_request_is_done()
-        response = self._gpt_request._response[0:2]
-        assert response == expected_response, f'Expected "{expected_response}", got "{response}"'
+        self.then_request_call_has_response(expected_response)
 
     def _then_request_is_done(self):
         assert self._gpt_request._done.is_set()
+
+    def then_request_call_has_response(self, expected_response):
+        response = self._gpt_request._response[0:2]
+        assert response == expected_response, f'Expected "{expected_response}", got "{response}"'
 
     def test_call_with_added_messages_for_all_three_roles(self):
         self.given_gpt_request()
@@ -87,7 +91,7 @@ class TestGPTRequest:
         self.given_user_message('i want keys 1 2 3 with values a b c')
         self.given_assistant_message('you wanted keys 1 2 3 with values a b c')
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': True,
@@ -129,7 +133,7 @@ class TestGPTRequest:
         self.given_system_message('you say hey to mom')
         self.given_user_message('say hey to mom')
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': True,
@@ -164,7 +168,7 @@ class TestGPTRequest:
             'content': 'say hey to mom'
         }])
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': True,
@@ -231,7 +235,7 @@ class TestGPTRequest:
             reasoning_effort='low',
         )
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': True,
@@ -269,7 +273,7 @@ class TestGPTRequest:
             allow_caching=False,
         )
         self.when_request_is_made()
-        self.then_request_call_is((
+        self.then_request_call_is_done_with_response((
             'URL-FOR-REQUESTOR', {
                 'gpt_request': {
                     'allow_caching': False,
@@ -315,3 +319,64 @@ class TestGPTRequest:
 
     def then_max_tokens_is(self, expected_max_tokens):
         assert self._gpt_request.max_tokens == expected_max_tokens
+
+    def test_assign_deployment_request(self):
+        self.given_deployment_assignment_request()
+        self.when_request_is_made()
+        self.then_request_call_is_done_with_response((
+            'BASE-URL-FOR-REQUESTOR/assign-deployment', {
+                'gpt_request': {
+                    'allow_caching': True,
+                    'messages': [],
+                    'temperature': 0.1,
+                    'max_tokens': 50,
+                    'max_retries': 0,
+                    'stop': [],
+                    'default_gpt_response': '[]',
+                    'use_json': True,
+                    'model': 'gpt-4o-2024-05-13',
+                    'reasoning_effort': None,
+                },
+                'priority': 10,
+                'request_id': 'some-request-id'
+            }
+        ))
+
+    def given_deployment_assignment_request(
+        self,
+        messages=None,
+        use_json=True,
+        model=requestor.DEFAULT_GPT_MODEL,
+        reasoning_effort=None,
+        allow_caching=True
+    ):
+        msgs = messages if messages else []
+        request_id = "some-request-id"
+        self._gpt_request = requestor.GPTRequestForDeploymentAssignment(
+            messages=msgs,
+            use_json=use_json,
+            request_id=request_id,
+            model=model,
+            reasoning_effort=reasoning_effort,
+            allow_caching=allow_caching
+        )
+
+    def test_update_tpm_request(self):
+        self.given_update_tpm_request()
+        self.when_request_is_made()
+        self.then_request_call_has_response((
+            'BASE-URL-FOR-REQUESTOR/update-tpm', {
+                'deployment_name': 'some-deployment-name',
+                'deployment_resource': 'some-deployment-resource',
+                'request_id': 'some-update-id',
+                'total_tokens_used': 666,
+            }
+        ))
+
+    def given_update_tpm_request(self):
+        self._gpt_request = requestor.UpdateTPMRequest(
+            request_id="some-update-id",
+            deployment_name="some-deployment-name",
+            deployment_resource="some-deployment-resource",
+            total_tokens_used=666
+        )

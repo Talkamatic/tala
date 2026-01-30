@@ -6,6 +6,9 @@ import requests
 from tala.utils.func import getenv, setup_logger
 
 REQUESTOR_URL = getenv("FUNCTION_ENDPOINT_REQUESTOR", "Define the Requestor function endpoint in the environment.")
+REQUESTOR_BASE_URL = getenv(
+    "FUNCTION_ENDPOINT_REQUESTOR_BASE", "Define the Requestor function endpoint base in the environment."
+)
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
 READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4"))
 
@@ -222,3 +225,49 @@ class GPTRequest:
 
     def _double_max_tokens(self):
         self._requestor_arguments["gpt_request"]["max_tokens"] *= 2
+
+
+class GPTRequestForDeploymentAssignment(GPTRequest):
+    def make(self):
+        def do_request():
+            self.logger.info("make request", request_id=self._request_id)
+            try:
+                self._response = make_request(
+                    REQUESTOR_BASE_URL + "/assign-deployment", self._requestor_arguments, self._read_timeout,
+                    self.logger
+                )
+                self.logger.info("received response", request_id=self._request_id, response=self._response)
+            except Exception as e:
+                self.logger.exception()
+                raise e
+            self._done.set()
+
+        self.logger.info("Start request thread", request_id=self._request_id)
+        Thread(target=do_request, daemon=True).start()
+
+
+class UpdateTPMRequest:
+    def __init__(
+        self, request_id=None, deployment_name=None, deployment_resource=None, total_tokens_used=0, logger=None
+    ):
+        self._request_id = request_id if request_id else str(uuid.uuid4())
+        self._requestor_arguments = {
+            "request_id": self._request_id,
+            "deployment_name": deployment_name,
+            "deployment_resource": deployment_resource,
+            "total_tokens_used": total_tokens_used
+        }
+        self.logger = logger if logger else setup_logger(__name__)
+        self._response = None
+
+    def make(self):
+        def do_request():
+            self.logger.info("make request", arguments=self._requestor_arguments, request_id=self._request_id)
+
+            self._response = make_request(
+                REQUESTOR_BASE_URL + "/update-tpm", self._requestor_arguments, 2.0, self.logger
+            )
+            self.logger.info("received response", request_id=self._request_id, response=self._response)
+
+        self.logger.info("Start request thread", request_id=self._request_id)
+        Thread(target=do_request, daemon=True).start()
