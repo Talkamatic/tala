@@ -148,8 +148,14 @@ class GPTRequest:
 
     @property
     def response(self):
-        self._done.wait()
-        return self._response["response_body"]
+        try:
+            self._done.wait()
+            return self._response["response_body"]
+        except Exception:
+            self.logger.exception()
+
+        self.logger.info("Returning default response", default_response=self.default_gpt_response)
+        return self.default_gpt_response
 
     @property
     def json_response(self):

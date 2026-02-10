@@ -505,3 +505,27 @@ class TestResponses(TestRequestorBaseClass):
         )
         self.when_request_is_made()
         self.then_json_response_is({"default": "response"})
+
+    def test_failure_response_returns_default_str_response(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are an expert in completing sentences which refer to pop culture"
+            }, {
+                "role": "user",
+                "content": "Nobody expects..."
+            }],
+            use_json=False,
+            default_gpt_response="a default response message! Something went wrong!",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "status": "failure",
+                "gpt_time_consumption": -1,
+                "request_id": "some-id",
+                "failure_message": "an error message",
+            },
+            status_code=500,
+        )
+        self.when_request_is_made()
+        self.then_str_response_is("a default response message! Something went wrong!")
