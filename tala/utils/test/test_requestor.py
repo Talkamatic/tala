@@ -1,7 +1,37 @@
 from tala.utils import requestor
 
 
-class TestGPTRequest:
+class TestRequestorBaseClass:
+    def given_gpt_request(
+        self,
+        messages=None,
+        use_json=True,
+        model=requestor.DEFAULT_GPT_MODEL,
+        reasoning_effort=None,
+        allow_caching=True,
+        default_gpt_response="[]",
+    ):
+        msgs = messages if messages else []
+        request_id = "some-request-id"
+        self._gpt_request = requestor.GPTRequest(
+            messages=msgs,
+            use_json=use_json,
+            request_id=request_id,
+            model=model,
+            reasoning_effort=reasoning_effort,
+            allow_caching=allow_caching,
+            default_gpt_response=default_gpt_response,
+        )
+
+    def when_request_is_made(self):
+        self._gpt_request.make()
+
+    def _then_request_is_done(self):
+        self._gpt_request._done.wait(timeout=1)
+        assert self._gpt_request._done.is_set()
+
+
+class TestMakeRequest(TestRequestorBaseClass):
     @classmethod
     def setup_class(cls):
         def make_request(*args):
@@ -50,34 +80,9 @@ class TestGPTRequest:
             }
         ))
 
-    def given_gpt_request(
-        self,
-        messages=None,
-        use_json=True,
-        model=requestor.DEFAULT_GPT_MODEL,
-        reasoning_effort=None,
-        allow_caching=True
-    ):
-        msgs = messages if messages else []
-        request_id = "some-request-id"
-        self._gpt_request = requestor.GPTRequest(
-            messages=msgs,
-            use_json=use_json,
-            request_id=request_id,
-            model=model,
-            reasoning_effort=reasoning_effort,
-            allow_caching=allow_caching
-        )
-
-    def when_request_is_made(self):
-        self._gpt_request.make()
-
     def then_request_call_is_done_with_response(self, expected_response):
         self._then_request_is_done()
         self.then_request_call_has_response(expected_response)
-
-    def _then_request_is_done(self):
-        assert self._gpt_request._done.is_set()
 
     def then_request_call_has_response(self, expected_response):
         response = self._gpt_request._response[0:2]
@@ -380,3 +385,123 @@ class TestGPTRequest:
             deployment_resource="some-deployment-resource",
             total_tokens_used=666
         )
+
+
+class RequestorResponse(TestRequestorBaseClass):
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self._body = body
+
+    def json(self):
+        return self._body
+
+    def raise_for_status(self):
+        if 400 <= self.status_code < 500:
+            raise Exception(f"{self.status_code} Client error")
+        if 500 <= self.status_code < 600:
+            raise Exception(f"{self.status_code} Server error")
+
+
+class TestResponses(TestRequestorBaseClass):
+    @classmethod
+    def setup_class(cls):
+        cls._original_post_request = requestor.requests_session.post
+        requestor.REQUESTOR_URL = "URL-FOR-REQUESTOR"
+        requestor.REQUESTOR_BASE_URL = "BASE-URL-FOR-REQUESTOR"
+
+    @classmethod
+    def teardown_class(cls):
+        requestor.requests_session.post = cls._original_post_request
+
+    def setup_method(self):
+        def mocked_requests_session_post(*args, **kwargs):
+            assert self._requests_session_response is not None, ("A requests_session response was not set in the test")
+            return self._requests_session_response
+
+        requestor.requests_session.post = mocked_requests_session_post  # pyright: ignore[reportAttributeAccessIssue]
+        self._requests_session_response = None
+
+    def test_success_response_returns_json_response(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            use_json=True,
+            default_gpt_response="{\"default\": \"response\"}",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "status": "success",
+                "response_body": "{\"1\": \"a\", \"2\": \"b\", \"3\": \"c\"}",
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id",
+            },
+            status_code=200,
+        )
+        self.when_request_is_made()
+        self.then_json_response_is({"1": "a", "2": "b", "3": "c"})
+
+    def given_mocked_requestor_response(self, status_code, body):
+        self._requests_session_response = RequestorResponse(status_code, body)
+
+    def then_json_response_is(self, expected_response):
+        self._then_request_is_done()
+        assert expected_response == self._gpt_request.json_response
+
+    def test_success_response_returns_str_response(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are an expert in completing sentences which refer to pop culture"
+            }, {
+                "role": "user",
+                "content": "Nobody expects..."
+            }],
+            use_json=False,
+            default_gpt_response="a default response message! Something went wrong!",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "status": "success",
+                "response_body": "the Spanish Inquisition!",
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id",
+            },
+            status_code=200,
+        )
+        self.when_request_is_made()
+        self.then_str_response_is("the Spanish Inquisition!")
+
+    def then_str_response_is(self, expected_response):
+        self._then_request_is_done()
+        assert expected_response == self._gpt_request.response
+
+    def test_failure_response_returns_default_json_response(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            use_json=True,
+            default_gpt_response="{\"default\": \"response\"}",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "status": "failure",
+                "gpt_time_consumption": -1,
+                "request_id": "some-id",
+                "failure_message": "an error message",
+            },
+            status_code=500,
+        )
+        self.when_request_is_made()
+        self.then_json_response_is({"default": "response"})
