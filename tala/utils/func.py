@@ -51,7 +51,16 @@ class FuncBase:
 
 
 REDACTED_LOG_FIELDS_IN_SESSION = [
-    "asr_hints", "dme_http_services", "expected_input", "nlg", "nlu", "odb", "tis", "visual_output"
+    "asr_hints",
+    "dme_http_services",
+    "expected_input",
+    "ndu",
+    "nlg",
+    "nlu",
+    "odb",
+    "tis",
+    "tts",
+    "visual_output",
 ]
 
 

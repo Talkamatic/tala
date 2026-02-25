@@ -1,3 +1,4 @@
+import copy
 import uuid
 import re
 import json
@@ -40,6 +41,35 @@ NO_VOICE_ACTIVATION = {"no_content": {}}
 logger = structlog.get_logger(__name__)
 log_level = getenv("LOG_LEVEL", "INFO")
 configure_stdout_logging(log_level)
+
+REDACTED_LOG_FIELDS = {
+    "ndu",
+    "nlg",
+    "odb",
+    "tts",
+    "visual_output",
+    "expected_input",
+    "dme_http_services",
+}
+
+
+def _redact_interaction_log_payload(payload):
+    try:
+        redacted_payload = copy.deepcopy(payload)
+        for key in ("context", "session", "output"):
+            try:
+                section = redacted_payload.get(key)
+            except AttributeError:
+                continue
+            for field in REDACTED_LOG_FIELDS:
+                try:
+                    if field in section:
+                        section[field] = "[REDACTED]"
+                except TypeError:
+                    break
+        return redacted_payload
+    except Exception:
+        return payload
 
 
 class InteractionTesterException(BaseException):
@@ -224,7 +254,7 @@ class InteractionTester:
             self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
         except Exception as e:
             raise InteractionTesterException("Exception when executing test", e)
-        logger.info("semantic_input response", response=self._latest_response)
+        logger.info("semantic_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
 
@@ -245,7 +275,7 @@ class InteractionTester:
             self._latest_response = self._client.request_passivity(self._session_data)
         except Exception as e:
             raise InteractionTesterException("Exception when executing test", e)
-        logger.info("passivity response", response=self._latest_response)
+        logger.info("passivity response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
 
@@ -257,7 +287,7 @@ class InteractionTester:
             self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
         except Exception as e:
             raise InteractionTesterException("Exception when executing test", e)
-        logger.info("speech_input response", response=self._latest_response)
+        logger.info("speech_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
 
@@ -356,7 +386,7 @@ class InteractionTester:
         }
         request["request"][type_] = results
         self._latest_response = self._client.make_request(request)
-        logger.info("results request response", response=self._latest_response)
+        logger.info("results request response", response=_redact_interaction_log_payload(self._latest_response))
 
     def _make_query_to_http_service(self, name, url, parameters, min_results, max_results, session):
         data = {
