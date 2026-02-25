@@ -195,7 +195,7 @@ class GPTRequest:
 
     def make(self):
         def do_request():
-            self.logger.info("make request", request_id=self._request_id)
+            self.logger.info("make GPTRequest", request_id=self._request_id)
             try:
                 self._response = make_request(REQUESTOR_URL, self._requestor_arguments, self._read_timeout, self.logger)
                 self.logger.info("received response", request_id=self._request_id, response=self._response)
@@ -236,7 +236,7 @@ class GPTRequest:
 class GPTRequestForDeploymentAssignment(GPTRequest):
     def make(self):
         def do_request():
-            self.logger.info("make request", request_id=self._request_id)
+            self.logger.info("make GPTRequestForDeploymentAssignment", request_id=self._request_id)
             try:
                 self._response = make_request(
                     REQUESTOR_BASE_URL + "/assign-deployment", self._requestor_arguments, self._read_timeout,
@@ -268,7 +268,7 @@ class UpdateTPMRequest:
 
     def make(self):
         def do_request():
-            self.logger.info("make request", arguments=self._requestor_arguments, request_id=self._request_id)
+            self.logger.info("make UpdateTPMRequest", arguments=self._requestor_arguments, request_id=self._request_id)
 
             self._response = make_request(
                 REQUESTOR_BASE_URL + "/update-tpm", self._requestor_arguments, 2.0, self.logger
