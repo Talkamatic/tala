@@ -10,9 +10,13 @@ REQUESTOR_BASE_URL = getenv(
     "FUNCTION_ENDPOINT_REQUESTOR_BASE", "Define the Requestor function endpoint base in the environment."
 )
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
-READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4"))
 
-DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
+try:
+    READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4") or "4")
+except (TypeError, ValueError):
+    READ_TIMEOUT = 4
+
+DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13") or "gpt-4o-2024-05-13"
 
 TOP_PRIORITY = 1
 HIGH_PRIORITY = 2
@@ -24,6 +28,12 @@ MAX_NUM_CONNECTION_ATTEMPTS = 3
 QUOTES = "'\""
 
 requests_session = requests.Session()
+
+READ_TIMEOUT_BASE = float(getenv("REQUESTOR_READ_TIMEOUT_BASE", READ_TIMEOUT) or READ_TIMEOUT)
+
+READ_TIMEOUT_PER_TOKEN = float(getenv("REQUESTOR_READ_TIMEOUT_PER_TOKEN", "0.02") or "0.02")
+
+READ_TIMEOUT_MAX = float(getenv("REQUESTOR_READ_TIMEOUT_MAX", "60") or "60")
 
 
 class InvalidResponseError(Exception):
@@ -122,7 +132,7 @@ class GPTRequest:
         priority=MEDIUM_PRIORITY,
         request_id=None,
         reasoning_effort=None,
-        read_timeout=READ_TIMEOUT
+        read_timeout=None
     ):
         self.logger = logger if logger else setup_logger(__name__)
         self._request_id = request_id if request_id else str(uuid.uuid4())
@@ -142,7 +152,14 @@ class GPTRequest:
             "priority": priority,
             "request_id": self._request_id,
         }
-        self._read_timeout = read_timeout
+        self._read_timeout_base = READ_TIMEOUT_BASE
+        self._read_timeout_per_token = READ_TIMEOUT_PER_TOKEN
+        self._read_timeout_max = READ_TIMEOUT_MAX
+        self._use_dynamic_timeout = read_timeout is None
+        if self._use_dynamic_timeout:
+            self._read_timeout = self._calculate_read_timeout(max_tokens)
+        else:
+            self._read_timeout = read_timeout
         self._response = None
         self._done = Event()
 
@@ -150,7 +167,19 @@ class GPTRequest:
     def response(self):
         try:
             self._done.wait()
-            return self._response["response_body"]
+            response_body = None
+            response_payload = None
+            try:
+                response_payload = self._response
+            except Exception:
+                response_payload = None
+            if response_payload:
+                try:
+                    response_body = response_payload.get("response_body")
+                except Exception:
+                    response_body = None
+            if response_body is not None:
+                return response_body
         except Exception:
             self.logger.exception()
 
@@ -231,6 +260,25 @@ class GPTRequest:
 
     def _double_max_tokens(self):
         self._requestor_arguments["gpt_request"]["max_tokens"] *= 2
+        self._update_read_timeout()
+
+    def _update_read_timeout(self):
+        if self._use_dynamic_timeout:
+            self._read_timeout = self._calculate_read_timeout(self.max_tokens)
+
+    def _calculate_read_timeout(self, max_tokens):
+        try:
+            base_timeout = float(self._read_timeout_base)
+            per_token = float(self._read_timeout_per_token)
+            max_timeout = float(self._read_timeout_max) if self._read_timeout_max is not None else None
+            timeout = base_timeout + (per_token * (max_tokens or 0))
+        except Exception:
+            return READ_TIMEOUT_BASE
+        if max_timeout and max_timeout > 0:
+            timeout = min(timeout, max_timeout)
+        if timeout <= 0:
+            return READ_TIMEOUT_BASE
+        return timeout
 
 
 class GPTRequestForDeploymentAssignment(GPTRequest):

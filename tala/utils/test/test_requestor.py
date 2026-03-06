@@ -315,6 +315,13 @@ class TestMakeRequest(TestRequestorBaseClass):
         self.when_updating_request_with_latest_messages()
         self.then_max_tokens_is(100)
 
+    def test_dynamic_read_timeout_updates_with_tokens(self):
+        self.given_gpt_request()
+        initial_timeout = self._gpt_request._read_timeout
+        self.given_request_is_made()
+        self.when_updating_request_with_latest_messages()
+        assert self._gpt_request._read_timeout > initial_timeout
+
     def given_request_is_made(self):
         self._gpt_request.make()
         self._gpt_request._response = {"response_body": "mock-response-body"}
