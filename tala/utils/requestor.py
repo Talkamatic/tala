@@ -11,12 +11,7 @@ REQUESTOR_BASE_URL = getenv(
 )
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
 
-try:
-    READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4") or "4")
-except (TypeError, ValueError):
-    READ_TIMEOUT = 4
-
-DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13") or "gpt-4o-2024-05-13"
+DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
 
 TOP_PRIORITY = 1
 HIGH_PRIORITY = 2
@@ -27,13 +22,12 @@ MAX_NUM_CONNECTION_ATTEMPTS = 3
 
 QUOTES = "'\""
 
+READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4"))
+READ_TIMEOUT_BASE = float(getenv("REQUESTOR_READ_TIMEOUT_BASE", READ_TIMEOUT))
+READ_TIMEOUT_PER_TOKEN = float(getenv("REQUESTOR_READ_TIMEOUT_PER_TOKEN", "0.02"))
+READ_TIMEOUT_MAX = float(getenv("REQUESTOR_READ_TIMEOUT_MAX", "60"))
+
 requests_session = requests.Session()
-
-READ_TIMEOUT_BASE = float(getenv("REQUESTOR_READ_TIMEOUT_BASE", READ_TIMEOUT) or READ_TIMEOUT)
-
-READ_TIMEOUT_PER_TOKEN = float(getenv("REQUESTOR_READ_TIMEOUT_PER_TOKEN", "0.02") or "0.02")
-
-READ_TIMEOUT_MAX = float(getenv("REQUESTOR_READ_TIMEOUT_MAX", "60") or "60")
 
 
 class InvalidResponseError(Exception):
