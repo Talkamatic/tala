@@ -161,7 +161,8 @@ class GPTRequest:
         priority=MEDIUM_PRIORITY,
         request_id=None,
         reasoning_effort=None,
-        read_timeout=None
+        read_timeout=None,
+        allow_json_repair=True
     ):
         self.logger = logger if logger else setup_logger(__name__)
         self._request_id = request_id if request_id else str(uuid.uuid4())
@@ -191,6 +192,8 @@ class GPTRequest:
             self._read_timeout = read_timeout
         self._response = None
         self._done = Event()
+        self._allow_json_repair = bool(allow_json_repair and use_json)
+        self._json_repair_attempted = False
 
     @property
     def response(self):
@@ -237,6 +240,28 @@ class GPTRequest:
         except GPTContentFilterError:
             raise
         except json.JSONDecodeError:
+            if self._allow_json_repair and not self._json_repair_attempted:
+                self._json_repair_attempted = True
+                current_max_tokens = self.max_tokens
+                self.logger.warning(
+                    "response json invalid, retrying repair",
+                    request_id=self._request_id,
+                    max_tokens=current_max_tokens,
+                    retry_action="json_repair",
+                )
+                self.update_with_last_assistant_and_next_user_message(
+                    "Return valid JSON only. No extra text."
+                )
+                self.logger.info(
+                    "json repair retry prepared",
+                    request_id=self._request_id,
+                    max_tokens=self.max_tokens,
+                )
+                self.make()
+                try:
+                    return json.loads(self.response)
+                except (GPTContentFilterError, json.JSONDecodeError):
+                    pass
             self.logger.exception(
                 "decoding response raised JSONDecodeError",
                 response_content=self.response,

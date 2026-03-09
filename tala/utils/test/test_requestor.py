@@ -424,11 +424,14 @@ class TestResponses(TestRequestorBaseClass):
 
     def setup_method(self):
         def mocked_requests_session_post(*args, **kwargs):
+            if self._requests_session_responses:
+                return self._requests_session_responses.pop(0)
             assert self._requests_session_response is not None, ("A requests_session response was not set in the test")
             return self._requests_session_response
 
         requestor.requests_session.post = mocked_requests_session_post  # pyright: ignore[reportAttributeAccessIssue]
         self._requests_session_response = None
+        self._requests_session_responses = []
 
     def test_success_response_returns_json_response(self):
         self.given_gpt_request(
@@ -457,6 +460,9 @@ class TestResponses(TestRequestorBaseClass):
 
     def given_mocked_requestor_response(self, status_code, body):
         self._requests_session_response = RequestorResponse(status_code, body)
+
+    def given_mocked_requestor_responses(self, responses):
+        self._requests_session_responses = [RequestorResponse(status, body) for status, body in responses]
 
     def then_json_response_is(self, expected_response):
         self._then_request_is_done()
@@ -538,6 +544,37 @@ class TestResponses(TestRequestorBaseClass):
         )
         self.when_request_is_made()
         self.then_str_response_is("a default response message! Something went wrong!")
+
+    def test_invalid_json_response_is_repaired(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            use_json=True,
+            default_gpt_response="{\"default\": \"response\"}",
+        )
+        self.given_mocked_requestor_responses([
+            (200, {
+                "status": "success",
+                "response_body": '{"body": ["incomplete"',
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id",
+            }),
+            (200, {
+                "status": "success",
+                "response_body": '{"body": ["complete"]}',
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id-2",
+            }),
+        ])
+        self.when_request_is_made()
+        self.then_json_response_is({"body": ["complete"]})
 
     def test_content_filter_response_raises(self):
         self.given_gpt_request(
