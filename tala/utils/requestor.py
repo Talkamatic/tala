@@ -8,7 +8,7 @@ from tala.utils.func import getenv, setup_logger
 REQUESTOR_URL = getenv("FUNCTION_ENDPOINT_REQUESTOR", "Define the Requestor function endpoint in the environment.")
 REQUESTOR_BASE_URL = getenv(
     "FUNCTION_ENDPOINT_REQUESTOR_BASE", "Define the Requestor function endpoint base in the environment."
-)
+) or ""
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
 
 DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
@@ -22,10 +22,10 @@ MAX_NUM_CONNECTION_ATTEMPTS = 3
 
 QUOTES = "'\""
 
-READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4"))
-READ_TIMEOUT_BASE = float(getenv("REQUESTOR_READ_TIMEOUT_BASE", READ_TIMEOUT))
-READ_TIMEOUT_PER_TOKEN = float(getenv("REQUESTOR_READ_TIMEOUT_PER_TOKEN", "0.02"))
-READ_TIMEOUT_MAX = float(getenv("REQUESTOR_READ_TIMEOUT_MAX", "60"))
+READ_TIMEOUT = int(getenv("REQUESTOR_READ_TIMEOUT", "4") or 4)
+READ_TIMEOUT_BASE = float(getenv("REQUESTOR_READ_TIMEOUT_BASE", READ_TIMEOUT) or READ_TIMEOUT)
+READ_TIMEOUT_PER_TOKEN = float(getenv("REQUESTOR_READ_TIMEOUT_PER_TOKEN", "0.02") or 0.02)
+READ_TIMEOUT_MAX = float(getenv("REQUESTOR_READ_TIMEOUT_MAX", "60") or 60)
 
 requests_session = requests.Session()
 
@@ -40,6 +40,38 @@ class ConnectionException(Exception):
 
 class UnexpectedErrorException(Exception):
     pass
+
+
+class GPTContentFilterError(Exception):
+    def __init__(
+        self,
+        request_id,
+        message,
+        code=None,
+        status=None,
+        param=None,
+        content_filter_result=None,
+        error_payload=None,
+    ):
+        super().__init__(message)
+        self.request_id = request_id
+        self.code = code
+        self.status = status
+        self.param = param
+        self.content_filter_result = content_filter_result
+        self.error_payload = error_payload
+
+
+def _is_content_filter_error(error_payload):
+    try:
+        if error_payload.get("code") == "content_filter":
+            return True
+        inner = error_payload.get("innererror", {})
+        filter_result = inner.get("content_filter_result", {})
+        jailbreak = filter_result.get("jailbreak", {})
+        return bool(jailbreak.get("detected"))
+    except Exception:
+        return False
 
 
 def unquote(possibly_quoted_string):
@@ -95,16 +127,19 @@ def make_request(endpoint, json_request, read_timeout, logger):
 
     def validate(response):
         if "error" in response:
-            description = response["error"]["description"]
+            error_payload = response.get("error") or {}
+            if _is_content_filter_error(error_payload):
+                return response
+            description = error_payload.get("description") or error_payload.get("message") or "Unknown error"
             logger.error("Received error from service", description=description)
             raise UnexpectedErrorException(description)
+        return response
 
     headers = {'Content-type': 'application/json'}
     response_object = request(headers)
     try:
         response = decode(response_object)
-        validate(response)
-        return response
+        return validate(response)
     except Exception:
         logger.exception("An exception occurred when making the request")
         return {}
@@ -168,12 +203,27 @@ class GPTRequest:
             except Exception:
                 response_payload = None
             if response_payload:
+                if "error" in response_payload and _is_content_filter_error(response_payload.get("error") or {}):
+                    error_payload = response_payload.get("error") or {}
+                    inner = error_payload.get("innererror", {})
+                    content_filter_result = inner.get("content_filter_result")
+                    raise GPTContentFilterError(
+                        request_id=self._request_id,
+                        message=error_payload.get("message") or "The response was filtered due to content policy.",
+                        code=error_payload.get("code"),
+                        status=error_payload.get("status"),
+                        param=error_payload.get("param"),
+                        content_filter_result=content_filter_result,
+                        error_payload=error_payload,
+                    )
                 try:
                     response_body = response_payload.get("response_body")
                 except Exception:
                     response_body = None
             if response_body is not None:
                 return response_body
+        except GPTContentFilterError:
+            raise
         except Exception:
             self.logger.exception()
 
@@ -184,6 +234,8 @@ class GPTRequest:
     def json_response(self):
         try:
             return json.loads(self.response)
+        except GPTContentFilterError:
+            raise
         except json.JSONDecodeError:
             self.logger.exception(
                 "decoding response raised JSONDecodeError",
@@ -211,6 +263,10 @@ class GPTRequest:
     @property
     def messages(self):
         return self._requestor_arguments["gpt_request"]["messages"]
+
+    @property
+    def request_id(self):
+        return self._request_id
 
     @property
     def system_message(self):

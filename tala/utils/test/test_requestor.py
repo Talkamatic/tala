@@ -1,3 +1,5 @@
+import pytest
+
 from tala.utils import requestor
 
 
@@ -536,3 +538,60 @@ class TestResponses(TestRequestorBaseClass):
         )
         self.when_request_is_made()
         self.then_str_response_is("a default response message! Something went wrong!")
+
+    def test_content_filter_response_raises(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            use_json=True,
+            default_gpt_response="{\"default\": \"response\"}",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "error": {
+                    "message": "The response was filtered due to content policy.",
+                    "param": "prompt",
+                    "code": "content_filter",
+                    "status": 400,
+                    "innererror": {
+                        "code": "ResponsibleAIPolicyViolation",
+                        "content_filter_result": {
+                            "jailbreak": {"detected": True, "filtered": True}
+                        },
+                    },
+                },
+            },
+            status_code=200,
+        )
+        self.when_request_is_made()
+        with pytest.raises(requestor.GPTContentFilterError):
+            _ = self._gpt_request.json_response
+
+    def test_non_filter_error_returns_default_json(self):
+        self.given_gpt_request(
+            [{
+                "role": "system",
+                "content": "you are a JSON creator. You get descriptions of JSON structures in NL, and you create the JSON."
+            }, {
+                "role": "user",
+                "content": "i want keys 1 2 3 with values a b c"
+            }],
+            use_json=True,
+            default_gpt_response="{\"default\": \"response\"}",
+        )
+        self.given_mocked_requestor_response(
+            body={
+                "error": {
+                    "message": "Bad request",
+                    "code": "invalid_request",
+                }
+            },
+            status_code=200,
+        )
+        self.when_request_is_made()
+        self.then_json_response_is({"default": "response"})
