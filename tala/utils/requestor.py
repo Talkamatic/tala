@@ -87,6 +87,17 @@ def unquote(possibly_quoted_string):
 
 
 def make_request(endpoint, json_request, read_timeout, logger):
+    def request_id_from_payload(payload):
+        try:
+            request_id = payload.get("request_id")
+        except Exception:
+            return None
+        try:
+            gpt_request = payload.get("gpt_request")
+            return request_id or gpt_request.get("request_id")
+        except Exception:
+            return request_id
+
     def request(headers):
         logger.info(f"making request to: {endpoint}", body=json_request)
         try:
@@ -104,11 +115,20 @@ def make_request(endpoint, json_request, read_timeout, logger):
                     response_object.raise_for_status()
                     success = True
                 except Exception:
+                    response_text = None
+                    try:
+                        if response_object is not None:
+                            response_text = response_object.text
+                    except Exception:
+                        response_text = None
                     logger.exception(
-                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}."
+                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}.",
+                        request_id=request_id_from_payload(json_request),
+                        response_text=response_text,
                     )
                     logger.info(
-                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}"
+                        f"Exception during request to {endpoint}. Attempt {attempt_no}/{MAX_NUM_CONNECTION_ATTEMPTS}",
+                        request_id=request_id_from_payload(json_request),
                     )
                 attempt_no += 1
             return response_object
@@ -119,10 +139,21 @@ def make_request(endpoint, json_request, read_timeout, logger):
     def decode(response_object):
         try:
             response = response_object.json()
-            logger.debug("received response", body=response, endpoint=endpoint)
+            logger.debug(
+                "received response",
+                body=response,
+                endpoint=endpoint,
+                request_id=request_id_from_payload(json_request),
+            )
             return response
         except (ValueError, AttributeError):
-            logger.exception("Encountered exception when decoding response")
+            response_text = None
+            try:
+                if response_object is not None:
+                    response_text = response_object.text
+            except Exception:
+                response_text = None
+            logger.exception("Encountered exception when decoding response", response_text=response_text)
             raise InvalidResponseError(f"Expected a valid JSON response from service but got {response_object}.")
 
     def validate(response):
@@ -141,7 +172,10 @@ def make_request(endpoint, json_request, read_timeout, logger):
         response = decode(response_object)
         return validate(response)
     except Exception:
-        logger.exception("An exception occurred when making the request")
+        logger.exception(
+            "An exception occurred when making the request",
+            request_id=request_id_from_payload(json_request),
+        )
         return {}
 
 
@@ -305,7 +339,7 @@ class GPTRequest:
                 self.logger.info("received response", request_id=self._request_id, response=self._response)
             except Exception:
                 self._response = {}
-                self.logger.exception()
+                self.logger.exception("GPTRequest failed", request_id=self._request_id)
             self._done.set()
 
         self.logger.info("Start request thread", request_id=self._request_id)
