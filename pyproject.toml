@@ -18,6 +18,8 @@ classifiers = [
 ]
 dependencies = [
     "azure-data-tables==12.5.0",
+    "azure-identity>=1.16.0",
+    "azure-monitor-ingestion>=1.0.0",
     "dill>=0.3.6",
     "iso8601>=0.1.14",
     "Jinja2>=3.0.1, <4",
