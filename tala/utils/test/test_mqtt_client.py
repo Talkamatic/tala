@@ -1,4 +1,5 @@
 import structlog
+from urllib.parse import urlparse
 import uuid
 
 import pytest
@@ -9,6 +10,19 @@ from tala.utils.func import configure_stdout_logging, getenv
 logger = structlog.get_logger(__name__)
 log_level = getenv("LOG_LEVEL", default="DEBUG")
 configure_stdout_logging(log_level)
+
+
+def resolve_mqtt_endpoint():
+    endpoint = str(getenv("SSE_BROKER_ENDPOINT_MQTT", default="") or "")
+    if endpoint:
+        return endpoint
+    https_endpoint = str(getenv("SSE_BROKER_ENDPOINT_HTTPS", default="") or "")
+    if not https_endpoint:
+        return ""
+    parsed = urlparse(https_endpoint)
+    if parsed.netloc:
+        return parsed.netloc
+    return https_endpoint.replace("https://", "").replace("http://", "").split("/")[0]
 
 
 class TestMQTTClient:
@@ -41,7 +55,8 @@ class TestMQTTClient:
 
     @pytest.mark.parametrize("chunk", ["This is an unproblematic test utterance.", "Frölunda ", "Fr\u00f6lunda"])
     def test_stream_single_chunk(self, chunk):
-        self.given_mqtt_client_started("test_client", logger, "tala-sse.azurewebsites.net", 443)
+        self.given_streamer_endpoint()
+        self.given_mqtt_client_started("test_client", logger, self._endpoint, 443)
         self.given_session_id("test-session-id")
         self.when_chunk_streamed(chunk)
         self.then_everything_is_ok()
@@ -63,3 +78,7 @@ class TestMQTTClient:
 
     def then_everything_is_ok(self):
         assert True
+
+    def given_streamer_endpoint(self):
+        self._endpoint = resolve_mqtt_endpoint()
+        assert self._endpoint, "SSE_BROKER_ENDPOINT_MQTT or SSE_BROKER_ENDPOINT_HTTPS not set"

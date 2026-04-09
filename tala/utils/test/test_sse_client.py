@@ -14,6 +14,18 @@ log_level = getenv("LOG_LEVEL", default="DEBUG")
 configure_stdout_logging(log_level)
 
 
+def resolve_streamer_endpoint():
+    endpoint = str(getenv("SSE_BROKER_ENDPOINT_WSS", default="") or "")
+    if endpoint:
+        return endpoint
+    https_endpoint = str(getenv("SSE_BROKER_ENDPOINT_HTTPS", default="") or "")
+    if https_endpoint.startswith("https://"):
+        return f"wss://{https_endpoint[len('https://'):]}"
+    if https_endpoint.startswith("http://"):
+        return f"ws://{https_endpoint[len('http://'):]}"
+    return ""
+
+
 class TestSSEClient:
     def setup_method(self):
         pass
@@ -36,9 +48,8 @@ class TestSSEClient:
 
     @pytest.mark.parametrize("chunk", ["This is an unproblematic test utterance.", "Frölunda ", "Fr\u00f6lunda"])
     def test_stream_single_chunk(self, chunk):
-        self.given_sse_client_started(
-            "test_client", logger, "wss://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net", 443
-        )
+        self.given_streamer_endpoint()
+        self.given_sse_client_started("test_client", logger, self._endpoint, 443)
         self.given_session_id("test-session-id")
         self.when_chunk_streamed(chunk)
         self.then_everything_is_ok()
@@ -68,21 +79,31 @@ class TestSSEClient:
         self.then_all_streams_correct()
 
     def given_mocked_stream_to_frontend(self):
-        def mocked_stream_to_frontend(_self, streamer_session, message):
+        test_self = self
+
+        def mocked_stream_to_frontend(self, streamer_session, message):
             session_id = streamer_session["session_id"]
-            if session_id not in self._streams:
-                self._streams[session_id] = []
-            self._streams[session_id].append(message)
+            if session_id not in test_self._streams:
+                test_self._streams[session_id] = []
+            test_self._streams[session_id].append(message)
 
         self._streams = {}
         SSEClient._stream_to_frontend = mocked_stream_to_frontend
 
     def given_single_client(self):
         print("create client")
+        self.given_streamer_endpoint()
         self._client = SSEClient(
-            "some-id", logger, "wss://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net", 443
+            "some-id",
+            logger,
+            self._endpoint,
+            443,
         )
         print("client created")
+
+    def given_streamer_endpoint(self):
+        self._endpoint = resolve_streamer_endpoint()
+        assert self._endpoint, "SSE_BROKER_ENDPOINT_WSS or SSE_BROKER_ENDPOINT_HTTPS not set"
 
     def when_client_streaming_to_num_sessions(self, num_sessions):
         for i in range(0, num_sessions):

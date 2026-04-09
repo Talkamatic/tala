@@ -8,10 +8,7 @@ TIMEOUT = 2.0
 
 
 class StreamListener(threading.Thread):
-    LEGACY_STREAMER_BASE_URL = 'https://tala-event-sse.azurewebsites.net/event-sse'
-    SSE_BROKER_ENDPOINT_HTTPS = getenv(
-        "SSE_BROKER_ENDPOINT_HTTPS", 'https://tala-sse-ng-g6bpb0cncyc4htg3.swedencentral-01.azurewebsites.net/event-sse'
-    )
+    SSE_BROKER_ENDPOINT_HTTPS = getenv("SSE_BROKER_ENDPOINT_HTTPS", default="")
 
     def __init__(self, streamer_url, session_id, logger):
         self._streamer_url = streamer_url
@@ -62,20 +59,18 @@ class StreamListener(threading.Thread):
             self.create_event_and_store()
 
     def create_event_and_store(self):
-        try:
-            if self.current_event == "STREAMING_DONE":
-                event = {"event": self.current_event}
-                self._streaming_ended = time.time()
-                self.please_stop()
-            if self.current_event == "STREAMING_CHUNK":
-                if not bool(self._streaming_started):
-                    self._streaming_started = time.time()
+        event = None
+        if self.current_event == "STREAMING_DONE":
+            event = {"event": self.current_event}
+            self._streaming_ended = time.time()
+            self.please_stop()
+        elif self.current_event == "STREAMING_CHUNK":
+            if not bool(self._streaming_started):
+                self._streaming_started = time.time()
 
-                event = {"event": self.current_event, "data": self.current_data}
-            if event:
-                self._streamed_messages.append(event)
-        except UnboundLocalError:
-            pass
+            event = {"event": self.current_event, "data": self.current_data}
+        if event:
+            self._streamed_messages.append(event)
         self.current_event = None
 
     def please_stop(self):

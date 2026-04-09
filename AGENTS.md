@@ -93,6 +93,7 @@
 - Tests are in `tala/**/test` or `tala/**/test/**.py`.
 - Use pytest-style `assert` with clear error messages.
 - Prefer small, deterministic tests; patch external calls.
+- Keep tests aligned with the given/when/then helper structure used in this repo.
 
 ### Data and files
 - XML/DDD assets live under `tala/ddd` and are packaged via `pyproject.toml`.
