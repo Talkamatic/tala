@@ -20,7 +20,6 @@ dependencies = [
     "azure-data-tables==12.5.0",
     "azure-identity>=1.16.0",
     "azure-monitor-ingestion>=1.0.0",
-    "dill>=0.3.6",
     "iso8601>=0.1.14",
     "Jinja2>=3.0.1, <4",
     "lxml>=4.6.3",
@@ -28,8 +27,6 @@ dependencies = [
     "prompt-toolkit>=3.0.19",
     "requests>=2.26.0",
     "structlog>=21.1.0",
-    "setuptools>=68.2.2",
-    "setuptools-scm>=8.0.4",
     "websocket-client>=1.8.0"
 ]
 
