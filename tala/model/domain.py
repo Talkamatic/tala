@@ -1,7 +1,7 @@
 import copy
 
 import tala.model
-from tala.model.proposition import PropositionSet, ImplicationProposition
+from tala.model.proposition import PropositionSet
 from tala.model.action import Action
 from tala.model.error import DomainError
 from tala.model.goal import PerformGoal, ResolveGoal, PERFORM
@@ -13,6 +13,13 @@ from tala.model.proposition import PredicateProposition, ServiceActionTerminated
 from tala.utils.as_json import AsJSONMixin, convert_to_json
 from tala.utils.json_api import (JSONAPIMixin, JSONAPIObject, get_attribute)
 from tala.utils.unique import unique
+from tala.model.query import (
+    ImplicationQuery,
+    EnumerationQuery,
+    IteratorQuery,
+    create_query_from_json_api_data,
+    create_query_from_dict,
+)
 
 SEMANTIC_OBJECT_TYPE = "domain"
 
@@ -30,17 +37,32 @@ def create_json_dict(key, value):
 
 
 def queries_dict_as_list(dict_):
-    def is_iterator(query_content):
-        return "limit" in query_content
-
     queries_list = []
-    for _question, content_dict in dict_.items():
+    for _question, query_content in dict_.items():
+        if isinstance(query_content, ImplicationQuery):
+            queries_list.append({
+                "query": query_content.query,
+                "implications": query_content.implications,
+            })
+            continue
+        if isinstance(query_content, IteratorQuery):
+            queries_list.append(
+                serialize_iterator({
+                    "query": query_content.query,
+                    "limit": query_content.limit,
+                    query_content.enumeration_type: query_content.propositions,
+                })
+            )
+            continue
+        if isinstance(query_content, EnumerationQuery):
+            queries_list.append({
+                "query": query_content.query,
+                query_content.enumeration_type: query_content.propositions,
+            })
+            continue
         result_dict = {}
-        if is_iterator(content_dict):
-            result_dict = serialize_iterator(content_dict)
-        else:
-            for entry in content_dict:
-                result_dict[entry] = convert_to_json(content_dict[entry])
+        for entry in query_content:
+            result_dict[entry] = convert_to_json(query_content[entry])
         queries_list.append(result_dict)
     return queries_list
 
@@ -142,47 +164,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
             return key_question, parameters
 
         def create_query(query_data, included):
-            if query_data["type"] == "implication":
-                return create_implication(query_data, included)
-            if query_data["type"] == "enumeration_query":
-                return create_enumeration_query(query_data, included)
-            if query_data["type"] == "iterator":
-                return create_iterator(query_data, included)
-            raise Exception(f"Type of query is not recognized: {query_data['type']}")
-
-        def create_implication(implication_data, included):
-            query_data = included.get_data_for_relationship("query", implication_data)
-            query = Question.create_from_json_api_data(query_data, included)
-
-            implications = []
-            for item in implication_data["relationships"]["content"]["data"]:
-                implication_object = included.get_object_from_relationship(item)
-                implications.append(ImplicationProposition.create_from_json_api_data(implication_object, included))
-
-            return {"query": query, "implications": implications}
-
-        def create_enumeration_query(query_data, included):
-            query_json = included.get_data_for_relationship("query", query_data)
-            query = Question.create_from_json_api_data(query_json, included)
-
-            enumeration_type = get_attribute("enumeration_type", query_data)
-            propositions = []
-            for item in query_data["relationships"]["content"]["data"]:
-                prop_object = included.get_object_from_relationship(item)
-                propositions.append(PredicateProposition.create_from_json_api_data(prop_object, included))
-
-            return {"query": query, enumeration_type: propositions}
-
-        def create_iterator(iterator_data, included):
-            query = get_attribute("query", iterator_data)
-            limit = get_attribute("limit", iterator_data)
-            enumeration_type = get_attribute("enumeration_type", iterator_data)
-            propositions = []
-            for item in iterator_data["relationships"]["content"]["data"]:
-                prop_object = included.get_object_from_relationship(item)
-                propositions.append(PredicateProposition.create_from_json_api_data(prop_object, included))
-
-            return {"query": query, "limit": limit, enumeration_type: propositions}
+            return create_query_from_json_api_data(query_data, included)
 
         def create_alternatives_parameter(parameter_data, included):
             prop_set_entry = included.get_object_from_relationship(
@@ -390,51 +372,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
             return d.as_dict
 
         def query_as_json_api_dict(query_data):
-            if is_implication_query(query_data):
-                return implication_as_json_api_dict(query_data)
-            elif is_iterator(query_data):
-                return iterator_as_json_api_dict(query_data)
-            else:
-                return enumeration_query_as_json_api_dict(query_data)
-
-        def is_implication_query(query_data):
-            return "implications" in query_data
-
-        def is_iterator(query_data):
-            return isinstance(query_data["query"], str)
-
-        def implication_as_json_api_dict(query_data):
-            implication_object = JSONAPIObject("implication")
-            implication_object.add_relationship("query", query_data["query"].as_json_api_dict())
-            for implication in query_data["implications"]:
-                implication_object.append_relationship("content", implication.as_json_api_dict())
-            return implication_object.as_dict
-
-        def iterator_as_json_api_dict(query_data):
-            iterator_object = JSONAPIObject("iterator")
-            try:
-                iterator_object.add_relationship("query", query_data["query"].as_json_api_dict())
-            except AttributeError:
-                iterator_object.add_attribute("query", query_data["query"])
-            iterator_object.add_attribute("limit", query_data["limit"])
-            for type_ in ["for_enumeration", "for_random_enumeration", "for_random_selection"]:
-                if type_ in query_data:
-                    iterator_object.add_attribute("enumeration_type", type_)
-                    break
-            for proposition in query_data[type_]:
-                iterator_object.append_relationship("content", proposition.as_json_api_dict())
-            return iterator_object.as_dict
-
-        def enumeration_query_as_json_api_dict(query_data):
-            enumerator_object = JSONAPIObject("enumeration_query")
-            enumerator_object.add_relationship("query", query_data["query"].as_json_api_dict())
-            for type_ in ["for_enumeration", "for_random_enumeration", "for_random_selection"]:
-                if type_ in query_data:
-                    enumerator_object.add_attribute("enumeration_type", type_)
-                    break
-            for proposition in query_data[type_]:
-                enumerator_object.append_relationship("content", proposition.as_json_api_dict())
-            return enumerator_object.as_dict
+            return query_data.as_json_api_dict()
 
         def validator_as_json_api_dict(validator_data):
             validator_object = JSONAPIObject("validator")
@@ -698,10 +636,14 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def _query_list_to_dict_indexed_by_question(self, query_list):
         plans = {}
         for query_info in query_list:
-            query = query_info["query"]
+            if hasattr(query_info, "query"):
+                parsed_query = query_info
+            else:
+                parsed_query = create_query_from_dict(query_info)
+            query = parsed_query.query
             if query in plans:
                 raise InvalidPlansException(f"multiple definitions for query {query}")
-            plans[query] = query_info
+            plans[query] = parsed_query
         return plans
 
     def _plan_list_to_dict_indexed_by_goal(self, plan_list):
@@ -850,17 +792,34 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         return actions
 
     def get_implications_for_domain_query(self, query):
-        return self.queries[query]["implications"]
+        query_info = self.queries[query]
+        try:
+            return query_info.implications
+        except AttributeError:
+            return []
 
     def get_propositions_for_random_selection(self, query):
-        return self.queries[query]["for_random_selection"]
+        query_info = self.queries[query]
+        if hasattr(query_info, "enumeration_type") and query_info.enumeration_type == "for_random_selection":
+            return query_info.propositions
+        return []
 
     def get_propositions_for_enumeration(self, query):
-        return copy.copy(self.queries[query].get("for_enumeration", []))
+        query_info = self.queries[query]
+        if hasattr(query_info, "enumeration_type") and query_info.enumeration_type == "for_enumeration":
+            return copy.copy(query_info.propositions)
+        return []
 
     def get_propositions_for_random_enumeration(self, query):
-        return copy.copy(self.queries[query].get("for_random_enumeration", []))
+        query_info = self.queries[query]
+        if hasattr(query_info, "enumeration_type") and query_info.enumeration_type == "for_random_enumeration":
+            return copy.copy(query_info.propositions)
+        return []
 
     def get_limit_for_iterator(self, query):
-        limit = self.queries[query].get("limit", -1)
+        query_info = self.queries[query]
+        try:
+            limit = query_info.limit
+        except AttributeError:
+            limit = -1
         return int(limit)
