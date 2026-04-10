@@ -171,7 +171,15 @@ class JSONAPIMixin:
 
     @property
     def json_api_id(self):
-        return self.json_api_type
+        try:
+            return self._json_api_id
+        except AttributeError:
+            new_id = f"{self.json_api_type}:{uuid.uuid4()}"
+            try:
+                setattr(self, "_json_api_id", new_id)
+            except Exception:
+                return self.json_api_type
+            return new_id
 
     @property
     def json_api_version(self):

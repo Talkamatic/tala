@@ -1,6 +1,16 @@
 from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils import json_api
 
+
+class DummyJSONAPI(json_api.JSONAPIMixin):
+    def __init__(self, name):
+        self.name = name
+
+    @property
+    def json_api_attributes(self):
+        return ["name"]
+
+
 uuid_counter = 0
 
 
@@ -32,7 +42,9 @@ class TestJSONAPI:
                 "id": "uuid_1",
                 "attributes": {},
                 "relationships": {},
-                "meta": {"version:id": "2"}
+                "meta": {
+                    "version:id": "2"
+                }
             },
             "included": []
         })
@@ -52,7 +64,9 @@ class TestJSONAPI:
                 "id": "some-id",
                 "attributes": {},
                 "relationships": {},
-                "meta": {"version:id": "2"}
+                "meta": {
+                    "version:id": "2"
+                }
             },
             "included": []
         })
@@ -68,7 +82,9 @@ class TestJSONAPI:
                     "name": "value"
                 },
                 "relationships": {},
-                "meta": {"version:id": "2"}
+                "meta": {
+                    "version:id": "2"
+                }
             },
             "included": []
         })
@@ -90,7 +106,9 @@ class TestJSONAPI:
                         "name": "value"
                     },
                     "relationships": {},
-                    "meta": {"version:id": "2"}
+                    "meta": {
+                        "version:id": "2"
+                    }
                 },
                 "included": []
             }
@@ -108,7 +126,9 @@ class TestJSONAPI:
                     },
                 },
                 'type': 'root-type',
-                'meta': {'version:id': '2'},
+                'meta': {
+                    'version:id': '2'
+                },
             },
             'included': [
                 {
@@ -118,7 +138,9 @@ class TestJSONAPI:
                     'id': 'some-id',
                     'relationships': {},
                     'type': 'resource-type',
-                    'meta': {'version:id': '2'},
+                    'meta': {
+                        'version:id': '2'
+                    },
                 },
             ],
         })
@@ -137,7 +159,9 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': []
         })
@@ -153,7 +177,9 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': []
         })
@@ -175,7 +201,9 @@ class TestJSONAPI:
                     'id': 'uuid_1',
                     'relationships': {},
                     'type': 'some-type',
-                    'meta': {'version:id': '2'}
+                    'meta': {
+                        'version:id': '2'
+                    }
                 },
                 'included': []
             }
@@ -193,7 +221,9 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'some-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': [{
                 'attributes': {
@@ -202,7 +232,9 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             }]
         })
 
@@ -225,7 +257,9 @@ class TestJSONAPI:
                         },
                     },
                     'type': 'root-type',
-                    'meta': {'version:id': '2'},
+                    'meta': {
+                        'version:id': '2'
+                    },
                 },
                 'included': [
                     {
@@ -235,7 +269,9 @@ class TestJSONAPI:
                         'id': 'some-id',
                         'relationships': {},
                         'type': 'resource-type',
-                        'meta': {'version:id': '2'},
+                        'meta': {
+                            'version:id': '2'
+                        },
                     },
                 ],
             }
@@ -253,7 +289,9 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'root-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': [{
                 'attributes': {
@@ -262,7 +300,9 @@ class TestJSONAPI:
                 'id': 'some-id',
                 'relationships': {},
                 'type': 'resource-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             }, {
                 'attributes': {},
                 'id': 'uuid_1',
@@ -275,7 +315,9 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'root-type',
-                'meta': {'version:id': '2'}
+                'meta': {
+                    'version:id': '2'
+                }
             }]
         })
 
@@ -312,6 +354,13 @@ class TestJSONAPICompatibility:
         self.when_loading_missing_relationship()
 
         self.then_missing_relationship_is_none()
+
+    def test_default_json_api_id_collides(self):
+        self.given_two_json_api_objects()
+
+        self.when_including_resources()
+
+        self.then_all_resources_are_present()
 
     def test_included_merge_and_type_resolution(self):
         self.given_included_with_same_id()
@@ -360,12 +409,25 @@ class TestJSONAPICompatibility:
             }
         }
 
+    def given_two_json_api_objects(self):
+        first = DummyJSONAPI("first").as_json_api_dict()["data"]
+        second = DummyJSONAPI("second").as_json_api_dict()["data"]
+        self._items = [first, second]
+
+    def when_including_resources(self):
+        self._included = json_api.IncludedObject(self._items)
+
+    def then_all_resources_are_present(self):
+        assert len(self._included.as_list) == 2
+
     def given_payload_with_meta_and_legacy_version(self):
         self._payload = {
             "data": {
                 "type": "some-type",
                 "id": "some-id",
-                "meta": {"version:id": "3"},
+                "meta": {
+                    "version:id": "3"
+                },
                 "version:id": "2",
             }
         }
@@ -403,8 +465,14 @@ class TestJSONAPICompatibility:
     def given_list_relationship(self):
         self._json_api.relationships["items"] = {
             "data": [
-                {"type": "some", "id": "one"},
-                {"type": "some", "id": "two"},
+                {
+                    "type": "some",
+                    "id": "one"
+                },
+                {
+                    "type": "some",
+                    "id": "two"
+                },
             ]
         }
 
@@ -423,8 +491,18 @@ class TestJSONAPICompatibility:
 
     def given_included_objects(self):
         self._included = json_api.IncludedObject([
-            {"type": "thing", "id": "a", "attributes": {}, "relationships": {}},
-            {"type": "thing", "id": "b", "attributes": {}, "relationships": {}},
+            {
+                "type": "thing",
+                "id": "a",
+                "attributes": {},
+                "relationships": {}
+            },
+            {
+                "type": "thing",
+                "id": "b",
+                "attributes": {},
+                "relationships": {}
+            },
         ])
 
     def given_data_without_relationships(self):
@@ -435,12 +513,25 @@ class TestJSONAPICompatibility:
             "relationships": {
                 "to_many": {
                     "data": [
-                        {"type": "thing", "id": "a"},
-                        {"type": "thing", "id": "b"},
+                        {
+                            "type": "thing",
+                            "id": "a"
+                        },
+                        {
+                            "type": "thing",
+                            "id": "b"
+                        },
                     ]
                 },
-                "to_one": {"data": {"type": "thing", "id": "a"}},
-                "empty": {"data": None},
+                "to_one": {
+                    "data": {
+                        "type": "thing",
+                        "id": "a"
+                    }
+                },
+                "empty": {
+                    "data": None
+                },
             }
         }
 
@@ -478,21 +569,39 @@ class TestJSONAPICompatibility:
             {
                 "type": "tala.model.domain.Domain",
                 "id": "hello_world",
-                "attributes": {"name": "old"},
-                "relationships": {"plans": {"data": []}},
+                "attributes": {
+                    "name": "old"
+                },
+                "relationships": {
+                    "plans": {
+                        "data": []
+                    }
+                },
             },
             {
                 "type": "tala.model.domain.Domain",
                 "id": "hello_world",
-                "attributes": {"name": "new", "extra": "x"},
-                "relationships": {"questions": {"data": []}},
+                "attributes": {
+                    "name": "new",
+                    "extra": "x"
+                },
+                "relationships": {
+                    "questions": {
+                        "data": []
+                    }
+                },
             },
         ])
 
     def given_relationship_with_type_variant(self):
         self._data = {
             "relationships": {
-                "domain": {"data": {"type": "tala.model.domain", "id": "hello_world"}},
+                "domain": {
+                    "data": {
+                        "type": "tala.model.domain",
+                        "id": "hello_world"
+                    }
+                },
             }
         }
 
