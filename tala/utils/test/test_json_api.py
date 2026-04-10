@@ -1,3 +1,5 @@
+import pytest
+
 from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils import json_api
 
@@ -9,6 +11,19 @@ class DummyJSONAPI(json_api.JSONAPIMixin):
     @property
     def json_api_attributes(self):
         return ["name"]
+
+
+class DummyRelationshipJSONAPI(json_api.JSONAPIMixin):
+    def __init__(self, child):
+        self.child = child
+
+    @property
+    def json_api_attributes(self):
+        return []
+
+    @property
+    def json_api_relationships(self):
+        return ["child"]
 
 
 uuid_counter = 0
@@ -362,6 +377,20 @@ class TestJSONAPICompatibility:
 
         self.then_all_resources_are_present()
 
+    def test_missing_relationship_raises(self):
+        self.given_relationship_target(None)
+
+        self.when_serializing_relationship()
+
+        self.then_relationship_error_raised("is None")
+
+    def test_relationship_without_serializer_raises(self):
+        self.given_relationship_target("not-json-api")
+
+        self.when_serializing_relationship()
+
+        self.then_relationship_error_raised("does not implement as_json_api_dict")
+
     def test_included_merge_and_type_resolution(self):
         self.given_included_with_same_id()
         self.given_relationship_with_type_variant()
@@ -414,11 +443,22 @@ class TestJSONAPICompatibility:
         second = DummyJSONAPI("second").as_json_api_dict()["data"]
         self._items = [first, second]
 
+    def given_relationship_target(self, target):
+        self._relationship_target = target
+
     def when_including_resources(self):
         self._included = json_api.IncludedObject(self._items)
 
+    def when_serializing_relationship(self):
+        self._relationship_object = DummyRelationshipJSONAPI(self._relationship_target)
+
     def then_all_resources_are_present(self):
         assert len(self._included.as_list) == 2
+
+    def then_relationship_error_raised(self, message):
+        with pytest.raises(ValueError) as excinfo:
+            self._relationship_object.as_json_api_dict()
+        assert message in str(excinfo.value)
 
     def given_payload_with_meta_and_legacy_version(self):
         self._payload = {

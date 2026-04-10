@@ -149,19 +149,30 @@ class JSONAPIMixin:
 
     def as_json_api_dict(self):
         def get_relationship(name):
-            target = self.__getattribute__(name)
+            try:
+                target = self.__getattribute__(name)
+            except AttributeError as exc:
+                raise ValueError(
+                    f"JSON:API relationship '{name}' not found on {self.__class__.__name__}"
+                ) from exc
+            if target is None:
+                raise ValueError(
+                    f"JSON:API relationship '{name}' on {self.__class__.__name__} is None"
+                )
             try:
                 return target.as_json_api_dict()
-            except AttributeError:
-                return None
+            except AttributeError as exc:
+                raise ValueError(
+                    f"JSON:API relationship '{name}' on {self.__class__.__name__} "
+                    "does not implement as_json_api_dict"
+                ) from exc
 
         obj = JSONAPIObject(self.json_api_type, id_=self.json_api_id)
         for attribute in self.json_api_attributes:
             obj.add_attribute(attribute, self.__getattribute__(attribute))
         for relationship_name in self.json_api_relationships:
             relationship = get_relationship(relationship_name)
-            if relationship:
-                obj.add_relationship(relationship_name, relationship)
+            obj.add_relationship(relationship_name, relationship)
         return obj.as_dict
 
     @property
