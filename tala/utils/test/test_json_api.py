@@ -326,6 +326,20 @@ class TestJSONAPICompatibility:
 
         self.then_missing_fields_defaulted()
 
+    def test_prefers_meta_version_over_legacy(self):
+        self.given_payload_with_meta_and_legacy_version()
+
+        self.when_creating_object_from_dict()
+
+        self.then_version_is_meta()
+
+    def test_accepts_legacy_version_when_meta_missing(self):
+        self.given_payload_with_legacy_version_only()
+
+        self.when_creating_object_from_dict()
+
+        self.then_version_is_legacy()
+
     def given_json_api_payload_without_included(self):
         self._payload = {
             "data": {
@@ -344,6 +358,25 @@ class TestJSONAPICompatibility:
             }
         }
 
+    def given_payload_with_meta_and_legacy_version(self):
+        self._payload = {
+            "data": {
+                "type": "some-type",
+                "id": "some-id",
+                "meta": {"version:id": "3"},
+                "version:id": "2",
+            }
+        }
+
+    def given_payload_with_legacy_version_only(self):
+        self._payload = {
+            "data": {
+                "type": "some-type",
+                "id": "some-id",
+                "version:id": "2",
+            }
+        }
+
     def when_creating_object_from_dict(self):
         self._json_api = json_api.JSONAPIObject.create_from_dict(self._payload)
 
@@ -353,6 +386,14 @@ class TestJSONAPICompatibility:
     def then_missing_fields_defaulted(self):
         assert self._json_api.as_dict["data"]["attributes"] == {}
         assert self._json_api.as_dict["data"]["relationships"] == {}
+
+    def then_version_is_meta(self):
+        version = self._json_api.as_dict["data"]["version:id"]
+        assert version == "3"
+
+    def then_version_is_legacy(self):
+        version = self._json_api.as_dict["data"]["version:id"]
+        assert version == "2"
 
     def given_json_api_object(self):
         self._json_api = json_api.JSONAPIObject("root")

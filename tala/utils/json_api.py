@@ -166,8 +166,20 @@ class JSONAPIObject:
         included = json_data.get("included", [])
         attributes = data.get("attributes", {})
         relationships = data.get("relationships", {})
+        version = None
+        try:
+            version = data["meta"].get("version:id")
+        except (TypeError, KeyError, AttributeError):
+            version = None
+        if not version:
+            try:
+                version = data["version:id"]
+            except (TypeError, KeyError):
+                version = None
+        if not version:
+            version = CURRENT_FORMAT_VERSION
 
-        return cls(data["type"], data["id"], attributes, relationships, included)
+        return cls(data["type"], data["id"], attributes, relationships, included, version=version)
 
     def __init__(
         self, type_, id_=None, attributes=None, relationships=None, included=None, version=CURRENT_FORMAT_VERSION
@@ -265,7 +277,7 @@ class JSONAPIObject:
                 "id": self.id_,
                 "version:id": self.version,
                 "attributes": self.attributes,
-                "relationships": self.relationships
+                "relationships": self.relationships,
             },
             "included": self.included.as_list
         }
