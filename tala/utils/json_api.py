@@ -32,6 +32,40 @@ class IncludedObject:
             self._data[type_] = {}
         if id_ not in self._data[type_]:
             self._data[type_][id_] = item
+            return
+        existing = self._data[type_][id_]
+        self._data[type_][id_] = self._merge_included(existing, item)
+
+    def _merge_included(self, existing, incoming):
+        merged = dict(existing)
+        attributes = dict(existing.get("attributes", {}))
+        relationships = dict(existing.get("relationships", {}))
+        try:
+            attributes.update(incoming.get("attributes", {}))
+        except AttributeError:
+            pass
+        try:
+            relationships.update(incoming.get("relationships", {}))
+        except AttributeError:
+            pass
+        merged.update(incoming)
+        merged["attributes"] = attributes
+        merged["relationships"] = relationships
+        return merged
+
+    def _resolve_type(self, type_):
+        if type_ in self._data:
+            return type_
+        try:
+            base_type = type_.rsplit(".", 1)[0]
+        except AttributeError:
+            return None
+        if base_type in self._data:
+            return base_type
+        matches = [candidate for candidate in self._data if candidate.startswith(f"{type_}.")]
+        if len(matches) == 1:
+            return matches[0]
+        return None
 
     def get_object_from_relationship(self, key):
         try:
@@ -39,7 +73,10 @@ class IncludedObject:
             id_ = key["id"]
         except (TypeError, KeyError):
             return None
-        return self._data.get(type_, {}).get(id_)
+        resolved_type = self._resolve_type(type_)
+        if resolved_type is None:
+            return None
+        return self._data.get(resolved_type, {}).get(id_)
 
     def get_data_for_relationship(self, relationship_name, data):
         relationship = data["relationships"].get(relationship_name, {})

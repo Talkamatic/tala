@@ -303,6 +303,14 @@ class TestJSONAPICompatibility:
 
         self.then_relationship_data_matches()
 
+    def test_included_merge_and_type_resolution(self):
+        self.given_included_with_same_id()
+        self.given_relationship_with_type_variant()
+
+        self.when_loading_included_relationship()
+
+        self.then_included_is_merged()
+
     def given_json_api_payload_without_included(self):
         self._payload = {
             "data": {
@@ -385,3 +393,38 @@ class TestJSONAPICompatibility:
         to_one_id = getter("id")
         assert to_one_id == "a"
         assert self._empty is None
+
+    def given_included_with_same_id(self):
+        self._included = json_api.IncludedObject([
+            {
+                "type": "tala.model.domain.Domain",
+                "id": "hello_world",
+                "attributes": {"name": "old"},
+                "relationships": {"plans": {"data": []}},
+            },
+            {
+                "type": "tala.model.domain.Domain",
+                "id": "hello_world",
+                "attributes": {"name": "new", "extra": "x"},
+                "relationships": {"questions": {"data": []}},
+            },
+        ])
+
+    def given_relationship_with_type_variant(self):
+        self._data = {
+            "relationships": {
+                "domain": {"data": {"type": "tala.model.domain", "id": "hello_world"}},
+            }
+        }
+
+    def when_loading_included_relationship(self):
+        self._resolved_domain = self._included.get_data_for_relationship("domain", self._data)
+
+    def then_included_is_merged(self):
+        getter = getattr(self._resolved_domain, "get", None)
+        if getter is None:
+            assert False, "Expected merged included object"
+        assert getter("attributes").get("name") == "new"
+        assert getter("attributes").get("extra") == "x"
+        assert "plans" in getter("relationships")
+        assert "questions" in getter("relationships")
