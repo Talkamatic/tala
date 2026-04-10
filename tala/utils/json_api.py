@@ -79,7 +79,11 @@ class IncludedObject:
         return self._data.get(resolved_type, {}).get(id_)
 
     def get_data_for_relationship(self, relationship_name, data):
-        relationship = data["relationships"].get(relationship_name, {})
+        try:
+            relationships = data["relationships"]
+        except (TypeError, KeyError):
+            return None
+        relationship = relationships.get(relationship_name, {})
         rel_data = relationship.get("data")
         if rel_data is None:
             return None
@@ -160,8 +164,10 @@ class JSONAPIObject:
     def create_from_dict(cls, json_data):
         data = json_data["data"]
         included = json_data.get("included", [])
+        attributes = data.get("attributes", {})
+        relationships = data.get("relationships", {})
 
-        return cls(data["type"], data["id"], data["attributes"], data["relationships"], included)
+        return cls(data["type"], data["id"], attributes, relationships, included)
 
     def __init__(
         self, type_, id_=None, attributes=None, relationships=None, included=None, version=CURRENT_FORMAT_VERSION

@@ -303,6 +303,14 @@ class TestJSONAPICompatibility:
 
         self.then_relationship_data_matches()
 
+    def test_missing_relationships_returns_none(self):
+        self.given_included_objects()
+        self.given_data_without_relationships()
+
+        self.when_loading_missing_relationship()
+
+        self.then_missing_relationship_is_none()
+
     def test_included_merge_and_type_resolution(self):
         self.given_included_with_same_id()
         self.given_relationship_with_type_variant()
@@ -310,6 +318,13 @@ class TestJSONAPICompatibility:
         self.when_loading_included_relationship()
 
         self.then_included_is_merged()
+
+    def test_create_object_without_relationships_or_attributes(self):
+        self.given_json_api_payload_minimal()
+
+        self.when_creating_object_from_dict()
+
+        self.then_missing_fields_defaulted()
 
     def given_json_api_payload_without_included(self):
         self._payload = {
@@ -321,11 +336,23 @@ class TestJSONAPICompatibility:
             }
         }
 
+    def given_json_api_payload_minimal(self):
+        self._payload = {
+            "data": {
+                "type": "some-type",
+                "id": "some-id",
+            }
+        }
+
     def when_creating_object_from_dict(self):
         self._json_api = json_api.JSONAPIObject.create_from_dict(self._payload)
 
     def then_included_is_empty(self):
         assert self._json_api.as_dict["included"] == []
+
+    def then_missing_fields_defaulted(self):
+        assert self._json_api.as_dict["data"]["attributes"] == {}
+        assert self._json_api.as_dict["data"]["relationships"] == {}
 
     def given_json_api_object(self):
         self._json_api = json_api.JSONAPIObject("root")
@@ -357,6 +384,9 @@ class TestJSONAPICompatibility:
             {"type": "thing", "id": "b", "attributes": {}, "relationships": {}},
         ])
 
+    def given_data_without_relationships(self):
+        self._data = {}
+
     def given_relationships_for_data(self):
         self._data = {
             "relationships": {
@@ -376,6 +406,9 @@ class TestJSONAPICompatibility:
         self._to_one = self._included.get_data_for_relationship("to_one", self._data)
         self._empty = self._included.get_data_for_relationship("empty", self._data)
 
+    def when_loading_missing_relationship(self):
+        self._missing = self._included.get_data_for_relationship("missing", self._data)
+
     def then_relationship_data_matches(self):
         to_many_ids = []
         for item in self._to_many or []:
@@ -393,6 +426,9 @@ class TestJSONAPICompatibility:
         to_one_id = getter("id")
         assert to_one_id == "a"
         assert self._empty is None
+
+    def then_missing_relationship_is_none(self):
+        assert self._missing is None
 
     def given_included_with_same_id(self):
         self._included = json_api.IncludedObject([
