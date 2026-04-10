@@ -888,7 +888,7 @@ class GoalPerformed(PlanItem):
 
     @property
     def json_api_relationships(self):
-        if self.action is not None:
+        if self.action:
             return ["action"]
         return []
 
@@ -942,7 +942,7 @@ class GoalAborted(PlanItem):
 
     @property
     def json_api_relationships(self):
-        if self.action is not None:
+        if self.action:
             return ["action"]
         return []
 

@@ -380,6 +380,8 @@ class PredicateProposition(PropositionWithSemanticContent):
 
     @property
     def json_api_relationships(self):
+        if self.individual is None:
+            return ["predicate"]
         return ["predicate", "individual"]
 
 
