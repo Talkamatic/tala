@@ -1,4 +1,3 @@
-from tala.ddd.json_parser import JSONDDDParser
 from tala.ddd.parser import Parser
 from tala.ddd.services.parameters.retriever import ParameterRetriever
 from tala.ddd.extended_ddd import ExtendedDDD
@@ -27,10 +26,8 @@ class SemanticObjectException(Exception):
     pass
 
 
-def get_ddd_json_version(ddd_as_json):
-    if "data" in ddd_as_json and "version:id" in ddd_as_json["data"]:
-        return ddd_as_json["data"]["version:id"]
-    return "1"
+class LegacyDddJsonFormatException(Exception):
+    pass
 
 
 class DDDManager(object):
@@ -89,10 +86,8 @@ class DDDManager(object):
 
     def load_ddd_for_ontology_name(self, name):
         for ddd_as_json in self.ddds_as_json:
-            if get_ddd_json_version(ddd_as_json) >= "2":
-                ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
-            elif get_ddd_json_version(ddd_as_json) == "1":
-                ontology_name = ddd_as_json["ontology"]["_name"]
+            self._require_json_api_format(ddd_as_json)
+            ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
             if ontology_name == name:
                 self._parse_and_add(ddd_as_json)
                 return
@@ -105,20 +100,23 @@ class DDDManager(object):
         self.ddd_names = ddd_names
         self.ddds_as_json = ddds_as_json
 
+    def _require_json_api_format(self, ddd_as_json):
+        if "data" not in ddd_as_json:
+            ddd_name = ddd_as_json.get("ddd_name", "<unknown>")
+            raise LegacyDddJsonFormatException(
+                "Legacy DDD JSON format is no longer supported "
+                f"(ddd='{ddd_name}'). Regenerate the ODB using JSON:API."
+            )
+
     def _get_ddd_as_json(self, name):
         for ddd_as_json in self.ddds_as_json:
-            if get_ddd_json_version(ddd_as_json) >= "2":
-                if name == ddd_as_json["data"]["attributes"]["name"]:
-                    return ddd_as_json
-            if get_ddd_json_version(ddd_as_json) == "1":
-                if name == ddd_as_json["ddd_name"]:
-                    return ddd_as_json
+            self._require_json_api_format(ddd_as_json)
+            if name == ddd_as_json["data"]["attributes"]["name"]:
+                return ddd_as_json
 
     def _parse_and_add(self, ddd_as_json):
-        if "data" in ddd_as_json and "version:id" in ddd_as_json["data"] and ddd_as_json["data"]["version:id"] == "2":
-            ddd = DDD.create_from_json_api_data(ddd_as_json)
-        else:
-            ddd = JSONDDDParser().parse(ddd_as_json)
+        self._require_json_api_format(ddd_as_json)
+        ddd = DDD.create_from_json_api_data(ddd_as_json)
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
         extended_ddd = ExtendedDDD(ddd, parameter_retriever, parser)
@@ -136,7 +134,7 @@ class DDDManager(object):
         if semantic_object.is_ontology_specific():
             return self.get_ontology(semantic_object.ontology_name)
         raise SemanticObjectException(
-            "This object is not ontology specific, and has no ontology information", semantic_object=semantic_object
+            "This object is not ontology specific, and has no ontology information: %s" % semantic_object
         )
 
     def get_ddd_of_semantic_object(self, semantic_object):
