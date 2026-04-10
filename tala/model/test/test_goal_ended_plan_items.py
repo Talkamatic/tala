@@ -1,6 +1,7 @@
 import pytest
 
 from tala.model import plan_item, action
+from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils import json_api
 
 
@@ -25,7 +26,9 @@ class TestGoalPerformed:
                     }
                 },
                 'type': 'tala.model.plan_item.GoalPerformed',
-                'version:id': '2'
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': [{
                 'attributes': {
@@ -50,7 +53,8 @@ class TestGoalPerformed:
         self._json_api_as_dict = self._goal_performed_item.as_json_api_dict()
 
     def then_json_api_is(self, obj_as_json):
-        assert self._json_api_as_dict == obj_as_json
+        expected = normalize_expected_json_api(obj_as_json)
+        assert self._json_api_as_dict == expected
 
     @pytest.mark.parametrize("params", ([True, "some-action"], [False, "some-action"], [True, None], [False, None]))
     def test_create_from_json_api_data(self, params):
@@ -162,7 +166,9 @@ class TestGoalAborted:
                     }
                 },
                 'type': 'tala.model.plan_item.GoalAborted',
-                'version:id': '2'
+                'meta': {
+                    'version:id': '2'
+                }
             },
             'included': [{
                 'attributes': {
@@ -187,7 +193,8 @@ class TestGoalAborted:
         self._json_api_as_dict = self._goal_aborted_item.as_json_api_dict()
 
     def then_json_api_is(self, obj_as_json):
-        assert self._json_api_as_dict == obj_as_json
+        expected = normalize_expected_json_api(obj_as_json)
+        assert self._json_api_as_dict == expected
 
     @pytest.mark.parametrize(
         "params",

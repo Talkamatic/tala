@@ -25,6 +25,7 @@ class IncludedObject:
             self.include(item)
 
     def include(self, item):
+        item = self._normalize_version_entry(item)
         type_ = item["type"]
         id_ = item["id"]
 
@@ -52,6 +53,32 @@ class IncludedObject:
         merged["attributes"] = attributes
         merged["relationships"] = relationships
         return merged
+
+    def _normalize_version_entry(self, item):
+        if not isinstance(item, dict):
+            return item
+        normalized = dict(item)
+        attributes = normalized.get("attributes")
+        meta = normalized.get("meta")
+        version = normalized.get("version:id")
+
+        if isinstance(attributes, dict) and "version:id" in attributes:
+            if version is None:
+                version = attributes.get("version:id")
+            attributes = dict(attributes)
+            attributes.pop("version:id", None)
+            normalized["attributes"] = attributes
+
+        if version is not None:
+            if not isinstance(meta, dict):
+                meta = {}
+            else:
+                meta = dict(meta)
+            meta["version:id"] = version
+            normalized["meta"] = meta
+            normalized.pop("version:id", None)
+
+        return normalized
 
     def _resolve_type(self, type_):
         if type_ in self._data:
@@ -165,6 +192,10 @@ class JSONAPIObject:
         data = json_data["data"]
         included = json_data.get("included", [])
         attributes = data.get("attributes", {})
+        attr_version = None
+        if isinstance(attributes, dict):
+            attributes = dict(attributes)
+            attr_version = attributes.pop("version:id", None)
         relationships = data.get("relationships", {})
         version = None
         try:
@@ -176,6 +207,8 @@ class JSONAPIObject:
                 version = data["version:id"]
             except (TypeError, KeyError):
                 version = None
+        if not version and attr_version:
+            version = attr_version
         if not version:
             version = CURRENT_FORMAT_VERSION
 
@@ -275,9 +308,11 @@ class JSONAPIObject:
             "data": {
                 "type": self.type_,
                 "id": self.id_,
-                "version:id": self.version,
                 "attributes": self.attributes,
                 "relationships": self.relationships,
+                "meta": {
+                    "version:id": self.version,
+                },
             },
             "included": self.included.as_list
         }

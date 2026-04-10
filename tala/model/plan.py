@@ -98,7 +98,6 @@ class Plan(Stack, SemanticObject):
                 "type": "tala.model.plan",
                 "id": get_id(),
                 "attributes": {
-                    "version:id": "2",
                     "ontology_name": goal.ontology_name,
                     "accommodate_without_feedback": accommodate_without_feedback,
                     "restart_on_completion": restart_on_completion,
@@ -107,7 +106,10 @@ class Plan(Stack, SemanticObject):
                     "alternatives_predicate": alternatives_predicate,
                     "unrestricted_accommodation": unrestricted_accommodation
                 },
-                "relationships": {}
+                "relationships": {},
+                "meta": {
+                    "version:id": "2",
+                },
             },
             "included": []
         }

@@ -6,6 +6,7 @@ from tala.model.plan import Plan, UnableToDetermineOntologyException
 from tala.model.plan_item import IfThenElse, Findout, Raise, AssumeShared
 from tala.model.semantic_object import OntologySpecificSemanticObject
 from tala.testing.lib_test_case import LibTestCase
+from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils.json_api import IncludedObject
 
 
@@ -219,7 +220,8 @@ class PlanTests(LibTestCase):
         self._plan_as_json_api = self._plan.as_json_api_dict(goal, [], [], [], [], [], [], [], [], [], [])
 
     def then_plan_as_json_api_is(self, result):
-        self.assertEqual(result, self._plan_as_json_api)
+        expected = normalize_expected_json_api(result)
+        self.assertEqual(expected, self._plan_as_json_api)
 
     def test_plan_as_json_api_more_items(self):
         self.given_plan([self.findout_price, self.raise_dest_city])

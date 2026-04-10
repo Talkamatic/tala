@@ -15,6 +15,7 @@ from tala.testing.lib_test_case import LibTestCase
 from tala.model.image import Image
 from tala.model.set import Set
 from tala.utils.json_api import IncludedObject
+from tala.testing.json_api_assertions import normalize_expected_json_api
 
 
 class TestPropositionAsCondition(unittest.TestCase):
@@ -261,133 +262,137 @@ class PropositionSetTests(LibTestCase):
         self._set_as_json_api = self._proposition_set.as_json_api_dict()
 
     def then_json_api_is(self):
-        type_ = 'tala.model.proposition.PropositionSet'
-        version = "2"
-        attributes = {'polarity': 'POS', 'type_': 'PROPOSITION_SET'}
-        relationships = {
-            'propositions_data': {
-                'data': [{
-                    'id': 'mockup_ontology:dest_city:london:POS:False',
-                    'type': 'tala.model.proposition.PredicateProposition'
-                }, {
-                    'id': 'mockup_ontology:dest_city:paris:POS:False',
-                    'type': 'tala.model.proposition.PredicateProposition'
-                }]
-            }
-        }
-        included = [{
-            'attributes': {
-                'dynamic': True,
-                'name': 'city',
-                'ontology_name': 'mockup_ontology'
-            },
-            'id': 'mockup_ontology:city',
-            'relationships': {},
-            'type': 'tala.model.sort.CustomSort',
-            'version:id': '2'
-        }, {
-            'attributes': {
-                '_multiple_instances': False,
-                'feature_of_name': None,
-                'name': 'dest_city',
-                'ontology_name': 'mockup_ontology'
-            },
-            'id': 'mockup_ontology:dest_city',
-            'relationships': {
-                'sort': {
-                    'data': {
-                        'id': 'mockup_ontology:city',
-                        'type': 'tala.model.sort.CustomSort'
-                    }
-                }
-            },
-            'type': 'tala.model.predicate.Predicate',
-            'version:id': '2'
-        }, {
-            'attributes': {
-                'ontology_name': 'mockup_ontology',
-                'value': 'london'
-            },
-            'id': 'mockup_ontology:london',
-            'relationships': {
-                'sort': {
-                    'data': {
-                        'id': 'mockup_ontology:city',
-                        'type': 'tala.model.sort.CustomSort'
-                    }
-                }
-            },
-            'type': 'tala.model.individual.Individual',
-            'version:id': '2'
-        }, {
-            'attributes': {
-                'ontology_name': 'mockup_ontology',
-                'value': 'paris'
-            },
-            'id': 'mockup_ontology:paris',
-            'relationships': {
-                'sort': {
-                    'data': {
-                        'id': 'mockup_ontology:city',
-                        'type': 'tala.model.sort.CustomSort'
-                    }
-                }
-            },
-            'type': 'tala.model.individual.Individual',
-            'version:id': '2'
-        }, {
-            'attributes': {
-                '_predicted': False,
-                'ontology_name': 'mockup_ontology',
-                'polarity': 'POS'
-            },
-            'id': 'mockup_ontology:dest_city:london:POS:False',
-            'relationships': {
-                'individual': {
-                    'data': {
-                        'id': 'mockup_ontology:london',
-                        'type': 'tala.model.individual.Individual'
+        expected = normalize_expected_json_api({
+            "data": {
+                "type": "tala.model.proposition.PropositionSet",
+                "version:id": "2",
+                "attributes": {"polarity": "POS", "type_": "PROPOSITION_SET"},
+                "relationships": {
+                    "propositions_data": {
+                        "data": [{
+                            "id": "mockup_ontology:dest_city:london:POS:False",
+                            "type": "tala.model.proposition.PredicateProposition",
+                        }, {
+                            "id": "mockup_ontology:dest_city:paris:POS:False",
+                            "type": "tala.model.proposition.PredicateProposition",
+                        }]
                     }
                 },
-                'predicate': {
-                    'data': {
-                        'id': 'mockup_ontology:dest_city',
-                        'type': 'tala.model.predicate.Predicate'
-                    }
-                }
             },
-            'type': 'tala.model.proposition.PredicateProposition',
-            'version:id': '2'
-        }, {
-            'attributes': {
-                '_predicted': False,
-                'ontology_name': 'mockup_ontology',
-                'polarity': 'POS'
-            },
-            'id': 'mockup_ontology:dest_city:paris:POS:False',
-            'relationships': {
-                'individual': {
-                    'data': {
-                        'id': 'mockup_ontology:paris',
-                        'type': 'tala.model.individual.Individual'
+            "included": [{
+                "attributes": {
+                    "dynamic": True,
+                    "name": "city",
+                    "ontology_name": "mockup_ontology",
+                },
+                "id": "mockup_ontology:city",
+                "relationships": {},
+                "type": "tala.model.sort.CustomSort",
+                "version:id": "2",
+            }, {
+                "attributes": {
+                    "_multiple_instances": False,
+                    "feature_of_name": None,
+                    "name": "dest_city",
+                    "ontology_name": "mockup_ontology",
+                },
+                "id": "mockup_ontology:dest_city",
+                "relationships": {
+                    "sort": {
+                        "data": {
+                            "id": "mockup_ontology:city",
+                            "type": "tala.model.sort.CustomSort",
+                        }
                     }
                 },
-                'predicate': {
-                    'data': {
-                        'id': 'mockup_ontology:dest_city',
-                        'type': 'tala.model.predicate.Predicate'
+                "type": "tala.model.predicate.Predicate",
+                "version:id": "2",
+            }, {
+                "attributes": {
+                    "ontology_name": "mockup_ontology",
+                    "value": "london",
+                },
+                "id": "mockup_ontology:london",
+                "relationships": {
+                    "sort": {
+                        "data": {
+                            "id": "mockup_ontology:city",
+                            "type": "tala.model.sort.CustomSort",
+                        }
                     }
-                }
-            },
-            'type': 'tala.model.proposition.PredicateProposition',
-            'version:id': '2'
-        }]
+                },
+                "type": "tala.model.individual.Individual",
+                "version:id": "2",
+            }, {
+                "attributes": {
+                    "ontology_name": "mockup_ontology",
+                    "value": "paris",
+                },
+                "id": "mockup_ontology:paris",
+                "relationships": {
+                    "sort": {
+                        "data": {
+                            "id": "mockup_ontology:city",
+                            "type": "tala.model.sort.CustomSort",
+                        }
+                    }
+                },
+                "type": "tala.model.individual.Individual",
+                "version:id": "2",
+            }, {
+                "attributes": {
+                    "_predicted": False,
+                    "ontology_name": "mockup_ontology",
+                    "polarity": "POS",
+                },
+                "id": "mockup_ontology:dest_city:london:POS:False",
+                "relationships": {
+                    "individual": {
+                        "data": {
+                            "id": "mockup_ontology:london",
+                            "type": "tala.model.individual.Individual",
+                        }
+                    },
+                    "predicate": {
+                        "data": {
+                            "id": "mockup_ontology:dest_city",
+                            "type": "tala.model.predicate.Predicate",
+                        }
+                    },
+                },
+                "type": "tala.model.proposition.PredicateProposition",
+                "version:id": "2",
+            }, {
+                "attributes": {
+                    "_predicted": False,
+                    "ontology_name": "mockup_ontology",
+                    "polarity": "POS",
+                },
+                "id": "mockup_ontology:dest_city:paris:POS:False",
+                "relationships": {
+                    "individual": {
+                        "data": {
+                            "id": "mockup_ontology:paris",
+                            "type": "tala.model.individual.Individual",
+                        }
+                    },
+                    "predicate": {
+                        "data": {
+                            "id": "mockup_ontology:dest_city",
+                            "type": "tala.model.predicate.Predicate",
+                        }
+                    },
+                },
+                "type": "tala.model.proposition.PredicateProposition",
+                "version:id": "2",
+            }],
+        })
 
-        self.assertEqual(type_, self._set_as_json_api["data"]["type"])
-        self.assertEqual(version, self._set_as_json_api["data"]["version:id"])
-        self.assertEqual(attributes, self._set_as_json_api["data"]["attributes"])
-        self.assertEqual(relationships, self._set_as_json_api["data"]["relationships"])
-        self.assertEqual(included, self._set_as_json_api["included"])
+        self.assertEqual(expected["data"]["type"], self._set_as_json_api["data"]["type"])
+        self.assertEqual(expected["data"]["attributes"], self._set_as_json_api["data"]["attributes"])
+        self.assertEqual(expected["data"]["relationships"], self._set_as_json_api["data"]["relationships"])
+        self.assertEqual(expected["data"]["meta"], self._set_as_json_api["data"]["meta"])
+        self.assertEqual(expected["included"], self._set_as_json_api["included"])
         self.assertIn("id", self._set_as_json_api["data"])
 
     def test_recreated_proposition_set_from_json_api_is_equal(self):

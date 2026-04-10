@@ -5,6 +5,9 @@
       "path": "ddds/hello_world"
     },
     "id": "hello_world",
+    "meta": {
+      "version:id": "2"
+    },
     "relationships": {
       "domain": {
         "data": {
@@ -25,73 +28,17 @@
         }
       }
     },
-    "type": "tala.model.ddd.DDD",
-    "version:id": "2"
+    "type": "tala.model.ddd.DDD"
   },
   "included": [
     {
       "attributes": {},
-      "id": "string",
+      "id": "integer",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.sort.StringSort",
-      "version:id": "2"
-    },
-    {
-      "attributes": {
-        "_multiple_instances": false,
-        "feature_of_name": null,
-        "name": "current_time",
-        "ontology_name": "HelloWorldOntology"
-      },
-      "id": "HelloWorldOntology:current_time",
-      "relationships": {
-        "sort": {
-          "data": {
-            "id": "string",
-            "type": "tala.model.sort.StringSort"
-          }
-        }
-      },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
-    },
-    {
-      "attributes": {
-        "_multiple_instances": false,
-        "feature_of_name": null,
-        "name": "alarm_image_url",
-        "ontology_name": "HelloWorldOntology"
-      },
-      "id": "HelloWorldOntology:alarm_image_url",
-      "relationships": {
-        "sort": {
-          "data": {
-            "id": "image",
-            "type": "tala.model.sort.ImageSort"
-          }
-        }
-      },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
-    },
-    {
-      "attributes": {
-        "_multiple_instances": false,
-        "feature_of_name": null,
-        "name": "clock_view",
-        "ontology_name": "HelloWorldOntology"
-      },
-      "id": "HelloWorldOntology:clock_view",
-      "relationships": {
-        "sort": {
-          "data": {
-            "id": "webview",
-            "type": "tala.model.sort.WebviewSort"
-          }
-        }
-      },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.sort.IntegerSort"
     },
     {
       "attributes": {
@@ -101,6 +48,9 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:alarm_hour",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -109,8 +59,7 @@
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
@@ -120,6 +69,9 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:alarm_minute",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -128,27 +80,7 @@
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
-    },
-    {
-      "attributes": {
-        "_multiple_instances": false,
-        "feature_of_name": null,
-        "name": "hour_to_set",
-        "ontology_name": "HelloWorldOntology"
-      },
-      "id": "HelloWorldOntology:hour_to_set",
-      "relationships": {
-        "sort": {
-          "data": {
-            "id": "integer",
-            "type": "tala.model.sort.IntegerSort"
-          }
-        }
-      },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
@@ -158,6 +90,9 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:alarm_to_select",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -166,27 +101,28 @@
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
         "_multiple_instances": false,
         "feature_of_name": null,
-        "name": "current_alarm",
+        "name": "alarm_image_url",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:current_alarm",
+      "id": "HelloWorldOntology:alarm_image_url",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
-            "id": "HelloWorldOntology:alarm_time",
-            "type": "tala.model.sort.CustomSort"
+            "id": "image",
+            "type": "tala.model.sort.ImageSort"
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
@@ -196,6 +132,9 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:minute_to_set",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -204,8 +143,70 @@
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
+    },
+    {
+      "attributes": {
+        "_multiple_instances": false,
+        "feature_of_name": null,
+        "name": "current_time",
+        "ontology_name": "HelloWorldOntology"
+      },
+      "id": "HelloWorldOntology:current_time",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {
+        "sort": {
+          "data": {
+            "id": "string",
+            "type": "tala.model.sort.StringSort"
+          }
+        }
+      },
+      "type": "tala.model.predicate.Predicate"
+    },
+    {
+      "attributes": {
+        "_multiple_instances": false,
+        "feature_of_name": null,
+        "name": "current_alarm",
+        "ontology_name": "HelloWorldOntology"
+      },
+      "id": "HelloWorldOntology:current_alarm",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {
+        "sort": {
+          "data": {
+            "id": "HelloWorldOntology:alarm_time",
+            "type": "tala.model.sort.CustomSort"
+          }
+        }
+      },
+      "type": "tala.model.predicate.Predicate"
+    },
+    {
+      "attributes": {
+        "_multiple_instances": false,
+        "feature_of_name": null,
+        "name": "hour_to_set",
+        "ontology_name": "HelloWorldOntology"
+      },
+      "id": "HelloWorldOntology:hour_to_set",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {
+        "sort": {
+          "data": {
+            "id": "integer",
+            "type": "tala.model.sort.IntegerSort"
+          }
+        }
+      },
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
@@ -215,6 +216,9 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:greenwich_mean_time",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -223,29 +227,28 @@
           }
         }
       },
-      "type": "tala.model.predicate.Predicate",
-      "version:id": "2"
+      "type": "tala.model.predicate.Predicate"
     },
     {
-      "attributes": {},
-      "id": "image",
-      "relationships": {},
-      "type": "tala.model.sort.ImageSort",
-      "version:id": "2"
-    },
-    {
-      "attributes": {},
-      "id": "webview",
-      "relationships": {},
-      "type": "tala.model.sort.WebviewSort",
-      "version:id": "2"
-    },
-    {
-      "attributes": {},
-      "id": "integer",
-      "relationships": {},
-      "type": "tala.model.sort.IntegerSort",
-      "version:id": "2"
+      "attributes": {
+        "_multiple_instances": false,
+        "feature_of_name": null,
+        "name": "clock_view",
+        "ontology_name": "HelloWorldOntology"
+      },
+      "id": "HelloWorldOntology:clock_view",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {
+        "sort": {
+          "data": {
+            "id": "webview",
+            "type": "tala.model.sort.WebviewSort"
+          }
+        }
+      },
+      "type": "tala.model.predicate.Predicate"
     },
     {
       "attributes": {
@@ -254,9 +257,11 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.sort.CustomSort",
-      "version:id": "2"
+      "type": "tala.model.sort.CustomSort"
     },
     {
       "attributes": {
@@ -265,9 +270,38 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:alarm_time",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.sort.CustomSort",
-      "version:id": "2"
+      "type": "tala.model.sort.CustomSort"
+    },
+    {
+      "attributes": {},
+      "id": "image",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {},
+      "type": "tala.model.sort.ImageSort"
+    },
+    {
+      "attributes": {},
+      "id": "string",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {},
+      "type": "tala.model.sort.StringSort"
+    },
+    {
+      "attributes": {},
+      "id": "webview",
+      "meta": {
+        "version:id": "2"
+      },
+      "relationships": {},
+      "type": "tala.model.sort.WebviewSort"
     },
     {
       "attributes": {
@@ -275,6 +309,9 @@
         "value": "work_alarm"
       },
       "id": "HelloWorldOntology:work_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -283,8 +320,7 @@
           }
         }
       },
-      "type": "tala.model.individual.Individual",
-      "version:id": "2"
+      "type": "tala.model.individual.Individual"
     },
     {
       "attributes": {
@@ -292,6 +328,9 @@
         "value": "school_alarm"
       },
       "id": "HelloWorldOntology:school_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "sort": {
           "data": {
@@ -300,23 +339,24 @@
           }
         }
       },
-      "type": "tala.model.individual.Individual",
-      "version:id": "2"
+      "type": "tala.model.individual.Individual"
     },
     {
       "attributes": {
-        "name": "remove_alarm",
+        "name": "snooze",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:remove_alarm",
+      "id": "HelloWorldOntology:snooze",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
       "attributes": {
-        "name": "update_clock_software",
+        "name": "set_time",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:update_clock_software",
+      "id": "HelloWorldOntology:set_time",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
@@ -329,18 +369,20 @@
     },
     {
       "attributes": {
-        "name": "snooze",
+        "name": "update_clock_software",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:snooze",
+      "id": "HelloWorldOntology:update_clock_software",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
       "attributes": {
-        "name": "select_alarm",
+        "name": "remove_alarm",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:select_alarm",
+      "id": "HelloWorldOntology:remove_alarm",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
@@ -349,14 +391,16 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:turn_off_alarm",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
       "attributes": {
-        "name": "set_time",
+        "name": "select_alarm",
         "ontology_name": "HelloWorldOntology"
       },
-      "id": "HelloWorldOntology:set_time",
+      "id": "HelloWorldOntology:select_alarm",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
@@ -365,6 +409,7 @@
         "ontology_name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology:set_alarm",
+      "relationships": {},
       "type": "tala.model.action"
     },
     {
@@ -388,15 +433,18 @@
         "name": "HelloWorldOntology"
       },
       "id": "HelloWorldOntology",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "actions": {
           "data": [
             {
-              "id": "HelloWorldOntology:remove_alarm",
+              "id": "HelloWorldOntology:snooze",
               "type": "tala.model.action"
             },
             {
-              "id": "HelloWorldOntology:update_clock_software",
+              "id": "HelloWorldOntology:set_time",
               "type": "tala.model.action"
             },
             {
@@ -404,11 +452,11 @@
               "type": "tala.model.action"
             },
             {
-              "id": "HelloWorldOntology:snooze",
+              "id": "HelloWorldOntology:update_clock_software",
               "type": "tala.model.action"
             },
             {
-              "id": "HelloWorldOntology:select_alarm",
+              "id": "HelloWorldOntology:remove_alarm",
               "type": "tala.model.action"
             },
             {
@@ -416,7 +464,7 @@
               "type": "tala.model.action"
             },
             {
-              "id": "HelloWorldOntology:set_time",
+              "id": "HelloWorldOntology:select_alarm",
               "type": "tala.model.action"
             },
             {
@@ -440,18 +488,6 @@
         "predicates": {
           "data": [
             {
-              "id": "HelloWorldOntology:current_time",
-              "type": "tala.model.predicate.Predicate"
-            },
-            {
-              "id": "HelloWorldOntology:alarm_image_url",
-              "type": "tala.model.predicate.Predicate"
-            },
-            {
-              "id": "HelloWorldOntology:clock_view",
-              "type": "tala.model.predicate.Predicate"
-            },
-            {
               "id": "HelloWorldOntology:alarm_hour",
               "type": "tala.model.predicate.Predicate"
             },
@@ -460,15 +496,11 @@
               "type": "tala.model.predicate.Predicate"
             },
             {
-              "id": "HelloWorldOntology:hour_to_set",
-              "type": "tala.model.predicate.Predicate"
-            },
-            {
               "id": "HelloWorldOntology:alarm_to_select",
               "type": "tala.model.predicate.Predicate"
             },
             {
-              "id": "HelloWorldOntology:current_alarm",
+              "id": "HelloWorldOntology:alarm_image_url",
               "type": "tala.model.predicate.Predicate"
             },
             {
@@ -476,7 +508,23 @@
               "type": "tala.model.predicate.Predicate"
             },
             {
+              "id": "HelloWorldOntology:current_time",
+              "type": "tala.model.predicate.Predicate"
+            },
+            {
+              "id": "HelloWorldOntology:current_alarm",
+              "type": "tala.model.predicate.Predicate"
+            },
+            {
+              "id": "HelloWorldOntology:hour_to_set",
+              "type": "tala.model.predicate.Predicate"
+            },
+            {
               "id": "HelloWorldOntology:greenwich_mean_time",
+              "type": "tala.model.predicate.Predicate"
+            },
+            {
+              "id": "HelloWorldOntology:clock_view",
               "type": "tala.model.predicate.Predicate"
             }
           ]
@@ -484,24 +532,26 @@
         "sorts": {
           "data": [
             {
-              "id": "HelloWorldOntology:alarm",
+              "id": "HelloWorldOntology:alarm_time",
               "type": "tala.model.sort.CustomSort"
             },
             {
-              "id": "HelloWorldOntology:alarm_time",
+              "id": "HelloWorldOntology:alarm",
               "type": "tala.model.sort.CustomSort"
             }
           ]
         }
       },
-      "type": "tala.model.ontology",
-      "version:id": "2"
+      "type": "tala.model.ontology"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.minute_to_set(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -510,14 +560,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.hour_to_set(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -526,14 +578,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.current_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -542,14 +596,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.alarm_to_select(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -558,14 +614,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.current_alarm(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -574,14 +632,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.greenwich_mean_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -590,14 +650,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.alarm_minute(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -606,14 +668,16 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
         "ontology_name": "HelloWorldOntology"
       },
       "id": "X.alarm_hour(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "predicate": {
           "data": {
@@ -622,8 +686,7 @@
           }
         }
       },
-      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition",
-      "version:id": "2"
+      "type": "tala.model.lambda_abstraction.LambdaAbstractedPredicateProposition"
     },
     {
       "attributes": {
@@ -631,6 +694,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.minute_to_set(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -639,8 +705,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -648,6 +713,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.hour_to_set(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -656,8 +724,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -665,6 +732,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.current_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -673,8 +743,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -682,6 +751,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.alarm_to_select(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -690,8 +762,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -699,6 +770,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.current_alarm(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -707,8 +781,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -716,6 +789,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.greenwich_mean_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -724,8 +800,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -733,6 +808,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.alarm_minute(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -741,8 +819,7 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {
@@ -750,6 +827,9 @@
         "type_": "WHQ"
       },
       "id": "HelloWorldOntology:WHQ:X.alarm_hour(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -758,12 +838,14 @@
           }
         }
       },
-      "type": "tala.model.question.WhQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.WhQuestion"
     },
     {
       "attributes": {},
-      "id": "48a56eb5-5d95-4212-99a2-eec80a730d47",
+      "id": "bd9cc6d7-f8dd-4beb-846d-9fb5d50b5235",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "key": {
           "data": {
@@ -772,12 +854,14 @@
           }
         }
       },
-      "type": "parameter",
-      "version:id": "2"
+      "type": "parameter"
     },
     {
       "attributes": {},
-      "id": "32885a28-83aa-49fb-8023-4433eb4a93c0",
+      "id": "7536bd7f-571f-4b30-98eb-825f2b530c90",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "key": {
           "data": {
@@ -786,8 +870,7 @@
           }
         }
       },
-      "type": "parameter",
-      "version:id": "2"
+      "type": "parameter"
     },
     {
       "attributes": {
@@ -795,6 +878,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:remove_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -803,8 +889,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -812,6 +897,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:top",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -820,8 +908,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -829,6 +916,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:set_time",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -837,8 +927,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -846,6 +935,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:turn_off_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -854,8 +946,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -863,6 +954,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:snooze",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -871,8 +965,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -880,6 +973,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:select_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -888,8 +984,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -897,6 +992,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:update_clock_software",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -905,8 +1003,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -914,6 +1011,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:set_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -922,8 +1022,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Perform",
-      "version:id": "2"
+      "type": "tala.model.goal.Perform"
     },
     {
       "attributes": {
@@ -935,9 +1034,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.RemoveAlarm.INTERROGATIVE.True.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -949,9 +1050,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.TurnOffAlarm.ASSERTIVE.False.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -963,9 +1066,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.Snooze.None.True.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -977,9 +1082,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.SelectAlarm.None.True.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -991,9 +1098,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.UpdateClockSoftware.ASSERTIVE.False.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -1005,9 +1114,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.SetTime.None.True.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -1019,9 +1130,11 @@
         "type_": "invoke_service_action"
       },
       "id": "HelloWorldOntology.SetAlarm.None.True.True",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.model.plan_item.InvokeServiceAction",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceAction"
     },
     {
       "attributes": {
@@ -1031,10 +1144,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:remove_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1051,8 +1166,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1062,10 +1176,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:top",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1082,8 +1198,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1093,10 +1208,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:turn_off_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1113,8 +1230,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1124,10 +1240,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:snooze",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1144,8 +1262,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1155,10 +1272,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:select_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1179,8 +1298,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1190,10 +1308,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:RESOLVE_GOAL:?X.current_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1210,8 +1330,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1221,10 +1340,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:RESOLVE_GOAL:?X.current_alarm(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1245,8 +1366,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1256,10 +1376,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:update_clock_software",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1276,8 +1398,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1287,10 +1408,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:RESOLVE_GOAL:?X.greenwich_mean_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1307,8 +1430,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1318,10 +1440,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": false,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:set_time",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1358,8 +1482,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1369,10 +1492,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:set_alarm",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1397,8 +1522,7 @@
           ]
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1408,10 +1532,12 @@
         "ontology_name": "HelloWorldOntology",
         "reraise_on_resume": true,
         "restart_on_completion": false,
-        "unrestricted_accommodation": false,
-        "version:id": "2"
+        "unrestricted_accommodation": false
       },
       "id": "HelloWorldOntology:PERFORM_GOAL:up",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1420,8 +1546,7 @@
           }
         }
       },
-      "type": "tala.model.plan",
-      "version:id": "2"
+      "type": "tala.model.plan"
     },
     {
       "attributes": {
@@ -1429,6 +1554,9 @@
         "type_": "RESOLVE_GOAL"
       },
       "id": "RESOLVE_GOAL.SYS:?X.current_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1437,8 +1565,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Resolve",
-      "version:id": "2"
+      "type": "tala.model.goal.Resolve"
     },
     {
       "attributes": {
@@ -1446,6 +1573,9 @@
         "type_": "RESOLVE_GOAL"
       },
       "id": "RESOLVE_GOAL.SYS:?X.current_alarm(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1454,8 +1584,7 @@
           }
         }
       },
-      "type": "tala.model.goal.Resolve",
-      "version:id": "2"
+      "type": "tala.model.goal.Resolve"
     },
     {
       "attributes": {
@@ -1463,6 +1592,9 @@
         "type_": "RESOLVE_GOAL"
       },
       "id": "RESOLVE_GOAL.SYS:?X.greenwich_mean_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1471,14 +1603,16 @@
           }
         }
       },
-      "type": "tala.model.goal.Resolve",
-      "version:id": "2"
+      "type": "tala.model.goal.Resolve"
     },
     {
       "attributes": {
         "polarity": "POS"
       },
       "id": "GOAL:POS:resolve(?X.current_time(X))",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1487,14 +1621,16 @@
           }
         }
       },
-      "type": "tala.model.proposition.GoalProposition",
-      "version:id": "2"
+      "type": "tala.model.proposition.GoalProposition"
     },
     {
       "attributes": {
         "polarity": "POS"
       },
       "id": "GOAL:POS:perform(set_time)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "goal": {
           "data": {
@@ -1503,15 +1639,17 @@
           }
         }
       },
-      "type": "tala.model.proposition.GoalProposition",
-      "version:id": "2"
+      "type": "tala.model.proposition.GoalProposition"
     },
     {
       "attributes": {
         "polarity": "POS",
         "type_": "PROPOSITION_SET"
       },
-      "id": "6be7d224-6241-489d-ba65-a2137f5e8a6f",
+      "id": "e48e3fb2-43d8-4ff4-a3d5-5c98f262159e",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "propositions_data": {
           "data": [
@@ -1526,8 +1664,7 @@
           ]
         }
       },
-      "type": "tala.model.proposition.PropositionSet",
-      "version:id": "2"
+      "type": "tala.model.proposition.PropositionSet"
     },
     {
       "attributes": {
@@ -1535,16 +1672,18 @@
         "type_": "ALTQ"
       },
       "id": "HelloWorldOntology:ALTQ:set([goal(resolve(?X.current_time(X))), goal(perform(set_time))])",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
-            "id": "6be7d224-6241-489d-ba65-a2137f5e8a6f",
+            "id": "e48e3fb2-43d8-4ff4-a3d5-5c98f262159e",
             "type": "tala.model.proposition.PropositionSet"
           }
         }
       },
-      "type": "tala.model.question.AltQuestion",
-      "version:id": "2"
+      "type": "tala.model.question.AltQuestion"
     },
     {
       "attributes": {
@@ -1553,6 +1692,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:ALTQ:set([goal(resolve(?X.current_time(X))), goal(perform(set_time))]):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1561,8 +1703,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1571,6 +1712,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:WHQ:X.alarm_to_select(X):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1579,8 +1723,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1589,6 +1732,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:WHQ:X.minute_to_set(X):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1597,8 +1743,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1607,6 +1752,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:WHQ:X.hour_to_set(X):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1615,8 +1763,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1625,6 +1772,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:WHQ:X.alarm_minute(X):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1633,8 +1783,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1643,6 +1792,9 @@
         "type_": "findout"
       },
       "id": "tala.model.plan_item.Findout:HelloWorldOntology:WHQ:X.alarm_hour(X):False",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1651,8 +1803,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Findout",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Findout"
     },
     {
       "attributes": {
@@ -1660,6 +1811,9 @@
         "min_results": 1
       },
       "id": "tala.model.plan_item.InvokeServiceQuery:HelloWorldOntology:WHQ:X.current_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1668,8 +1822,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.InvokeServiceQuery",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceQuery"
     },
     {
       "attributes": {
@@ -1677,6 +1830,9 @@
         "min_results": 1
       },
       "id": "tala.model.plan_item.InvokeServiceQuery:HelloWorldOntology:WHQ:X.current_alarm(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1685,8 +1841,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.InvokeServiceQuery",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceQuery"
     },
     {
       "attributes": {
@@ -1694,6 +1849,9 @@
         "min_results": 1
       },
       "id": "tala.model.plan_item.InvokeServiceQuery:HelloWorldOntology:WHQ:X.greenwich_mean_time(X)",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "question": {
           "data": {
@@ -1702,14 +1860,16 @@
           }
         }
       },
-      "type": "tala.model.plan_item.InvokeServiceQuery",
-      "version:id": "2"
+      "type": "tala.model.plan_item.InvokeServiceQuery"
     },
     {
       "attributes": {
         "type_": "forget"
       },
       "id": "tala.model.plan_item.Forget:HelloWorldOntology:hour_to_set",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1718,14 +1878,16 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Forget",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Forget"
     },
     {
       "attributes": {
         "type_": "forget"
       },
       "id": "tala.model.plan_item.Forget:HelloWorldOntology:minute_to_set",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1734,8 +1896,7 @@
           }
         }
       },
-      "type": "tala.model.plan_item.Forget",
-      "version:id": "2"
+      "type": "tala.model.plan_item.Forget"
     },
     {
       "attributes": {
@@ -1743,6 +1904,9 @@
         "type_": "PERFORM_GOAL"
       },
       "id": "PERFORM_GOAL.SYS:up",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "content": {
           "data": {
@@ -1751,23 +1915,25 @@
           }
         }
       },
-      "type": "tala.model.goal.PerformGoal",
-      "version:id": "2"
+      "type": "tala.model.goal.PerformGoal"
     },
     {
       "attributes": {
         "tala.model.domain.Domain.user_defined_name": "HelloWorldDomain"
       },
       "id": "hello_world",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {
         "parameters": {
           "data": [
             {
-              "id": "48a56eb5-5d95-4212-99a2-eec80a730d47",
+              "id": "bd9cc6d7-f8dd-4beb-846d-9fb5d50b5235",
               "type": "parameter"
             },
             {
-              "id": "32885a28-83aa-49fb-8023-4433eb4a93c0",
+              "id": "7536bd7f-571f-4b30-98eb-825f2b530c90",
               "type": "parameter"
             }
           ]
@@ -1825,8 +1991,7 @@
           ]
         }
       },
-      "type": "tala.model.domain",
-      "version:id": "2"
+      "type": "tala.model.domain"
     },
     {
       "attributes": {
@@ -2047,9 +2212,11 @@
         ]
       },
       "id": "ServiceInterface",
+      "meta": {
+        "version:id": "2"
+      },
       "relationships": {},
-      "type": "tala.ddd.services.ServiceInterface",
-      "version:id": "2"
+      "type": "tala.ddd.services.ServiceInterface"
     }
   ]
 }

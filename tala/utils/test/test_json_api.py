@@ -1,3 +1,4 @@
+from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils import json_api
 
 uuid_counter = 0
@@ -31,7 +32,7 @@ class TestJSONAPI:
                 "id": "uuid_1",
                 "attributes": {},
                 "relationships": {},
-                "version:id": "2"
+                "meta": {"version:id": "2"}
             },
             "included": []
         })
@@ -40,7 +41,8 @@ class TestJSONAPI:
         self._json_api = json_api.JSONAPIObject(type_, id_)
 
     def then_dict_is(self, data):
-        assert data == self._json_api.as_dict
+        expected = normalize_expected_json_api(data)
+        assert expected == self._json_api.as_dict
 
     def test_create_object_with_id(self):
         self.when_create_json_api("some-type", "some-id")
@@ -50,7 +52,7 @@ class TestJSONAPI:
                 "id": "some-id",
                 "attributes": {},
                 "relationships": {},
-                "version:id": "2"
+                "meta": {"version:id": "2"}
             },
             "included": []
         })
@@ -66,7 +68,7 @@ class TestJSONAPI:
                     "name": "value"
                 },
                 "relationships": {},
-                "version:id": "2"
+                "meta": {"version:id": "2"}
             },
             "included": []
         })
@@ -88,7 +90,7 @@ class TestJSONAPI:
                         "name": "value"
                     },
                     "relationships": {},
-                    "version:id": "2"
+                    "meta": {"version:id": "2"}
                 },
                 "included": []
             }
@@ -106,7 +108,7 @@ class TestJSONAPI:
                     },
                 },
                 'type': 'root-type',
-                'version:id': '2',
+                'meta': {'version:id': '2'},
             },
             'included': [
                 {
@@ -116,7 +118,7 @@ class TestJSONAPI:
                     'id': 'some-id',
                     'relationships': {},
                     'type': 'resource-type',
-                    'version:id': '2',
+                    'meta': {'version:id': '2'},
                 },
             ],
         })
@@ -135,7 +137,7 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             },
             'included': []
         })
@@ -151,7 +153,7 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             },
             'included': []
         })
@@ -173,7 +175,7 @@ class TestJSONAPI:
                     'id': 'uuid_1',
                     'relationships': {},
                     'type': 'some-type',
-                    'version:id': '2'
+                    'meta': {'version:id': '2'}
                 },
                 'included': []
             }
@@ -191,7 +193,7 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'some-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             },
             'included': [{
                 'attributes': {
@@ -200,7 +202,7 @@ class TestJSONAPI:
                 'id': 'uuid_1',
                 'relationships': {},
                 'type': 'some-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             }]
         })
 
@@ -223,7 +225,7 @@ class TestJSONAPI:
                         },
                     },
                     'type': 'root-type',
-                    'version:id': '2',
+                    'meta': {'version:id': '2'},
                 },
                 'included': [
                     {
@@ -233,7 +235,7 @@ class TestJSONAPI:
                         'id': 'some-id',
                         'relationships': {},
                         'type': 'resource-type',
-                        'version:id': '2',
+                        'meta': {'version:id': '2'},
                     },
                 ],
             }
@@ -251,7 +253,7 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'root-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             },
             'included': [{
                 'attributes': {
@@ -260,7 +262,7 @@ class TestJSONAPI:
                 'id': 'some-id',
                 'relationships': {},
                 'type': 'resource-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             }, {
                 'attributes': {},
                 'id': 'uuid_1',
@@ -273,7 +275,7 @@ class TestJSONAPI:
                     }
                 },
                 'type': 'root-type',
-                'version:id': '2'
+                'meta': {'version:id': '2'}
             }]
         })
 
@@ -388,11 +390,11 @@ class TestJSONAPICompatibility:
         assert self._json_api.as_dict["data"]["relationships"] == {}
 
     def then_version_is_meta(self):
-        version = self._json_api.as_dict["data"]["version:id"]
+        version = self._json_api.as_dict["data"]["meta"]["version:id"]
         assert version == "3"
 
     def then_version_is_legacy(self):
-        version = self._json_api.as_dict["data"]["version:id"]
+        version = self._json_api.as_dict["data"]["meta"]["version:id"]
         assert version == "2"
 
     def given_json_api_object(self):

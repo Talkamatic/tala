@@ -54,6 +54,15 @@ class TestJSONAPIDDDCompatibility:
         if isinstance(payload, dict):
             cleaned = {}
             for key, value in payload.items():
+                if key == "meta" and isinstance(value, dict):
+                    meta_cleaned = {}
+                    for meta_key, meta_value in value.items():
+                        if meta_key == "version:id":
+                            continue
+                        meta_cleaned[meta_key] = self._remove_version_id(meta_value)
+                    if meta_cleaned:
+                        cleaned[key] = meta_cleaned
+                    continue
                 if key == "version:id":
                     continue
                 cleaned[key] = self._remove_version_id(value)

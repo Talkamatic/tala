@@ -4,6 +4,7 @@ from tala.model.move import ICM, ICMWithSemanticContent
 from tala.model import plan_item
 from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase
+from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils.unicodify import unicodify
 from tala.model import question
 
@@ -413,21 +414,22 @@ class EndTurnTests(LibTestCase):
         self.assertEqual(self.end_turn_plan_item.type_, plan_item.TYPE_END_TURN)
 
     def test_convert_to_json_api_dict(self):
-        self.assertEqual(
-            self.end_turn_plan_item.as_json_api_dict(), {
-                'data': {
-                    'attributes': {
-                        'timeout': 0.3,
-                        'type_': 'end_turn'
-                    },
-                    'id': 'tala.model.plan_item.EndTurn:0.3',
-                    'relationships': {},
-                    'type': 'tala.model.plan_item.EndTurn',
-                    'version:id': '2'
+        expected = normalize_expected_json_api({
+            'data': {
+                'attributes': {
+                    'timeout': 0.3,
+                    'type_': 'end_turn'
                 },
-                'included': []
-            }
-        )
+                'id': 'tala.model.plan_item.EndTurn:0.3',
+                'relationships': {},
+                'type': 'tala.model.plan_item.EndTurn',
+                'meta': {
+                    'version:id': '2'
+                }
+            },
+            'included': []
+        })
+        self.assertEqual(self.end_turn_plan_item.as_json_api_dict(), expected)
 
     def test_create_from_json_api_dict(self):
         json_api_dict = self.end_turn_plan_item.as_json_api_dict()
