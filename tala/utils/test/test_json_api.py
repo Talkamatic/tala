@@ -276,3 +276,112 @@ class TestJSONAPI:
                 'version:id': '2'
             }]
         })
+
+
+class TestJSONAPICompatibility:
+    def test_create_object_from_dict_without_included(self):
+        self.given_json_api_payload_without_included()
+
+        self.when_creating_object_from_dict()
+
+        self.then_included_is_empty()
+
+    def test_has_relationship_for_list_and_to_one(self):
+        self.given_json_api_object()
+        self.given_list_relationship()
+        self.given_to_one_relationship()
+
+        self.when_checking_relationships()
+
+        self.then_relationships_match()
+
+    def test_get_data_for_relationship_variants(self):
+        self.given_included_objects()
+        self.given_relationships_for_data()
+
+        self.when_loading_relationship_data()
+
+        self.then_relationship_data_matches()
+
+    def given_json_api_payload_without_included(self):
+        self._payload = {
+            "data": {
+                "type": "some-type",
+                "id": "some-id",
+                "attributes": {},
+                "relationships": {},
+            }
+        }
+
+    def when_creating_object_from_dict(self):
+        self._json_api = json_api.JSONAPIObject.create_from_dict(self._payload)
+
+    def then_included_is_empty(self):
+        assert self._json_api.as_dict["included"] == []
+
+    def given_json_api_object(self):
+        self._json_api = json_api.JSONAPIObject("root")
+
+    def given_list_relationship(self):
+        self._json_api.relationships["items"] = {
+            "data": [
+                {"type": "some", "id": "one"},
+                {"type": "some", "id": "two"},
+            ]
+        }
+
+    def given_to_one_relationship(self):
+        self._json_api.relationships["single"] = {"data": {"type": "other", "id": "only"}}
+
+    def when_checking_relationships(self):
+        self._has_item_one = self._json_api.has_relationship("items", "one")
+        self._has_item_three = self._json_api.has_relationship("items", "three")
+        self._has_single = self._json_api.has_relationship("single", "only")
+
+    def then_relationships_match(self):
+        assert self._has_item_one is True
+        assert self._has_item_three is False
+        assert self._has_single is True
+
+    def given_included_objects(self):
+        self._included = json_api.IncludedObject([
+            {"type": "thing", "id": "a", "attributes": {}, "relationships": {}},
+            {"type": "thing", "id": "b", "attributes": {}, "relationships": {}},
+        ])
+
+    def given_relationships_for_data(self):
+        self._data = {
+            "relationships": {
+                "to_many": {
+                    "data": [
+                        {"type": "thing", "id": "a"},
+                        {"type": "thing", "id": "b"},
+                    ]
+                },
+                "to_one": {"data": {"type": "thing", "id": "a"}},
+                "empty": {"data": None},
+            }
+        }
+
+    def when_loading_relationship_data(self):
+        self._to_many = self._included.get_data_for_relationship("to_many", self._data)
+        self._to_one = self._included.get_data_for_relationship("to_one", self._data)
+        self._empty = self._included.get_data_for_relationship("empty", self._data)
+
+    def then_relationship_data_matches(self):
+        to_many_ids = []
+        for item in self._to_many or []:
+            getter = getattr(item, "get", None)
+            if getter is None:
+                assert False, "Expected included items to be dict-like"
+            to_many_ids.append(getter("id"))
+        if not to_many_ids:
+            assert False, "Expected to_many relationship to resolve"
+        assert to_many_ids == ["a", "b"]
+
+        getter = getattr(self._to_one, "get", None)
+        if getter is None:
+            assert False, "Expected to_one relationship to resolve"
+        to_one_id = getter("id")
+        assert to_one_id == "a"
+        assert self._empty is None

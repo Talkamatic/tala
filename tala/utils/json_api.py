@@ -34,10 +34,23 @@ class IncludedObject:
             self._data[type_][id_] = item
 
     def get_object_from_relationship(self, key):
-        return self._data[key["type"]][key["id"]]
+        try:
+            type_ = key["type"]
+            id_ = key["id"]
+        except (TypeError, KeyError):
+            return None
+        return self._data.get(type_, {}).get(id_)
 
     def get_data_for_relationship(self, relationship_name, data):
-        return self.get_object_from_relationship(data["relationships"][relationship_name]["data"])
+        relationship = data["relationships"].get(relationship_name, {})
+        rel_data = relationship.get("data")
+        if rel_data is None:
+            return None
+        try:
+            rel_data[0]
+        except (TypeError, KeyError, IndexError):
+            return self.get_object_from_relationship(rel_data)
+        return [self.get_object_from_relationship(item) for item in rel_data]
 
     @property
     def as_list(self):
@@ -109,7 +122,7 @@ class JSONAPIObject:
     @classmethod
     def create_from_dict(cls, json_data):
         data = json_data["data"]
-        included = json_data["included"]
+        included = json_data.get("included", [])
 
         return cls(data["type"], data["id"], data["attributes"], data["relationships"], included)
 
@@ -132,14 +145,35 @@ class JSONAPIObject:
     def add_relationship(self, name, entry):
         if entry == []:
             self.relationships[name] = {"data": []}
+            return
+
+        data = entry.get("data")
+        if data is None:
+            self.relationships[name] = {"data": None}
+            return
+
+        try:
+            data[0]
+        except (TypeError, KeyError, IndexError):
+            self.relationships[name] = {"data": {"type": data["type"], "id": data["id"]}}
         else:
-            self.relationships[name] = {"data": {"type": entry["data"]["type"], "id": entry["data"]["id"]}}
-            if isinstance(entry["included"], dict):
-                self.include(entry["included"])
-            else:
-                for item in entry["included"]:
-                    self.include(item)
-            self.include(entry["data"])
+            self.relationships[name] = {
+                "data": [{"type": item["type"], "id": item["id"]} for item in data]
+            }
+
+        included = entry.get("included", [])
+        try:
+            for item in included:
+                self.include(item)
+        except TypeError:
+            self.include(included)
+        try:
+            data[0]
+        except (TypeError, KeyError, IndexError):
+            self.include(data)
+        else:
+            for item in data:
+                self.include(item)
 
     def add_relationship_no_include(self, name, entry):
         self.relationships[name] = {"data": {"type": entry["data"]["type"], "id": entry["data"]["id"]}}
@@ -155,13 +189,17 @@ class JSONAPIObject:
 
     def has_relationship(self, name, id_):
         if name in self.relationships:
-            if type(self.relationships[name]["data"] is list):
-                for item in self.relationships[name]["data"]:
-                    if item["id"] == id_:
-                        return True
+            data = self.relationships[name]["data"]
+            if data is None:
                 return False
-            else:
-                return self.relationships[name]["data"]["id"] == id_
+            try:
+                data[0]
+            except (TypeError, KeyError, IndexError):
+                return data["id"] == id_
+            for item in data:
+                if item["id"] == id_:
+                    return True
+            return False
 
     def add_attribute(self, name, entry):
         self.attributes[name] = entry

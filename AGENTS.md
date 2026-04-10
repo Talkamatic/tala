@@ -78,6 +78,8 @@
 - Broad `except Exception` exists in legacy paths; if you touch that code,
   consider tightening to specific exceptions when safe.
 - Prefer duck-typing over explicit `isinstance` checks in new code.
+- When in doubt, use "ask forgiveness" (EAFP) rather than explicit type
+  checks.
 
 ### Logging
 - Use structured logging via `structlog` (`tala/utils/func.py`).
