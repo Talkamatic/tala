@@ -1,3 +1,6 @@
+import warnings
+
+from tala.ddd.json_parser import JSONDDDParser
 from tala.ddd.parser import Parser
 from tala.ddd.services.parameters.retriever import ParameterRetriever
 from tala.ddd.extended_ddd import ExtendedDDD
@@ -86,8 +89,7 @@ class DDDManager(object):
 
     def load_ddd_for_ontology_name(self, name):
         for ddd_as_json in self.ddds_as_json:
-            self._require_json_api_format(ddd_as_json)
-            ontology_name = ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
+            ontology_name = self._get_ontology_name(ddd_as_json)
             if ontology_name == name:
                 self._parse_and_add(ddd_as_json)
                 return
@@ -100,23 +102,55 @@ class DDDManager(object):
         self.ddd_names = ddd_names
         self.ddds_as_json = ddds_as_json
 
-    def _require_json_api_format(self, ddd_as_json):
-        if "data" not in ddd_as_json:
-            ddd_name = ddd_as_json.get("ddd_name", "<unknown>")
-            raise LegacyDddJsonFormatException(
-                "Legacy DDD JSON format is no longer supported "
-                f"(ddd='{ddd_name}'). Regenerate the ODB using JSON:API."
-            )
+    def _is_json_api_format(self, ddd_as_json):
+        return "data" in ddd_as_json
+
+    def _is_legacy_format(self, ddd_as_json):
+        return "ddd_name" in ddd_as_json or "ontology" in ddd_as_json
+
+    def _warn_legacy_format(self, ddd_as_json):
+        ddd_name = ddd_as_json.get("ddd_name", "<unknown>")
+        warnings.warn(
+            "Legacy DDD JSON format is deprecated and will be removed. "
+            f"Regenerate the ODB using JSON:API (ddd='{ddd_name}').",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    def _get_ontology_name(self, ddd_as_json):
+        if self._is_json_api_format(ddd_as_json):
+            return ddd_as_json["data"]["relationships"]["ontology"]["data"]["id"]
+        if self._is_legacy_format(ddd_as_json):
+            self._warn_legacy_format(ddd_as_json)
+            return ddd_as_json["ontology"]["_name"]
+        raise LegacyDddJsonFormatException(
+            "Unrecognized DDD JSON format; expected JSON:API or legacy shape."
+        )
 
     def _get_ddd_as_json(self, name):
         for ddd_as_json in self.ddds_as_json:
-            self._require_json_api_format(ddd_as_json)
-            if name == ddd_as_json["data"]["attributes"]["name"]:
-                return ddd_as_json
+            if self._is_json_api_format(ddd_as_json):
+                if name == ddd_as_json["data"]["attributes"]["name"]:
+                    return ddd_as_json
+                continue
+            if self._is_legacy_format(ddd_as_json):
+                if name == ddd_as_json["ddd_name"]:
+                    return ddd_as_json
+                continue
+        raise LegacyDddJsonFormatException(
+            f"Unable to locate DDD '{name}' with JSON:API or legacy shape."
+        )
 
     def _parse_and_add(self, ddd_as_json):
-        self._require_json_api_format(ddd_as_json)
-        ddd = DDD.create_from_json_api_data(ddd_as_json)
+        if self._is_json_api_format(ddd_as_json):
+            ddd = DDD.create_from_json_api_data(ddd_as_json)
+        elif self._is_legacy_format(ddd_as_json):
+            self._warn_legacy_format(ddd_as_json)
+            ddd = JSONDDDParser().parse(ddd_as_json)
+        else:
+            raise LegacyDddJsonFormatException(
+                "Unrecognized DDD JSON format; expected JSON:API or legacy shape."
+            )
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
         extended_ddd = ExtendedDDD(ddd, parameter_retriever, parser)
