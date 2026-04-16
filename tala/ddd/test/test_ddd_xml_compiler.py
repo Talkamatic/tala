@@ -5,6 +5,7 @@ import pytest
 import tala.ddd.ddd_xml_compiler
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DDDXMLCompilerException, ViolatesSchemaException, OntologyWarning
 from tala.ddd.parser import Parser
+from tala.ddd.json_parser import NonCheckingJSONParser
 from tala.ddd.services.service_interface import (
     ServiceParameter, ServiceActionInterface, ServiceQueryInterface, ServiceValidatorInterface, FrontendTarget,
     HttpTarget, ServiceInterface, ActionFailureReason, ParameterField
@@ -1677,6 +1678,49 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             '<bind type="wh_question" predicate="price" allow_answer_from_pcom="true"/>', ViolatesSchemaException,
             "Expected domain.xml compliant with schema but it's in violation: Element 'bind', attribute 'allow_answer_from_pcom': The attribute 'allow_answer_from_pcom' is not allowed., line 4"
         )
+
+    def test_bind_yn_question_roundtrip_json_with_predicate_attribute(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="yn_more_ingredients" sort="boolean"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            '<bind type="yn_question" predicate="yn_more_ingredients"/>'
+        )
+
+        plan = self._result["plans"][0]["plan"]
+        item = plan.top()
+        parser = NonCheckingJSONParser()
+        parsed = parser.parse_plan_item(item.as_json())
+
+        assert parsed == item
+        assert parsed.question.is_yes_no_question()
+
+    def test_bind_yn_question_roundtrip_json_with_proposition_child(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="yn_more_ingredients" sort="boolean"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain_with_plan(
+            """
+<bind type="yn_question">
+  <proposition predicate="yn_more_ingredients" value="true"/>
+</bind>"""
+        )
+
+        plan = self._result["plans"][0]["plan"]
+        item = plan.top()
+        parser = NonCheckingJSONParser()
+        parsed = parser.parse_plan_item(item.as_json())
+
+        assert parsed == item
+        assert parsed.question.is_yes_no_question()
 
     def test_findout_for_ynq(self):
         self._given_compiled_ontology(

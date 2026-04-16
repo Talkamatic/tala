@@ -613,6 +613,9 @@ class NonCheckingJSONParser():
         return plan_item.Respond(question)
 
     def parse_bind_plan_item(self, data):
+        question_type = data.get("_type")
+        if question_type not in Question.TYPES:
+            raise JSONParseFailure(f"Cannot parse {data} as bind question.")
         question = self.parse_question(data)
         return plan_item.Bind(question)
 
@@ -970,12 +973,13 @@ class NonCheckingJSONParser():
         raise JSONParseFailure(f"Cannot parse {data} as proposition.")
 
     def _create_predicate_proposition(self, data):
-        if data["predicate"]["sort"]["_name"] == "boolean":
+        individual_data = data.get("individual")
+        if data["predicate"]["sort"]["_name"] == "string" and individual_data is None:
             individual = None
-        elif data["predicate"]["sort"]["_name"] == "string" and data["individual"] is None:
+        elif individual_data is None:
             individual = None
         else:
-            individual = self.parse_individual(data["individual"])
+            individual = self.parse_individual(individual_data)
         predicate = self.parse_predicate(data["predicate"])
         polarity = data.get("_polarity")
         return PredicateProposition(predicate, individual, polarity)

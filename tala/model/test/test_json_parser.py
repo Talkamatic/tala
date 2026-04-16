@@ -1,7 +1,8 @@
 import pytest
 
-from tala.ddd.json_parser import NonCheckingJSONParser
+from tala.ddd.json_parser import NonCheckingJSONParser, JSONParseFailure
 from tala.model import plan_item
+from tala.testing.lib_test_case import LibTestCase
 
 
 class TestNonCheckingJsonParser:
@@ -42,3 +43,22 @@ class TestNonCheckingJsonParser:
         self._given_plan_item_as_dict({'log': {'message': 'test message', 'level': "kalle_kula"}})
         with pytest.raises(plan_item.UnexpectedLogLevelException):
             self._when_parsing_dict_as_plan_item()
+
+    def test_bind_yes_no_question_preserves_boolean_individual(self):
+        lib_case = LibTestCase()
+        lib_case.setUpLibTestCase()
+        question = lib_case.ontology.create_yes_no_question("need_visa", True)
+        item = plan_item.Bind(question)
+
+        parsed = self._parser.parse_plan_item(item.as_json())
+
+        assert parsed.question.content.individual is not None
+        assert parsed.question.content.individual.value is True
+
+    def test_bind_rejects_non_question_json(self):
+        lib_case = LibTestCase()
+        lib_case.setUpLibTestCase()
+        proposition = lib_case.proposition_dest_city_paris
+
+        with pytest.raises(JSONParseFailure):
+            self._parser.parse_plan_item({plan_item.TYPE_BIND: proposition.as_json()})
