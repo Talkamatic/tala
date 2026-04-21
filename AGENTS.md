@@ -27,6 +27,7 @@
   - `python -m flake8 tala`
 - Pylint (available, no explicit config):
   - `python -m pylint tala`
+- Run `flake8` clean before committing anything.
 
 ## Format
 - YAPF (configured in `setup.cfg`):

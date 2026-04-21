@@ -71,6 +71,16 @@ but got:  {json.dumps(self._actual)}
           {self._mismatch_position_description(self._actual, self._expected)}"""
 
     def _content_matches_pattern(self, actual, expected):
+        if expected and isinstance(expected[0], list):
+            for alternative in expected:
+                if self._moves_match(actual, alternative):
+                    self._expected = alternative
+                    return True
+            self._expected = expected[0]
+            return False
+        return self._moves_match(actual, expected)
+
+    def _moves_match(self, actual, expected):
         if len(actual) == len(expected):
             for actual_move, expected_move in zip(actual, expected):
                 if not self._move_matches_expectation(actual_move, expected_move):

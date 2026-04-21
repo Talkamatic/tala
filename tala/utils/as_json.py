@@ -29,27 +29,51 @@ def convert_to_json(object_, verbose=True):
     return str(object_)
 
 
-def convert_to_human_readable_json(object_):
+def convert_to_human_readable_json(object_, _memo=None):
     if object_ is None:
-        s = None
-    elif object_ is True or object_ is False:
-        s = object_
-    elif isinstance(object_, list):
-        s = [convert_to_human_readable_json(element) for element in object_]
-    elif isinstance(object_, set):
-        s = {"set": [convert_to_human_readable_json(element) for element in object_]}
-    elif isinstance(object_, dict):
-        s = {str(key): convert_to_human_readable_json(value) for key, value in list(object_.items())}
-        if "semantic_expression" in s:
-            s = s["semantic_expression"]
-    elif isinstance(object_, AsSemanticExpressionMixin):
-        s = json_semantic_expression_of(object_)
-    elif isinstance(object_, AsJSONMixin):
+        return None
+    if object_ is True or object_ is False:
+        return object_
+
+    if _memo is None:
+        _memo = {}
+    object_id = id(object_)
+    if object_id in _memo:
+        return _memo[object_id]
+
+    if isinstance(object_, list):
+        result = []
+        _memo[object_id] = result
+        result.extend([convert_to_human_readable_json(element, _memo) for element in object_])
+        return result
+    if isinstance(object_, set):
+        result = {"set": []}
+        _memo[object_id] = result
+        result["set"].extend([convert_to_human_readable_json(element, _memo) for element in object_])
+        return result
+    if isinstance(object_, dict):
+        if "semantic_expression" in object_:
+            result = convert_to_human_readable_json(object_["semantic_expression"], _memo)
+            _memo[object_id] = result
+            return result
+        result = {}
+        _memo[object_id] = result
+        for key, value in object_.items():
+            result[str(key)] = convert_to_human_readable_json(value, _memo)
+        return result
+    if isinstance(object_, AsSemanticExpressionMixin):
+        result = json_semantic_expression_of(object_)
+        _memo[object_id] = result
+        return result
+    if isinstance(object_, AsJSONMixin):
         dict_ = object_.as_dict()
-        s = convert_to_human_readable_json(dict_)
-    else:
-        s = str(object_)
-    return s
+        result = convert_to_human_readable_json(dict_, _memo)
+        _memo[object_id] = result
+        return result
+
+    result = str(object_)
+    _memo[object_id] = result
+    return result
 
 
 class AsJSONMixin(object):
