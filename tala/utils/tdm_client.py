@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Sequence, Mapping  # noqa: F401
 
 import requests
@@ -25,6 +26,7 @@ class TDMClient(Observable):
         super(TDMClient, self).__init__()
         self._url = url
         self._session = None
+        self._request_timeout = self._get_request_timeout()
 
     @property
     def session(self):
@@ -114,7 +116,12 @@ class TDMClient(Observable):
     def _make_request(self, request_body):
         data_as_json = json.dumps(request_body)
         headers = {'Content-type': 'application/json'}
-        response_object = requests.post(self._url, data=data_as_json, headers=headers)
+        response_object = requests.post(
+            self._url,
+            data=data_as_json,
+            headers=headers,
+            timeout=self._request_timeout,
+        )
         response_object.raise_for_status()
         try:
             response = response_object.json()
@@ -125,3 +132,10 @@ class TDMClient(Observable):
             description = response["error"]["description"]
             raise TDMRuntimeException(description)
         return response
+
+    def _get_request_timeout(self):
+        timeout = os.getenv("TDM_REQUEST_TIMEOUT_SECONDS", "120")
+        try:
+            return float(timeout)
+        except ValueError:
+            return 120.0

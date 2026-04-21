@@ -41,6 +41,7 @@ NO_VOICE_ACTIVATION = {"no_content": {}}
 logger = structlog.get_logger(__name__)
 log_level = getenv("LOG_LEVEL", "INFO")
 configure_stdout_logging(log_level)
+REQUEST_TIMEOUT_SECONDS = getenv("TDM_REQUEST_TIMEOUT_SECONDS", "120")
 
 REDACTED_LOG_FIELDS = {
     "ndu",
@@ -404,7 +405,12 @@ class InteractionTester:
             }
         }
         logger.info("making query request to http service", url=url, data=data)
-        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response = requests.post(
+            url,
+            data=json.dumps(data),
+            headers={"Content-type": "application/json"},
+            timeout=self._request_timeout_seconds(),
+        )
         try:
             response_dict = json.loads(response.text)
         except BaseException:
@@ -443,7 +449,12 @@ class InteractionTester:
                 "parameters": parameters,
             }
         }
-        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response = requests.post(
+            url,
+            data=json.dumps(data),
+            headers={"Content-type": "application/json"},
+            timeout=self._request_timeout_seconds(),
+        )
         response_dict = json.loads(response.text)
         return response_dict
 
@@ -475,9 +486,20 @@ class InteractionTester:
                 "parameters": parameters,
             }
         }
-        response = requests.post(url, data=json.dumps(data), headers={"Content-type": "application/json"})
+        response = requests.post(
+            url,
+            data=json.dumps(data),
+            headers={"Content-type": "application/json"},
+            timeout=self._request_timeout_seconds(),
+        )
         response_dict = json.loads(response.text)
         return response_dict
+
+    def _request_timeout_seconds(self):
+        try:
+            return float(REQUEST_TIMEOUT_SECONDS)
+        except ValueError:
+            return 120.0
 
     def _passivity_mismatch(self, expected_passivity_value):
         actual_value = self._latest_response[OUTPUT].get(EXPECTED_PASSIVITY)
