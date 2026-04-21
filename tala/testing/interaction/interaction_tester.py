@@ -303,9 +303,25 @@ class InteractionTester:
             warnings.warn(f"response has no session data: {self._latest_response}")
 
     def _create_user_move(self, move):
+        prefixed = self._split_prefixed_move(move)
+        if prefixed:
+            ddd, semantic_expression = prefixed
+            return DDDSpecificUserMove(ddd, semantic_expression, 1.0, 1.0)
         if self._ddd_name:
             return DDDSpecificUserMove(self._ddd_name, move, 1.0, 1.0)
         return UserMove(move, 1.0, 1.0)
+
+    def _split_prefixed_move(self, move):
+        if not isinstance(move, str):
+            return None
+        if ":" not in move:
+            return None
+        ddd, remainder = move.split(":", 1)
+        if not ddd or not remainder:
+            return None
+        if remainder.startswith(("ask(", "answer(", "request(", "report(", "icm:")):
+            return ddd, remainder
+        return None
 
     def _do_system_turn(self, system_entry):
         self.check_for_consecutive_speaker(SYSTEM)

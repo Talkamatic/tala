@@ -104,6 +104,15 @@ Semantic moves (optionally with `utterance`):
 }
 ```
 
+DDD-prefixed semantic moves (prefix overrides `target_ddd`):
+
+```json
+{
+  "speaker": "user",
+  "move_content": ["hello_world:answer(hour_to_set(11))"]
+}
+```
+
 Speech input:
 
 ```json
@@ -141,6 +150,9 @@ System entries can assert moves, speech output, or passivity:
 
 When both `move_content` and `speech_content` are provided in a system entry,
 the tester asserts both the move list and the utterance.
+
+System `move_content` does not support DDD-prefixed moves because output moves
+do not carry DDD metadata. Use plain move expressions for system expectations.
 
 ```json
 {
