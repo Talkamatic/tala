@@ -36,7 +36,9 @@ class TestTDMClient(object):
         self._tdm_client.start_session(session)
 
     def _then_request_was_made_with(self, url, headers, data):
-        self._mocked_requests.post.assert_has_calls([call(url, data=data, headers=headers)])
+        self._mocked_requests.post.assert_has_calls([
+            call(url, data=data, headers=headers, timeout=self._tdm_client._request_timeout)
+        ])
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)
     def test_start_session_with_data(self, mock_requests):
