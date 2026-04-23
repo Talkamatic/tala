@@ -247,6 +247,12 @@ class DddConfig(Config):
             "use_rgl": OptionalConfigField(default_value=False),
             "use_third_party_parser": OptionalConfigField(default_value=False),
             "word_list": OptionalConfigField(default_value="word_list.txt"),
+            "ddd_files": OptionalConfigField(default_value={
+                "ontology": "ontology.xml",
+                "domain": "domain.xml",
+                "service_interface": "service_interface.xml",
+            }),
+            "ddd_bundle": OptionalConfigField(default_value=None),
         }
 
     def _raise_config_not_found_exception(self):

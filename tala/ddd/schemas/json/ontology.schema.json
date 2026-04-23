@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ontology JSON",
+  "type": "object",
+  "required": ["ontology"],
+  "properties": {
+    "ontology": {"$ref": "#/$defs/node"}
+  },
+  "$defs": {
+    "attributes": {
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "boolean"]}
+    },
+    "child": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/node"}
+    },
+    "node": {
+      "type": "object",
+      "properties": {
+        "@": {"$ref": "#/$defs/attributes"},
+        "children": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/child"}
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {"$ref": "#/$defs/node"},
+          {
+            "type": "array",
+            "items": {"$ref": "#/$defs/node"}
+          }
+        ]
+      }
+    }
+  }
+}

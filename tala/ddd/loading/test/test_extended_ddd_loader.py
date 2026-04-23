@@ -32,6 +32,26 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         self._when_load_is_called("mockup_app")
         self._then_result_contains_ddd("mockup_app")
 
+    def test_load_json(self):
+        self._given_ontology_json_file("mockup_app/ontology.json")
+        self._given_domain_json_file("mockup_app/domain.json")
+        self._given_service_interface_json_file("mockup_app/service_interface.json")
+        self._given_mocked_ddd_config(
+            ddd_files={
+                "ontology": "ontology.json",
+                "domain": "domain.json",
+                "service_interface": "service_interface.json",
+            }
+        )
+        self._when_load_is_called("mockup_app")
+        self._then_result_contains_ddd("mockup_app")
+
+    def test_load_json_bundle(self):
+        self._given_ddd_bundle_json_file("mockup_app/ddd.json")
+        self._given_mocked_ddd_config(ddd_bundle="ddd.json")
+        self._when_load_is_called("mockup_app")
+        self._then_result_contains_ddd("mockup_app")
+
     def _then_result_contains_ddd(self, ddd_name):
         ddd = self._result
         self.assertEqual(ddd_name, ddd.name)
@@ -77,6 +97,26 @@ class TestExtendedDDDLoader(DddMockingTestCase):
 
     def _then_loaded_ddd_has_service_interface(self):
         self.assertTrue(isinstance(self._result.service_interface, ServiceInterface))
+
+    def _given_ontology_json_file(self, path):
+        content = '{"ontology": {"@": {"name": "MockupOntology"}}}'
+        self.create_mockup_file(path, content)
+
+    def _given_domain_json_file(self, path):
+        content = '{"domain": {"@": {"name": "MockupDomain"}}}'
+        self.create_mockup_file(path, content)
+
+    def _given_service_interface_json_file(self, path):
+        content = '{"service_interface": {}}'
+        self.create_mockup_file(path, content)
+
+    def _given_ddd_bundle_json_file(self, path):
+        content = (
+            '{"ontology": {"@": {"name": "MockupOntology"}}, '
+            '"domain": {"@": {"name": "MockupDomain"}}, '
+            '"service_interface": {}}'
+        )
+        self.create_mockup_file(path, "".join(content))
 
     def test_missing_service_interface_raises_exception(self):
         self._given_ontology_xml_file("mockup_app/ontology.xml")
