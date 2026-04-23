@@ -298,15 +298,6 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         move_string = "Move(greet, ddd_name='mockup_ddd', speaker=SYS, understanding_confidence=1.0, " "weighted_understanding_confidence=1.0, perception_confidence=0.9, modality=speech)"
         self.assertEqual(move_string, str(move))
 
-    def test_str_with_background(self):
-        move = self.move_factory.create_ask_move(speaker=speaker.SYS, question=self.dept_city_question)
-        move.set_background([self.proposition_dest_city_paris])
-        self.assertEqual(
-            "Move(ask(?X.dept_city(X), [dest_city(paris)]), ddd_name='mockup_ddd', speaker=SYS, "
-            "understanding_confidence=1.0, weighted_understanding_confidence=1.0, "
-            "perception_confidence=1.0, modality=speech)", str(move)
-        )
-
     def test_str_with_utterance(self):
         move = self.move_factory.create_move(
             Move.GREET, understanding_confidence=0.5, speaker=speaker.USR, utterance="hello"

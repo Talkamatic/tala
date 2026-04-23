@@ -957,7 +957,6 @@ class DomainCompiler(XmlCompiler):
         self._compile_questions_valued_parameter(element, "label_questions", "label_question", result)
         self._compile_questions_valued_parameter(element, "related_information", "related_information", result)
         self._compile_alts_parameter(question, element, result)
-        self._compile_predicates_parameter(element, "background", "background", result)
         self._compile_ask_feature_parameter(element, "ask_feature", "ask_features", result)
         self._compile_hint_parameter(element, "hint", "hints", result)
         self._compile_always_relevant_parameter(element, "always_relevant", "always_relevant", result)
@@ -1002,11 +1001,6 @@ class DomainCompiler(XmlCompiler):
         child_nodes = self._find_child_nodes(element, node_name)
         if len(child_nodes) > 0:
             result[parameter_name] = [self._compile_question(node) for node in child_nodes]
-
-    def _compile_predicates_parameter(self, parent, element_name, parameter_name, result):
-        child_nodes = self._find_child_nodes(parent, element_name)
-        if len(child_nodes) > 0:
-            result[parameter_name] = [self._compile_predicate(node) for node in child_nodes]
 
     def _compile_ask_feature_parameter(self, parent, element_name, parameter_name, result):
         child_nodes = self._find_child_nodes(parent, element_name)

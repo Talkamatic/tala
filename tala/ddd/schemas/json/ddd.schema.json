@@ -1,13 +1,28 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "DDD JSON bundle",
-  "type": "object",
-  "required": ["ontology", "domain", "service_interface"],
-  "properties": {
-    "schema_version": {"type": "string"},
-    "ontology": {"$ref": "ontology.schema.json#/$defs/node"},
-    "domain": {"$ref": "domain.schema.json#/$defs/node"},
-    "service_interface": {"$ref": "service_interface.schema.json#/$defs/node"}
-  },
-  "additionalProperties": false
+  "title": "Human-readable DDD Bundle JSON",
+  "oneOf": [
+    {"$ref": "#/$defs/bundle"},
+    {
+      "type": "object",
+      "required": ["ddd"],
+      "properties": {
+        "ddd": {"$ref": "#/$defs/bundle"}
+      },
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "bundle": {
+      "type": "object",
+      "properties": {
+        "schema_version": {"type": "string"},
+        "ontology": {"$ref": "ontology.schema.json"},
+        "domain": {"$ref": "domain.schema.json"},
+        "service_interface": {"$ref": "service_interface.schema.json"}
+      },
+      "required": ["ontology", "domain", "service_interface"],
+      "additionalProperties": false
+    }
+  }
 }

@@ -1,0 +1,474 @@
+{
+  "service_interface": {
+    "actions": [
+      {
+        "name": "CancelReservation",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/CancelReservation"
+          }
+        },
+        "failure_reasons": [
+          "no_reservation_exists"
+        ]
+      },
+      {
+        "name": "MakeRandomReservation",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/MakeRandomReservation"
+          }
+        }
+      },
+      {
+        "name": "MakeReservation",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/make_reservation"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "value"
+          },
+          {
+            "predicate": "dept_city",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "AddPassengers",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/AddPassengers"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "passenger_type_to_add",
+            "format": "value"
+          },
+          {
+            "predicate": "passenger_quantity_to_add",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "RegisterComment",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/RegisterComment"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "comment_message",
+            "format": "value"
+          },
+          {
+            "predicate": "comment_name",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "BookHousing",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/BookHousing"
+          }
+        }
+      },
+      {
+        "name": "ShowOnMap",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/ShowOnMap"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "grammar_entry"
+          }
+        ]
+      },
+      {
+        "name": "HandoverToHuman",
+        "target": {
+          "frontend": {}
+        }
+      }
+    ],
+    "queries": [
+      {
+        "name": "num_available_dept_cities",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/num_available_dept_cities"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "grammar_entry"
+          }
+        ]
+      },
+      {
+        "name": "code",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/code"
+          }
+        }
+      },
+      {
+        "name": "selected_housing",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/selected_housing"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "selected_housing_type",
+            "format": "value",
+            "optional": true
+          },
+          {
+            "predicate": "selected_housing_rating",
+            "format": "value",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "selected_housing_for_pets",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/selected_housing_for_pets"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "selected_housing_type",
+            "format": "value",
+            "optional": true
+          },
+          {
+            "predicate": "selected_housing_rating",
+            "format": "value",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "selected_housing_for_moomins",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/selected_housing_for_moomins"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "selected_housing_type",
+            "format": "value",
+            "optional": true
+          },
+          {
+            "predicate": "selected_housing_rating",
+            "format": "value",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "selected_housing_for_contact",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/selected_housing_for_contact"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "selected_housing_type",
+            "format": "value",
+            "optional": true
+          },
+          {
+            "predicate": "selected_housing_rating",
+            "format": "value",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "next_membership_level",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/next_membership_level"
+          }
+        }
+      },
+      {
+        "name": "selected_train_type",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/selected_train_type"
+          }
+        }
+      },
+      {
+        "name": "passenger_quantity_to_add",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/passenger_quantity_to_add"
+          }
+        }
+      },
+      {
+        "name": "available_member_type",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/available_member_type"
+          }
+        }
+      },
+      {
+        "name": "price",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/price"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "means_of_transport",
+            "format": "value"
+          },
+          {
+            "predicate": "dest_city",
+            "format": "value"
+          },
+          {
+            "predicate": "dept_city",
+            "format": "value"
+          },
+          {
+            "predicate": "dept_month",
+            "format": "value"
+          },
+          {
+            "predicate": "dept_day",
+            "format": "value"
+          },
+          {
+            "predicate": "class",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "dept_city",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/dept_city"
+          }
+        }
+      },
+      {
+        "name": "attraction_information",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/attraction_information"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "attraction",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "available_payment_method",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/available_payment_method"
+          }
+        }
+      },
+      {
+        "name": "current_position",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/current_position"
+          }
+        }
+      },
+      {
+        "name": "frequent_flyer_points",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/frequent_flyer_points"
+          }
+        }
+      },
+      {
+        "name": "qualified_for_membership",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/qualified_for_membership"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "value",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "available_means_of_transport",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/available_means_of_transport"
+          }
+        }
+      },
+      {
+        "name": "available_dept_city",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/available_dept_city"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "grammar_entry"
+          }
+        ]
+      },
+      {
+        "name": "room_availability",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/room_availability"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "selected_room_type",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "frequent_flyer_number",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/frequent_flyer_number"
+          }
+        }
+      },
+      {
+        "name": "next_membership_points",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/next_membership_points"
+          }
+        }
+      },
+      {
+        "name": "house_owner_name",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/house_owner_name"
+          }
+        }
+      },
+      {
+        "name": "need_visa",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/need_visa"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dept_city",
+            "format": "grammar_entry"
+          },
+          {
+            "predicate": "dest_city",
+            "format": "grammar_entry"
+          }
+        ]
+      },
+      {
+        "name": "flight_on_time",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/flight_on_time"
+          }
+        }
+      },
+      {
+        "name": "flight_departure",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/flight_departure"
+          }
+        }
+      },
+      {
+        "name": "flight_exists",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/flight_exists"
+          }
+        }
+      }
+    ],
+    "validators": [
+      {
+        "name": "CityValidity",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/city_validity"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "value"
+          }
+        ]
+      },
+      {
+        "name": "CityTypeValidity",
+        "target": {
+          "http": {
+            "endpoint": "http://127.0.0.1:10100/city_type_validity"
+          }
+        },
+        "parameters": [
+          {
+            "predicate": "dest_city",
+            "format": "value"
+          },
+          {
+            "predicate": "dest_city_type",
+            "format": "value"
+          }
+        ]
+      }
+    ]
+  }
+}

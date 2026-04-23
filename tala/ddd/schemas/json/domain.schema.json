@@ -1,40 +1,928 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Domain JSON",
+  "title": "Human-readable Domain JSON",
   "type": "object",
   "required": ["domain"],
   "properties": {
-    "domain": {"$ref": "#/$defs/node"}
+    "domain": {"$ref": "#/$defs/domain"}
   },
+  "additionalProperties": false,
   "$defs": {
-    "attributes": {
+    "domain": {
       "type": "object",
-      "additionalProperties": {"type": ["string", "number", "boolean"]}
-    },
-    "child": {
-      "type": "object",
-      "minProperties": 1,
-      "maxProperties": 1,
-      "additionalProperties": {"$ref": "#/$defs/node"}
-    },
-    "node": {
-      "type": "object",
+      "required": ["name", "plans"],
       "properties": {
-        "@": {"$ref": "#/$defs/attributes"},
-        "children": {
+        "name": {"type": "string"},
+        "plans": {
           "type": "array",
-          "items": {"$ref": "#/$defs/child"}
+          "items": {"$ref": "#/$defs/plan"}
+        },
+        "default_questions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/question"}
+        },
+        "parameters": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/parameter_entry"}
+        },
+        "queries": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/query_entry"}
+        },
+        "iterators": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/iterator_entry"}
+        },
+        "validators": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/validator_entry"}
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/dependency_entry"}
         }
       },
-      "additionalProperties": {
-        "anyOf": [
-          {"$ref": "#/$defs/node"},
-          {
+      "additionalProperties": false
+    },
+    "plan": {
+      "type": "object",
+      "required": ["goal", "content"],
+      "properties": {
+        "goal": {"$ref": "#/$defs/goal"},
+        "content": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/plan_item"}
+        },
+        "postplan": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/plan_item"}
+        },
+        "preferred": {"$ref": "#/$defs/preferred"},
+        "accommodate_without_feedback": {"type": "boolean"},
+        "restart_on_completion": {"type": "boolean"},
+        "reraise_on_resume": {"type": "boolean"},
+        "max_answers": {"type": "integer", "minimum": 0},
+        "alternatives_predicate": {"type": "string"},
+        "superactions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "downdate_conditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/condition"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "goal": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["perform"],
+          "properties": {
+            "perform": {"$ref": "#/$defs/perform_goal"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["resolve"],
+          "properties": {
+            "resolve": {"$ref": "#/$defs/resolve_goal"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "perform_goal": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "resolve_goal": {
+      "type": "object",
+      "required": ["question"],
+      "properties": {
+        "question": {"$ref": "#/$defs/question"}
+      },
+      "additionalProperties": false
+    },
+    "question": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["wh"],
+          "properties": {
+            "wh": {"$ref": "#/$defs/wh_question"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["yn"],
+          "properties": {
+            "yn": {"$ref": "#/$defs/yn_question"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["alt"],
+          "properties": {
+            "alt": {"$ref": "#/$defs/alt_question"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["goal"],
+          "properties": {
+            "goal": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "wh_question": {
+      "type": "object",
+      "required": ["predicate"],
+      "properties": {
+        "predicate": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "yn_question": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["predicate"],
+          "properties": {
+            "predicate": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["proposition"],
+          "properties": {
+            "proposition": {"$ref": "#/$defs/proposition"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "alt_question": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/alt_item"},
+      "minItems": 1
+    },
+    "alt_item": {
+      "type": "object",
+      "oneOf": [
+        {"$ref": "#/$defs/proposition_container"},
+        {"$ref": "#/$defs/goal_proposition"}
+      ]
+    },
+    "proposition": {
+      "oneOf": [
+        {"$ref": "#/$defs/predicate_proposition"},
+        {"$ref": "#/$defs/goal_proposition"}
+      ]
+    },
+    "predicate_proposition": {
+      "type": "object",
+      "required": ["predicate"],
+      "properties": {
+        "predicate": {"type": "string"},
+        "value": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "goal_proposition": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["perform"],
+          "properties": {
+            "perform": {"$ref": "#/$defs/perform_goal"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["resolve"],
+          "properties": {
+            "resolve": {"$ref": "#/$defs/resolve_goal"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "preferred": {
+      "oneOf": [
+        {"type": "boolean"},
+        {"$ref": "#/$defs/predicate_proposition"}
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "oneOf": [
+        {"$ref": "#/$defs/is_true"},
+        {"$ref": "#/$defs/is_shared_fact"},
+        {"$ref": "#/$defs/is_private_belief"},
+        {"$ref": "#/$defs/is_shared_commitment"},
+        {"$ref": "#/$defs/is_private_belief_or_shared_commitment"},
+        {"$ref": "#/$defs/has_value"},
+        {"$ref": "#/$defs/has_shared_value"},
+        {"$ref": "#/$defs/has_private_value"},
+        {"$ref": "#/$defs/has_shared_or_private_value"},
+        {"$ref": "#/$defs/has_more_items"}
+      ]
+    },
+    "is_true": {
+      "type": "object",
+      "required": ["is_true"],
+      "properties": {
+        "is_true": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "is_shared_fact": {
+      "type": "object",
+      "required": ["is_shared_fact"],
+      "properties": {
+        "is_shared_fact": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "is_private_belief": {
+      "type": "object",
+      "required": ["is_private_belief"],
+      "properties": {
+        "is_private_belief": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "is_shared_commitment": {
+      "type": "object",
+      "required": ["is_shared_commitment"],
+      "properties": {
+        "is_shared_commitment": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "is_private_belief_or_shared_commitment": {
+      "type": "object",
+      "required": ["is_private_belief_or_shared_commitment"],
+      "properties": {
+        "is_private_belief_or_shared_commitment": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "has_value": {
+      "type": "object",
+      "required": ["has_value"],
+      "properties": {
+        "has_value": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "has_shared_value": {
+      "type": "object",
+      "required": ["has_shared_value"],
+      "properties": {
+        "has_shared_value": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "has_private_value": {
+      "type": "object",
+      "required": ["has_private_value"],
+      "properties": {
+        "has_private_value": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "has_shared_or_private_value": {
+      "type": "object",
+      "required": ["has_shared_or_private_value"],
+      "properties": {
+        "has_shared_or_private_value": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "has_more_items": {
+      "type": "object",
+      "required": ["has_more_items"],
+      "properties": {
+        "has_more_items": {
+          "oneOf": [
+            {
+              "required": ["predicate"],
+              "properties": {
+                "predicate": {"type": "string"}
+              },
+              "additionalProperties": false
+            },
+            {
+              "required": ["iterator"],
+              "properties": {
+                "iterator": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "plan_item": {
+      "type": "object",
+      "oneOf": [
+        {"$ref": "#/$defs/findout"},
+        {"$ref": "#/$defs/raise"},
+        {"$ref": "#/$defs/bind"},
+        {"$ref": "#/$defs/if_then_else"},
+        {"$ref": "#/$defs/once"},
+        {"$ref": "#/$defs/forget"},
+        {"$ref": "#/$defs/forget_shared"},
+        {"$ref": "#/$defs/forget_all"},
+        {"$ref": "#/$defs/invoke_service_query"},
+        {"$ref": "#/$defs/invoke_domain_query"},
+        {"$ref": "#/$defs/iterate"},
+        {"$ref": "#/$defs/change_ddd"},
+        {"$ref": "#/$defs/invoke_service_action"},
+        {"$ref": "#/$defs/get_done"},
+        {"$ref": "#/$defs/jumpto"},
+        {"$ref": "#/$defs/assume_shared"},
+        {"$ref": "#/$defs/assume_issue"},
+        {"$ref": "#/$defs/assume_system_belief"},
+        {"$ref": "#/$defs/inform"},
+        {"$ref": "#/$defs/log"},
+        {"$ref": "#/$defs/signal_action_completion"},
+        {"$ref": "#/$defs/signal_action_failure"},
+        {"$ref": "#/$defs/end_turn"},
+        {"$ref": "#/$defs/reset_domain_query"},
+        {"$ref": "#/$defs/greet"}
+      ]
+    },
+    "findout": {
+      "type": "object",
+      "required": ["findout"],
+      "properties": {
+        "findout": {"$ref": "#/$defs/plan_item_question"}
+      },
+      "additionalProperties": false
+    },
+    "raise": {
+      "type": "object",
+      "required": ["raise"],
+      "properties": {
+        "raise": {"$ref": "#/$defs/plan_item_question"}
+      },
+      "additionalProperties": false
+    },
+    "bind": {
+      "type": "object",
+      "required": ["bind"],
+      "properties": {
+        "bind": {
+          "type": "object",
+          "required": ["question"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "if_then_else": {
+      "type": "object",
+      "required": ["if"],
+      "properties": {
+        "if": {
+          "type": "object",
+          "required": ["condition", "then"],
+          "properties": {
+            "condition": {"$ref": "#/$defs/condition"},
+            "then": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/plan_item"}
+            },
+            "else": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/plan_item"}
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "once": {
+      "type": "object",
+      "required": ["once"],
+      "properties": {
+        "once": {
+          "type": "object",
+          "required": ["content"],
+          "properties": {
+            "id": {"type": "string"},
+            "content": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/plan_item"}
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "forget": {
+      "type": "object",
+      "required": ["forget"],
+      "properties": {
+        "forget": {"$ref": "#/$defs/forget_target"}
+      },
+      "additionalProperties": false
+    },
+    "forget_shared": {
+      "type": "object",
+      "required": ["forget_shared"],
+      "properties": {
+        "forget_shared": {"$ref": "#/$defs/forget_target"}
+      },
+      "additionalProperties": false
+    },
+    "forget_all": {
+      "type": "object",
+      "required": ["forget_all"],
+      "properties": {
+        "forget_all": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "forget_target": {
+      "type": "object",
+      "oneOf": [
+        {"$ref": "#/$defs/predicate_proposition"},
+        {
+          "required": ["predicate"],
+          "properties": {
+            "predicate": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "invoke_service_query": {
+      "type": "object",
+      "required": ["invoke_service_query"],
+      "properties": {
+        "invoke_service_query": {"$ref": "#/$defs/plan_item_question_only"}
+      },
+      "additionalProperties": false
+    },
+    "invoke_domain_query": {
+      "type": "object",
+      "required": ["invoke_domain_query"],
+      "properties": {
+        "invoke_domain_query": {"$ref": "#/$defs/plan_item_question_only"}
+      },
+      "additionalProperties": false
+    },
+    "iterate": {
+      "type": "object",
+      "required": ["iterate"],
+      "properties": {
+        "iterate": {
+          "type": "object",
+          "required": ["iterator"],
+          "properties": {
+            "iterator": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "change_ddd": {
+      "type": "object",
+      "required": ["change_ddd"],
+      "properties": {
+        "change_ddd": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invoke_service_action": {
+      "type": "object",
+      "required": ["invoke_service_action"],
+      "properties": {
+        "invoke_service_action": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {"type": "string"},
+            "preconfirm": {"type": "string"},
+            "postconfirm": {"type": "boolean"},
+            "downdate_plan": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "get_done": {
+      "type": "object",
+      "required": ["get_done"],
+      "properties": {
+        "get_done": {
+          "type": "object",
+          "required": ["action"],
+          "properties": {
+            "action": {"type": "string"},
+            "step": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "jumpto": {
+      "type": "object",
+      "required": ["jumpto"],
+      "properties": {
+        "jumpto": {
+          "type": "object",
+          "required": ["goal"],
+          "properties": {
+            "goal": {"$ref": "#/$defs/goal"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "assume_shared": {
+      "type": "object",
+      "required": ["assume_shared"],
+      "properties": {
+        "assume_shared": {"$ref": "#/$defs/proposition_container"}
+      },
+      "additionalProperties": false
+    },
+    "assume_issue": {
+      "type": "object",
+      "required": ["assume_issue"],
+      "properties": {
+        "assume_issue": {
+          "type": "object",
+          "required": ["question"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "insist": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "assume_system_belief": {
+      "type": "object",
+      "required": ["assume_system_belief"],
+      "properties": {
+        "assume_system_belief": {"$ref": "#/$defs/proposition_container"}
+      },
+      "additionalProperties": false
+    },
+    "inform": {
+      "type": "object",
+      "required": ["inform"],
+      "properties": {
+        "inform": {"$ref": "#/$defs/inform_payload"}
+      },
+      "additionalProperties": false
+    },
+    "log": {
+      "type": "object",
+      "required": ["log"],
+      "properties": {
+        "log": {
+          "type": "object",
+          "required": ["message"],
+          "properties": {
+            "message": {"type": "string"},
+            "level": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "signal_action_completion": {
+      "type": "object",
+      "required": ["signal_action_completion"],
+      "properties": {
+        "signal_action_completion": {
+          "type": "object",
+          "properties": {
+            "postconfirm": {"type": "boolean"},
+            "action": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "signal_action_failure": {
+      "type": "object",
+      "required": ["signal_action_failure"],
+      "properties": {
+        "signal_action_failure": {
+          "type": "object",
+          "required": ["reason"],
+          "properties": {
+            "reason": {"type": "string"},
+            "action": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "end_turn": {
+      "type": "object",
+      "required": ["end_turn"],
+      "properties": {
+        "end_turn": {
+          "type": "object",
+          "required": ["expected_passivity"],
+          "properties": {
+            "expected_passivity": {"type": "number"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "reset_domain_query": {
+      "type": "object",
+      "required": ["reset_domain_query"],
+      "properties": {
+        "reset_domain_query": {"$ref": "#/$defs/plan_item_question_only"}
+      },
+      "additionalProperties": false
+    },
+    "greet": {
+      "type": "object",
+      "required": ["greet"],
+      "properties": {
+        "greet": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "plan_item_question": {
+      "type": "object",
+      "required": ["question"],
+      "properties": {
+        "question": {"$ref": "#/$defs/question"},
+        "allow_answer_from_pcom": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "plan_item_question_only": {
+      "type": "object",
+      "required": ["question"],
+      "properties": {
+        "question": {"$ref": "#/$defs/question"}
+      },
+      "additionalProperties": false
+    },
+    "proposition_container": {
+      "type": "object",
+      "required": ["proposition"],
+      "properties": {
+        "proposition": {"$ref": "#/$defs/predicate_proposition"}
+      },
+      "additionalProperties": false
+    },
+    "inform_payload": {
+      "type": "object",
+      "required": ["proposition"],
+      "properties": {
+        "proposition": {"$ref": "#/$defs/predicate_proposition"},
+        "insist": {"type": "boolean"},
+        "generate_end_turn": {"type": "boolean"},
+        "expected_passivity": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "parameter_entry": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["question", "parameters"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "parameters": {"$ref": "#/$defs/question_parameters"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["predicate", "parameters"],
+          "properties": {
+            "predicate": {"type": "string"},
+            "parameters": {"$ref": "#/$defs/question_parameters"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "question_parameters": {
+      "type": "object",
+      "properties": {
+        "source": {"type": "string"},
+        "incremental": {"type": "boolean"},
+        "verbalize": {"type": "boolean"},
+        "format": {"type": "string"},
+        "sort_order": {"type": "string"},
+        "allow_goal_accommodation": {"type": "boolean"},
+        "max_spoken_alts": {"type": "integer", "minimum": 0},
+        "max_reported_hit_count": {"type": "integer", "minimum": 0},
+        "always_ground": {"type": "boolean"},
+        "on_zero_hits_action": {"type": "string"},
+        "on_too_many_hits_action": {"type": "string"},
+        "service_query": {"$ref": "#/$defs/question"},
+        "label_questions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/question"}
+        },
+        "related_information": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/question"}
+        },
+        "alts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/alt_item"}
+        },
+        "ask_features": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ask_feature"}
+        },
+        "hints": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/hint"}
+        },
+        "always_relevant": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "ask_feature": {
+      "type": "object",
+      "required": ["predicate"],
+      "properties": {
+        "predicate": {"type": "string"},
+        "kpq": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "hint": {
+      "type": "object",
+      "required": ["inform"],
+      "properties": {
+        "inform": {"$ref": "#/$defs/inform_payload"}
+      },
+      "additionalProperties": false
+    },
+    "query_entry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["question", "implications"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "implications": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/implication"}
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["question", "select_at_random"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "select_at_random": {"$ref": "#/$defs/select_at_random"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["question", "enumerate"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "enumerate": {"$ref": "#/$defs/enumerate"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "implication": {
+      "type": "object",
+      "required": ["antecedent", "consequent"],
+      "properties": {
+        "antecedent": {"$ref": "#/$defs/proposition"},
+        "consequent": {"$ref": "#/$defs/proposition"}
+      },
+      "additionalProperties": false
+    },
+    "select_at_random": {
+      "type": "object",
+      "required": ["predicate", "propositions"],
+      "properties": {
+        "predicate": {"type": "string"},
+        "propositions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/proposition"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "enumerate": {
+      "type": "object",
+      "required": ["randomize", "propositions"],
+      "properties": {
+        "randomize": {"type": "boolean"},
+        "propositions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/proposition"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "iterator_entry": {
+      "type": "object",
+      "required": ["name", "enumerate"],
+      "properties": {
+        "name": {"type": "string"},
+        "enumerate": {"$ref": "#/$defs/iterator_enumerate"}
+      },
+      "additionalProperties": false
+    },
+    "iterator_enumerate": {
+      "type": "object",
+      "required": ["randomize", "limit", "propositions"],
+      "properties": {
+        "randomize": {"type": "boolean"},
+        "limit": {"type": "integer"},
+        "propositions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/proposition"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "validator_entry": {
+      "type": "object",
+      "required": ["name", "valid_configurations"],
+      "properties": {
+        "name": {"type": "string"},
+        "valid_configurations": {
+          "type": "array",
+          "items": {
             "type": "array",
-            "items": {"$ref": "#/$defs/node"}
+            "items": {"$ref": "#/$defs/proposition"}
           }
-        ]
-      }
+        }
+      },
+      "additionalProperties": false
+    },
+    "dependency_entry": {
+      "type": "object",
+      "required": ["question", "depends_on"],
+      "properties": {
+        "question": {"$ref": "#/$defs/question"},
+        "depends_on": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/question"}
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

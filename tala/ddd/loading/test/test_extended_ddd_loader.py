@@ -54,6 +54,24 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         self._when_load_is_called("mockup_app")
         self._then_result_contains_ddd("mockup_app")
 
+    def test_load_json_bundle_with_goal_children(self):
+        self._given_ddd_bundle_with_goal_children("mockup_app/ddd.json")
+        self._given_mocked_ddd_config(ddd_bundle="ddd.json")
+        self._when_load_is_called("mockup_app")
+        self._then_result_contains_ddd("mockup_app")
+
+    def test_load_json_bundle_with_wrapper(self):
+        self._given_ddd_bundle_with_wrapper("mockup_app/ddd.json")
+        self._given_mocked_ddd_config(ddd_bundle="ddd.json")
+        self._when_load_is_called("mockup_app")
+        self._then_result_contains_ddd("mockup_app")
+
+    def test_load_json_bundle_with_attrs_and_items(self):
+        self._given_ddd_bundle_with_attrs_and_items("mockup_app/ddd.json")
+        self._given_mocked_ddd_config(ddd_bundle="ddd.json")
+        self._when_load_is_called("mockup_app")
+        self._then_result_contains_ddd("mockup_app")
+
     def test_xml_warns_when_json_alternative_exists(self):
         self._given_ontology_xml_file("mockup_app/ontology.xml")
         self._given_domain_xml_file("mockup_app/domain.xml")
@@ -138,6 +156,34 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         content = (
             '{"ontology": {"@": {"name": "MockupOntology"}}, '
             '"domain": {"@": {"name": "MockupDomain"}}, '
+            '"service_interface": {}}'
+        )
+        self.create_mockup_file(path, "".join(content))
+
+    def _given_ddd_bundle_with_goal_children(self, path):
+        content = (
+            '{"ontology": {"@": {"name": "MockupOntology"}}, '
+            '"domain": {"@": {"name": "MockupDomain"}, "goal": {"perform": {"@": {"action": "top"}}}}, '
+            '"service_interface": {}}'
+        )
+        self.create_mockup_file(path, "".join(content))
+
+    def _given_ddd_bundle_with_wrapper(self, path):
+        content = (
+            '{"ddd": {'
+            '"schema_version": "1.0", '
+            '"ontology": {"@": {"name": "MockupOntology"}}, '
+            '"domain": {"@": {"name": "MockupDomain"}}, '
+            '"service_interface": {}}'
+            '}'
+        )
+        self.create_mockup_file(path, "".join(content))
+
+    def _given_ddd_bundle_with_attrs_and_items(self, path):
+        content = (
+            '{"ontology": {"attrs": {"name": "MockupOntology"}}, '
+            '"domain": {"attrs": {"name": "MockupDomain"}, '
+            '"items": [{"goal": {"perform": {"attrs": {"action": "top"}}}}]}, '
             '"service_interface": {}}'
         )
         self.create_mockup_file(path, "".join(content))

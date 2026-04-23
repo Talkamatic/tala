@@ -49,11 +49,6 @@ class ResolveGoalTest(LibTestCase):
         goal = ResolveGoal(self.price_question, speaker.USR)
         self.assertEqual("resolve_user(?X.price(X))", str(goal))
 
-    def test_str_with_background(self):
-        goal = ResolveGoal(self.price_question, speaker.SYS)
-        goal.set_background(self.predicate_dest_city)
-        self.assertEqual("resolve(?X.price(X), dest_city)", str(goal))
-
     def setUp(self):
         self.setUpLibTestCase()
 

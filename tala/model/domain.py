@@ -156,8 +156,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
                 parameters["ask_features"] = create_ask_features_parameter(parameter_data, included)
             if "hints" in parameter_data["relationships"]:
                 parameters["hints"] = create_hints_parameter(parameter_data, included)
-            if "background" in parameter_data["relationships"]:
-                parameters["background"] = create_background_parameter(parameter_data, included)
             if "related_information" in parameter_data["relationships"]:
                 parameters["related_information"] = create_related_information_parameter(parameter_data, included)
 
@@ -185,17 +183,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
                 hint_data = included.get_object_from_relationship(relationship)
                 hints.append(tala.model.hint.Hint.create_from_json_api_data(hint_data, included))
             return hints
-
-        def create_background_parameter(parameter_data, included):
-            predicate_entries = parameter_data["relationships"]["background"]["data"]
-            predicates = []
-            for predicate_entry in predicate_entries:
-                predicate = tala.model.predicate.Predicate.create_from_json_api_data(
-                    included.get_object_from_relationship(predicate_entry), included
-                )
-                predicates.append(predicate)
-
-            return predicates
 
         def create_related_information_parameter(parameter_data, included):
             related_entries = parameter_data["relationships"]["related_information"]["data"]
@@ -355,9 +342,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
                 d.add_relationship("service_query", parameters["service_query"].as_json_api_dict())
             if "default" in parameters:
                 d.add_relationship("default", parameters["default"].as_json_api_dict())
-            if "background" in parameters:
-                for background in parameters["background"]:
-                    d.append_relationship("background", background.as_json_api_dict())
             if "related_information" in parameters:
                 for related_information in parameters["related_information"]:
                     d.append_relationship("related_information", related_information.as_json_api_dict())
@@ -696,9 +680,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
 
     def get_max_spoken_alts(self, question):
         return self._get_parameter(question, "max_spoken_alts")
-
-    def get_background(self, semantic_object):
-        return self._get_parameter(semantic_object, "background")
 
     def get_ask_features(self, semantic_object):
         return self._get_parameter(semantic_object, "ask_features")

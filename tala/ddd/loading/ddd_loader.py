@@ -115,7 +115,10 @@ class DDDLoader(object):
         if not bundle_path.endswith(".json"):
             raise DDDLoaderException("Expected JSON bundle '%s'." % bundle_path)
         with open(bundle_path, "r", encoding="utf-8") as f:
-            self._ddd_bundle = json.load(f)
+            bundle = json.load(f)
+        if isinstance(bundle, dict) and "ddd" in bundle:
+            bundle = bundle["ddd"]
+        self._ddd_bundle = bundle
         return self._ddd_bundle
 
     def _bundle_node(self, bundle, key):

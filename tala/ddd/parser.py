@@ -1191,8 +1191,6 @@ class Parser:
                 return self._parse_list_of_questions(string)
             elif key == "sort_order":
                 return self._parse_findout_sort_order(string)
-            elif key == "background":
-                return self._parse_predicate_list(string)
             elif key == "ask_features":
                 return self._parse_ask_features(string)
             elif key == "related_information":
@@ -1213,11 +1211,6 @@ class Parser:
                 raise ParseError(f"unsupported question parameter '{key}'")
         except ParseFailure:
             raise ParseError(f"failed to parse parameter {key}={string}")
-
-    def _parse_predicate_list(self, string):
-        string_without_brackets = self._strip_brackets(string)
-        predicate_strings = [str.strip() for str in string_without_brackets.split(",")]
-        return [self._parse_predicate(predicate_string) for predicate_string in predicate_strings]
 
     def _parse_ask_features(self, string):
         string_without_brackets = self._strip_brackets(string)

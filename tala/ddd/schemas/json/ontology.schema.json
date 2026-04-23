@@ -1,40 +1,65 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ontology JSON",
+  "title": "Human-readable Ontology JSON",
   "type": "object",
   "required": ["ontology"],
   "properties": {
-    "ontology": {"$ref": "#/$defs/node"}
+    "ontology": {"$ref": "#/$defs/ontology"}
   },
+  "additionalProperties": false,
   "$defs": {
-    "attributes": {
+    "ontology": {
       "type": "object",
-      "additionalProperties": {"type": ["string", "number", "boolean"]}
-    },
-    "child": {
-      "type": "object",
-      "minProperties": 1,
-      "maxProperties": 1,
-      "additionalProperties": {"$ref": "#/$defs/node"}
-    },
-    "node": {
-      "type": "object",
+      "required": ["name"],
       "properties": {
-        "@": {"$ref": "#/$defs/attributes"},
-        "children": {
+        "name": {"type": "string"},
+        "sorts": {
           "type": "array",
-          "items": {"$ref": "#/$defs/child"}
+          "items": {"$ref": "#/$defs/sort"}
+        },
+        "predicates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/predicate"}
+        },
+        "individuals": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/individual"}
+        },
+        "actions": {
+          "type": "array",
+          "items": {"type": "string"}
         }
       },
-      "additionalProperties": {
-        "anyOf": [
-          {"$ref": "#/$defs/node"},
-          {
-            "type": "array",
-            "items": {"$ref": "#/$defs/node"}
-          }
-        ]
-      }
+      "additionalProperties": false
+    },
+    "sort": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"},
+        "dynamic": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "predicate": {
+      "type": "object",
+      "required": ["name", "sort"],
+      "properties": {
+        "name": {"type": "string"},
+        "sort": {"type": "string"},
+        "feature_of": {"type": "string"},
+        "multiple_instances": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "individual": {
+      "type": "object",
+      "required": ["name", "sort"],
+      "properties": {
+        "name": {"type": "string"},
+        "sort": {"type": "string"}
+      },
+      "additionalProperties": false
     }
   }
 }

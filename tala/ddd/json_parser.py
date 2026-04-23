@@ -220,8 +220,6 @@ class JSONDomainParser():
             return parameters[name]
         if name == "alts":
             return PropositionSet([self.parser.parse(proposition) for proposition in parameters[name]["_propositions"]])
-        if name == "background":
-            return [self.parser.parse_predicate(predicate) for predicate in parameters[name]]
         if is_questions_parameter():
             return [self.parser.parse_question(question) for question in parameters[name]]
         if is_question_parameter():

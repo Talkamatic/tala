@@ -63,7 +63,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
         self._speaker = None
         self._modality = None
         self._ddd_name = None
-        self._background = None
         self._utterance = None
         self._confidence_estimates = ConfidenceEstimates()
         if (
@@ -88,7 +87,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
                and self._modality == other._modality \
                and self._utterance == other._utterance \
                and self._ddd_name == other._ddd_name \
-               and self._background == other._background \
                and self._confidence_estimates == other._confidence_estimates:
                 if hasattr(self, "weighted_understanding_confidence"):
                     return self.weighted_understanding_confidence == other.weighted_understanding_confidence
@@ -280,9 +278,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
     def downrank(self, amount):
         self._confidence_estimates.downrank(amount)
 
-    def set_background(self, background):
-        self._background = background
-
     def as_dict(self):
         return {
             "ddd": self._ddd_name,
@@ -325,8 +320,6 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def _get_semantic_expression(self, include_attributes):
         string = "Move("
         string += f"{self._type}({str(self._content)}"
-        if self._background:
-            string += f", {unicodify(self._background)}"
         string += ")"
         if include_attributes:
             string += self._build_string_from_attributes()
@@ -667,8 +660,6 @@ class Report(MoveWithSemanticContent):
 
     def _get_semantic_expression(self, include_attributes):
         string = f"report({unicodify(self.content)}"
-        if self._background:
-            string += f", {unicodify(self._background)}"
         if include_attributes:
             string += self._build_string_from_attributes()
         string += ")"

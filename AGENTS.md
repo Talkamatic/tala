@@ -124,6 +124,8 @@
   `git commit --amend`.
 - To preserve an existing Change-Id when amending, use
   `git commit --amend --no-edit`.
+- Detached HEAD is normal for Gerrit workflows; avoid creating
+  temporary branches unless explicitly requested.
 - Never push to `master` (any remote) or `azure-production/master`.
 - Agentic tools must not run `git push` commands. Ask a human to push.
 

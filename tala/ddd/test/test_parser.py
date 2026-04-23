@@ -626,17 +626,6 @@ class ParserTests(unittest.TestCase):
         expected_params = {"sort_order": QuestionRaisingPlanItem.ALPHABETIC}
         self.assertEqual(expected_params, params)
 
-    def test_background_parameter(self):
-        string = "{background=[dest_city, dept_city]}"
-        params = self.parse_parameters(string)
-        expected_params = {"background": [self.predicate_dest_city, self.predicate_dept_city]}
-        self.assertEqual(expected_params, params)
-
-    def test_background_parameter_with_illegal_value(self):
-        string = "{background=?X.dest_city(X)}"
-        with self.assertRaises(ParseError):
-            self.parse_parameters(string)
-
     def test_allow_goal_accommodation_parameter(self):
         string = "{allow_goal_accommodation=True}"
         params = self.parse_parameters(string)

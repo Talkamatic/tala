@@ -354,10 +354,8 @@
   </parameters>
   <parameters question_type="yn_question">
     <resolve predicate="price" type="wh_question"/>
-    <background predicate="dest_city"/>
   </parameters>
   <parameters predicate="next_membership_level">
-    <background predicate="next_membership_points"/>
   </parameters>
   <parameters question_type="yn_question">
     <perform action="apply_for_membership"/>
@@ -379,8 +377,6 @@
   </parameters>
 
   <parameters question_type="wh_question" predicate="price">
-    <background predicate="dept_city"/>
-    <background predicate="dest_city"/>
   </parameters>
   <parameters question_type="wh_question" predicate="means_of_transport" source="service"
               max_spoken_alts="2" max_reported_hit_count="2">
@@ -388,8 +384,6 @@
   </parameters>
   <parameters question_type="wh_question" predicate="passenger_quantity_to_add" allow_goal_accommodation="false"/>
   <parameters question_type="wh_question" predicate="dept_month" source="domain">
-    <background predicate="dept_city"/>
-    <background predicate="dest_city"/>
     <hint>
       <inform>
         <proposition predicate="dept_month" value="april"/>
@@ -408,8 +402,6 @@
     <related_information type="wh_question" predicate="num_available_dept_cities"/>
   </parameters>
   <parameters predicate="qualified_for_membership">
-    <background predicate="frequent_flyer_points"/>
-    <background predicate="current_position"/>
   </parameters>
   <parameters question_type="wh_question" predicate="dept_day" allow_goal_accommodation="false"/>
   <default_question predicate="dest_city" type="wh_question"/>

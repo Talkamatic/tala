@@ -1,0 +1,539 @@
+{
+  "ontology": {
+    "name": "MockupTravelOntology",
+    "sorts": [
+      {
+        "name": "city",
+        "dynamic": true
+      },
+      {
+        "name": "city_size",
+        "dynamic": false
+      },
+      {
+        "name": "code_type",
+        "dynamic": false
+      },
+      {
+        "name": "rating",
+        "dynamic": false
+      },
+      {
+        "name": "keyword",
+        "dynamic": true
+      },
+      {
+        "name": "class_sort",
+        "dynamic": false
+      },
+      {
+        "name": "country",
+        "dynamic": false
+      },
+      {
+        "name": "housing",
+        "dynamic": false
+      },
+      {
+        "name": "housing_type",
+        "dynamic": false
+      },
+      {
+        "name": "month",
+        "dynamic": false
+      },
+      {
+        "name": "how",
+        "dynamic": false
+      },
+      {
+        "name": "membership",
+        "dynamic": false
+      },
+      {
+        "name": "payment_type",
+        "dynamic": false
+      },
+      {
+        "name": "passenger_type",
+        "dynamic": false
+      },
+      {
+        "name": "city_type",
+        "dynamic": false
+      },
+      {
+        "name": "room_type",
+        "dynamic": false
+      },
+      {
+        "name": "information",
+        "dynamic": false
+      },
+      {
+        "name": "train_type",
+        "dynamic": false
+      },
+      {
+        "name": "items_to_buy",
+        "dynamic": false
+      },
+      {
+        "name": "item_category",
+        "dynamic": false
+      }
+    ],
+    "predicates": [
+      {
+        "name": "helpful_information",
+        "sort": "information"
+      },
+      {
+        "name": "dest_city_size",
+        "sort": "city_size",
+        "feature_of": "dest_city"
+      },
+      {
+        "name": "num_available_dept_cities",
+        "sort": "integer"
+      },
+      {
+        "name": "code",
+        "sort": "code_type"
+      },
+      {
+        "name": "selected_housing",
+        "sort": "housing"
+      },
+      {
+        "name": "selected_housing_for_contact",
+        "sort": "housing"
+      },
+      {
+        "name": "selected_housing_for_pets",
+        "sort": "housing"
+      },
+      {
+        "name": "selected_housing_for_moomins",
+        "sort": "housing"
+      },
+      {
+        "name": "payment_method",
+        "sort": "payment_type"
+      },
+      {
+        "name": "need_visa",
+        "sort": "boolean"
+      },
+      {
+        "name": "member_type",
+        "sort": "membership"
+      },
+      {
+        "name": "selected_housing_rating",
+        "sort": "rating",
+        "feature_of": "selected_housing"
+      },
+      {
+        "name": "current_position",
+        "sort": "city"
+      },
+      {
+        "name": "phonenumber",
+        "sort": "string"
+      },
+      {
+        "name": "dept_day",
+        "sort": "integer"
+      },
+      {
+        "name": "available_dept_city",
+        "sort": "city"
+      },
+      {
+        "name": "room_availability",
+        "sort": "boolean"
+      },
+      {
+        "name": "available_member_type",
+        "sort": "membership"
+      },
+      {
+        "name": "place_keyword",
+        "sort": "keyword",
+        "feature_of": "dest_city"
+      },
+      {
+        "name": "frequent_flyer_number",
+        "sort": "string"
+      },
+      {
+        "name": "next_membership_points",
+        "sort": "integer"
+      },
+      {
+        "name": "dept_month",
+        "sort": "month"
+      },
+      {
+        "name": "dest_city",
+        "sort": "city"
+      },
+      {
+        "name": "next_membership_level",
+        "sort": "membership"
+      },
+      {
+        "name": "passenger_type_to_add",
+        "sort": "passenger_type",
+        "multiple_instances": true
+      },
+      {
+        "name": "price",
+        "sort": "real"
+      },
+      {
+        "name": "dest_country",
+        "sort": "country"
+      },
+      {
+        "name": "means_of_transport",
+        "sort": "how"
+      },
+      {
+        "name": "selected_room_type",
+        "sort": "room_type"
+      },
+      {
+        "name": "class",
+        "sort": "class_sort"
+      },
+      {
+        "name": "dest_city_type",
+        "sort": "city_type",
+        "feature_of": "dest_city"
+      },
+      {
+        "name": "passenger_quantity_to_add",
+        "sort": "integer"
+      },
+      {
+        "name": "qualified_for_membership",
+        "sort": "boolean"
+      },
+      {
+        "name": "dept_city",
+        "sort": "city"
+      },
+      {
+        "name": "selected_housing_type",
+        "sort": "housing_type",
+        "feature_of": "selected_housing"
+      },
+      {
+        "name": "available_payment_method",
+        "sort": "payment_type"
+      },
+      {
+        "name": "frequent_flyer_points",
+        "sort": "integer"
+      },
+      {
+        "name": "available_means_of_transport",
+        "sort": "how"
+      },
+      {
+        "name": "comment_message",
+        "sort": "string"
+      },
+      {
+        "name": "comment_name",
+        "sort": "string"
+      },
+      {
+        "name": "attraction_information",
+        "sort": "string"
+      },
+      {
+        "name": "attraction",
+        "sort": "string"
+      },
+      {
+        "name": "house_owner_name",
+        "sort": "string"
+      },
+      {
+        "name": "flight_departure",
+        "sort": "datetime"
+      },
+      {
+        "name": "flight_on_time",
+        "sort": "string"
+      },
+      {
+        "name": "flight_exists",
+        "sort": "string"
+      },
+      {
+        "name": "selected_domain",
+        "sort": "domain"
+      },
+      {
+        "name": "selected_train_type",
+        "sort": "train_type"
+      },
+      {
+        "name": "available_to_buy",
+        "sort": "items_to_buy"
+      },
+      {
+        "name": "amount_of_points",
+        "sort": "integer"
+      },
+      {
+        "name": "bonus_goods_category",
+        "sort": "item_category"
+      },
+      {
+        "name": "want_sausage",
+        "sort": "boolean"
+      },
+      {
+        "name": "sausage_information",
+        "sort": "string"
+      },
+      {
+        "name": "compensate_co2_emissions",
+        "sort": "boolean"
+      },
+      {
+        "name": "compensate_co2_emissions_2",
+        "sort": "boolean"
+      },
+      {
+        "name": "test_info_one",
+        "sort": "string"
+      },
+      {
+        "name": "test_info_other",
+        "sort": "string"
+      },
+      {
+        "name": "one_boolean_predicate",
+        "sort": "boolean"
+      },
+      {
+        "name": "other_boolean_predicate",
+        "sort": "boolean"
+      }
+    ],
+    "actions": [
+      "make_domestic_oneway_reservation",
+      "buy",
+      "cancel_payment",
+      "make_reservation",
+      "add_passenger",
+      "membership",
+      "leave_comment",
+      "book_housing",
+      "book_housing_alts",
+      "book_housing_for_pets",
+      "book_housing_for_moomins",
+      "contact_housing_owner",
+      "show_on_map",
+      "make_random_reservation",
+      "make_domestic_reservation",
+      "top",
+      "settings",
+      "make_international_reservation",
+      "apply_for_membership",
+      "make_domestic_return_reservation",
+      "make_train_reservation",
+      "cancel_reservation",
+      "show_on_map_nested_if",
+      "ride_a_bike_for_me",
+      "select_train_type",
+      "mitigate_search_for_pets",
+      "mitigate_search_for_moomins",
+      "buy_sausage",
+      "environmental_options",
+      "environmental_options_2",
+      "action_with_plan_which_assumes_first_hint",
+      "test_false_nullary_proposition"
+    ],
+    "individuals": [
+      {
+        "name": "berlin_tegel",
+        "sort": "city"
+      },
+      {
+        "name": "teheran",
+        "sort": "city"
+      },
+      {
+        "name": "england",
+        "sort": "country"
+      },
+      {
+        "name": "gold",
+        "sort": "membership"
+      },
+      {
+        "name": "sheraton",
+        "sort": "housing"
+      },
+      {
+        "name": "novotel",
+        "sort": "housing"
+      },
+      {
+        "name": "small_size",
+        "sort": "city_size"
+      },
+      {
+        "name": "train",
+        "sort": "how"
+      },
+      {
+        "name": "XL34",
+        "sort": "code_type"
+      },
+      {
+        "name": "london",
+        "sort": "city"
+      },
+      {
+        "name": "lisbon",
+        "sort": "city"
+      },
+      {
+        "name": "pyongyang",
+        "sort": "city"
+      },
+      {
+        "name": "single_room",
+        "sort": "room_type"
+      },
+      {
+        "name": "france",
+        "sort": "country"
+      },
+      {
+        "name": "village_size",
+        "sort": "city_size"
+      },
+      {
+        "name": "lyon",
+        "sort": "city"
+      },
+      {
+        "name": "rating_5",
+        "sort": "rating"
+      },
+      {
+        "name": "paris",
+        "sort": "city"
+      },
+      {
+        "name": "domain_paris",
+        "sort": "domain"
+      },
+      {
+        "name": "resort",
+        "sort": "city_type"
+      },
+      {
+        "name": "points",
+        "sort": "payment_type"
+      },
+      {
+        "name": "city_type_capital",
+        "sort": "city_type"
+      },
+      {
+        "name": "economy",
+        "sort": "class_sort"
+      },
+      {
+        "name": "huge_size",
+        "sort": "city_size"
+      },
+      {
+        "name": "business",
+        "sort": "class_sort"
+      },
+      {
+        "name": "may",
+        "sort": "month"
+      },
+      {
+        "name": "hotel",
+        "sort": "housing_type"
+      },
+      {
+        "name": "berlin",
+        "sort": "city"
+      },
+      {
+        "name": "plane",
+        "sort": "how"
+      },
+      {
+        "name": "adult",
+        "sort": "passenger_type"
+      },
+      {
+        "name": "child",
+        "sort": "passenger_type"
+      },
+      {
+        "name": "silver",
+        "sort": "membership"
+      },
+      {
+        "name": "city_0",
+        "sort": "city"
+      },
+      {
+        "name": "april",
+        "sort": "month"
+      },
+      {
+        "name": "visa",
+        "sort": "payment_type"
+      },
+      {
+        "name": "stockholm",
+        "sort": "city"
+      },
+      {
+        "name": "mastercard",
+        "sort": "payment_type"
+      },
+      {
+        "name": "gothenburg",
+        "sort": "city"
+      },
+      {
+        "name": "dest_city_hint_1",
+        "sort": "information"
+      },
+      {
+        "name": "dest_city_hint_2",
+        "sort": "information"
+      },
+      {
+        "name": "electrical",
+        "sort": "train_type"
+      },
+      {
+        "name": "intro_to_available_to_buy",
+        "sort": "information"
+      },
+      {
+        "name": "helpful_hint_on_co2",
+        "sort": "information"
+      }
+    ]
+  }
+}

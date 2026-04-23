@@ -417,11 +417,6 @@
             <xs:element name="always_relevant" minOccurs="0" maxOccurs="1"/>
             <xs:element name="service_query" type="has_question" minOccurs="0" maxOccurs="1"/>
             <xs:element name="alt" type="proposition" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element name="background" minOccurs="0" maxOccurs="unbounded">
-              <xs:complexType>
-                <xs:attribute name="predicate" type="xs:string" use="required"/>
-              </xs:complexType>
-            </xs:element>
             <xs:element name="ask_feature" minOccurs="0" maxOccurs="unbounded">
               <xs:complexType>
                 <xs:attribute name="predicate" type="xs:string" use="required"/>

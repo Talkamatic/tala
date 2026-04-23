@@ -6,7 +6,6 @@ from tala.model.action import Action
 from tala.model import speaker
 from tala.model.semantic_object import SemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
-from tala.utils.unicodify import unicodify
 
 PERFORM = "PERFORM_GOAL"
 RESOLVE = "RESOLVE_GOAL"
@@ -30,7 +29,6 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
     def __init__(self, goal_type, target):
         self._goal_type = goal_type
         self._target = target
-        self._background = None
 
     def is_goal(self):
         return True
@@ -66,9 +64,6 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     def __str__(self):
         return repr(self)
-
-    def set_background(self, background):
-        self._background = background
 
     @staticmethod
     def goal_filter(goal_type):
@@ -201,8 +196,6 @@ class Resolve(GoalWithSemanticContent):
         else:
             result += "resolve"
         result += "(%s" % self.question
-        if self._background:
-            result += ", %s" % unicodify(self._background)
         result += ")"
         return result
 

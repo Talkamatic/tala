@@ -1,40 +1,112 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Service Interface JSON",
+  "title": "Human-readable Service Interface JSON",
   "type": "object",
   "required": ["service_interface"],
   "properties": {
-    "service_interface": {"$ref": "#/$defs/node"}
+    "service_interface": {"$ref": "#/$defs/service_interface"}
   },
+  "additionalProperties": false,
   "$defs": {
-    "attributes": {
-      "type": "object",
-      "additionalProperties": {"type": ["string", "number", "boolean"]}
-    },
-    "child": {
-      "type": "object",
-      "minProperties": 1,
-      "maxProperties": 1,
-      "additionalProperties": {"$ref": "#/$defs/node"}
-    },
-    "node": {
+    "service_interface": {
       "type": "object",
       "properties": {
-        "@": {"$ref": "#/$defs/attributes"},
-        "children": {
+        "actions": {
           "type": "array",
-          "items": {"$ref": "#/$defs/child"}
+          "items": {"$ref": "#/$defs/action"}
+        },
+        "queries": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/query"}
+        },
+        "validators": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/validator"}
         }
       },
-      "additionalProperties": {
-        "anyOf": [
-          {"$ref": "#/$defs/node"},
-          {
-            "type": "array",
-            "items": {"$ref": "#/$defs/node"}
-          }
-        ]
-      }
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": ["name", "target"],
+      "properties": {
+        "name": {"type": "string"},
+        "target": {"$ref": "#/$defs/target"},
+        "parameters": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/parameter"}
+        },
+        "failure_reasons": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "query": {
+      "type": "object",
+      "required": ["name", "target"],
+      "properties": {
+        "name": {"type": "string"},
+        "target": {"$ref": "#/$defs/target"},
+        "parameters": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/parameter"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "validator": {
+      "type": "object",
+      "required": ["name", "target"],
+      "properties": {
+        "name": {"type": "string"},
+        "target": {"$ref": "#/$defs/target"},
+        "parameters": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/parameter"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "parameter": {
+      "type": "object",
+      "required": ["predicate"],
+      "properties": {
+        "predicate": {"type": "string"},
+        "optional": {"type": "boolean"},
+        "format": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["frontend"],
+          "properties": {
+            "frontend": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": ["http"],
+          "properties": {
+            "http": {
+              "type": "object",
+              "required": ["endpoint"],
+              "properties": {
+                "endpoint": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
