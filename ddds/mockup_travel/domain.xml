@@ -1,0 +1,513 @@
+<domain name="MockupTravelDomain">
+  <goal type="perform" action="top">
+    <plan>
+      <forget_all/>
+      <findout type="goal"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="price">
+    <plan>
+      <findout type="wh_question" predicate="means_of_transport"/>
+      <findout type="wh_question" predicate="dest_city"/>
+      <findout type="wh_question" predicate="dept_city"/>
+      <findout type="wh_question" predicate="dept_month"/>
+      <findout type="wh_question" predicate="dept_day"/>
+      <findout type="wh_question" predicate="class"/>
+      <invoke_service_query type="wh_question" predicate="price"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="yn_question">
+    <proposition predicate="need_visa"/>
+    <plan>
+      <log message="start executing the 'need_visa' resolve plan"/>
+      <findout type="wh_question" predicate="dest_city"/>
+      <findout type="wh_question" predicate="dept_city"/>
+      <invoke_service_query type="yn_question">
+        <proposition predicate="need_visa"/>
+      </invoke_service_query>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="buy">
+    <plan/>
+    <downdate_condition>
+      <is_private_belief_or_shared_commitment predicate="dest_city" value="gothenburg"/>
+    </downdate_condition>
+    <superaction name="make_domestic_reservation"/>
+    <superaction name="make_international_reservation"/>
+  </goal>
+
+  <goal type="perform" action="make_reservation">
+    <plan>
+      <findout type="alt_question">
+        <alt>
+          <perform action="make_domestic_reservation"/>
+        </alt>
+        <alt>
+          <perform action="make_international_reservation"/>
+        </alt>
+        <alt>
+          <resolve type="wh_question" predicate="price"/>
+        </alt>
+      </findout>
+      <bind type="wh_question" predicate="price"/>
+      <bind type="wh_question" predicate="payment_method"/>
+      <jumpto type="perform" action="buy"/>
+    </plan>
+    <downdate_condition>
+      <has_shared_value predicate="price"/>
+    </downdate_condition>
+  </goal>
+
+  <goal type="perform" action="make_domestic_reservation">
+    <plan>
+      <findout type="alt_question">
+        <alt>
+          <perform action="make_domestic_oneway_reservation"/>
+        </alt>
+        <alt>
+          <perform action="make_domestic_return_reservation"/>
+        </alt>
+      </findout>
+      <findout type="wh_question" predicate="dept_city"/>
+      <findout type="wh_question" predicate="payment_method"/>
+    </plan>
+    <superaction name="make_reservation"/>
+  </goal>
+
+  <goal type="perform" action="make_international_reservation">
+    <preferred>
+      <proposition predicate="dest_city" value="gothenburg"/>
+    </preferred>
+    <plan>
+      <findout type="wh_question" predicate="price"/>
+      <findout type="wh_question" predicate="dept_month"/>
+      <findout type="wh_question" predicate="dest_city"/>
+      <findout type="wh_question" predicate="dest_country"/>
+      <findout type="wh_question" predicate="class"/>
+      <findout type="wh_question" predicate="payment_method"/>
+      <bind type="wh_question" predicate="dest_city_type"/>
+    </plan>
+    <downdate_condition>
+      <is_shared_commitment predicate="dest_city" value="gothenburg"/>
+    </downdate_condition>
+    <superaction name="make_reservation"/>
+  </goal>
+
+  <goal type="perform" action="make_random_reservation" restart_on_completion="true">
+    <plan>
+      <findout type="wh_question" predicate="class"/>
+      <invoke_service_action name="MakeRandomReservation" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="leave_comment" reraise_on_resume="false">
+    <plan>
+      <invoke_service_query type="wh_question" predicate="house_owner_name"/>
+      <findout type="wh_question" predicate="comment_message"/>
+      <findout type="wh_question" predicate="comment_name"/>
+      <invoke_service_action name="RegisterComment" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="next_membership_level">
+    <plan>
+      <invoke_service_query type="wh_question" predicate="next_membership_points"/>
+      <invoke_service_query type="wh_question" predicate="next_membership_level"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="available_to_buy">
+    <plan>
+      <inform insist="true">
+        <proposition predicate="helpful_information" value="intro_to_available_to_buy"/>
+      </inform>
+      <raise type="wh_question" predicate="amount_of_points"/>
+      <findout type="wh_question" predicate="bonus_goods_category"/>
+    </plan>
+  </goal>
+
+  <parameters question_type="wh_question" predicate="amount_of_points" allow_goal_accommodation="false"/>
+
+  <goal type="perform" action="apply_for_membership" reraise_on_resume="false">
+    <preferred/>
+    <plan>
+      <findout type="wh_question" predicate="member_type"/>
+    </plan>
+    <downdate_condition>
+      <is_shared_commitment predicate="member_type" value="gold"/>
+    </downdate_condition>
+    <postplan>
+      <findout type="goal"/>
+    </postplan>
+  </goal>
+
+  <goal type="perform" action="add_passenger" accommodate_without_feedback="true">
+    <plan>
+      <findout type="wh_question" predicate="passenger_type_to_add"/>
+      <findout type="wh_question" predicate="passenger_quantity_to_add"/>
+      <invoke_service_action name="AddPassengers" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="membership">
+    <plan>
+      <invoke_service_query type="wh_question" predicate="frequent_flyer_points"/>
+      <invoke_service_query type="wh_question" predicate="current_position"/>
+      <findout type="yn_question">
+        <perform action="apply_for_membership"/>
+      </findout>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="cancel_reservation">
+    <plan>
+      <invoke_service_action name="CancelReservation" postconfirm="false"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="book_housing">
+    <plan>
+      <findout type="wh_question" predicate="selected_housing"/>
+      <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="book_housing_alts">
+    <plan>
+      <findout type="alt_question">
+        <alt><proposition predicate="selected_housing" value="sheraton"/></alt>
+        <alt><proposition predicate="selected_housing" value="novotel"/></alt>
+      </findout>
+      <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="contact_housing_owner">
+    <plan>
+      <findout type="wh_question" predicate="selected_housing_for_contact"/>
+      <invoke_service_action name="ContactHost" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="book_housing_for_pets">
+    <plan>
+      <findout type="wh_question" predicate="selected_housing_for_pets"/>
+      <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="book_housing_for_moomins">
+    <plan>
+      <findout type="wh_question" predicate="selected_housing_for_moomins"/>
+      <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="select_train_type">
+    <plan>
+      <findout type="wh_question" predicate="selected_train_type"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="show_on_map">
+    <plan>
+      <findout type="wh_question" predicate="dest_city"/>
+      <invoke_service_action name="ShowOnMap" postconfirm="true"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="room_availability" accommodate_without_feedback="true">
+    <plan>
+      <findout type="wh_question" predicate="selected_room_type"/>
+      <invoke_service_query type="wh_question" predicate="room_availability"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="attraction_information">
+    <plan>
+      <findout type="wh_question" predicate="attraction"/>
+      <invoke_service_query type="wh_question" predicate="attraction_information"/>
+    </plan>
+    <postplan>
+      <forget predicate="attraction"/>
+    </postplan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="flight_departure">
+    <plan>
+      <invoke_service_query type="wh_question" predicate="flight_departure"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="flight_on_time">
+    <plan>
+      <assume_issue type="wh_question" predicate="flight_departure"/>
+      <invoke_service_query type="wh_question" predicate="flight_on_time"/>
+    </plan>
+  </goal>
+
+  <goal type="resolve" question_type="wh_question" predicate="flight_exists">
+    <plan>
+      <findout predicate="class" type="wh_question"/>
+      <if>
+        <proposition predicate="class" value="business"/>
+        <then>
+          <assume_issue type="wh_question" predicate="flight_departure"/>
+        </then>
+        <else/>
+      </if>
+      <invoke_service_query type="wh_question" predicate="flight_exists"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="show_on_map_nested_if">
+    <plan>
+      <findout type="wh_question" predicate="dest_city"/>
+      <if>
+        <proposition predicate="dest_city" value="paris"/>
+        <then>
+          <findout type="wh_question" predicate="dept_city"/>
+          <if>
+            <proposition predicate="dept_city" value="gothenburg"/>
+            <then>
+              <invoke_service_action name="ShowOnMap" postconfirm="true"/>
+            </then>
+            <else>
+              <invoke_service_action name="MakeRandomReservation" postconfirm="true"/>
+            </else>
+          </if>
+        </then>
+        <else>
+          <invoke_service_action name="ShowOnMap" postconfirm="true"/>
+        </else>
+      </if>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="mitigate_search_for_pets">
+    <plan>
+      <inform>
+        <proposition predicate="helpful_information" value="search_failed_due_to_zero_hits"/>
+      </inform>
+      <invoke_service_action name="HandoverToHuman" preconfirm="interrogative"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="mitigate_search_for_moomins">
+    <plan>
+      <inform>
+        <proposition predicate="helpful_information" value="search_failed_due_to_too_many_hits"/>
+      </inform>
+      <invoke_service_action name="HandoverToHuman" preconfirm="interrogative"/>
+    </plan>
+  </goal>
+
+  <query predicate="dest_city" type="wh_question">
+    <enumerate randomize="false">
+      <individual value="paris"/>
+      <individual value="london"/>
+    </enumerate>
+  </query>
+
+  <query predicate="dept_city" type="wh_question">
+    <enumerate randomize="true">
+      <individual value="gothenburg"/>
+      <individual value="london"/>
+    </enumerate>
+  </query>
+
+
+  <dependency type="wh_question" predicate="dest_country">
+    <question type="wh_question" predicate="dest_city"/>
+  </dependency>
+  <parameters question_type="wh_question" predicate="selected_housing">
+    <ask_feature predicate="selected_housing_type"/>
+    <ask_feature predicate="selected_housing_rating" kpq="true"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="selected_housing_for_contact">
+    <ask_feature predicate="selected_housing_type" kpq="true"/>
+    <ask_feature predicate="selected_housing_rating" kpq="true"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="selected_housing_for_pets"
+              on_zero_hits_action="mitigate_search_for_pets">
+    <ask_feature predicate="selected_housing_type"/>
+    <ask_feature predicate="selected_housing_rating" kpq="true"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="selected_housing_for_moomins"
+              on_too_many_hits_action="mitigate_search_for_moomins" max_spoken_alts="1">
+    <ask_feature predicate="selected_housing_type"/>
+    <ask_feature predicate="selected_housing_rating"/>
+  </parameters>
+  <parameters question_type="goal" verbalize="false">
+    <alt>
+      <perform action="make_reservation"/>
+    </alt>
+    <alt>
+      <perform action="buy"/>
+    </alt>
+    <alt>
+      <resolve type="wh_question" predicate="price"/>
+    </alt>
+  </parameters>
+  <parameters question_type="yn_question">
+    <resolve predicate="price" type="wh_question"/>
+    <background predicate="dest_city"/>
+  </parameters>
+  <parameters predicate="next_membership_level">
+    <background predicate="next_membership_points"/>
+  </parameters>
+  <parameters question_type="yn_question">
+    <perform action="apply_for_membership"/>
+    <related_information type="wh_question" predicate="qualified_for_membership"/>
+  </parameters>
+
+  <parameters question_type="wh_question" predicate="dest_city"
+              source="service" incremental="true">
+    <hint>
+      <inform insist="true">
+        <proposition predicate="helpful_information" value="dest_city_hint_1"/>
+      </inform>
+    </hint>
+    <hint>
+      <inform insist="true">
+        <proposition predicate="helpful_information" value="dest_city_hint_2"/>
+      </inform>
+    </hint>
+  </parameters>
+
+  <parameters question_type="wh_question" predicate="price">
+    <background predicate="dept_city"/>
+    <background predicate="dest_city"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="means_of_transport" source="service"
+              max_spoken_alts="2" max_reported_hit_count="2">
+    <service_query type="wh_question" predicate="available_means_of_transport"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="passenger_quantity_to_add" allow_goal_accommodation="false"/>
+  <parameters question_type="wh_question" predicate="dept_month" source="domain">
+    <background predicate="dept_city"/>
+    <background predicate="dest_city"/>
+    <hint>
+      <inform>
+        <proposition predicate="dept_month" value="april"/>
+      </inform>
+    </hint>
+  </parameters>
+  <parameters question_type="wh_question" predicate="payment_method"  source="service" max_spoken_alts="2">
+    <service_query type="wh_question" predicate="available_payment_method"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="member_type" source="service" incremental="true" max_spoken_alts="3">
+    <service_query type="wh_question" predicate="available_member_type"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="available_payment_method" source="service"/>
+  <parameters question_type="wh_question" predicate="dept_city" source="service" incremental="true" max_spoken_alts="3">
+    <service_query type="wh_question" predicate="available_dept_city"/>
+    <related_information type="wh_question" predicate="num_available_dept_cities"/>
+  </parameters>
+  <parameters predicate="qualified_for_membership">
+    <background predicate="frequent_flyer_points"/>
+    <background predicate="current_position"/>
+  </parameters>
+  <parameters question_type="wh_question" predicate="dept_day" allow_goal_accommodation="false"/>
+  <default_question predicate="dest_city" type="wh_question"/>
+
+  <parameters question_type="wh_question" predicate="selected_train_type" source="service"
+              max_spoken_alts="1">
+   <ask_feature predicate="dest_city" kpq="true"/>
+  </parameters>
+
+  <goal type="perform" action="buy_sausage">
+    <plan>
+      <findout type="yn_question">
+        <proposition predicate="want_sausage"/>
+      </findout>
+      <inform>
+        <proposition predicate="sausage_information" value="Bratwurst"/>
+      </inform>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="environmental_options">
+    <plan>
+      <findout type="yn_question">
+        <proposition predicate="compensate_co2_emissions"/>
+      </findout>
+    </plan>
+  </goal>
+
+  <parameters question_type="yn_question">
+    <proposition predicate="compensate_co2_emissions"/>
+    <hint>
+      <inform>
+        <proposition predicate="helpful_information" value="helpful_hint_on_co2"/>
+      </inform>
+    </hint>
+  </parameters>
+
+  <goal type="perform" action="environmental_options_2">
+    <plan>
+      <findout type="yn_question">
+        <proposition predicate="compensate_co2_emissions_2"/>
+      </findout>
+    </plan>
+  </goal>
+
+  <parameters question_type="yn_question" predicate="compensate_co2_emissions_2">
+    <hint>
+      <inform>
+        <proposition predicate="helpful_information" value="helpful_hint_on_co2"/>
+      </inform>
+    </hint>
+  </parameters>
+
+  <goal type="perform" action="action_with_plan_which_assumes_first_hint">
+    <plan>
+      <assume_shared>
+        <proposition predicate="helpful_information" value="dest_city_hint_1"/>
+      </assume_shared>
+      <findout predicate="dest_city"/>
+    </plan>
+  </goal>
+
+  <goal type="perform" action="test_false_nullary_proposition">
+    <plan>
+      <assume_shared>
+        <proposition predicate="one_boolean_predicate" value="false"/>
+      </assume_shared>
+      <assume_shared>
+        <proposition predicate="other_boolean_predicate" value="true"/>
+      </assume_shared>
+      <if>
+        <proposition predicate="one_boolean_predicate"/>
+        <then>
+          <inform>
+            <proposition predicate="test_info_one" value="one is true"/>
+          </inform>
+        </then>
+        <else>
+          <inform>
+            <proposition predicate="test_info_one" value="one is not true"/>
+          </inform>
+        </else>
+      </if>
+      <if>
+        <proposition predicate="other_boolean_predicate"/>
+        <then>
+          <inform>
+            <proposition predicate="test_info_other" value="other is true"/>
+          </inform>
+        </then>
+        <else>
+          <inform>
+            <proposition predicate="test_info_other" value="other is not true"/>
+          </inform>
+        </else>
+      </if>
+    </plan>
+  </goal>
+
+
+</domain>

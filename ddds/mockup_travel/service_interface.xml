@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service_interface>
+  <action name="CancelReservation">
+    <parameters/>
+    <failure_reasons>
+      <failure_reason name="no_reservation_exists"/>
+    </failure_reasons>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/CancelReservation"/>
+    </target>
+  </action>
+  <action name="MakeRandomReservation">
+    <parameters/>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/MakeRandomReservation"/>
+    </target>
+  </action>
+  <action name="MakeReservation">
+    <parameters>
+      <parameter predicate="dest_city" format="value"/>
+      <parameter predicate="dept_city" format="value"/>
+    </parameters>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/make_reservation"/>
+    </target>
+  </action>
+  <action name="AddPassengers">
+    <parameters>
+      <parameter predicate="passenger_type_to_add" format="value"/>
+      <parameter predicate="passenger_quantity_to_add" format="value"/>
+    </parameters>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/AddPassengers"/>
+    </target>
+  </action>
+  <action name="RegisterComment">
+    <parameters>
+      <parameter predicate="comment_message" format="value"/>
+      <parameter predicate="comment_name" format="value"/>
+    </parameters>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/RegisterComment"/>
+    </target>
+  </action>
+  <action name="BookHousing">
+    <parameters/>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/BookHousing"/>
+    </target>
+  </action>
+  <action name="ShowOnMap">
+    <parameters>
+      <parameter predicate="dest_city" format="grammar_entry"/>
+    </parameters>
+    <failure_reasons/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/ShowOnMap"/>
+    </target>
+  </action>
+  <action name="HandoverToHuman">
+    <parameters>
+    </parameters>
+    <failure_reasons/>
+    <target>
+      <frontend/>
+    </target>
+  </action>
+  <query name="num_available_dept_cities">
+    <parameters>
+      <parameter predicate="dest_city" format="grammar_entry"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/num_available_dept_cities"/>
+    </target>
+  </query>
+  <query name="code">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/code"/>
+    </target>
+  </query>
+
+  <query name="selected_housing">
+    <parameters>
+      <parameter predicate="selected_housing_type" format="value" optional="true"/>
+      <parameter predicate="selected_housing_rating" format="value" optional="true"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/selected_housing"/>
+    </target>
+  </query>
+
+  <query name="selected_housing_for_pets">
+    <parameters>
+      <parameter predicate="selected_housing_type" format="value" optional="true"/>
+      <parameter predicate="selected_housing_rating" format="value" optional="true"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/selected_housing_for_pets"/>
+    </target>
+  </query>
+
+  <query name="selected_housing_for_moomins">
+    <parameters>
+      <parameter predicate="selected_housing_type" format="value" optional="true"/>
+      <parameter predicate="selected_housing_rating" format="value" optional="true"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/selected_housing_for_moomins"/>
+    </target>
+  </query>
+
+  <query name="selected_housing_for_contact">
+    <parameters>
+      <parameter predicate="selected_housing_type" format="value" optional="true"/>
+      <parameter predicate="selected_housing_rating" format="value" optional="true"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/selected_housing_for_contact"/>
+    </target>
+  </query>
+
+  <query name="next_membership_level">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/next_membership_level"/>
+    </target>
+  </query>
+  <query name="selected_train_type">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/selected_train_type"/>
+    </target>
+  </query>
+   <query name="passenger_quantity_to_add">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/passenger_quantity_to_add"/>
+    </target>
+  </query>
+  <query name="available_member_type">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/available_member_type"/>
+    </target>
+  </query>
+  <query name="price">
+    <parameters>
+      <parameter predicate="means_of_transport" format="value"/>
+      <parameter predicate="dest_city" format="value"/>
+      <parameter predicate="dept_city" format="value"/>
+      <parameter predicate="dept_month" format="value"/>
+      <parameter predicate="dept_day" format="value"/>
+      <parameter predicate="class" format="value"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/price"/>
+    </target>
+  </query>
+  <query name="dept_city">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/dept_city"/>
+    </target>
+  </query>
+  <query name="attraction_information">
+    <parameters>
+      <parameter predicate="attraction" format="value"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/attraction_information"/>
+    </target>
+  </query>
+  <query name="available_payment_method">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/available_payment_method"/>
+    </target>
+  </query>
+  <query name="current_position">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/current_position"/>
+    </target>
+  </query>
+  <query name="frequent_flyer_points">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/frequent_flyer_points"/>
+    </target>
+  </query>
+  <query name="qualified_for_membership">
+    <parameters>
+      <parameter predicate="dest_city" format="value" optional="true"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/qualified_for_membership"/>
+    </target>
+  </query>
+  <query name="available_means_of_transport">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/available_means_of_transport"/>
+    </target>
+  </query>
+  <query name="available_dept_city">
+    <parameters>
+      <parameter predicate="dest_city" format="grammar_entry"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/available_dept_city"/>
+    </target>
+  </query>
+  <query name="room_availability">
+    <parameters>
+      <parameter predicate="selected_room_type" format="value"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/room_availability"/>
+    </target>
+  </query>
+  <query name="frequent_flyer_number">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/frequent_flyer_number"/>
+    </target>
+  </query>
+  <query name="next_membership_points">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/next_membership_points"/>
+    </target>
+  </query>
+  <validator name="CityValidity">
+    <parameters>
+      <parameter predicate="dest_city" format="value"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/city_validity"/>
+    </target>
+  </validator>
+  <validator name="CityTypeValidity">
+    <parameters>
+      <parameter predicate="dest_city" format="value"/>
+      <parameter predicate="dest_city_type" format="value"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/city_type_validity"/>
+    </target>
+  </validator>
+  <entity_recognizer name="MeansOfTransportRecognizer">
+    <target>
+      <http endpoint="http://127.0.0.1:10100/phone_number_of_contact"/>
+    </target>
+  </entity_recognizer>
+  <query name="house_owner_name">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/house_owner_name"/>
+    </target>
+  </query>
+  <query name="need_visa">
+    <parameters>
+      <parameter predicate="dept_city" format="grammar_entry"/>
+      <parameter predicate="dest_city" format="grammar_entry"/>
+    </parameters>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/need_visa"/>
+    </target>
+  </query>
+  <query name="flight_on_time">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/flight_on_time"/>
+    </target>
+  </query>
+  <query name="flight_departure">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/flight_departure"/>
+    </target>
+  </query>
+  <query name="flight_exists">
+    <parameters/>
+    <target>
+      <http endpoint="http://127.0.0.1:10100/flight_exists"/>
+    </target>
+  </query>
+</service_interface>

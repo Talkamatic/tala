@@ -1,0 +1,3272 @@
+[
+    {
+        "name": "no greeting",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.goal(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_madrid)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_madrid",
+                        "sort": "city",
+                        "natural_language_form": "Madrid",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_month(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(april)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_day(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.class(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information - pardon with variation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.goal(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_madrid)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_madrid",
+                        "sort": "city",
+                        "natural_language_form": "Madrid",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_month(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_month(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(april)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_day(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_day(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.class(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.class(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "one-shot price information",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)",
+                    "answer(dest_city(paris))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "invalidity",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)",
+                    "answer(dest_city(lisbon))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "icm:acc*neg:rejected(set([dest_city(lisbon)]), CityValidity)",
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "resume after invalidity - pardon",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.goal(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)",
+                    "answer(dest_city(lisbon))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "icm:acc*neg:rejected(set([dest_city(lisbon)]), CityValidity)",
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "add passenger with default quantity",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(adult)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:report_inference:passenger_quantity_to_add(1)",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(1)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "one-shot add passenger with default quantity",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)",
+                    "answer(adult)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:report_inference:passenger_quantity_to_add(1)",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(1)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "one-shot add passenger with explicit quantity",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)",
+                    "answer(2)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(adult)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(2)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "add passenger with explicit quantity",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)",
+                    "answer(adult)",
+                    "answer(passenger_quantity_to_add(2))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(2)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "action accommodation without feedback, one answer",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(adult)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:report_inference:passenger_quantity_to_add(1)",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(1)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "action accommodation without feedback, multiple answers",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(adult)",
+                    "answer(passenger_quantity_to_add(2))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(2)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "resume after device report",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(adult)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:report_inference:passenger_quantity_to_add(1)",
+                    "report(ServiceResultProposition(AddPassengers, [passenger_type_to_add(adult), passenger_quantity_to_add(1)], SuccessfulServiceAction()))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:perform(top)",
+                    "ask(?X.goal(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Re-request of the same plan with disabled reraise-on-resume should be quiet",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(apply_for_membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(make_international_reservation)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(apply_for_membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Re-request of the same plan with disabled reraise-on-resume should be quiet - pardon",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.goal(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(apply_for_membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(make_international_reservation)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(apply_for_membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise feedback after timeout",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise feedback after unrelated followup",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "utterance": "something incomprehensible",
+                "move_content": [
+                        "sdfhsdkjf"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:per*pos:\"something incomprehensible\"",
+                    "icm:sem*neg",
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "no reraise feedback after modified search",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(resort)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "background for related information for perform goal",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(qualified_for_membership)",
+                    "ask(?goal(perform(apply_for_membership)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "grounding feedback for resolve goal",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "ask(?X.price(X))",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 0.9,
+                                "understanding_confidence": 0.12
+                            }
+                        ],
+                        "modality": "other"
+                    }],
+                "utterance": "price information"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:und*int:USR*goal(resolve(?X.price(X)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "decorate answer with other answers",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.next_membership_level(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(next_membership_level(silver))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "resume after system answer",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.next_membership_level(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(next_membership_level(silver))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:perform(top)",
+                    "ask(?X.goal(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "issue accommodation without feedback",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(single_room)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(room_availability)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "system asking feature question",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?know_answer(?X.selected_housing_rating(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "system asking alt question with predicate proposition alts",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing_alts)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X), set([selected_housing(sheraton), selected_housing(novotel)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(sheraton)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "system asking kpq",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(contact_housing_owner)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?know_answer(?X.selected_housing_type(X)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "system asking 2nd kpq",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(contact_housing_owner)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?know_answer(?X.selected_housing_type(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(no)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?know_answer(?X.selected_housing_rating(X)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "system asking kpq-embedded question",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(contact_housing_owner)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?know_answer(?X.selected_housing_type(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(yes)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos", "ask(?X.selected_housing_type(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "preconfirmation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                     "icm:acc*pos", "icm:loadplan", "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?know_answer(?X.selected_housing_rating(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(sheraton)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(yes)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "report(ServiceResultProposition(BookHousing, [], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "housing for pets triggers mitigation plan for zero hits",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing_for_pets)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "report(question_status(?X.selected_housing_for_pets(X), aborted(no-hits)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(search_failed_due_to_zero_hits))",
+                    "ask(?preconfirmed(HandoverToHuman, []))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "housing for moomins triggers mitigation plan for too many hits",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing_for_moomins)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing_rating(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(search_failed_due_to_too_many_hits))",
+                    "ask(?preconfirmed(HandoverToHuman, []))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "repeat preconfirmation question after timeout, followed by yes",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?know_answer(?X.selected_housing_rating(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(sheraton)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(yes)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "report(ServiceResultProposition(BookHousing, [], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "repeat preconfirmation question after timeout, followed by no restarts plan",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?know_answer(?X.selected_housing_rating(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(sheraton)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise",
+                    "ask(?preconfirmed(BookHousing, []))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(no)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "user answers feature questions in other order",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(rating_5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos", "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.selected_housing(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "positive perception ICM",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "bsdkfsdfshdf",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "speaker": "user",
+                "utterance": "bsdkfsdfshdf"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:per*pos:\"bsdkfsdfshdf\"",
+                    "icm:sem*neg",
+                    "icm:reraise",
+                    "ask(?X.goal(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "icm:acc*neg:issue",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)",
+                    "answer(dest_city(gothenburg))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "report(question_status(?X.price(X), aborted(non-optional-question)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "dependent issue accommodation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:accommodate:?X.price(X)",
+                    "icm:und*pos:USR*goal(resolve(?X.price(X)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:loadplan",
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "dependent action accommodation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(visa)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:accommodate:make_reservation",
+                    "icm:und*pos:USR*goal(perform(make_reservation))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:loadplan",
+                    "icm:acc*pos",
+                    "ask(?set([goal(perform(make_domestic_reservation)), goal(perform(make_international_reservation)), goal(resolve(?X.price(X)))]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "going back to resolve goal",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(up)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:resolve(?X.price(X))",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "going back to perform goal",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(book_housing)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.selected_housing_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(up)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:perform(add_passenger)",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "disabled accommodation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(5)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:und*neg",
+                    "ask(?X.goal(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "user speaks first",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise on disregard semantic input without utterance",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(yes)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 0.02
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:sem*neg",
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise on disregard semantic input with utterance",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "utterance": "where is the red pyjamas",
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(yes)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 0.9,
+                                "understanding_confidence": 0.02
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:per*pos:\"where is the red pyjamas\"",
+                    "icm:sem*neg",
+                    "icm:reraise",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "asking about visa: visa not needed",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?need_visa)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_madrid)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_madrid",
+                        "sort": "city",
+                        "natural_language_form": "Madrid",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(~need_visa)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "asking about visa: visa needed",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?need_visa)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_teheran)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_teheran",
+                        "sort": "city",
+                        "natural_language_form": "teheran",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_madrid)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_madrid",
+                        "sort": "city",
+                        "natural_language_form": "Madrid",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(need_visa)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "generate datetime from service",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.flight_departure(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(flight_departure(datetime(2018-04-11T22:00:00.000Z)))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "assume issue answers assumed user question",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.flight_on_time(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(flight_departure(datetime(2018-04-11T22:00:00.000Z)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:resolve(?X.flight_on_time(X))",
+                    "answer(flight_on_time(\"on time\"))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "assume issue in if/then clause",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.flight_exists(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.class(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(business)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(flight_departure(datetime(2018-04-11T22:00:00.000Z)))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:reraise:resolve(?X.flight_exists(X))",
+                    "answer(flight_exists(\"a connection\"))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "no reraise when user repeats ask-move for current goal",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise when user repeats ask-move with request inbetween",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:reraise:resolve(?X.price(X))",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "reraise when user repeats request with ask-move inbetween",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(add_passenger)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:reraise:perform(add_passenger)",
+                    "icm:loadplan",
+                    "ask(?X.passenger_type_to_add(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "timeout is enabled after return from postconfirmless plan to reraiseless plan",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(apply_for_membership)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.member_type(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(cancel_reservation)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.member_type(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "nested conditional",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(show_on_map_nested_if)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(gothenburg)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(ShowOnMap, [dest_city(paris)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "nested conditional II",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(show_on_map_nested_if)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(gothenburg)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(ShowOnMap, [dest_city(gothenburg)], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "nested conditional III",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(show_on_map_nested_if)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(london)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "report(ServiceResultProposition(MakeRandomReservation, [], SuccessfulServiceAction()))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "postplan for resolve plan makes attraction be forgotten",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.attraction_information(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.attraction(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(\"Eiffel tower\")"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(attraction_information(\"the eiffel tower is a wrought iron lattice tower on the champ de mars in paris, france\"))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.attraction_information(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.attraction(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, hint for dest_city city",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, hint + icm:per*neg",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, second hint for dest_city city",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, third try for dest_city city, last hint",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, hints reset when returning to top",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(top)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:reraise:perform(top)",
+                    "ask(?X.goal(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "price information, resolving hint for month",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(number_of_alternatives(2))",
+                    "ask(?X.means_of_transport(X), set([means_of_transport(plane), means_of_transport(train)]))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(plane)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            },
+            {
+                "interpretations": [
+                    {
+                        "moves": [
+                            {
+                                "semantic_expression": "answer(city_madrid)",
+                                "ddd": "mockup_travel",
+                                "perception_confidence": 1.0,
+                                "understanding_confidence": 1.0
+                            }
+                        ],
+                        "modality": "other"
+                    }
+                ],
+                "entities": [
+                    {
+                        "name": "city_madrid",
+                        "sort": "city",
+                        "natural_language_form": "Madrid",
+                        "ddd": "mockup_travel"
+                    }
+                ],
+                "speaker": "user"
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "ask(?X.dept_month(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(dept_month(april))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.dept_day(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "raise of question and icm:acc*neg:issue means next question",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.available_to_buy(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:loadplan",
+                    "answer(helpful_information(intro_to_available_to_buy))",
+                    "ask(?X.amount_of_points(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.bonus_goods_category(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "raise of question and icm:per*neg means repetition",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.available_to_buy(X))"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:loadplan",
+                    "answer(helpful_information(intro_to_available_to_buy))",
+                    "ask(?X.amount_of_points(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?X.amount_of_points(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "one-shot price information",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "ask(?X.price(X))",
+                    "answer(plane)",
+                    "answer(paris)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "answer(num_available_dept_cities(3))",
+                    "ask(?X.dept_city(X), set([dept_city(city_madrid), dept_city(city_helsinki), dept_city(city_*)]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "goal clarification",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(hotel)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:und*neg",
+                    "ask(?set([goal(perform(book_housing)), goal(perform(book_housing_alts)), goal(perform(contact_housing_owner)), goal(perform(book_housing_for_pets)), goal(perform(book_housing_for_moomins))]))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "goal accommodation",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "answer(electrical)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:accommodate:select_train_type",
+                    "icm:und*pos:USR*goal(perform(select_train_type))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "ynq and icm:acc*neg means repetition instead of plan abortion",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(buy_sausage)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?want_sausage)"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:per*neg"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?want_sausage)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "hint for ynq",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(environmental_options)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?compensate_co2_emissions)"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(helpful_hint_on_co2))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?compensate_co2_emissions)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "hint for ynq alternate syntax",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(environmental_options_2)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?compensate_co2_emissions_2)"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(helpful_hint_on_co2))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "expected_passivity": true
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "ask(?compensate_co2_emissions_2)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "don't repeat known hint when icm acc neg",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(action_with_plan_which_assumes_first_hint)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "icm:acc*pos",
+                    "icm:loadplan",
+                    "ask(?X.dest_city(X))"
+                ]
+            },
+            {
+                "speaker": "user",
+                "move_content": [
+                    "icm:acc*neg:issue"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(helpful_information(dest_city_hint_*))",
+                    "ask(?X.dest_city(X))"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "test negative nullary proposition defined in domain",
+        "url": "http://localhost:9090/interact",
+        "target_ddd": "mockup_travel",
+        "interaction": [
+            {
+                "speaker": "user",
+                "move_content": [
+                    "request(test_false_nullary_proposition)"
+                ]
+            },
+            {
+                "speaker": "system",
+                "move_content": [
+                    "answer(test_info_one(\"one is not true\"))",
+                    "answer(test_info_other(\"other is true\"))"
+                ]
+            }
+        ]
+    }
+]

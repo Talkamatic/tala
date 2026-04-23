@@ -1,4 +1,0 @@
-[submodule "ddds"]
-	path = ddds
-	url = ../internal_ddds.git
-	branch = .

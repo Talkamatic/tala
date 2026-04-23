@@ -45,9 +45,9 @@ class TestDDDSetLoader(unittest.TestCase):
     @patch("{}.ExtendedDDDLoader".format(extended_ddd_set_loader.__name__))
     def test_ddd_config_override(self, MockDddLoader, MockDddConfig):
         with chdir("ddds"):
-            self._given_overridden_ddd_config_paths([OverriddenDddConfig("hello_world", "mock_config.json")])
+            self._given_overridden_ddd_config_paths([OverriddenDddConfig("mockup_travel", "mock_config.json")])
             self._given_extended_ddd_set_loader_created()
-            self._when_ensuring_ddds_loaded_from("hello_world.json")
+            self._when_ensuring_ddds_loaded_from("mockup_travel.json")
             self._then_method_called_with(MockDddConfig, "mock_config.json")
 
     def _given_overridden_ddd_config_paths(self, overridden_ddd_config_paths):
