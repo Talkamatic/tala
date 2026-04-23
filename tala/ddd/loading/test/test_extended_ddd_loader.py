@@ -1,3 +1,5 @@
+import os
+import warnings
 from unittest.mock import Mock
 
 from tala.config import BackendConfig
@@ -51,6 +53,28 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         self._given_mocked_ddd_config(ddd_bundle="ddd.json")
         self._when_load_is_called("mockup_app")
         self._then_result_contains_ddd("mockup_app")
+
+    def test_xml_warns_when_json_alternative_exists(self):
+        self._given_ontology_xml_file("mockup_app/ontology.xml")
+        self._given_domain_xml_file("mockup_app/domain.xml")
+        self._given_service_interface_xml_file("mockup_app/service_interface.xml")
+        self._given_ontology_json_file("mockup_app/ontology.json")
+        self._given_domain_json_file("mockup_app/domain.json")
+        self._given_service_interface_json_file("mockup_app/service_interface.json")
+        original_value = os.environ.get("TALA_XML_WARN")
+        os.environ["TALA_XML_WARN"] = "1"
+
+        try:
+            with warnings.catch_warnings(record=True) as recorded:
+                warnings.simplefilter("always", DeprecationWarning)
+                self._when_load_is_called("mockup_app")
+        finally:
+            if original_value is None:
+                os.environ.pop("TALA_XML_WARN", None)
+            else:
+                os.environ["TALA_XML_WARN"] = original_value
+
+        assert any(issubclass(item.category, DeprecationWarning) for item in recorded)
 
     def _then_result_contains_ddd(self, ddd_name):
         ddd = self._result

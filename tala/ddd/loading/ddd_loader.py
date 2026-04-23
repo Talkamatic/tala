@@ -1,5 +1,6 @@
 import json
 import os
+import warnings
 
 from tala.model.ddd import DDD
 from tala.ddd.ddd_xml_compiler import DDDXMLCompiler, DomainCompiler as DomainXmlCompiler
@@ -67,6 +68,7 @@ class DDDLoader(object):
             if resource_name.endswith(".json"):
                 with open(resource_name, "r", encoding="utf-8") as f:
                     return ("json", f.read())
+            self._maybe_warn_xml_usage(resource_name)
             with open(resource_name, "rb") as f:
                 return ("xml", f.read())
         raise DDDLoaderException("Expected '%s' to exist but it does not." % resource_name)
@@ -120,6 +122,29 @@ class DDDLoader(object):
         if key not in bundle:
             raise DDDLoaderException("Expected '%s' in DDD bundle but it was not found." % key)
         return bundle[key]
+
+    def _maybe_warn_xml_usage(self, resource_name):
+        if not os.getenv("TALA_XML_WARN"):
+            return
+        if self._json_alternative_exists(resource_name):
+            warnings.warn(
+                "XML DDD files are deprecated when JSON alternatives exist. "
+                "Configure a JSON bundle in ddd.config.json to migrate.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+    def _json_alternative_exists(self, resource_name):
+        bundle_path = self._ddd_config.get("ddd_bundle")
+        if bundle_path and os.path.exists(bundle_path):
+            return True
+        files = self._ddd_config.get("ddd_files", {})
+        json_paths = [value for value in files.values() if isinstance(value, str) and value.endswith(".json")]
+        for json_path in json_paths:
+            if os.path.exists(json_path):
+                return True
+        candidate = os.path.splitext(resource_name)[0] + ".json"
+        return os.path.exists(candidate)
 
     def load(self):
         path = os.path.join(os.getcwd(), self._name)
