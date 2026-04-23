@@ -10,7 +10,7 @@
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element ref="goal" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="parameters" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element name="query" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="query" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="iterator" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="validator" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="default_question" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
@@ -53,7 +53,6 @@
         <xs:restriction base="xs:string">
           <xs:enumeration value="perform"/>
           <xs:enumeration value="resolve"/>
-          <xs:enumeration value="handle"/>
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
@@ -69,24 +68,53 @@
   <xs:element name="greet"/>
 
 
-  <xs:complexType name="query">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="implication" minOccurs="1" maxOccurs="unbounded"/>
-      <xs:element name="enumerate" minOccurs="1" maxOccurs="unbounded"/>
-    </xs:choice>
-  </xs:complexType>
+  <xs:element name="query">
+    <xs:complexType>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:sequence>
+          <xs:element name="implication" type="implication" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:sequence>
+          <xs:element name="select_at_random" type="selection" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:sequence>
+          <xs:element name="enumerate" type="enumeration" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+      </xs:choice>
+      <xs:attribute name="predicate" type="xs:string" use="required"/>
+      <xs:attribute name="type" type="question_type" use="optional"/>
+      <xs:attribute name="question_type" type="question_type" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="iterator">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="enumerate" type="enumeration" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
 
   <xs:complexType name="implication">
     <xs:sequence>
-      <xs:element name="antecedent" type="proposition" minOccurs="1" maxOccurs="unbounded"/>
-      <xs:element name="consequent" type="proposition" minOccurs="1" maxOccurs="unbounded"/>
+      <xs:element name="antecedent" type="predicate_proposition" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="consequent" type="predicate_proposition" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="enumerate">
+  <xs:complexType name="selection">
+    <xs:sequence>
+      <xs:element ref="individual" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="enumeration">
     <xs:sequence>
       <xs:element name="individual" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="randomize" type="xs:boolean" use="optional"/>
+    <xs:attribute name="limit" type="xs:integer" use="optional"/>
   </xs:complexType>
 
   <xs:element name="individual">
@@ -115,8 +143,6 @@
       <xs:element name="bind" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_service_action" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="get_done" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element ref="dev_perform" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element ref="dev_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_issue" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_shared" type="has_predicate_proposition"
                   minOccurs="0" maxOccurs="unbounded"/>
@@ -154,26 +180,11 @@
     <xs:complexType>
       <xs:complexContent>
         <xs:extension base="has_question">
-          <xs:attribute name="device" type="xs:string"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="dev_query">
-    <xs:annotation>
-      <xs:documentation xml:lang="en">
-        This element is deprecated, use the invoke_service_query element instead.
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:complexContent>
-        <xs:extension base="has_question">
-          <xs:attribute name="device" type="xs:string"/>
-        </xs:extension>
-      </xs:complexContent>
-    </xs:complexType>
-  </xs:element>
 
   <xs:element name="invoke_domain_query">
     <xs:complexType>
@@ -238,7 +249,6 @@
       <xs:attribute name="preconfirm" type="preconfirm"/>
       <xs:attribute name="postconfirm" type="xs:boolean"/>
       <xs:attribute name="downdate_plan" type="xs:boolean" default="true"/>
-      <xs:attribute name="device" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 
@@ -254,19 +264,6 @@
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="dev_perform">
-    <xs:annotation>
-      <xs:documentation xml:lang="en">
-        This element is deprecated, use the invoke_service_action element instead.
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexType>
-      <xs:attribute name="action" type="xs:string" use="required"/>
-      <xs:attribute name="device" type="xs:string"/>
-      <xs:attribute name="preconfirm" type="preconfirm"/>
-      <xs:attribute name="postconfirm" type="xs:boolean"/>
-    </xs:complexType>
-  </xs:element>
 
   <xs:simpleType name="preconfirm">
     <xs:restriction base="xs:string">
@@ -276,15 +273,15 @@
   </xs:simpleType>
 
   <xs:complexType name="has_question">
-    <xs:complexContent>
-      <xs:extension base="proposition">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element name="alt" type="proposition"/>
-        </xs:choice>
-        <xs:attribute name="type" type="question_type"/>
-        <xs:attribute name="insist" type="xs:boolean"/>
-      </xs:extension>
-    </xs:complexContent>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="proposition" type="predicate_proposition"/>
+      <xs:element name="resolve" type="has_question"/>
+      <xs:element ref="perform"/>
+      <xs:element name="alt" type="proposition"/>
+    </xs:choice>
+    <xs:attribute name="predicate" type="xs:string"/>
+    <xs:attribute name="type" type="question_type"/>
+    <xs:attribute name="insist" type="xs:boolean"/>
   </xs:complexType>
 
   <xs:complexType name="has_inner_question">
@@ -467,14 +464,6 @@
             </xs:simpleType>
           </xs:attribute>
 
-          <xs:attribute name="graphical_type">
-            <xs:simpleType>
-              <xs:restriction base="xs:string">
-                <xs:enumeration value="list"/>
-                <xs:enumeration value="text"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:attribute>
 
           <xs:attribute name="source">
             <xs:simpleType>

@@ -2,19 +2,19 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="ontology" type="ontologyType"/>
   <xs:complexType name="actionType">
-    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
   </xs:complexType>
   <xs:complexType name="individualType">
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:string" name="sort" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="sort" use="required"/>
   </xs:complexType>
   <xs:complexType name="sortType">
-    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
     <xs:attribute type="boolean_format" name="dynamic" use="optional"/>
   </xs:complexType>
   <xs:complexType name="predicateType">
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:string" name="sort" use="optional"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="sort" use="required"/>
     <xs:attribute type="xs:string" name="feature_of" use="optional"/>
     <xs:attribute type="boolean_format" name="multiple_instances" use="optional"/>
   </xs:complexType>
@@ -25,7 +25,7 @@
       <xs:element type="actionType" name="action" maxOccurs="unbounded" minOccurs="0"/>
       <xs:element type="individualType" name="individual" maxOccurs="unbounded" minOccurs="0"/>
     </xs:choice>
-    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="name" use="required"/>
   </xs:complexType>
   <xs:simpleType name="boolean_format">
     <xs:restriction base="xs:string">

@@ -9,7 +9,6 @@
 
         <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="unbounded">
-                <xs:element ref="play_audio_action" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="action" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="query" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="validator" minOccurs="0" maxOccurs="unbounded"/>
@@ -17,39 +16,6 @@
             </xs:choice>
         </xs:complexType>
     </xs:element>
-
-    <xs:element name="play_audio_action" type="audio_action_interface">
-        <xs:annotation>
-            <xs:documentation>An action to play audio in the frontend, is performed given the parameters.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-
-    <xs:complexType name="audio_action_interface">
-        <xs:sequence>
-            <xs:element ref="audio_url_parameter"/>
-            <xs:element name="parameters" type="parameters"/>
-            <xs:element name="target" type="audio_action_target"/>
-        </xs:sequence>
-        <xs:attribute name="name" type="xs:string" use="required"/>
-    </xs:complexType>
-
-    <xs:element name="audio_url_parameter">
-        <xs:annotation>
-            <xs:documentation>An audio URL parameter is a predicate of sort 'string'. When the action is performed, the format of this parameter will be 'grammar_entry'.</xs:documentation>
-        </xs:annotation>
-        <xs:complexType>
-            <xs:attribute name="predicate" type="xs:string" use="required"/>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:complexType name="audio_action_target">
-        <xs:annotation>
-            <xs:documentation>The target where audio actions will be performed has to be the frontend.</xs:documentation>
-        </xs:annotation>
-        <xs:sequence>
-            <xs:element ref="frontend" minOccurs="1" maxOccurs="1"/>
-        </xs:sequence>
-    </xs:complexType>
 
     <xs:element name="action" type="action_interface">
         <xs:annotation>
