@@ -104,8 +104,6 @@ class TDMClient(Observable):
 
     def start_session(self, session_data: Mapping = None) -> Mapping:
         session_object = session_data or {}
-        if "session_id" not in session_object:
-            session_object["session_id"] = "mock-id-this-should-not-appear-in-production"
         request = {"version": PROTOCOL_VERSION, "session": session_object, "request": {"start_session": {}}}
         response = self._make_request(request)
         return response

@@ -23,7 +23,7 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._when_calling_start_session()
-        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{"session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
+        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{}}, "request": {{"start_session": {{}}}}}}'
         self._then_request_was_made_with("mock-url", data=request_data, headers={'Content-type': 'application/json'})
 
     def _given_mocked_requests_module(self, mock_requests):
@@ -45,7 +45,7 @@ class TestTDMClient(object):
         self._given_mocked_requests_module(mock_requests)
         self._given_tdm_client_created_for("mock-url")
         self._when_calling_start_session(session={"key": "value"})
-        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{"key": "value", "session_id": "mock-id-this-should-not-appear-in-production"}}, "request": {{"start_session": {{}}}}}}'
+        request_data = f'{{"version": "{PROTOCOL_VERSION}", "session": {{"key": "value"}}, "request": {{"start_session": {{}}}}}}'
         self._then_request_was_made_with("mock-url", data=request_data, headers={'Content-type': 'application/json'})
 
     @patch("{}.requests".format(tdm_client.__name__), autospec=True)

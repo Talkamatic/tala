@@ -36,6 +36,9 @@ Homepage = "http://www.talkamatic.se"
 Documentation = "https://docs.talkamatic.se"
 Repository = "https://github.com/talkamatic/tala"
 
+[project.scripts]
+tala-interact = "tala.cli.interact.console:main"
+
 [tool.setuptools.packages.find]
 exclude = ["tala/ddds", "test", "*.test", "test.*", "*.test.*"]
 
