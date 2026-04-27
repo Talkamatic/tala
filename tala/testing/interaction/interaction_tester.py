@@ -31,6 +31,10 @@ MOVES = "moves"
 SESSION = "session"
 EXPECTED_PASSIVITY = "expected_passivity"
 UTTERANCE = "utterance"
+REPEAT = "repeat"
+REQUIRE_OUTCOMES = "require_outcomes"
+REQUIRE_OUTCOME_ENTRY_INDEX = "entry_index"
+REQUIRE_OUTCOME_MOVES = "moves"
 
 TDM_PROTOCOL_VERSION = "3.4"
 
@@ -127,13 +131,20 @@ class InteractionTester:
         self._session_data = {"device_id": self._device_id, "session_id": self._session_id}
 
     def run_testcase(self, case, offer=None):
-        self._initialize_testcase(case)
+        repeat, required_outcomes = self._get_repeat_and_required_outcomes(case)
+        if repeat == 1 and not required_outcomes:
+            return self._run_testcase_once(case, offer)
+        return self._run_testcase_with_repeats(case, offer, repeat, required_outcomes)
+
+    def _run_testcase_once(self, case, offer=None, run_index=None, run_count=None):
+        self._initialize_testcase(case, run_index=run_index, run_count=run_count)
         self._start_clock()
         self.start_session(offer)
         success = True
         self._previous_entry_type = None
         try:
-            for entry in case["interaction"]:
+            for entry_index, entry in enumerate(case["interaction"]):
+                self._current_entry_index = entry_index
                 if entry[SPEAKER] == USER:
                     success = self._do_user_turn(entry)
                 elif entry[SPEAKER] == SYSTEM:
@@ -156,7 +167,7 @@ class InteractionTester:
         self._stop_clock()
         return self._create_response(self._result)
 
-    def _initialize_testcase(self, testcase):
+    def _initialize_testcase(self, testcase, run_index=None, run_count=None):
         self._output_buffer = OutputBuffer()
         self._ddd_name = testcase["target_ddd"]
         self._neural = testcase.get("neural")
@@ -164,7 +175,12 @@ class InteractionTester:
         url = self._patch_url_with_port(testcase["url"])
         self._client = TDMClient(url)
         self._test_name = testcase["name"]
-        self._buffer_output(f'\n=== Begin interaction test "{self._test_name}" ===')
+        self._system_moves_seen = []
+        self._current_entry_index = None
+        run_label = ""
+        if run_index is not None and run_count is not None:
+            run_label = f" (run {run_index}/{run_count})"
+        self._buffer_output(f'\n=== Begin interaction test "{self._test_name}"{run_label} ===')
         self._request_times = []
         self._stream_start_times = []
         self._stream_end_times = []
@@ -647,6 +663,113 @@ class InteractionTester:
         response["max_turn_time"] = max(self._turn_times) if self._turn_times else 0
 
         return response
+
+    def _run_testcase_with_repeats(self, case, offer, repeat, required_outcomes):
+        outcomes_seen = [False] * len(required_outcomes)
+        transcripts = []
+        last_response = None
+        runs_executed = 0
+        for run_index in range(1, repeat + 1):
+            runs_executed += 1
+            response = self._run_testcase_once(case, offer, run_index=run_index, run_count=repeat)
+            last_response = response
+            transcripts.append(response["transcript"])
+            if not response["success"]:
+                return self._with_run_metadata(response, transcripts, runs_executed)
+            self._record_required_outcomes_seen(outcomes_seen, required_outcomes, self._system_moves_seen)
+            if required_outcomes and all(outcomes_seen):
+                break
+
+        if required_outcomes and not all(outcomes_seen):
+            return self._missing_required_outcomes_response(required_outcomes, outcomes_seen, transcripts, runs_executed)
+
+        if last_response is None:
+            return self._run_testcase_once(case, offer)
+        return self._with_run_metadata(last_response, transcripts, runs_executed)
+
+    def _get_repeat_and_required_outcomes(self, testcase):
+        repeat = testcase.get(REPEAT, 1)
+        try:
+            repeat = int(repeat)
+        except (TypeError, ValueError):
+            repeat = 1
+        if repeat < 1:
+            repeat = 1
+        required_outcomes = self._normalize_required_outcomes(testcase.get(REQUIRE_OUTCOMES, []))
+        return repeat, required_outcomes
+
+    def _normalize_required_outcomes(self, required_outcomes):
+        normalized = []
+        for outcome in required_outcomes:
+            if isinstance(outcome, dict):
+                moves = outcome.get(REQUIRE_OUTCOME_MOVES)
+                entry_index = outcome.get(REQUIRE_OUTCOME_ENTRY_INDEX)
+            else:
+                moves = outcome
+                entry_index = None
+            if moves is None:
+                continue
+            normalized.append(self._create_required_outcome(moves, entry_index))
+        return normalized
+
+    def _record_required_outcomes_seen(self, outcomes_seen, required_outcomes, system_moves):
+        for index, outcome in enumerate(required_outcomes):
+            if outcomes_seen[index]:
+                continue
+            if self._required_outcome_seen(system_moves, outcome):
+                outcomes_seen[index] = True
+
+    def _required_outcome_seen(self, system_moves, outcome):
+        entry_index = outcome[REQUIRE_OUTCOME_ENTRY_INDEX]
+        expected_moves = outcome[REQUIRE_OUTCOME_MOVES]
+        for move_entry in system_moves:
+            if entry_index is not None and move_entry[REQUIRE_OUTCOME_ENTRY_INDEX] != entry_index:
+                continue
+            comparison = MoveComparison(move_entry[REQUIRE_OUTCOME_MOVES], expected_moves)
+            if comparison.match():
+                return True
+        return False
+
+    def _record_system_moves_seen(self, moves):
+        self._system_moves_seen.append(self._create_observed_move(self._current_entry_index, moves))
+
+    def _create_observed_move(self, entry_index, moves):
+        return {
+            REQUIRE_OUTCOME_ENTRY_INDEX: entry_index,
+            REQUIRE_OUTCOME_MOVES: moves,
+        }
+
+    def _create_required_outcome(self, moves, entry_index=None):
+        return {
+            REQUIRE_OUTCOME_ENTRY_INDEX: entry_index,
+            REQUIRE_OUTCOME_MOVES: moves,
+        }
+
+    def _with_run_metadata(self, response, transcripts, runs_executed):
+        response["transcript"] = self._join_transcripts(transcripts)
+        response["runs_executed"] = runs_executed
+        return response
+
+    def _missing_required_outcomes_response(self, required_outcomes, outcomes_seen, transcripts, runs_executed):
+        missing = [
+            outcome[REQUIRE_OUTCOME_MOVES]
+            for index, outcome in enumerate(required_outcomes)
+            if not outcomes_seen[index]
+        ]
+        failure_description = (
+            f"Required outcomes not observed after {runs_executed} run(s): {json.dumps(missing)}"
+        )
+        return {
+            "success": False,
+            "failure_description": failure_description,
+            "transcript": self._join_transcripts(transcripts),
+            "runs_executed": runs_executed,
+        }
+
+    def _join_transcripts(self, transcripts):
+        if not transcripts:
+            return ""
+        return "\n".join(transcripts)
 
     def _stop_clock(self):
         self._end_time = time.time()
