@@ -140,7 +140,7 @@
       <xs:element ref="invoke_domain_query" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="findout" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="raise" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="bind" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="bind" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="invoke_service_action" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element ref="get_done" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="assume_issue" type="has_question" minOccurs="0" maxOccurs="unbounded"/>
@@ -166,6 +166,16 @@
       <xs:complexContent>
         <xs:extension base="has_question">
           <xs:attribute name="allow_answer_from_pcom" type="xs:boolean"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="bind">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="has_question">
+          <xs:attribute name="allow_binding_yn_answers" type="xs:boolean"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>

@@ -254,6 +254,10 @@ class DDDJSONCompiler(object):
                     element.setAttribute("allow_answer_from_pcom", "true")
             elif item_type == "bind":
                 self._apply_question_attributes(doc, element, payload["question"])
+                if "allow_binding_yn_answers" in payload:
+                    element.setAttribute(
+                        "allow_binding_yn_answers", self._stringify(payload["allow_binding_yn_answers"])
+                    )
             elif item_type == "if":
                 self._append_if_condition(doc, element, payload["condition"])
                 then_items = payload.get("then", [])

@@ -648,8 +648,11 @@ class NonCheckingJSONParser():
         question_type = data.get("_type")
         if question_type not in Question.TYPES:
             raise JSONParseFailure(f"Cannot parse {data} as bind question.")
+        allow_binding_yn_answers = data.get("allow_binding_yn_answers", False)
         question = self.parse_question(data)
-        return plan_item.Bind(question)
+        if allow_binding_yn_answers and not question.is_yes_no_question():
+            raise JSONParseFailure("allow_binding_yn_answers is only valid for yn_question binds")
+        return plan_item.Bind(question, allow_binding_yn_answers=allow_binding_yn_answers)
 
     def parse_do_plan_item(self, data):
         action = self.parse_action(data)

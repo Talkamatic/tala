@@ -349,23 +349,34 @@ class Bind(PlanItemWithSemanticContent):
     @classmethod
     def create_from_json_api_data(cls, data, included):
         question_entry = included.get_object_from_relationship(data["relationships"]["question"]["data"])
-        question = PlanItem.create_from_json_api_data(question_entry, included)
-        return cls(question)
+        question = Question.create_from_json_api_data(question_entry, included)
+        allow_binding_yn_answers = data.get("attributes", {}).get("allow_binding_yn_answers", False)
+        return cls(question, allow_binding_yn_answers=allow_binding_yn_answers)
 
-    def __init__(self, content):
+    def __init__(self, content, allow_binding_yn_answers=False):
         PlanItemWithSemanticContent.__init__(self, TYPE_BIND, content)
+        self._allow_binding_yn_answers = allow_binding_yn_answers
 
     @property
     def question(self):
         return self.content
 
     @property
+    def allow_binding_yn_answers(self):
+        return self._allow_binding_yn_answers
+
+    def as_dict(self):
+        question_json = self.question.as_json()
+        question_json["allow_binding_yn_answers"] = self.allow_binding_yn_answers
+        return {self.type_: question_json}
+
+    @property
     def json_api_id(self):
-        return f"{self.json_api_type}:{self.question.json_api_id}"
+        return f"{self.json_api_type}:{self.question.json_api_id}:{self.allow_binding_yn_answers}"
 
     @property
     def json_api_attributes(self):
-        return []
+        return ["allow_binding_yn_answers"]
 
     @property
     def json_api_relationships(self):

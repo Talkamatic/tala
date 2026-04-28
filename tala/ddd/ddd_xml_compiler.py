@@ -506,7 +506,14 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_bind_element(self, element):
         question = self._compile_question(element)
-        return [plan_item.Bind(question)]
+        allow_binding_yn_answers = self._get_optional_attribute(element, "allow_binding_yn_answers")
+        if allow_binding_yn_answers is None:
+            allow_binding_yn_answers = False
+        else:
+            allow_binding_yn_answers = self._parse_boolean(allow_binding_yn_answers)
+        if allow_binding_yn_answers and not question.is_yes_no_question():
+            raise DDDXMLCompilerException("allow_binding_yn_answers is only valid for yn_question binds")
+        return [plan_item.Bind(question, allow_binding_yn_answers=allow_binding_yn_answers)]
 
     def _compile_if_element(self, element):
         def compile_condition():

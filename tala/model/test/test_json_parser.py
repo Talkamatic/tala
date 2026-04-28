@@ -1,6 +1,6 @@
 import pytest
 
-from tala.ddd.json_parser import NonCheckingJSONParser, JSONParseFailure
+from tala.ddd.json_parser import JSONParseFailure, NonCheckingJSONParser
 from tala.model import plan_item
 from tala.testing.lib_test_case import LibTestCase
 
@@ -62,3 +62,22 @@ class TestNonCheckingJsonParser:
 
         with pytest.raises(JSONParseFailure):
             self._parser.parse_plan_item({plan_item.TYPE_BIND: proposition.as_json()})
+
+    def test_bind_allows_yes_no_binding_flag_roundtrip(self):
+        lib_case = LibTestCase()
+        lib_case.setUpLibTestCase()
+        question = lib_case.ontology.create_yes_no_question("need_visa", True)
+        item = plan_item.Bind(question, allow_binding_yn_answers=True)
+
+        parsed = self._parser.parse_plan_item(item.as_json())
+
+        assert parsed.allow_binding_yn_answers is True
+
+    def test_bind_rejects_allow_yes_no_binding_flag_for_non_yn_question(self):
+        lib_case = LibTestCase()
+        lib_case.setUpLibTestCase()
+        question = lib_case.ontology.create_wh_question("dest_city")
+        item = plan_item.Bind(question, allow_binding_yn_answers=True)
+
+        with pytest.raises(JSONParseFailure, match="allow_binding_yn_answers"):
+            self._parser.parse_plan_item(item.as_json())
