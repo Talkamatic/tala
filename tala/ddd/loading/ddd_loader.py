@@ -30,21 +30,23 @@ class DDDLoader(object):
             ontology_args = self._json_compiler.compile_ontology({"ontology": self._bundle_node(bundle, "ontology")})
         else:
             resource = self._load_resource(self._ddd_file("ontology", "ontology.xml"))
-            ontology_args = self._compile_resource(resource, self._json_compiler.compile_ontology,
-                                                   self._xml_compiler.compile_ontology)
+            ontology_args = self._compile_resource(
+                resource, self._json_compiler.compile_ontology, self._xml_compiler.compile_ontology
+            )
         ontology = Ontology(**ontology_args)
         return ontology
 
     def _compile_service_interface(self):
         bundle = self._load_ddd_bundle()
         if bundle is not None:
-            service_interface = self._json_compiler.compile_service_interface(
-                {"service_interface": self._bundle_node(bundle, "service_interface")}
-            )
+            service_interface = self._json_compiler.compile_service_interface({
+                "service_interface": self._bundle_node(bundle, "service_interface")
+            })
         else:
             resource = self._load_resource(self._ddd_file("service_interface", "service_interface.xml"))
-            service_interface = self._compile_resource(resource, self._json_compiler.compile_service_interface,
-                                                       self._xml_compiler.compile_service_interface)
+            service_interface = self._compile_resource(
+                resource, self._json_compiler.compile_service_interface, self._xml_compiler.compile_service_interface
+            )
         return service_interface
 
     def _compile_domain(self, ontology, parser, service_interface):
@@ -72,6 +74,60 @@ class DDDLoader(object):
             with open(resource_name, "rb") as f:
                 return ("xml", f.read())
         raise DDDLoaderException("Expected '%s' to exist but it does not." % resource_name)
+
+    def _load_json_resource(self, resource_name):
+        if os.path.exists(resource_name):
+            with open(resource_name, "r", encoding="utf-8") as f:
+                return json.load(f)
+        raise DDDLoaderException("Expected '%s' to exist but it does not." % resource_name)
+
+    def _json_bundle_name(self):
+        return self._ddd_config.get("ddd_bundle")
+
+    def _json_file_map(self):
+        ddd_files = self._ddd_config.get("ddd_files")
+        if not ddd_files:
+            return {
+                "ontology": "ontology.json",
+                "domain": "domain.json",
+                "service_interface": "service_interface.json",
+            }
+        try:
+            ontology = ddd_files["ontology"]
+            domain = ddd_files["domain"]
+            service_interface = ddd_files["service_interface"]
+        except (KeyError, TypeError):
+            raise DDDLoaderException("Expected 'ddd_files' to define 'ontology', 'domain', and 'service_interface'.")
+        if not ontology or not domain or not service_interface:
+            raise DDDLoaderException(
+                "Expected 'ddd_files' to define non-empty 'ontology', 'domain', and 'service_interface'."
+            )
+        return {
+            "ontology": ontology,
+            "domain": domain,
+            "service_interface": service_interface,
+        }
+
+    def _has_split_json(self):
+        json_files = self._json_file_map()
+        if not all(path.endswith(".json") for path in json_files.values()):
+            return False
+        return all(os.path.exists(path) for path in json_files.values())
+
+    def _compile_ontology_json(self, ontology_json):
+        ontology_args = self._json_compiler.compile_ontology(ontology_json)
+        return Ontology(**ontology_args)
+
+    def _compile_service_interface_json(self, service_json):
+        return self._json_compiler.compile_service_interface(service_json)
+
+    def _compile_domain_json(self, domain_json, ontology, parser):
+        domain_args = self._json_compiler.compile_domain(self._name, domain_json, ontology, parser)
+        return Domain(ontology=ontology, **domain_args)
+
+    def _find_domain_name_json(self, domain_json):
+        name = self._json_compiler.get_domain_name(domain_json)
+        return name
 
     def _find_domain_name(self):
         bundle = self._load_ddd_bundle()
@@ -153,10 +209,32 @@ class DDDLoader(object):
         path = os.path.join(os.getcwd(), self._name)
 
         with chdir.chdir(self._name):
-            ontology = self._compile_ontology()
-            domain_name = self._find_domain_name()
-            parser = Parser(self._name, ontology, domain_name)
-            service_interface = self._compile_service_interface()
-            domain = self._compile_domain(ontology, parser, service_interface)
+            bundle_name = self._json_bundle_name()
+            if bundle_name:
+                ddd_json = self._load_ddd_bundle()
+                ontology_json = {"ontology": ddd_json["ontology"]}
+                domain_json = {"domain": ddd_json["domain"]}
+                service_json = {"service_interface": ddd_json["service_interface"]}
+                ontology = self._compile_ontology_json(ontology_json)
+                domain_name = self._find_domain_name_json(domain_json)
+                parser = Parser(self._name, ontology, domain_name)
+                service_interface = self._compile_service_interface_json(service_json)
+                domain = self._compile_domain_json(domain_json, ontology, parser)
+            elif self._has_split_json():
+                json_files = self._json_file_map()
+                ontology_json = self._load_json_resource(json_files["ontology"])
+                domain_json = self._load_json_resource(json_files["domain"])
+                service_json = self._load_json_resource(json_files["service_interface"])
+                ontology = self._compile_ontology_json(ontology_json)
+                domain_name = self._find_domain_name_json(domain_json)
+                parser = Parser(self._name, ontology, domain_name)
+                service_interface = self._compile_service_interface_json(service_json)
+                domain = self._compile_domain_json(domain_json, ontology, parser)
+            else:
+                ontology = self._compile_ontology()
+                domain_name = self._find_domain_name()
+                parser = Parser(self._name, ontology, domain_name)
+                service_interface = self._compile_service_interface()
+                domain = self._compile_domain(ontology, parser, service_interface)
 
         return DDD(self._name, ontology, domain, service_interface, path)

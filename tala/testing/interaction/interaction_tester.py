@@ -590,11 +590,34 @@ class InteractionTester:
             self._buffer_output(self._result["failure_description"])
             return False
         self._record_system_moves_seen(actual_move_content)
-        comparison = MoveComparison(actual_move_content, expected_move_content)
-        if not comparison.match():
-            self._result = {"success": False, "failure_description": comparison.mismatch_description()}
-            self._buffer_output(comparison.mismatch_description())
-            return False
+        try:
+            is_alternatives = expected_move_content and all(
+                hasattr(entry, "append") for entry in expected_move_content
+            )
+        except TypeError:
+            is_alternatives = False
+        if is_alternatives:
+            comparison = None
+            match = False
+            for alternative in expected_move_content:
+                comparison = MoveComparison(actual_move_content, alternative)
+                if comparison.match():
+                    match = True
+                    break
+            if not match:
+                mismatch_description = comparison.mismatch_description() if comparison else (
+                    f"expected: {json.dumps(expected_move_content)}\n"
+                    f"but got:  {json.dumps(actual_move_content)}"
+                )
+                self._result = {"success": False, "failure_description": mismatch_description}
+                self._buffer_output(mismatch_description)
+                return False
+        else:
+            comparison = MoveComparison(actual_move_content, expected_move_content)
+            if not comparison.match():
+                self._result = {"success": False, "failure_description": comparison.mismatch_description()}
+                self._buffer_output(comparison.mismatch_description())
+                return False
         if self._turn_times:
             self._buffer_output(f"S> {json.dumps(actual_move_content)}: {self._turn_times[-1]:.2f} s")
         else:

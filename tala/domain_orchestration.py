@@ -62,7 +62,7 @@ def load_ddds(ddd_names, overridden_config_paths, rerank_amount):
 
 class OrchestratedDomainBundle(AsJSONMixin):
     def __init__(self, argument_dict):
-        argument_dict = self._normalize_odb_json_input(argument_dict)
+        argument_dict = self._require_json_api_attributes(argument_dict)
         self._overridden_ddd_config_paths = argument_dict["overridden_ddd_config_paths"]
         self._path = argument_dict["path"]
         self._repeat_questions = argument_dict["repeat_questions"]
@@ -102,7 +102,7 @@ class OrchestratedDomainBundle(AsJSONMixin):
         return self._as_json_api_dict()
 
     def _as_json_api_dict(self):
-        payload = self._legacy_odb_dict()
+        payload = self._odb_dict()
         odb_id = payload["path"] or str(uuid.uuid4())
         return {
             "data": {
@@ -114,7 +114,7 @@ class OrchestratedDomainBundle(AsJSONMixin):
             "included": []
         }
 
-    def _legacy_odb_dict(self):
+    def _odb_dict(self):
         dict_ = {}
 
         dict_["overridden_ddd_config_paths"] = self._overridden_ddd_config_paths
@@ -138,15 +138,13 @@ class OrchestratedDomainBundle(AsJSONMixin):
 
         return dict_
 
-    def _normalize_odb_json_input(self, argument_dict):
+    def _require_json_api_attributes(self, argument_dict):
         try:
             data = argument_dict["data"]
-            attributes = data.get("attributes")
-        except (TypeError, KeyError, AttributeError):
-            return argument_dict
-        if isinstance(attributes, dict):
-            return attributes
-        return argument_dict
+            attributes = data["attributes"]
+        except (TypeError, KeyError):
+            raise ValueError("Expected JSON:API ODB payload with data.attributes.")
+        return attributes
 
     def __repr__(self):
         return str(self.as_dict())

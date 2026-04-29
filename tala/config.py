@@ -242,6 +242,7 @@ class DddConfig(Config):
     @staticmethod
     def fields():
         return {
+            "ddd_bundle": OptionalConfigField(default_value=None),
             "device_module": OptionalConfigField(default_value=None),
             "rasa_nlu": OptionalConfigField(default_value={}),
             "use_rgl": OptionalConfigField(default_value=False),
@@ -252,7 +253,6 @@ class DddConfig(Config):
                 "domain": "domain.xml",
                 "service_interface": "service_interface.xml",
             }),
-            "ddd_bundle": OptionalConfigField(default_value=None),
         }
 
     def _raise_config_not_found_exception(self):
