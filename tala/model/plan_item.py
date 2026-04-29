@@ -331,10 +331,10 @@ class EmitICM(PlanItemWithSemanticContent):
 
     def is_question_raising_item(self):
         icm = self.content
-        return (icm.type_ == ICMMove.UND and not (icm.get_polarity() == ICMMove.POS and not icm.content.is_positive()))
+        return (icm.type_ == ICMMove.UND and not (icm.polarity == ICMMove.POS and not icm.content.is_positive()))
 
     def is_turn_yielding(self):
-        return self.content.type_ == ICMMove.ACC and self.content.get_polarity() == ICMMove.NEG
+        return self.content.type_ == ICMMove.ACC and self.content.polarity == ICMMove.NEG
 
 
 class EmitIcmPlanItem(EmitICM):
@@ -412,6 +412,30 @@ class IfThenElse(PlanItem):
         self._check_integrity_of_data()
         PlanItem.__init__(self, TYPE_IF_THEN_ELSE)
 
+    @property
+    def condition(self):
+        return self._condition
+
+    @condition.setter
+    def condition(self, value):
+        self._condition = value
+
+    @property
+    def consequent(self):
+        return self._consequent
+
+    @consequent.setter
+    def consequent(self, value):
+        self._consequent = value
+
+    @property
+    def alternative(self):
+        return self._alternative
+
+    @alternative.setter
+    def alternative(self, value):
+        self._alternative = value
+
     def _check_integrity_of_data(self):
         self._assert_one_alternative_is_non_empty_list()
         self._assert_ontology_integrity()
@@ -430,15 +454,6 @@ class IfThenElse(PlanItem):
                     assert ontology_name == item.ontology_name, "Expected identical ontologies in all consequents (%s) and alternatives (%s) but got %r and %r (plan item: %r)" % (
                         self.consequent, self.alternative, ontology_name, item.ontology_name, item
                     )
-
-    def get_condition(self):
-        return self.condition
-
-    def get_consequent(self):
-        return self.consequent
-
-    def get_alternative(self):
-        return self.alternative
 
     def remove_consequent(self):
         self.consequent = None
@@ -638,8 +653,29 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         PlanItem.__init__(self, TYPE_INVOKE_SERVICE_ACTION)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
-    def get_service_action(self):
-        return self.service_action
+    @property
+    def service_action(self):
+        return self._service_action
+
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
+
+    @property
+    def preconfirm(self):
+        return self._preconfirm
+
+    @preconfirm.setter
+    def preconfirm(self, value):
+        self._preconfirm = value
+
+    @property
+    def postconfirm(self):
+        return self._postconfirm
+
+    @postconfirm.setter
+    def postconfirm(self, value):
+        self._postconfirm = value
 
     def has_interrogative_preconfirmation(self):
         return self.preconfirm == self.INTERROGATIVE
@@ -655,7 +691,7 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
 
     def __eq__(self, other):
         return super().__eq__(other) \
-            and other.get_service_action() == self.get_service_action() \
+            and other.service_action == self.service_action \
             and other.has_interrogative_preconfirmation() == self.has_interrogative_preconfirmation() \
             and other.has_assertive_preconfirmation() == self.has_assertive_preconfirmation() \
             and other.has_postconfirmation() == self.has_postconfirmation() \
@@ -1192,28 +1228,34 @@ class QuestionRaisingPlanItemOfDomain:
         self._domain = domain
         self._plan_item = plan_item
 
-    def get_alternatives(self):
+    @property
+    def alternatives(self):
         return self._domain.get_alternatives(self._plan_item.question)
 
-    def get_incremental(self):
+    @property
+    def incremental(self):
         return self._domain.get_incremental(self._plan_item.question)
 
-    def get_source(self):
+    @property
+    def source(self):
         return self._domain.get_source(self._plan_item.question)
 
-    def get_format(self):
+    @property
+    def format(self):
         return self._domain.get_format(self._plan_item.question)
 
-    def get_service_query(self):
+    @property
+    def service_query(self):
         return self._domain.get_service_query(self._plan_item.question)
 
-    def get_label_questions(self):
+    @property
+    def label_questions(self):
         return self._domain.get_label_questions(self._plan_item.question)
 
     def has_parameters(self):
-        return self.get_alternatives() \
-            or self.get_incremental() \
-            or self.get_source() \
-            or self.get_format() \
-            or self.get_service_query() \
-            or self.get_label_questions()
+        return self.alternatives \
+            or self.incremental \
+            or self.source \
+            or self.format \
+            or self.service_query \
+            or self.label_questions

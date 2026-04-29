@@ -25,7 +25,7 @@ class TestExtendedDDD(unittest.TestCase):
 
     def given_mocked_ontology(self, individuals=None):
         self._mocked_ontology = Mock(spec=Ontology)
-        self._mocked_ontology.get_individuals.return_value = individuals or {}
+        self._mocked_ontology.individuals = individuals or {}
 
     def given_extended_ddd_created(self):
         ddd = self._create_ddd()

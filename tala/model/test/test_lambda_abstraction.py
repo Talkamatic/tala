@@ -33,7 +33,7 @@ class LambdaAbstractedGoalPropositionTests(LibTestCase):
 class LambdaAbstractedPredicatePropositionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
-        self.lambda_prop = LambdaAbstractedPredicateProposition(self.predicate_dest_city, self.ontology.get_name())
+        self.lambda_prop = LambdaAbstractedPredicateProposition(self.predicate_dest_city, self.ontology.name)
 
     def test_unicode(self):
         self.assertEqual("X.dest_city(X)", str(self.lambda_prop))

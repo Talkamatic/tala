@@ -13,36 +13,44 @@ class Stack(AsJSONMixin):
         if content is None:
             content = []
         super(Stack, self).__init__()
-        self.content = list()
+        self._content = list()
         for x in content:
             self.push(x)
 
+    @property
+    def content(self):
+        return self._content
+
+    @content.setter
+    def content(self, value):
+        self._content = value
+
     def as_dict(self):
         return {
-            "stack": self.content,
+            "stack": self._content,
         }
 
     def __repr__(self):
-        return "{name}(content={content})".format(name=self.__class__.__name__, content=self.content)
+        return "{name}(content={content})".format(name=self.__class__.__name__, content=self._content)
 
     def __str__(self):
-        string = "Stack(" + unicodify(self.content) + ")"
+        string = "Stack(" + unicodify(self._content) + ")"
         return string
 
     def __eq__(self, other):
         try:
-            return self.content == other.content
+            return self._content == other.content
         except AttributeError:
             return False
 
     def __hash__(self):
-        return hash(self.__class__.__name__) + hash(self.content)
+        return hash(self.__class__.__name__) + hash(self._content)
 
     def __ne__(self, other):
         return not (self == other)
 
     def push(self, element):
-        self.content.insert(0, element)
+        self._content.insert(0, element)
 
     def push_stack(self, other_stack):
         other_stack_elements = list(other_stack)
@@ -50,14 +58,15 @@ class Stack(AsJSONMixin):
         for element in other_stack_elements:
             self.push(element)
 
+    @property
     def top(self):
         if len(self) < 1:
             raise StackError("Cannot call 'top()' when stacksize <= 0")
-        return self.content[0]
+        return self._content[0]
 
     def is_top(self, element):
         try:
-            return element == self.top()
+            return element == self.top
         except StackError:
             return False
 
@@ -68,10 +77,10 @@ class Stack(AsJSONMixin):
     def pop(self):
         if len(self) < 1:
             raise StackError("Cannot call 'pop()' when stacksize <= 0")
-        return self.content.pop(0)
+        return self._content.pop(0)
 
     def __len__(self):
-        return len(self.content)
+        return len(self._content)
 
     def isEmpty(self):
         warnings.warn("Stack.isEmpty() is deprecated. Use Stack.is_empty() instead.", DeprecationWarning, stacklevel=2)
@@ -81,13 +90,13 @@ class Stack(AsJSONMixin):
         return len(self) == 0
 
     def clear(self):
-        self.content = list()
+        self._content = list()
 
     def remove(self, element):
-        self.content.remove(element)
+        self._content.remove(element)
 
     def __iter__(self):
-        return self.content.__iter__()
+        return self._content.__iter__()
 
 
 class StackSet(Stack):
@@ -98,20 +107,20 @@ class StackSet(Stack):
 
     def as_dict(self):
         return {
-            "stackset": self.content,
+            "stackset": self._content,
         }
 
     def __str__(self):
-        string = "stackset(" + unicodify(self.content) + ")"
+        string = "stackset(" + unicodify(self._content) + ")"
         return string
 
     def push(self, element):
-        if element in self.content:
-            self.content.remove(element)
-        self.content.insert(0, element)
+        if element in self._content:
+            self._content.remove(element)
+        self._content.insert(0, element)
 
     def remove_if_exists(self, element):
-        if element in self.content:
+        if element in self._content:
             self.remove(element)
 
     def create_view(self, philter):
@@ -129,6 +138,7 @@ class StackSetView:
         string = "stacksetview(" + str(list(self)) + ")"
         return string
 
+    @property
     def top(self):
         return self._filtered_top(self.philter)
 
@@ -138,11 +148,11 @@ class StackSetView:
                 return element
 
     def push(self, element):
-        if element != self.top():
+        if element != self.top:
             self.source_object.push(element)
 
     def pop(self):
-        self.source_object.remove(self.top())
+        self.source_object.remove(self.top)
 
     def __iter__(self):
         for elem in self.source_object:

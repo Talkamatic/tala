@@ -84,13 +84,13 @@ class ParameterRetriever(object):
     @classmethod
     def get_facts_by_predicate_name(cls, predicate_name, facts):
         for fact in cls.positive_predicate_proposition_facts(facts):
-            if fact.predicate.get_name() == predicate_name:
+            if fact.predicate.name == predicate_name:
                 yield fact
 
     @classmethod
     def predicate_names_of_facts(cls, facts):
         predicate_facts = cls.positive_predicate_proposition_facts(facts)
-        return [fact.predicate.get_name() for fact in predicate_facts]
+        return [fact.predicate.name for fact in predicate_facts]
 
     @staticmethod
     def positive_predicate_proposition_facts(facts):

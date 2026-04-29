@@ -89,7 +89,7 @@ class DDDXMLCompilerTestCase(DddCompilerTestCase):
     def _then_findout_allows_pcom(self, allow):
         plans = self._result["plans"]
         plan = plans[0]["plan"]
-        findout = plan.top()
+        findout = plan.top
         assert allow == findout.allow_answer_from_pcom
 
     def _then_result_has_plan_with_attribute(self, expected_key, expected_value):
@@ -1617,7 +1617,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
 
         plan = self._result["plans"][0]["plan"]
-        item = plan.top()
+        item = plan.top
         parser = NonCheckingJSONParser()
         parsed = parser.parse_plan_item(item.as_json())
 
@@ -1640,7 +1640,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
 
         plan = self._result["plans"][0]["plan"]
-        item = plan.top()
+        item = plan.top
         parser = NonCheckingJSONParser()
         parsed = parser.parse_plan_item(item.as_json())
 

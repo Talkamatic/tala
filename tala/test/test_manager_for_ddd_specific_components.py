@@ -40,7 +40,7 @@ class TestManagerForExtendedDDD(unittest.TestCase):
 
     def _create_mock_domain(self, name):
         domain = Mock(spec=Domain)
-        domain.get_name.return_value = name
+        domain.name = name
         domain.goals = {}
         return domain
 
@@ -72,8 +72,8 @@ class TestManagerForExtendedDDD(unittest.TestCase):
 
     def _create_mock_ontology(self, name):
         ontology = Mock(spec=Ontology)
-        ontology.get_individuals.return_value = {}
-        ontology.get_name.return_value = name
+        ontology.individuals = {}
+        ontology.name = name
         return ontology
 
     def _when_getting_ontology(self, name):
@@ -140,7 +140,7 @@ class TestManagerForExtendedDDD(unittest.TestCase):
 
     def _then_get_ddd_returns_ddd_with_unmodified_ontology(self, ddd_name):
         ddd = self._ddd_manager.get_ddd(ddd_name)
-        self.assertEqual(0, len(ddd.ontology.get_individuals()))
+        self.assertEqual(0, len(ddd.ontology.individuals))
 
     def _then_result_is(self, expected):
         self.assertEqual(expected, self._result)

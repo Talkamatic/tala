@@ -124,9 +124,6 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
         else:
             return ""
 
-    def get_type(self):
-        return self.type_
-
     @property
     def type_(self):
         return self._type
@@ -184,9 +181,6 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
 
     def is_number_of_alternatives_proposition(self):
         return self._type == Proposition.NUMBER_OF_ALTERNATIVES
-
-    def get_polarity(self):
-        return self.polarity
 
     @property
     def polarity(self):
@@ -403,9 +397,6 @@ class GoalProposition(PropositionWithSemanticContent):
             return self._goal.as_move()
         raise UnexpectedGoalException(f"Expected goal with semantic content, but got {self._goal!r}")
 
-    def get_goal(self):
-        return self.goal
-
     @property
     def goal(self):
         return self._goal
@@ -424,8 +415,8 @@ class GoalProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return other.is_proposition() and other.is_goal_proposition() and self._goal == other.get_goal(
-            ) and self._polarity == other.polarity
+            return other.is_proposition() and other.is_goal_proposition() and self._goal == other.goal \
+                and self._polarity == other.polarity
         except AttributeError:
             return False
 
@@ -442,26 +433,29 @@ class GoalProposition(PropositionWithSemanticContent):
 class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
     def __init__(self, ontology_name, service_action, arguments, polarity=None):
         self.service_action = service_action
-        self._arguments = arguments
+        self._arguments = list(arguments)
         Proposition.__init__(self, Proposition.PRECONFIRMATION, polarity)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
-    def get_service_action(self):
-        return self.service_action
+    @property
+    def service_action(self):
+        return self._service_action
 
-    def get_arguments(self):
-        argument_list = []
-        for param in self._arguments:
-            argument_list.append(param)
-        return argument_list
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
 
     @property
     def arguments(self):
-        return self.get_arguments()
+        return list(self._arguments)
+
+    @arguments.setter
+    def arguments(self, value):
+        self._arguments = list(value)
 
     @property
     def json_api_id(self):
-        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self._arguments}"
+        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self._argument_set}"
 
     @property
     def json_api_attributes(self):
@@ -469,15 +463,15 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
 
     @property
     def json_api_relationships(self):
-        return ["_arguments"]
+        return ["argument_set"]
 
     def __eq__(self, other):
         try:
             return (
                 other.is_proposition() and other.is_preconfirmation_proposition()
                 and other.ontology_name == self.ontology_name and other.type_ == self.type_
-                and other.get_service_action() == self.get_service_action() and other.polarity == self.polarity
-                and other.get_arguments() == self.get_arguments()
+                and other.service_action == self.service_action and other.polarity == self.polarity
+                and other.arguments == self.arguments
             )
         except AttributeError:
             return False
@@ -508,14 +502,25 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
         Proposition.__init__(self, Proposition.PREREPORT)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
-    def get_service_action(self):
-        return self.service_action
+    @property
+    def service_action(self):
+        return self._service_action
 
-    def get_arguments(self):
-        argument_list = []
-        for param in self.argument_set:
-            argument_list.append(param)
-        return argument_list
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
+
+    @property
+    def argument_set(self):
+        return self._argument_set
+
+    @argument_set.setter
+    def argument_set(self, value):
+        self._argument_set = value
+
+    @property
+    def arguments(self):
+        return list(self._argument_set)
 
     @property
     def json_api_id(self):
@@ -534,7 +539,7 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
             return (
                 other.is_proposition() and other.is_prereport_proposition()
                 and other.ontology_name == self.ontology_name
-                and other.get_service_action() == self.get_service_action() and other.polarity == self.polarity
+                and other.service_action == self.service_action and other.polarity == self.polarity
                 and other.argument_set == self.argument_set
             )
         except AttributeError:
@@ -547,7 +552,7 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
         return hash((self.ontology_name, self.service_action, self.argument_set))
 
     def __str__(self):
-        return "prereported(%s, %s)" % (str(self.service_action), str(self.get_arguments()))
+        return "prereported(%s, %s)" % (str(self.service_action), str(self.arguments))
 
     def as_dict(self):
         result = {
@@ -562,8 +567,13 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
         Proposition.__init__(self, Proposition.SERVICE_ACTION_TERMINATED, polarity)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
-    def get_service_action(self):
-        return self.service_action
+    @property
+    def service_action(self):
+        return self._service_action
+
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
 
     @property
     def json_api_id(self):
@@ -581,7 +591,7 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
             return (
                 other.is_proposition() and other.is_service_action_terminated_proposition()
                 and other.ontology_name == self.ontology_name
-                and other.get_service_action() == self.get_service_action() and other.polarity == self.polarity
+                and other.service_action == self.service_action and other.polarity == self.polarity
             )
         except AttributeError:
             return False
@@ -648,6 +658,38 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
 
     @property
+    def service_action(self):
+        return self._service_action
+
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
+
+    @property
+    def arguments(self):
+        return self._arguments
+
+    @arguments.setter
+    def arguments(self, value):
+        self._arguments = value
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        self._result = value
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = value
+
+    @property
     def json_api_id(self):
         return f"{self.service_action}:{self.ontology_name}"
 
@@ -665,24 +707,12 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
         else:
             self.status = status
 
-    def get_service_action(self):
-        return self.service_action
-
-    def get_arguments(self):
-        return self.arguments
-
-    def get_result(self):
-        return self.result
-
-    def get_status(self):
-        return self.status
-
     def __eq__(self, other):
         try:
             return (
                 other.is_proposition() and other.is_service_result_proposition()
-                and other.get_service_action() == self.get_service_action()
-                and other.get_arguments() == self.get_arguments() and other.get_result() == self.get_result()
+                and other.service_action == self.service_action
+                and other.arguments == self.arguments and other.result == self.result
             )
         except AttributeError:
             return False
@@ -694,7 +724,7 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
         return "ServiceResultProposition(%s, %s, %s)" % (self.service_action, unicodify(self.arguments), self.result)
 
     def __hash__(self):
-        return hash((self.get_service_action(), self.get_result()))
+        return hash((self.service_action, self.result))
 
     def as_dict(self):
         result = {"result": self.result.as_json(), "ontology_name": self.ontology_name}
@@ -709,6 +739,22 @@ class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObjec
         self.parameters = parameters
         Proposition.__init__(self, Proposition.SERVICE_ACTION_STARTED)
         OntologySpecificSemanticObject.__init__(self, ontology_name)
+
+    @property
+    def service_action(self):
+        return self._service_action
+
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        self._parameters = value
 
     @property
     def json_api_id(self):
@@ -757,6 +803,26 @@ class RejectedPropositions(PropositionWithSemanticContent):
         PropositionWithSemanticContent.__init__(self, Proposition.REJECTED, rejected_combination, polarity)
 
     @property
+    def rejected_combination(self):
+        return self._rejected_combination
+
+    @rejected_combination.setter
+    def rejected_combination(self, value):
+        self._rejected_combination = value
+
+    @property
+    def reason_for_rejection(self):
+        return self._reason_for_rejection
+
+    @reason_for_rejection.setter
+    def reason_for_rejection(self, value):
+        self._reason_for_rejection = value
+
+    @property
+    def reason(self):
+        return self._reason_for_rejection
+
+    @property
     def json_api_id(self):
         return f"{self.rejected_combination}:{self.reason_for_rejection}"
 
@@ -768,12 +834,6 @@ class RejectedPropositions(PropositionWithSemanticContent):
     def json_api_relationships(self):
         return ["rejected_combination"]
 
-    def get_rejected_combination(self):
-        return self.rejected_combination
-
-    def get_reason(self):
-        return self.reason_for_rejection
-
     def __str__(self):
         if self.reason_for_rejection:
             return "%srejected(%s, %s)" % (self.polarity_prefix, self.rejected_combination, self.reason_for_rejection)
@@ -784,8 +844,8 @@ class RejectedPropositions(PropositionWithSemanticContent):
         try:
             return (
                 other.is_proposition() and other.is_rejected_proposition()
-                and other.get_rejected_combination() == self.get_rejected_combination()
-                and other.get_reason() == self.get_reason() and other.polarity == self.polarity
+                and other.rejected_combination == self.rejected_combination
+                and other.reason == self.reason and other.polarity == self.polarity
             )
         except AttributeError:
             return False
@@ -827,9 +887,6 @@ class PropositionSet(Proposition):
     def propositions(self):
         return self._propositions
 
-    def get_propositions(self):
-        return self.propositions
-
     def unicode_propositions(self):
         return "[%s]" % ", ".join([str(proposition) for proposition in self.propositions])
 
@@ -839,7 +896,8 @@ class PropositionSet(Proposition):
     def is_multi_alt(self):
         return len(self.propositions) > 1
 
-    def get_single_alt(self):
+    @property
+    def single_alt(self):
         for proposition in self.propositions:
             return proposition
 
@@ -853,7 +911,7 @@ class PropositionSet(Proposition):
         try:
             return (
                 other.is_proposition() and other.is_proposition_set() and self.polarity == other.polarity
-                and self.get_propositions() == other.get_propositions()
+                and self.propositions == other.propositions
             )
         except AttributeError:
             return False
@@ -919,12 +977,6 @@ class UnderstandingProposition(PropositionWithSemanticContent):
         self._speaker = speaker
         self._content = content
 
-    def get_speaker(self):
-        return self._speaker
-
-    def get_content(self):
-        return self._content
-
     @property
     def speaker(self):
         return self._speaker
@@ -936,7 +988,7 @@ class UnderstandingProposition(PropositionWithSemanticContent):
         try:
             return (
                 other.is_proposition() and other.is_understanding_proposition()
-                and self.get_speaker() == other.get_speaker() and self.get_content() == other.get_content()
+                and self.speaker == other.speaker and self.content == other.content
             )
         except AttributeError:
             return False
@@ -953,8 +1005,13 @@ class ResolvednessProposition(PropositionWithSemanticContent):
         self.issue = issue
         PropositionWithSemanticContent.__init__(self, Proposition.RESOLVEDNESS, issue)
 
-    def get_issue(self):
-        return self.issue
+    @property
+    def issue(self):
+        return self._issue
+
+    @issue.setter
+    def issue(self, value):
+        self._issue = value
 
     def __str__(self):
         return "resolved(%s)" % self.issue
@@ -962,7 +1019,7 @@ class ResolvednessProposition(PropositionWithSemanticContent):
     def __eq__(self, other):
         try:
             return (
-                other.is_proposition() and other.is_resolvedness_proposition() and other.get_issue() == self.get_issue()
+                other.is_proposition() and other.is_resolvedness_proposition() and other.issue == self.issue
             )
         except AttributeError:
             return False
@@ -971,7 +1028,7 @@ class ResolvednessProposition(PropositionWithSemanticContent):
         return not (self == other)
 
     def __hash__(self):
-        return hash(self.get_issue())
+        return hash(self.issue)
 
 
 class KnowledgePreconditionProposition(PropositionWithSemanticContent):

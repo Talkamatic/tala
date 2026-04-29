@@ -168,9 +168,9 @@ class Plan(Stack, SemanticObject):
         for item in items:
             if item.type_ == plan_item.TYPE_IF_THEN_ELSE:
                 if item.consequent:
-                    result.extend(self._flatten(item.get_consequent()))
+                    result.extend(self._flatten(item.consequent))
                 if item.alternative:
-                    result.extend(self._flatten(item.get_alternative()))
+                    result.extend(self._flatten(item.alternative))
             else:
                 result.append(item)
         return result
@@ -194,11 +194,15 @@ class Plan(Stack, SemanticObject):
             if sub_item.type_ == plan_item.TYPE_IF_THEN_ELSE:
                 self.remove_nested(to_remove, sub_item)
 
-    def get_questions_in_plan_without_feature_question(self):
+    def _questions_in_plan_without_feature_question(self):
         for item in self:
             if item.type_ in plan_item.QUESTION_TYPES:
                 question = item.content
                 yield question
+
+    @property
+    def questions_in_plan_without_feature_question(self):
+        return self._questions_in_plan_without_feature_question()
 
     def __str__(self):
         return "Plan(%s)" % self.content

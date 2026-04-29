@@ -222,7 +222,7 @@ class DomainTests(LibTestCase):
         self.assert_eq_returns_false_and_ne_returns_true_symmetrically(self.domain, non_identical_domain)
 
     def test_get_name(self):
-        self.assertEqual("mockup_domain", self.domain.get_name())
+        self.assertEqual("mockup_domain", self.domain.name)
 
     def test_action_method(self):
         self.assertEqual(self.buy_action, self.domain.action("buy"))
@@ -283,7 +283,7 @@ class DomainTests(LibTestCase):
     def test_get_plan_questions(self):
         self.maxDiff = None
         expected_questions = set(["?X.dept_city(X)", "?X.dest_city_type(X)", "?X.dest_city(X)", "?X.price(X)"])
-        actual_result = [question for question in self.domain.get_plan_questions()]
+        actual_result = [question for question in self.domain.plan_questions]
         actual_result_strings = set(map(str, actual_result))
         assert expected_questions == actual_result_strings
 
@@ -300,7 +300,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.downdate_plan_false_action),
             PerformGoal(self.instructional),
         }
-        actual_result = set(self.domain.get_all_goals())
+        actual_result = set(self.domain.all_goals)
         self.assertEqual(expected_goals, actual_result)
 
     def test_get_all_goals_in_defined_order(self):
@@ -316,7 +316,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.top_action),
             PerformGoal(self.up_action),
         ]
-        actual_result = self.domain.get_all_goals_in_defined_order()
+        actual_result = self.domain.all_goals_in_defined_order
         self.assertEqual(expected_goals, actual_result)
 
     def test_get_dependent_question_returns_goal_issue_for_question_in_plan(self):
@@ -338,7 +338,7 @@ class DomainTests(LibTestCase):
             PerformGoal(self.downdate_plan_false_action),
             PerformGoal(self.instructional),
         }
-        actual_goals = {goal for goal in self.domain.get_plan_goal_iterator()}
+        actual_goals = {goal for goal in self.domain.plan_goal_iterator}
         self.assertEqual(expected_goals, actual_goals)
 
     def test_get_downdate_conditions_for_goal_with_downdate_condition(self):
@@ -576,7 +576,7 @@ class DomainTests(LibTestCase):
 
     def test_get_user_targeted_actions(self):
         expected_action_names = ["user_targeted_action"]
-        actual_result = self.domain.get_names_of_user_targeted_actions()
+        actual_result = self.domain.names_of_user_targeted_actions
         self.assertEqual(set(expected_action_names), set(actual_result))
 
 

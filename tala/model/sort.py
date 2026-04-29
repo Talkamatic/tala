@@ -35,9 +35,6 @@ class Sort(SemanticObject):
         self._name = name
         self._dynamic = dynamic
 
-    def get_name(self):
-        return self._name
-
     @property
     def name(self):
         return self._name
@@ -87,12 +84,21 @@ class Sort(SemanticObject):
 
     def __eq__(self, other):
         try:
-            return (other.get_name() == self.get_name() and other.is_dynamic() == self.is_dynamic())
+            return (other.name == self.name and other.is_dynamic() == self.is_dynamic())
         except AttributeError:
             return False
 
     def __hash__(self):
-        return hash((self.get_name(), self.is_dynamic()))
+        return hash((self.name, self.is_dynamic()))
+
+    def as_dict(self):
+        data = {
+            "name": self._name,
+            "dynamic": self._dynamic,
+        }
+        if self.is_ontology_specific():
+            data["ontology_name"] = self.ontology_name
+        return data
 
     def value_as_basic_type(self, value):
         return value

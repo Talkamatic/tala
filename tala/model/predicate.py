@@ -16,19 +16,25 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __init__(self, ontology_name, name, sort, feature_of_name=None, multiple_instances=False):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
-        self.name = name
-        self.sort = sort
-        self.feature_of_name = feature_of_name
+        self._name = name
+        self._sort = sort
+        self._feature_of_name = feature_of_name
         self._multiple_instances = multiple_instances
 
-    def get_name(self):
-        return self.name
+    @property
+    def name(self):
+        return self._name
 
-    def get_feature_of_name(self):
-        return self.feature_of_name
+    @property
+    def sort(self):
+        return self._sort
+
+    @property
+    def feature_of_name(self):
+        return self._feature_of_name
 
     def is_feature_of(self, other):
-        return self.feature_of_name == other.get_name()
+        return self.feature_of_name == other.name
 
     def allows_multiple_instances(self):
         return self._multiple_instances
@@ -50,9 +56,9 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
 
     def __eq__(self, other):
         try:
-            return other.get_name() == self.get_name() \
+            return other.name == self.name \
                 and other.sort == self.sort \
-                and other.get_feature_of_name() == self.get_feature_of_name() \
+                and other.feature_of_name == self.feature_of_name \
                 and other.allows_multiple_instances() == self.allows_multiple_instances()
         except AttributeError:
             return False
@@ -67,9 +73,18 @@ class Predicate(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         return hash((self.name, self.sort, self.feature_of_name, self._multiple_instances))
 
     def __str__(self):
-        return self.get_name()
+        return self.name
 
     def __repr__(self):
         return "%s%s" % (
             self.__class__.__name__, (self.name, self.sort, self.feature_of_name, self._multiple_instances)
         )
+
+    def as_dict(self):
+        return {
+            "name": self._name,
+            "sort": self._sort.as_dict(),
+            "feature_of_name": self._feature_of_name,
+            "ontology_name": self.ontology_name,
+            "multiple_instances": self._multiple_instances,
+        }

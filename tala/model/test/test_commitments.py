@@ -21,7 +21,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -39,7 +39,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -84,7 +84,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -102,7 +102,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -120,7 +120,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -152,7 +152,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -170,7 +170,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -188,7 +188,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -226,7 +226,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -244,7 +244,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },
@@ -262,7 +262,7 @@ class CommitmentsTests(unittest.TestCase):
                     '_predicted': False,
                     '_confidence_estimates': None,
                     '_content': {
-                        '_ontology_name': 'some_ontology',
+                        'ontology_name': 'some_ontology',
                         'value': 'some_action',
                         'semantic_expression': 'some_action'
                     },

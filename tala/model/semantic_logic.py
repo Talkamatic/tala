@@ -115,7 +115,7 @@ class LambdaAbstractedPredicatePropositionLogic(SemanticObjectAndOntologySpecifi
         return self.is_combinable_with(answer) or is_relevant_individual or is_relevant_predicate_proposition
 
     def _relevant_feature_for_individual(self, individual):
-        for predicate in list(self._ontology.get_predicates().values()):
+        for predicate in list(self._ontology.predicates.values()):
             if predicate.is_feature_of(self._semantic_object.predicate)\
                and predicate.sort == individual.sort:
                 return predicate
@@ -225,7 +225,7 @@ class PredicatePropositionLogic(PropositionLogic, SemanticObjectAndOntologySpeci
     def _has_feature_combinable_with(self, answer):
         return (
             answer.is_individual() and any([
-                predicate for predicate in list(self._ontology.get_predicates().values())
+                predicate for predicate in list(self._ontology.predicates.values())
                 if predicate.is_feature_of(self._semantic_object.predicate) and predicate.sort == answer.sort
             ])
         )
@@ -285,8 +285,7 @@ class GoalPropositionLogic(SemanticObjectSpecificLogic):
     def is_combinable_with(self, answer):
         if answer.is_yes() or answer.is_no():
             return True
-        elif answer.is_proposition() and answer.is_goal_proposition() and answer.get_goal(
-        ) == self._semantic_object.get_goal():
+        elif answer.is_proposition() and answer.is_goal_proposition() and answer.goal == self._semantic_object.goal:
             return True
         else:
             return False
@@ -296,7 +295,7 @@ class GoalPropositionLogic(SemanticObjectSpecificLogic):
             return self._semantic_object
         elif answer.is_no():
             return self._semantic_object.negate()
-        elif answer.is_goal_proposition() and answer.get_goal() == self._semantic_object.get_goal():
+        elif answer.is_goal_proposition() and answer.goal == self._semantic_object.goal:
             return answer
         else:
             return False
@@ -312,18 +311,18 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
 
     def is_combinable_with(self, answer):
         if self._semantic_object.is_single_alt():
-            return self._semantic_logic.are_combinable(self._semantic_object.get_single_alt(), answer)
+            return self._semantic_logic.are_combinable(self._semantic_object.single_alt, answer)
         elif answer.is_no():
             return True
         elif not answer.is_yes():
-            for proposition in self._semantic_object.get_propositions():
+            for proposition in self._semantic_object.propositions:
                 if self._semantic_logic.are_combinable(proposition, answer):
                     return True
         return False
 
     def is_resolved_by(self, answer):
         if self._semantic_object.is_goal_alts() and self._is_goal_proposition(answer):
-            if self._some_goal_in_alts_dominates_goal(answer.get_goal()):
+            if self._some_goal_in_alts_dominates_goal(answer.goal):
                 return True
         if self._semantic_object.is_multi_alt():
             if answer.is_no():
@@ -331,7 +330,7 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
             elif self._semantic_object.negate() == answer:
                 return True
         if self._semantic_object.is_single_alt():
-            return self._semantic_logic.resolves(self._semantic_object.get_single_alt(), answer)
+            return self._semantic_logic.resolves(self._semantic_object.single_alt, answer)
         if (answer.is_proposition() or answer.is_individual()) \
            and answer.is_positive():
             return self.combine_with(answer) is not None
@@ -345,9 +344,9 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
         return False
 
     def _some_goal_in_alts_dominates_goal(self, subgoal):
-        for proposition in self._semantic_object._propositions:
+        for proposition in self._semantic_object.propositions:
             if proposition.is_goal_proposition():
-                supergoal = proposition.get_goal()
+                supergoal = proposition.goal
                 if self._has_domain() and self._domain.dominates(supergoal, subgoal):
                     return True
         return False
@@ -362,11 +361,11 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
 
     def combine_with(self, answer):
         if self._semantic_object.is_single_alt():
-            return self._semantic_logic.combine(self._semantic_object.get_single_alt(), answer)
+            return self._semantic_logic.combine(self._semantic_object.single_alt, answer)
         elif answer.is_no():
             return self._semantic_object.negate()
         elif not answer.is_yes():
-            for proposition in self._semantic_object.get_propositions():
+            for proposition in self._semantic_object.propositions:
                 if self._semantic_logic.are_combinable(proposition, answer):
                     return self._semantic_logic.combine(proposition, answer)
 
@@ -374,9 +373,9 @@ class PropositionSetLogic(SemanticObjectSpecificLogic):
         if self._semantic_object.is_multi_alt() and answer.is_no():
             return True
         elif self._semantic_object.is_single_alt():
-            return self._semantic_logic.is_relevant(self._semantic_object.get_single_alt(), answer)
+            return self._semantic_logic.is_relevant(self._semantic_object.single_alt, answer)
         elif not answer.is_yes():
-            for proposition in self._semantic_object.get_propositions():
+            for proposition in self._semantic_object.propositions:
                 if self._semantic_logic.is_relevant(proposition, answer):
                     return True
         return False

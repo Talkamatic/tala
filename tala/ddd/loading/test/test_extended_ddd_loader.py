@@ -118,7 +118,7 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         self._then_loaded_ddd_has_domain("MockupDomain")
 
     def _then_loaded_ddd_has_domain(self, name):
-        self.assertEqual(name, self._result.domain.get_name())
+        self.assertEqual(name, self._result.domain.name)
 
     def test_ontology_field(self):
         self._given_ontology_xml_file("mockup_app/ontology.xml")
@@ -128,7 +128,7 @@ class TestExtendedDDDLoader(DddMockingTestCase):
         self._then_loaded_ddd_has_ontology("MockupOntology")
 
     def _then_loaded_ddd_has_ontology(self, name):
-        self.assertEqual(name, self._result.ontology.get_name())
+        self.assertEqual(name, self._result.ontology.name)
 
     def test_service_interface_is_loaded(self):
         self._given_ontology_xml_file("mockup_app/ontology.xml")

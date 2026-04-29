@@ -37,14 +37,14 @@ class StackTester(EqualityAssertionTestCaseMixin):
 
     def test_top_on_empty_stack_raises_exception(self):
         stack = self.create_stack()
-        self.assertRaises(StackError, stack.top)
+        self.assertRaises(StackError, lambda: stack.top)
 
     def test_top_returns_latest_stacked_element(self):
         stack = self.create_stack()
         stack.push("harry")
         element = "kalle"
         stack.push(element)
-        self.assertEqual(element, stack.top())
+        self.assertEqual(element, stack.top)
 
     def test_newly_created_stack_is_empty(self):
         stack = self.create_stack()

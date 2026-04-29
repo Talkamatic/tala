@@ -99,10 +99,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
     def is_move(self):
         return True
 
-    def get_type(self):
-        warnings.warn("Move.get_type() is deprecated. Use Move.type_ instead.", DeprecationWarning, stacklevel=2)
-        return self._type
-
     @property
     def type(self):
         warnings.warn("Move.type is deprecated. Use Move.type_ instead.", DeprecationWarning, stacklevel=2)
@@ -111,6 +107,14 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
     @property
     def type_(self):
         return self._type
+
+    @property
+    def speaker(self):
+        return self._speaker
+
+    @speaker.setter
+    def speaker(self, value):
+        self._speaker = value
 
     @property
     def confidence_estimates(self):
@@ -140,24 +144,32 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
     def weighted_confidence(self):
         return self._confidence_estimates.weighted_confidence
 
-    def get_speaker(self):
-        return self._speaker
-
-    def get_modality(self):
-        return self._modality
-
     @property
     def modality(self):
         return self._modality
 
-    def get_utterance(self):
+    @modality.setter
+    def modality(self, value):
+        self._modality = value
+
+    @property
+    def utterance(self):
         return self._utterance
+
+    @utterance.setter
+    def utterance(self, value):
+        self._utterance = value
 
     def set_ddd_name(self, ddd_name):
         self._ddd_name = ddd_name
 
-    def get_ddd_name(self):
+    @property
+    def ddd_name(self):
         return self._ddd_name
+
+    @ddd_name.setter
+    def ddd_name(self, value):
+        self._ddd_name = value
 
     def set_realization_data(
         self,
@@ -388,9 +400,6 @@ class ICM(Move):
     def polarity(self):
         return self._polarity
 
-    def get_polarity(self):
-        return self.polarity
-
     def is_icm(self):
         return True
 
@@ -406,13 +415,13 @@ class ICM(Move):
 
     def is_negative_perception_icm(self):
         if self.type_ == ICMMove.PER:
-            return self.get_polarity() == ICMMove.NEG
+            return self.polarity == ICMMove.NEG
         else:
             return False
 
     def is_positive_acceptance_icm(self):
         if self.type_ == ICMMove.ACC:
-            return self.get_polarity() == ICMMove.POS
+            return self.polarity == ICMMove.POS
         else:
             return False
 
@@ -420,13 +429,13 @@ class ICM(Move):
         return False
 
     def is_negative_acceptance_icm(self):
-        if (self.type_ == ICMMove.ACC and self.get_polarity() == ICMMove.NEG):
+        if (self.type_ == ICMMove.ACC and self.polarity == ICMMove.NEG):
             return True
         else:
             return False
 
     def is_negative_understanding_icm(self):
-        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.NEG)
+        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.NEG)
 
     def is_positive_understanding_icm_with_non_neg_content(self):
         return False
@@ -464,7 +473,7 @@ class ICM(Move):
         return self._icm_to_string()
 
     def as_dict(self):
-        result = {"polarity": self.get_polarity()}
+        result = {"polarity": self.polarity}
 
         return super().as_dict() | result
 
@@ -489,7 +498,7 @@ class IssueICM(ICM):
         return True
 
     def is_negative_acceptance_issue_icm(self):
-        if (self.type_ == ICM.ACC and self.get_polarity() == ICM.NEG):
+        if (self.type_ == ICM.ACC and self.polarity == ICM.NEG):
             return True
         return False
 
@@ -517,7 +526,7 @@ class ICMWithContent(ICM):
         try:
             if super().__eq__(other):
                 return self.content == other.content \
-                    and self.get_content_speaker() == other.get_content_speaker()
+                    and self.content_speaker == other.content_speaker
         except AttributeError:
             pass
         return False
@@ -531,7 +540,8 @@ class ICMWithContent(ICM):
             return speaker
         raise Exception(f"'{speaker}' is not a valid value for content_speaker")
 
-    def get_content_speaker(self):
+    @property
+    def content_speaker(self):
         return self._content_speaker
 
     def _icm_to_string(self):
@@ -553,20 +563,20 @@ class ICMWithContent(ICM):
     def is_question_raising(self):
         return (
             self.type_ == ICMMove.UND and self.content is not None
-            and not (self.get_polarity() == ICMMove.POS and not self.content.is_positive())
+            and not (self.polarity == ICMMove.POS and not self.content.is_positive())
         )
 
     def is_positive_understanding_icm_with_non_neg_content(self):
-        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.POS and self.content.is_positive())
+        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.POS and self.content.is_positive())
 
     def is_interrogative_understanding_icm_with_non_neg_content(self):
-        return (self.type_ == ICMMove.UND and self.get_polarity() == ICMMove.INT and self.content.is_positive())
+        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.INT and self.content.is_positive())
 
     def is_grounding_proposition(self):
-        return self.type_ == ICMMove.UND and self.get_polarity() in [ICMMove.POS, ICMMove.INT]
+        return self.type_ == ICMMove.UND and self.polarity in [ICMMove.POS, ICMMove.INT]
 
     def as_dict(self):
-        return super().as_dict() | {"content": self.content, "content_speaker": self.get_content_speaker()}
+        return super().as_dict() | {"content": self.content, "content_speaker": self.content_speaker}
 
 
 class ICMMoveWithContent(ICMWithContent):
@@ -694,11 +704,21 @@ class Prereport(Move, OntologySpecificSemanticObject):
             pass
         return False
 
-    def get_service_action(self):
-        return self.service_action
+    @property
+    def service_action(self):
+        return self._service_action
 
-    def get_arguments(self):
-        return self.arguments
+    @service_action.setter
+    def service_action(self, value):
+        self._service_action = value
+
+    @property
+    def arguments(self):
+        return self._arguments
+
+    @arguments.setter
+    def arguments(self, value):
+        self._arguments = value
 
     def __str__(self):
         return self.get_semantic_expression(include_attributes=True)

@@ -39,7 +39,7 @@ class TestJSONAPIDDDCompatibility:
 
         assert self._parsed_ddd.name == expected_name
         assert self._parsed_ddd.ontology.name == expected_ontology
-        assert self._parsed_ddd.domain.get_name() == expected_domain
+        assert self._parsed_ddd.domain.name == expected_domain
         assert self._parsed_ddd.service_interface is not None
 
     def _expected_domain_name(self):

@@ -32,10 +32,10 @@ class DomainManager(object):
         self._load_domain_if_needed(goal)
         if goal not in self._domains_of_goals:
             if goal.is_resolve_goal():
-                question = goal.get_content()
+                question = goal.content
                 if question.is_consequent_question():
                     return self.get_domain_of_goal(
-                        ResolveGoal(question.get_embedded_consequent_question(), speaker.SYS)
+                        ResolveGoal(question.embedded_consequent_question, speaker.SYS)
                     )
             raise UnknownGoalException(
                 "Goal %s not found among known goals %s" % (repr(goal), list(self._domains_of_goals.keys()))
@@ -68,10 +68,11 @@ class DomainManager(object):
         domain = self.get_domain_of_goal(goal)
         return domain.get_goal_attribute(goal, "accommodate_without_feedback")
 
-    def get_all_goals_in_defined_order(self):
+    @property
+    def all_goals_in_defined_order(self):
         goals = []
         for domain in self._domains:
-            domain_goals = domain.get_all_goals_in_defined_order()
+            domain_goals = domain.all_goals_in_defined_order
             goals.extend(domain_goals)
         return goals
 

@@ -1,9 +1,11 @@
 import logging
+import uuid
 from tala.ddd.ddd_manager import DDDManager
 from tala.ddd.loading.extended_ddd_set_loader import ExtendedDDDSetLoader
 from tala.log.formats import TIS_LOGGING_COMPACT, TIS_LOGGING_FULL, TIS_LOGGING_AUTO
 from tala.config import BackendConfig
 from tala.utils.as_json import AsJSONMixin
+from tala.utils import json_api
 
 
 class UnknownActiveDddException(Exception):
@@ -39,7 +41,16 @@ def create_odb_as_json(
 
     odb_as_json["ddds"] = [extended_ddd.ddd.as_json_api_dict() for extended_ddd in extended_ddds]
 
-    return odb_as_json
+    odb_id = odb_as_json["path"] or str(uuid.uuid4())
+    return {
+        "data": {
+            "type": "tdm.orchestrated_domain_bundle",
+            "id": f"odb:{odb_id}",
+            "attributes": odb_as_json,
+            "meta": {"version:id": json_api.CURRENT_FORMAT_VERSION}
+        },
+        "included": []
+    }
 
 
 def load_ddds(ddd_names, overridden_config_paths, rerank_amount):
@@ -51,6 +62,7 @@ def load_ddds(ddd_names, overridden_config_paths, rerank_amount):
 
 class OrchestratedDomainBundle(AsJSONMixin):
     def __init__(self, argument_dict):
+        argument_dict = self._normalize_odb_json_input(argument_dict)
         self._overridden_ddd_config_paths = argument_dict["overridden_ddd_config_paths"]
         self._path = argument_dict["path"]
         self._repeat_questions = argument_dict["repeat_questions"]
@@ -84,6 +96,25 @@ class OrchestratedDomainBundle(AsJSONMixin):
         self.logger = None
 
     def as_dict(self):
+        return self._as_json_api_dict()
+
+    def as_json(self):
+        return self._as_json_api_dict()
+
+    def _as_json_api_dict(self):
+        payload = self._legacy_odb_dict()
+        odb_id = payload["path"] or str(uuid.uuid4())
+        return {
+            "data": {
+                "type": "tdm.orchestrated_domain_bundle",
+                "id": f"odb:{odb_id}",
+                "attributes": payload,
+                "meta": {"version:id": json_api.CURRENT_FORMAT_VERSION}
+            },
+            "included": []
+        }
+
+    def _legacy_odb_dict(self):
         dict_ = {}
 
         dict_["overridden_ddd_config_paths"] = self._overridden_ddd_config_paths
@@ -106,6 +137,16 @@ class OrchestratedDomainBundle(AsJSONMixin):
         dict_["ddds"] = self.ddds_as_json
 
         return dict_
+
+    def _normalize_odb_json_input(self, argument_dict):
+        try:
+            data = argument_dict["data"]
+            attributes = data.get("attributes")
+        except (TypeError, KeyError, AttributeError):
+            return argument_dict
+        if isinstance(attributes, dict):
+            return attributes
+        return argument_dict
 
     def __repr__(self):
         return str(self.as_dict())

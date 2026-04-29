@@ -354,7 +354,7 @@ class HttpServiceClientTest(unittest.TestCase):
         individual = self._mock_individual(value, sort)
         mock_predicate_proposition = Mock(spec=PredicateProposition)
         mock_predicate_proposition.is_predicate_proposition.return_value = True
-        mock_predicate_proposition.get_polarity.return_value = polarity
+        mock_predicate_proposition.polarity = polarity
         mock_predicate_proposition.predicate = predicate
         mock_predicate_proposition.individual = individual
         mock_predicate_proposition.confidence_estimates.perception_confidence = perception_confidence
@@ -389,13 +389,13 @@ class HttpServiceClientTest(unittest.TestCase):
 
     def _mock_predicate(self, name, sort):
         mock_predicate = Mock(spec=Predicate)
-        mock_predicate.get_name.return_value = name
+        mock_predicate.name = name
         mock_predicate.sort = sort
         return mock_predicate
 
     def _mock_sort(self, name):
         mock_sort = Mock(spec=Sort)
-        mock_sort.get_name.return_value = name
+        mock_sort.name = name
         return mock_sort
 
     def _mock_individual(self, value, sort):

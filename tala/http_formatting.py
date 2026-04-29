@@ -3,10 +3,10 @@ from tala.model.polarity import Polarity
 
 def facts_to_json_object(facts, session=None):
     def is_positive_predicate_proposition(proposition):
-        return proposition.is_predicate_proposition() and proposition.get_polarity() == Polarity.POS
+        return proposition.is_predicate_proposition() and proposition.polarity == Polarity.POS
 
     return {
-        proposition.predicate.get_name(): fact_to_json_object(proposition, session)
+        proposition.predicate.name: fact_to_json_object(proposition, session)
         for proposition in facts if is_positive_predicate_proposition(proposition)
     }
 
@@ -26,7 +26,7 @@ def fact_to_json_object(proposition, session=None):
         session = {}
 
     resulting_dict = {
-        "sort": proposition.predicate.sort.get_name(),
+        "sort": proposition.predicate.sort.name,
         "grammar_entry": get_grammar_entry(proposition.individual.value),
         "perception_confidence":
             proposition.confidence_estimates.perception_confidence if proposition.confidence_estimates else None,

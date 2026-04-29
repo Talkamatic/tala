@@ -33,7 +33,7 @@ class Parser:
     def __init__(self, ddd_name, ontology, domain_name=None):
         self._ddd_name = ddd_name
         self.ontology = ontology
-        self.ontology_name = ontology.get_name()
+        self.ontology_name = ontology.name
         self.domain_name = domain_name
         self._cache_method = CacheMethod(self, self._cacheable_parse)
         self._clauses = [

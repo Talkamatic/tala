@@ -66,11 +66,11 @@ class DDDManager(object):
             self.add(ddd)
 
     def add_domain(self, domain):
-        self.domains[domain.get_name()] = domain
+        self.domains[domain.name] = domain
         self.domain_manager.add(domain)
 
     def add_ontology(self, ontology):
-        self.ontologies[ontology.get_name()] = ontology
+        self.ontologies[ontology.name] = ontology
 
     def get_all_ddds(self):
         return list(self._ddds.values())

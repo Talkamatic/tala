@@ -47,6 +47,24 @@ class JSONParseFailure(Exception):
 
 def preprocess_json_dict(json_dict_original):
     json_dict = copy.copy(json_dict_original)
+    key_aliases = {
+        "_value": "value",
+        "_name": "name",
+        "_sort": "sort",
+        "_feature_of_name": "feature_of_name",
+        "_ontology_name": "ontology_name",
+        "_service_action": "service_action",
+        "_arguments": "arguments",
+        "_result": "result",
+        "_rejected_combination": "rejected_combination",
+        "_reason_for_rejection": "reason_for_rejection",
+        "_argument_set": "argument_set",
+        "_issue": "issue",
+        "_multiple_instances": "multiple_instances",
+    }
+    for source_key, target_key in key_aliases.items():
+        if source_key in json_dict and target_key not in json_dict:
+            json_dict[target_key] = json_dict[source_key]
     for float_key in ["perception_confidence", "understanding_confidence"]:
         if float_key in json_dict:
             try:
@@ -57,7 +75,7 @@ def preprocess_json_dict(json_dict_original):
 
 
 def create_sort(definition):
-    sort_name = definition["_name"]
+    sort_name = definition.get("_name", definition.get("name"))
     if sort_name in sort.BUILTIN_SORTS:
         if sort_name == sort.DATETIME:
             return sort.DateTimeSort()
@@ -78,16 +96,26 @@ def create_sort(definition):
         if sort_name == sort.WEBVIEW:
             return sort.WebviewSort()
 
-    ontology_name = definition.get("_ontology_name")
+    ontology_name = definition.get("_ontology_name", definition.get("ontology_name"))
     if ontology_name:
-        return CustomSort(ontology_name, definition["_name"], definition["_dynamic"])
-    return Sort(definition["_name"], definition["_dynamic"])
+        return CustomSort(
+            ontology_name,
+            definition.get("_name", definition.get("name")),
+            definition.get("_dynamic", definition.get("dynamic"))
+        )
+    return Sort(
+        definition.get("_name", definition.get("name")),
+        definition.get("_dynamic", definition.get("dynamic"))
+    )
 
 
 def create_predicate(name, definition):
+    sort_definition = definition.get("sort", definition.get("_sort"))
+    feature_of_name = definition.get("feature_of_name", definition.get("_feature_of_name"))
+    multiple_instances = definition.get("multiple_instances", definition.get("_multiple_instances"))
+    ontology_name = definition.get("_ontology_name", definition.get("ontology_name"))
     return Predicate(
-        definition["_ontology_name"], name, create_sort(definition["sort"]), definition["feature_of_name"],
-        definition["_multiple_instances"]
+        ontology_name, name, create_sort(sort_definition), feature_of_name, multiple_instances
     )
 
 
@@ -145,13 +173,15 @@ class JSONOntologyParser():
 
 class JSONDDDParser():
     def parse(self, ddd_as_json):
-        name = ddd_as_json["ddd_name"]
+        name = ddd_as_json.get("ddd_name", ddd_as_json.get("_ddd_name"))
         ontology_parser = JSONOntologyParser()
-        ontology = ontology_parser.parse_ontology(ddd_as_json["ontology"])
+        ontology = ontology_parser.parse_ontology(ddd_as_json.get("ontology", ddd_as_json.get("_ontology")))
         domain_parser = JSONDomainParser(ontology)
-        domain = domain_parser.parse(ddd_as_json["domain"])
+        domain = domain_parser.parse(ddd_as_json.get("domain", ddd_as_json.get("_domain")))
         service_interface_parser = JSONServiceInterfaceParser()
-        service_interface = service_interface_parser.parse(ddd_as_json["service_interface"])
+        service_interface = service_interface_parser.parse(
+            ddd_as_json.get("service_interface", ddd_as_json.get("_service_interface"))
+        )
         return DDD(name, ontology, domain, service_interface)
 
 
@@ -161,16 +191,20 @@ class JSONDomainParser():
         self.parser = NonCheckingJSONParser()
 
     def parse(self, json_dict):
-        ddd_name = json_dict["ddd_name"]
-        domain_name = json_dict["name"]
+        ddd_name = json_dict.get("ddd_name", json_dict.get("_ddd_name"))
+        domain_name = json_dict.get("name", json_dict.get("_name"))
         if self.ontology:
             self.parser = CheckingJSONParser(ddd_name, self.ontology, domain_name)
-        default_questions = self.parse_default_questions(json_dict["default_questions"])
-        parameters = self.parse_parameters(json_dict["parameters"])
-        plans = self.parse_plans(json_dict["plans"])
-        validators = self.parse_validators(json_dict["validators"])
-        dependencies = self.parse_serialized_dict(json_dict.get("dependencies", {}))
-        queries = self.parse_serialized_query_list(json_dict["queries"])
+        default_questions = self.parse_default_questions(
+            json_dict.get("default_questions", json_dict.get("_default_questions"))
+        )
+        parameters = self.parse_parameters(json_dict.get("parameters", json_dict.get("_parameters")))
+        plans = self.parse_plans(json_dict.get("plans", json_dict.get("_plans")))
+        validators = self.parse_validators(json_dict.get("validators", json_dict.get("_validators")))
+        dependencies = self.parse_serialized_dict(
+            json_dict.get("dependencies", json_dict.get("_dependencies", {}))
+        )
+        queries = self.parse_serialized_query_list(json_dict.get("queries", json_dict.get("_queries")))
         return Domain(
             ddd_name, domain_name, self.ontology, plans, default_questions, parameters, validators, dependencies,
             queries
@@ -789,7 +823,10 @@ class NonCheckingJSONParser():
         return LambdaAbstractedPredicateProposition(predicate, ontology_name)
 
     def parse_predicate(self, data):
-        return create_predicate(data["name"], data)
+        predicate_name = data.get("name", data.get("_name"))
+        if "sort" not in data and "_sort" in data:
+            data = data | {"sort": data["_sort"]}
+        return create_predicate(predicate_name, data)
 
     def parse_proposition_set(self, data):
         proposition_list = data["_propositions"]
@@ -882,8 +919,8 @@ class NonCheckingJSONParser():
         raise JSONParseFailure(f"cannot parse {data} as move.")
 
     def parse_action(self, data):
-        action_name = data["value"]
-        ontology_name = data["_ontology_name"]
+        action_name = data.get("value", data.get("_value"))
+        ontology_name = data.get("ontology_name", data.get("_ontology_name"))
         return Action(action_name, ontology_name)
 
     def parse_answer_move(self, data, kwargs):
@@ -904,13 +941,15 @@ class NonCheckingJSONParser():
         if data["_type"] == Proposition.PRECONFIRMATION:
             service_action = data.get("service_action")
             polarity = data.get("polarity")
-            arguments = [self.parse_proposition(proposition) for proposition in data.get("_arguments")]
+            arguments_data = data.get("_arguments") or []
+            arguments = [self.parse_proposition(proposition) for proposition in arguments_data]
             ontology_name = data["_ontology_name"]
             return PreconfirmationProposition(ontology_name, service_action, arguments, polarity)
         if data["_type"] == Proposition.SERVICE_RESULT:
             service_action = data.get("service_action")
             action_outcome = self.parse(data.get("result"))
-            arguments = [self.parse_proposition(proposition) for proposition in data.get("arguments")]
+            arguments_data = data.get("arguments") or []
+            arguments = [self.parse_proposition(proposition) for proposition in arguments_data]
             ontology_name = data.get("ontology_name")
             return ServiceResultProposition(ontology_name, service_action, arguments, action_outcome)
         if data["_type"] == Proposition.UNDERSTANDING:
@@ -931,7 +970,8 @@ class NonCheckingJSONParser():
             return ActionStatusProposition(action, status)
         if data["_type"] == Proposition.SERVICE_ACTION_STARTED:
             service_action = data["service_action"]
-            parameters = [self.parse_proposition(proposition) for proposition in data.get("parameters")]
+            parameters_data = data.get("parameters") or []
+            parameters = [self.parse_proposition(proposition) for proposition in parameters_data]
             ontology_name = data.get("ontology_name")
             return ServiceActionStartedProposition(ontology_name, service_action, parameters)
         if data["_type"] == Proposition.SERVICE_ACTION_TERMINATED:
@@ -972,13 +1012,14 @@ class NonCheckingJSONParser():
 
     def _create_predicate_proposition(self, data):
         individual_data = data.get("individual")
-        if data["predicate"]["sort"]["_name"] == "string" and individual_data is None:
-            individual = None
-        elif individual_data is None:
+        predicate_data = data.get("predicate", data.get("_content"))
+        sort_data = predicate_data.get("sort", predicate_data.get("_sort"))
+        sort_name = sort_data.get("_name", sort_data.get("name"))
+        if sort_name == "string" and individual_data is None:
             individual = None
         else:
             individual = self.parse_individual(individual_data)
-        predicate = self.parse_predicate(data["predicate"])
+        predicate = self.parse_predicate(predicate_data)
         polarity = data.get("_polarity")
         return PredicateProposition(predicate, individual, polarity)
 
@@ -994,7 +1035,7 @@ class NonCheckingJSONParser():
         value_data = data["value"]
         value, sort = create_individual(value_data, sort_data)
         polarity = data["polarity"]
-        ontology_name = data["_ontology_name"]
+        ontology_name = data.get("ontology_name", data.get("_ontology_name"))
         if polarity == Polarity.POS:
             return Individual(ontology_name, value, sort)
         return NegativeIndividual(ontology_name, value, sort)
@@ -1139,26 +1180,29 @@ class NonCheckingJSONParser():
 class CheckingJSONParser(NonCheckingJSONParser):
     def __init__(self, ddd_name, ontology, domain_name):
         self.ontology = ontology
-        self.ontology_name = ontology.get_name()
+        self.ontology_name = ontology.name
         self.domain_name = domain_name
 
     def parse_action(self, data):
-        action_name = data["value"]
+        action_name = data.get("value", data.get("_value"))
         return self.ontology.create_action(action_name)
 
     def _create_predicate_proposition(self, data):
-        if data["predicate"]["sort"]["_name"] == "boolean":
+        predicate_data = data.get("predicate", data.get("_content"))
+        sort_data = predicate_data.get("sort", predicate_data.get("_sort"))
+        sort_name = sort_data.get("_name", sort_data.get("name"))
+        if sort_name == "boolean":
             individual = None
-        elif data["predicate"]["sort"]["_name"] == "string" and data["individual"] is None:
+        elif sort_name == "string" and data.get("individual") is None:
             individual = None
         else:
-            individual = self.parse_individual(data["individual"])
-        predicate = self.parse_predicate(data["predicate"])
+            individual = self.parse_individual(data.get("individual"))
+        predicate = self.parse_predicate(predicate_data)
         polarity = data.get("_polarity")
         return self.ontology.create_predicate_proposition(predicate, individual, polarity)
 
     def parse_predicate(self, data):
-        predicate_name = data["name"]
+        predicate_name = data.get("name", data.get("_name"))
         return self.ontology.get_predicate(predicate_name)
 
     def parse_findout_plan_item(self, data):
@@ -1183,7 +1227,8 @@ class CheckingJSONParser(NonCheckingJSONParser):
 
         if data is None:
             return None
-        sort = self.ontology.get_sort(data["sort"]["_name"])
+        sort_name = data["sort"].get("_name", data["sort"].get("name"))
+        sort = self.ontology.get_sort(sort_name)
         value = data["value"]
         polarity = data["polarity"]
         if sort.is_datetime_sort():

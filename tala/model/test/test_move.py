@@ -120,8 +120,8 @@ class PrereportMoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_getters(self):
         self.assertEqual(Move.PREREPORT, self.move.type_)
-        self.assertEqual(self.service_action, self.move.get_service_action())
-        self.assertEqual(self.arguments, self.move.get_arguments())
+        self.assertEqual(self.service_action, self.move.service_action)
+        self.assertEqual(self.arguments, self.move.arguments)
 
     def test_to_string(self):
         self.assertEqual("prereport(BuyTrip, [dest_city(paris), dept_city(london)])", str(self.move))
@@ -484,7 +484,7 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
     def test_create_und_int(self):
         icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.INT, speaker=speaker.SYS)
         self.assertEqual(ICM.UND, icm.type_)
-        self.assertEqual(ICM.INT, icm.get_polarity())
+        self.assertEqual(ICM.INT, icm.polarity)
 
     def test_inequality_due_to_polarity_difference(self):
         icm_int = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.INT)
@@ -588,7 +588,7 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
     def test_create_und_pos(self):
         icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.POS, speaker=speaker.SYS)
         self.assertEqual(ICM.UND, icm.type_)
-        self.assertEqual(ICM.POS, icm.get_polarity())
+        self.assertEqual(ICM.POS, icm.polarity)
 
     def test_und_pos_to_string(self):
         icm = self.move_factory.create_icm_move(
@@ -623,9 +623,9 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
             ICM.UND, polarity=ICM.INT, content=self.price_question, content_speaker=speaker.USR
         )
         self.assertTrue(move.is_icm())
-        self.assertEqual(ICM.INT, move.get_polarity())
+        self.assertEqual(ICM.INT, move.polarity)
         self.assertEqual(self.price_question, move.content)
-        self.assertEqual(speaker.USR, move.get_content_speaker())
+        self.assertEqual(speaker.USR, move.content_speaker)
 
     def test_semantic_expression_without_realization_data(self):
         self.given_move(self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG))
@@ -637,7 +637,7 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
         move = self.move_factory.create_move(Move.GREET)
         name = "mockup_ddd"
         move.set_ddd_name(name)
-        self.assertEqual(name, move.get_ddd_name())
+        self.assertEqual(name, move.ddd_name)
 
 
 class MoveRealizationTests(LibTestCase):
@@ -657,8 +657,8 @@ class MoveRealizationTests(LibTestCase):
             ddd_name="mockup_ddd"
         )
         self.assertEqual(understanding_confidence, move.understanding_confidence)
-        self.assertEqual(speaker_, move.get_speaker())
-        self.assertEqual(modality, move.get_modality())
+        self.assertEqual(speaker_, move.speaker)
+        self.assertEqual(modality, move.modality)
 
     def test_set_realization_data_for_spoken_input(self):
         move = self.move_factory.create_move(Move.GREET)
@@ -674,9 +674,9 @@ class MoveRealizationTests(LibTestCase):
             ddd_name="mockup_ddd"
         )
         self.assertEqual(understanding_confidence, move.understanding_confidence)
-        self.assertEqual(speaker_, move.get_speaker())
-        self.assertEqual(modality, move.get_modality())
-        self.assertEqual(utterance, move.get_utterance())
+        self.assertEqual(speaker_, move.speaker)
+        self.assertEqual(modality, move.modality)
+        self.assertEqual(utterance, move.utterance)
 
     def test_get_score_returns_one_for_move_with_speaker_sys(self):
         greet_move = self.move_factory.create_move(Move.GREET, speaker=speaker.SYS)
@@ -688,7 +688,7 @@ class MoveRealizationTests(LibTestCase):
         quit_move = self.move_factory.create_move(Move.QUIT, speaker=speaker.SYS)
         icm_move = self.move_factory.create_icm_move(ICM.ACC, content=ICM.POS, speaker=speaker.SYS)
         for move in [quit_move, icm_move]:
-            self.assertEqual(Modality.SPEECH, move.get_modality())
+            self.assertEqual(Modality.SPEECH, move.modality)
 
     def test_move_haptic_modality_is_available(self):
         self.move_factory.create_move(Move.QUIT, speaker=speaker.SYS, modality=Modality.HAPTIC)

@@ -38,7 +38,7 @@ class LambdaAbstractedPredicateProposition(
 
     def __str__(self):
         variable = "X"
-        return variable + "." + self.predicate.get_name() + "(" + variable + ")"
+        return variable + "." + self.predicate.name + "(" + variable + ")"
 
     def __eq__(self, other):
         if (isinstance(other, LambdaAbstractedPredicateProposition)):

@@ -84,6 +84,29 @@ def redact_bulky_entries_in_session(_, __, input_event_dict):
 
 
 def configure_stdout_logging(level=None):
+    log_file = os.getenv("TDM_LOG_FILE")
+    handlers = {
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "plain",
+        },
+        "access": {
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "access-json",
+        },
+    }
+    root_handlers = ["stdout"]
+    access_handlers = ["access"]
+    if log_file:
+        handlers["file"] = {
+            "class": "logging.FileHandler",
+            "filename": log_file,
+            "mode": "a",
+            "formatter": "plain",
+        }
+        root_handlers.append("file")
     structlog.configure(
         processors=[
             redact_bulky_entries_in_session,
@@ -120,26 +143,15 @@ def configure_stdout_logging(level=None):
                 ],
             }
         },
-        "handlers": {
-            "stdout": {
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",
-                "formatter": "plain",
-            },
-            "access": {
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",
-                "formatter": "access-json",
-            },
-        },
+        "handlers": handlers,
         "loggers": {
             "": {
-                "handlers": ["stdout"],
+                "handlers": root_handlers,
                 "level": level,
                 "propagate": False,
             },
             "gunicorn.access": {
-                "handlers": ["access"],
+                "handlers": access_handlers,
                 "level": level,
                 "propagate": False,
             },

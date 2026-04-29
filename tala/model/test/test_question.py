@@ -12,7 +12,7 @@ class WhQuestionTests(LibTestCase):
     def setUp(self):
         self.setUpLibTestCase()
         self.lambda_abstracted_dest_city = LambdaAbstractedPredicateProposition(
-            self.predicate_dest_city, self.ontology.get_name()
+            self.predicate_dest_city, self.ontology.name
         )
         self.dest_city_wh_question = WhQuestion(self.lambda_abstracted_dest_city)
 

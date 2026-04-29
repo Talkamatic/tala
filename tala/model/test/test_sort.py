@@ -65,7 +65,7 @@ class TestSort(SortTestCase, EqualityAssertionTestCaseMixin):
 
     def test_createSort(self):
         sort = self.ontology.get_sort("city")
-        assert "city" == sort.get_name()
+        assert "city" == sort.name
 
     def test_createSort_yields_exception_for_unknown_sort(self):
         with pytest.raises(SortDoesNotExistException):

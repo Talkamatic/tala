@@ -128,7 +128,7 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
             }, []
         )
 
-        for predicate in self.predicates:
+        for predicate in self._predicates.values():
             predicate_data = predicate.as_json_api_dict()
             d.append_relationship("predicates", predicate_data)
 
@@ -140,9 +140,10 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
             action_data = self.create_action(action).as_json_api_dict()
             d.append_relationship("actions", action_data)
 
-        for sort in self.sorts:
-            sort_data = sort.as_json_api_dict()
-            d.append_relationship("sorts", sort_data)
+        for sort in self._sorts.values():
+            if not sort.is_builtin():
+                sort_data = sort.as_json_api_dict()
+                d.append_relationship("sorts", sort_data)
 
         return d.as_dict
 
@@ -162,15 +163,19 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
 
     @property
     def sorts(self):
-        return [sort for _name, sort in self._sorts.items() if not sort.is_builtin()]
+        return self._sorts
 
     @property
     def individuals(self):
-        return self._individuals.items()
+        return self._individuals
 
     @property
     def predicates(self):
-        return [predicate for name, predicate in self._predicates.items()]
+        return self._predicates
+
+    @property
+    def actions(self):
+        return self._actions
 
     @property
     def ddd_specific_actions(self):
@@ -179,7 +184,7 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
     def _set_to_dict(self, set_):
         dict_ = {}
         for item in set_:
-            dict_[item.get_name()] = item
+            dict_[item.name] = item
         return dict_
 
     def _validate_individuals(self):
@@ -193,7 +198,7 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
 
     def _validate_individual_sort(self, name, sort):
         if sort not in list(self._sorts.values()):
-            raise OntologyError("individual '%s' has unknown sort '%s' (%s)" % (name, sort.get_name(), self.__dict__))
+            raise OntologyError("individual '%s' has unknown sort '%s' (%s)" % (name, sort.name, self.__dict__))
 
     def _add_default_sorts(self):
         self._sorts["domain"] = DomainSort()
@@ -205,14 +210,14 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
     def _add_builtin_sorts_for_predicate(self, predicate):
         sort = predicate.sort
         if sort.is_builtin() and sort not in self._sorts:
-            self._sorts[sort.get_name()] = sort
+            self._sorts[sort.name] = sort
 
     def _validate_predicates(self):
         for predicate in list(self._predicates.values()):
             if predicate.sort not in list(self._sorts.values()):
                 raise OntologyError(
                     "predicate '%s' has unknown sort '%s' (sorts=%s)" %
-                    (predicate.get_name(), predicate.sort, self._sorts)
+                    (predicate.name, predicate.sort, self._sorts)
                 )
 
         for name in self._predicates.keys():
@@ -229,24 +234,12 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
                     "Action '%s' is also a predicate name in %s ontology." % (action, self.name)
                 )
 
-    def get_sorts(self):
-        return self._sorts
-
-    def get_predicates(self):
-        return self._predicates
-
-    def get_actions(self):
-        return self._actions
-
     @property
     def individuals_as_objects(self):
         return [Individual(self.name, value, sort) for value, sort in self._individuals.items()]
 
-    def get_individuals(self):
-        return self._individuals
-
     def get_individuals_of_sort(self, expected_sort):
-        return [individual for individual, sort in list(self._individuals.items()) if sort.get_name() == expected_sort]
+        return [individual for individual, sort in list(self._individuals.items()) if sort.name == expected_sort]
 
     def add_individual(self, name, sort_as_string):
         if name in list(self._individuals.keys()):
@@ -269,9 +262,6 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
     def ensure_individual_exists(self, name, sort_as_string):
         if name not in list(self._individuals.keys()):
             self._validate_name_and_add_individual(name, sort_as_string)
-
-    def get_name(self):
-        return self.name
 
     def __str__(self):
         return self.name
@@ -337,7 +327,7 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
             raise OntologyError("failed to get sort of unknown individual: " + str(value))
 
     def predicates_contain_sort(self, name):
-        return name in [sort.get_name() for sort in self.predicate_sorts]
+        return name in [sort.name for sort in self.predicate_sorts]
 
     @property
     def predicate_sorts(self):

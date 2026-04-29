@@ -43,7 +43,7 @@ class TestOntology(object):
 class TestOntologyBasic(TestOntology):
     def test_get_name(self):
         self._given_ontology(name="mockup_ontology")
-        assert "mockup_ontology" == self._ontology.get_name()
+        assert "mockup_ontology" == self._ontology.name
 
     def test_sorts_base_case(self):
         self._given_ontology(name=self.DEFAULT_NAME, sorts={CustomSort(self.DEFAULT_NAME, "city")})
@@ -51,7 +51,7 @@ class TestOntologyBasic(TestOntology):
         self._then_result_contains_key("city", CustomSort(self._ontology.name, "city"))
 
     def _when_get_sorts_is_called(self):
-        self._result = self._ontology.get_sorts()
+        self._result = self._ontology.sorts
 
     def _then_result_contains_key(self, key, value):
         assert value == self._result[key]
@@ -68,7 +68,7 @@ class TestOntologyBasic(TestOntology):
         })
 
     def _when_get_predicates_is_called(self):
-        self._result = self._ontology.get_predicates()
+        self._result = self._ontology.predicates
 
     def test_individuals_base_case(self):
         self._given_ontology(
@@ -80,7 +80,7 @@ class TestOntologyBasic(TestOntology):
         self._then_result_is({"paris": CustomSort(self.DEFAULT_NAME, "city")})
 
     def _when_get_individuals_is_called(self):
-        self._result = self._ontology.get_individuals()
+        self._result = self._ontology.individuals
 
     def test_actions_with_additional_action(self):
         self._given_ontology(actions={"buy"})
@@ -88,7 +88,7 @@ class TestOntologyBasic(TestOntology):
         self._then_result_is({"buy", "top", "up", "how"})
 
     def _when_get_actions_is_called(self):
-        self._result = self._ontology.get_actions()
+        self._result = self._ontology.actions
 
     def _then_result_contains(self, obj):
         assert obj in self._result
@@ -360,7 +360,7 @@ class TestDynamicOntology(TestOntology):
 
     def _then_individual_is_in_the_ontology(self, name, sort):
         sort_as_instance = self._ontology.get_sort(sort)
-        assert (name, sort_as_instance) in list(self._ontology.get_individuals().items())
+        assert (name, sort_as_instance) in list(self._ontology.individuals.items())
 
     def test_adding_existing_individual_yields_exception(self):
         self._given_ontology(

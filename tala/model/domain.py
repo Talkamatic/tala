@@ -297,6 +297,78 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         self._add_top_plan_if_missing()
         self._add_up_plan()
 
+    @property
+    def ddd_name(self):
+        return self._ddd_name
+
+    @ddd_name.setter
+    def ddd_name(self, value):
+        self._ddd_name = value
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
+    def ontology(self):
+        return self._ontology
+
+    @ontology.setter
+    def ontology(self, value):
+        self._ontology = value
+
+    @property
+    def default_questions(self):
+        return self._default_questions
+
+    @default_questions.setter
+    def default_questions(self, value):
+        self._default_questions = value
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        self._parameters = value
+
+    @property
+    def dependencies(self):
+        return self._dependencies
+
+    @dependencies.setter
+    def dependencies(self, value):
+        self._dependencies = value
+
+    @property
+    def plans(self):
+        return self._plans
+
+    @plans.setter
+    def plans(self, value):
+        self._plans = value
+
+    @property
+    def queries(self):
+        return self._queries
+
+    @queries.setter
+    def queries(self, value):
+        self._queries = value
+
+    @property
+    def validators(self):
+        return self._validators
+
+    @validators.setter
+    def validators(self, value):
+        self._validators = value
+
     def as_dict(self):
         json = super(Domain, self).as_dict()
         json["ontology"] = "<skipped>"
@@ -424,13 +496,10 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def _has_top_plan(self):
         return any([
             plan for plan in list(self.plans.values()) if (
-                plan["goal"].is_goal() and plan["goal"].type == PERFORM
-                and plan["goal"].get_action().get_value() == "top"
+                plan["goal"].is_goal() and plan["goal"].type_ == PERFORM
+                and plan["goal"].action.value == "top"
             )
         ])  # noqa: E127
-
-    def get_ontology(self):
-        return self.ontology
 
     def __str__(self):
         return self.name
@@ -444,11 +513,8 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def __hash__(self):
         return hash(self.name) * hash(self.ddd_name)
 
-    def get_name(self):
-        return self.name
-
     def action(self, action_name):
-        return Action(action_name, self.ontology.get_name())
+        return Action(action_name, self.ontology.name)
 
     def is_depending_on(self, dependent_issue, other):
         if dependent_issue in self.dependencies:
@@ -479,7 +545,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         return False
 
     def get_dependent_question(self, question):
-        for other_question in self.get_plan_questions():
+        for other_question in self.plan_questions:
             if self.is_depending_on(other_question, question):
                 return other_question
         return None
@@ -495,7 +561,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         if goal in self.plans:
             return self.plans[goal]
         else:
-            raise DomainError("no plan for goal '%s' in domain '%s'" % (goal, self.get_name()))
+            raise DomainError("no plan for goal '%s' in domain '%s'" % (goal, self.name))
 
     def dominates(self, supergoal, subgoal):
         if self.has_goal(supergoal):
@@ -506,7 +572,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
                     if question.is_alt_question():
                         for proposition in question.content:
                             if proposition.is_goal_proposition():
-                                goal = proposition.get_goal()
+                                goal = proposition.goal
                                 if goal == subgoal:
                                     return True
                                 elif self.dominates(goal, subgoal):
@@ -530,7 +596,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def is_default_question(self, question):
         return question in self.default_questions
 
-    def get_plan_questions(self):
+    def _plan_questions(self):
         already_found = set()
         for goal in self.plans:
             plan = self.get_plan(goal)
@@ -539,21 +605,28 @@ class Domain(AsJSONMixin, JSONAPIMixin):
                     already_found.add(question)
                     yield question
 
-    def get_plan_goal_iterator(self):
+    @property
+    def plan_questions(self):
+        return self._plan_questions()
+
+    def _plan_goal_iterator(self):
         for goal in self.plans:
             yield goal
+
+    @property
+    def plan_goal_iterator(self):
+        return self._plan_goal_iterator()
 
     @property
     def all_goals(self):
         return list(self.plans.keys())
 
-    def get_all_goals(self):
-        return self.all_goals
-
-    def get_all_goals_in_defined_order(self):
+    @property
+    def all_goals_in_defined_order(self):
         return self._goals_in_defined_order
 
-    def get_all_resolve_goals(self):
+    @property
+    def all_resolve_goals(self):
         return [x for x in self.plans if x.is_resolve_goal()]
 
     def get_downdate_conditions(self, goal):
@@ -567,7 +640,7 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         plan = self.get_plan(goal)
         for item in plan:
             if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.should_downdate_plan():
-                yield ServiceActionTerminatedProposition(self.ontology.name, item.get_service_action())
+                yield ServiceActionTerminatedProposition(self.ontology.name, item.service_action)
 
     def get_goal_attribute(self, goal, attribute):
         plan_info = self._get_plan_info(goal)
@@ -747,9 +820,9 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def get_feature_questions_for_plan_item(self, question, plan_item):
         feature_questions = []
         if question.content.is_lambda_abstracted_predicate_proposition():
-            for predicate in list(self.ontology.get_predicates().values()):
+            for predicate in list(self.ontology.predicates.values()):
                 if predicate.is_feature_of(question.content.predicate):
-                    feature_question = self.ontology.create_wh_question(predicate.get_name())
+                    feature_question = self.ontology.create_wh_question(predicate.name)
                     feature_questions.append(feature_question)
         return feature_questions
 
@@ -760,10 +833,11 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         for goal in self.all_goals:
             plan = self.get_plan(goal)
             for item in plan:
-                if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.get_service_action() == action_name:
+                if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.service_action == action_name:
                     yield item
 
-    def get_names_of_user_targeted_actions(self):
+    @property
+    def names_of_user_targeted_actions(self):
         actions = []
         for goal in self.all_goals:
             plan = self.get_plan(goal)

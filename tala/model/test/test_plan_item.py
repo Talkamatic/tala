@@ -123,9 +123,9 @@ class PlanItemTests(LibTestCase):
 
     def test_if_then_else_getters(self):
         self.assertEqual(plan_item.TYPE_IF_THEN_ELSE, self.if_then_else_plan_item.type_)
-        self.assertEqual(self.if_condition, self.if_then_else_plan_item.get_condition())
-        self.assertEqual(self.if_consequent, self.if_then_else_plan_item.get_consequent())
-        self.assertEqual(self.if_alternative, self.if_then_else_plan_item.get_alternative())
+        self.assertEqual(self.if_condition, self.if_then_else_plan_item.condition)
+        self.assertEqual(self.if_consequent, self.if_then_else_plan_item.consequent)
+        self.assertEqual(self.if_alternative, self.if_then_else_plan_item.alternative)
 
     def test_if_then_else_to_string(self):
         expected_string = "if_then_else{}".format(
@@ -206,7 +206,7 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
 
     def test_get_service_action(self):
         self.given_created_service_action_plan_item(service_action="mock_service_action")
-        self.when_call(self._plan_item.get_service_action)
+        self.when_call(lambda: self._plan_item.service_action)
         self.then_result_is("mock_service_action")
 
     def test_has_interrogative_preconfirmation_false_by_default(self):

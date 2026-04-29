@@ -5,6 +5,7 @@ import json
 import warnings
 import requests
 import time
+import traceback
 
 import structlog
 
@@ -156,11 +157,11 @@ class InteractionTester:
         except InteractionTesterException as e:
             self._buffer_output('!!!! Exception raised during test !!!!')
             self._buffer_output(f"Exception: {e}")
-            self._result = {"success": False}
+            self._result = {"success": False, "failure_description": str(e)}
         except Exception as e:
             self._buffer_output('!!!! General exception raised during test !!!!')
             self._buffer_output(f"Exception: {e}")
-            self._result = {"success": False}
+            self._result = {"success": False, "failure_description": str(e)}
         else:
             self._buffer_output('=== End interaction test ===')
             self._result = {"success": True}
@@ -274,7 +275,9 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
         except Exception as e:
-            raise InteractionTesterException("Exception when executing test", e)
+            raise InteractionTesterException(
+                "Exception when executing test", e, traceback.format_exc()
+            )
         logger.info("semantic_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -295,7 +298,9 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_passivity(self._session_data)
         except Exception as e:
-            raise InteractionTesterException("Exception when executing test", e)
+            raise InteractionTesterException(
+                "Exception when executing test", e, traceback.format_exc()
+            )
         logger.info("passivity response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -307,7 +312,9 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
         except Exception as e:
-            raise InteractionTesterException("Exception when executing test", e)
+            raise InteractionTesterException(
+                "Exception when executing test", e, traceback.format_exc()
+            )
         logger.info("speech_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -574,7 +581,15 @@ class InteractionTester:
 
     def _assert_system_moves_are_matched_by(self, expected_move_content):
         assert OUTPUT in self._latest_response, f"No {OUTPUT} in {self._latest_response}"
-        actual_move_content = self._latest_response[OUTPUT][MOVES]
+        actual_move_content = self._latest_response[OUTPUT].get(MOVES)
+        if actual_move_content is None:
+            self._result = {
+                "success": False,
+                "failure_description": f"No moves in output: {self._latest_response[OUTPUT]}"
+            }
+            self._buffer_output(self._result["failure_description"])
+            return False
+        self._record_system_moves_seen(actual_move_content)
         comparison = MoveComparison(actual_move_content, expected_move_content)
         if not comparison.match():
             self._result = {"success": False, "failure_description": comparison.mismatch_description()}
@@ -588,7 +603,14 @@ class InteractionTester:
 
     def _assert_system_utterance_is_matched_by(self, expected_speech_content):
         assert OUTPUT in self._latest_response, f"No {OUTPUT} in {self._latest_response}"
-        actual_utterance_content = self._latest_response[OUTPUT][UTTERANCE]
+        actual_utterance_content = self._latest_response[OUTPUT].get(UTTERANCE)
+        if actual_utterance_content is None:
+            self._result = {
+                "success": False,
+                "failure_description": f"No utterance in output: {self._latest_response[OUTPUT]}"
+            }
+            self._buffer_output(self._result["failure_description"])
+            return False
 
         comparison = StringComparison(actual_utterance_content, expected_speech_content)
         if not comparison.match():

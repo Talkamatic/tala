@@ -134,7 +134,7 @@ class ParserTests(unittest.TestCase):
         und_string = "und(USR, dest_city(paris))"
         und = self.parse(und_string)
         self.assertTrue(und.is_understanding_proposition())
-        self.assertEqual(USR, und.get_speaker())
+        self.assertEqual(USR, und.speaker)
 
     def test_neg_understanding_proposition(self):
         und_string = "~und(USR, dest_city(paris))"
@@ -150,7 +150,7 @@ class ParserTests(unittest.TestCase):
         und_string = "und(None, dest_city(paris))"
         und = self.parse(und_string)
         self.assertTrue(und.is_understanding_proposition())
-        self.assertEqual(None, und.get_speaker())
+        self.assertEqual(None, und.speaker)
 
     def test_create_yes_no_question(self):
         question = self.parse("?dest_city(paris)")  # noqa: F841
@@ -259,7 +259,7 @@ class ParserTests(unittest.TestCase):
         move = Parser(self._ddd_name, ontology_without_real_sort, self.domain_name).parse("answer(1234)")
         self.assertEqual(move.type_, move_module.ANSWER)
         self.assertTrue(move.content.is_individual())
-        self.assertEqual(move.content.sort.get_name(), "integer")
+        self.assertEqual(move.content.sort.name, "integer")
 
     def test_float_short_answer(self):
         move = self.parse("answer(1234.0)")
@@ -362,7 +362,7 @@ class ParserTests(unittest.TestCase):
         speaker = USR
         expected_move = self._move_factory.create_move(
             move_module.REQUEST,
-            content=Action("buy", self.ontology.get_name()),
+            content=Action("buy", self.ontology.name),
             speaker=speaker,
             understanding_confidence=score,
             ddd_name="mockup_ddd"
@@ -417,12 +417,12 @@ class ParserTests(unittest.TestCase):
     def test_positive_perform_proposition(self):
         proposition = self.parse("goal(perform(buy))")
         self.assertTrue(proposition.is_positive())
-        self.assertEqual(PerformGoal(self.buy_action), proposition.get_goal())
+        self.assertEqual(PerformGoal(self.buy_action), proposition.goal)
 
     def test_negative_action_proposition(self):
         proposition = self.parse("~goal(perform(buy))")
         self.assertFalse(proposition.is_positive())
-        self.assertEqual(PerformGoal(self.buy_action), proposition.get_goal())
+        self.assertEqual(PerformGoal(self.buy_action), proposition.goal)
 
     def test_illegal_perform_goal(self):
         with self.assertRaises(ParseError):
@@ -445,19 +445,19 @@ class ParserTests(unittest.TestCase):
     def test_positive_preconfirmation(self):
         preconfirmation = self.parse("preconfirmed(MakeReservation, [])")
         self.assertTrue(preconfirmation.is_positive())
-        self.assertEqual("MakeReservation", preconfirmation.get_service_action())
-        self.assertEqual([], preconfirmation.get_arguments())
+        self.assertEqual("MakeReservation", preconfirmation.service_action)
+        self.assertEqual([], preconfirmation.arguments)
 
     def test_negative_preconfirmation(self):
         preconfirmation = self.parse("~preconfirmed(MakeReservation, [])")
         self.assertFalse(preconfirmation.is_positive())
-        self.assertEqual("MakeReservation", preconfirmation.get_service_action())
-        self.assertEqual([], preconfirmation.get_arguments())
+        self.assertEqual("MakeReservation", preconfirmation.service_action)
+        self.assertEqual([], preconfirmation.arguments)
 
     def test_preconfirmation_w_single_param(self):
         preconfirmation = self.parse("~preconfirmed(MakeReservation, [dest_city(paris)])")
-        self.assertEqual(1, len(preconfirmation.get_arguments()))
-        self.assertEqual("dest_city(paris)", str(preconfirmation.get_arguments()[0]))
+        self.assertEqual(1, len(preconfirmation.arguments))
+        self.assertEqual("dest_city(paris)", str(preconfirmation.arguments[0]))
 
     def test_preconfirmation_q_w_single_param(self):
         preconfirmation = self.parse("?preconfirmed(MakeReservation, [dest_city(paris)])")  # noqa: F841
@@ -481,13 +481,13 @@ class ParserTests(unittest.TestCase):
 
     def test_create_prereport(self):
         confirmation = self.parse("prereported(MakeReservation, [])")
-        self.assertEqual("MakeReservation", confirmation.get_service_action())
-        self.assertEqual([], confirmation.get_arguments())
+        self.assertEqual("MakeReservation", confirmation.service_action)
+        self.assertEqual([], confirmation.arguments)
 
     def test_create_prereport_w_single_param(self):
         prereport = self.parse("prereported(MakeReservation, [dest_city(paris)])")
-        self.assertEqual(1, len(prereport.get_arguments()))
-        self.assertEqual("dest_city(paris)", str(prereport.get_arguments()[0]))
+        self.assertEqual(1, len(prereport.arguments))
+        self.assertEqual("dest_city(paris)", str(prereport.arguments[0]))
 
     def test_create_prereport_w_multi_param(self):
         service_action = "MakeReservation"
@@ -758,7 +758,7 @@ class ParserTests(unittest.TestCase):
         service_action = "MakeReservation"
         item = self.parse("invoke_service_action(%s, {})" % service_action)
         self.assertEqual(item.type_, plan_item.TYPE_INVOKE_SERVICE_ACTION)
-        self.assertEqual(service_action, item.get_service_action())
+        self.assertEqual(service_action, item.service_action)
 
     def test_invoke_service_action_postconfirmed_and_preconfirmed_assertively(self):
         params_string = "{postconfirm=True, preconfirm=assertive}"
@@ -860,7 +860,7 @@ class ParserTests(unittest.TestCase):
 
     def test_user_greet_move_with_speaker_and_score(self):
         move = self.parse("Move(greet, ddd_name='mockup_ddd', speaker=USR, understanding_confidence=0.47)")
-        self.assertEqual(USR, move.get_speaker())
+        self.assertEqual(USR, move.speaker)
         self.assertEqual(0.47, move.understanding_confidence)
 
     def test_mute_move(self):
@@ -869,12 +869,12 @@ class ParserTests(unittest.TestCase):
 
     def test_sys_mute_move_with_score(self):
         move = self.parse("Move(mute, speaker=SYS, understanding_confidence=1.0)")
-        self.assertEqual(SYS, move.get_speaker())
+        self.assertEqual(SYS, move.speaker)
         self.assertEqual(1.0, move.understanding_confidence)
 
     def test_move_without_score(self):
         move = self.parse("Move(greet, speaker=SYS)")
-        self.assertEqual(SYS, move.get_speaker())
+        self.assertEqual(SYS, move.speaker)
 
     def test_unmute_move(self):
         move = self.parse("unmute")
@@ -923,19 +923,19 @@ class ParserTests(unittest.TestCase):
     def test_und_neg_without_content(self):
         icm = self.parse("icm:und*neg")
         self.assertEqual(move_module.ICM.UND, icm.type_)
-        self.assertEqual(move_module.ICM.NEG, icm.get_polarity())
+        self.assertEqual(move_module.ICM.NEG, icm.polarity)
         self.assertEqual(None, icm.content)
 
     def test_sem_neg(self):
         icm = self.parse("icm:sem*neg")
         self.assertEqual(move_module.ICM.SEM, icm.type_)
-        self.assertEqual(move_module.ICM.NEG, icm.get_polarity())
+        self.assertEqual(move_module.ICM.NEG, icm.polarity)
         self.assertEqual(None, icm.content)
 
     def test_contentful_per_pos(self):
         icm = self.parse('icm:per*pos:"a string"')
         self.assertEqual(move_module.ICM.PER, icm.type_)
-        self.assertEqual(move_module.ICM.POS, icm.get_polarity())
+        self.assertEqual(move_module.ICM.POS, icm.polarity)
         expected_content = 'a string'
         self.assertEqual(expected_content, icm.content)
 
@@ -943,21 +943,21 @@ class ParserTests(unittest.TestCase):
         m = move_module.ICMWithStringContent(move_module.ICM.PER, content="a string", polarity=move_module.ICM.POS)
         icm = self.parse(str(m))
         self.assertEqual(move_module.ICM.PER, icm.type_)
-        self.assertEqual(move_module.ICM.POS, icm.get_polarity())
+        self.assertEqual(move_module.ICM.POS, icm.polarity)
         expected_content = "a string"
         self.assertEqual(expected_content, icm.content)
 
     def test_und_int_usr(self):
         icm = self.parse("icm:und*int:USR*dest_city(paris)")
         self.assertEqual(move_module.ICM.UND, icm.type_)
-        self.assertEqual(move_module.ICM.INT, icm.get_polarity())
+        self.assertEqual(move_module.ICM.INT, icm.polarity)
         self.assertEqual("dest_city(paris)", str(icm.content))
 
     def test_und_int_model(self):
         icm = self.parse("icm:und*int:MODEL*dest_city(paris)")
         self.assertEqual(move_module.ICM.UND, icm.type_)
-        self.assertEqual(move_module.ICM.INT, icm.get_polarity())
-        self.assertEqual(MODEL, icm.get_content_speaker())
+        self.assertEqual(move_module.ICM.INT, icm.polarity)
+        self.assertEqual(MODEL, icm.content_speaker)
         self.assertEqual("dest_city(paris)", str(icm.content))
 
     def test_und_int_w_speaker_and_score(self):
@@ -992,7 +992,7 @@ class ParserTests(unittest.TestCase):
     def test_und_pos_icm_for_issue_proposition(self):
         icm = self.parse("icm:und*pos:USR*goal(resolve(?X.dest_city(X)))")
         self.assertEqual(move_module.ICM.UND, icm.type_)
-        self.assertEqual(move_module.ICM.POS, icm.get_polarity())
+        self.assertEqual(move_module.ICM.POS, icm.polarity)
         self.assertEqual("goal(resolve(?X.dest_city(X)))", str(icm.content))
 
     def test_und_int_icm_without_speaker(self):
@@ -1015,13 +1015,13 @@ class ParserTests(unittest.TestCase):
     def test_und_pos_icm_for_predicate_proposition(self):
         icm = self.parse("icm:und*pos:USR*dest_city(paris)")
         self.assertEqual(move_module.ICM.UND, icm.type_)
-        self.assertEqual(move_module.ICM.POS, icm.get_polarity())
+        self.assertEqual(move_module.ICM.POS, icm.polarity)
         self.assertEqual("dest_city(paris)", str(icm.content))
 
     def test_per_neg_icm(self):
         icm = self.parse("icm:per*neg")
         self.assertEqual(move_module.ICM.PER, icm.type_)
-        self.assertEqual(move_module.ICM.NEG, icm.get_polarity())
+        self.assertEqual(move_module.ICM.NEG, icm.polarity)
 
     def test_per_neg_icm_w_speaker_and_score(self):
         speaker = SYS
@@ -1035,18 +1035,18 @@ class ParserTests(unittest.TestCase):
     def test_acc_pos_icm_no_content(self):
         icm = self.parse("icm:acc*pos")
         self.assertEqual(move_module.ICM.ACC, icm.type_)
-        self.assertEqual(move_module.ICM.POS, icm.get_polarity())
+        self.assertEqual(move_module.ICM.POS, icm.polarity)
 
     def test_acc_neg_icm_for_issue(self):
         icm = self.parse("icm:acc*neg:issue")
         self.assertEqual(move_module.ICM.ACC, icm.type_)
-        self.assertEqual(move_module.ICM.NEG, icm.get_polarity())
+        self.assertEqual(move_module.ICM.NEG, icm.polarity)
         self.assertEqual(str(icm), "ICMMove(icm:acc*neg:issue)")
 
     def test_acc_neg_icm_for_goal_issue(self):
         icm = self.parse("icm:acc*neg:goal(perform(buy))")
         self.assertEqual(move_module.ICM.ACC, icm.type_)
-        self.assertEqual(move_module.ICM.NEG, icm.get_polarity())
+        self.assertEqual(move_module.ICM.NEG, icm.polarity)
         self.assertEqual(str(icm), "ICMMove(icm:acc*neg:goal(perform(buy)))")
 
     def test_unsupported_icm_content_unparseable(self):

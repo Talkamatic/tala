@@ -70,7 +70,7 @@ class Question(SemanticObjectWithContent, AsSemanticExpressionMixin):
                 return False
         elif self.is_alt_question():
             for alt in self.content:
-                if (alt.is_goal_proposition() and alt.get_goal().type_ == "PERFORM_GOAL"):
+                if (alt.is_goal_proposition() and alt.goal.type_ == "PERFORM_GOAL"):
                     return True
         elif self.is_yes_no_question():
             return self.content.is_goal_proposition()
@@ -187,7 +187,8 @@ class ConsequentQuestion(Question):
     def __init__(self, lambda_abstracted_implication_proposition):
         Question.__init__(self, Question.TYPE_CONSEQUENT, lambda_abstracted_implication_proposition)
 
-    def get_embedded_consequent_question(self):
+    @property
+    def embedded_consequent_question(self):
         consequent_predicate = self.content.consequent_predicate
         lambda_abstracted_consequent_proposition = LambdaAbstractedPredicateProposition(
             consequent_predicate, consequent_predicate.ontology_name

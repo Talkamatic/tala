@@ -9,7 +9,7 @@ class PredicateTests(LibTestCase):
         self.setUpLibTestCase()
 
     def test_get_name(self):
-        self.assertEqual("dest_city", self.predicate_dest_city.get_name())
+        self.assertEqual("dest_city", self.predicate_dest_city.name)
 
     def test_create_invalid_predicate(self):
         with self.assertRaises(OntologyError):
