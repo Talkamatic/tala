@@ -5,7 +5,6 @@ from tala.ddd.parser import Parser
 from tala.ddd.services.parameters.retriever import ParameterRetriever
 from tala.ddd.extended_ddd import ExtendedDDD
 from tala.ddd.domain_manager import DomainManager
-from tala.model.semantic_logic import SemanticLogic
 from tala.model.ddd import DDD
 
 
@@ -46,11 +45,6 @@ class DDDManager(object):
         self.domain_manager = DomainManager(self)
         self._ddds_of_domains = {}
         self._ddds_of_ontologies = {}
-        self._semantic_logic = SemanticLogic(self)
-
-    @property
-    def semantic_logic(self):
-        return self._semantic_logic
 
     def add(self, ddd):
         if ddd.name in self._ddds:
