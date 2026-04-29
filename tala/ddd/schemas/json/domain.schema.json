@@ -120,6 +120,16 @@
           "additionalProperties": false
         },
         {
+<<<<<<< HEAD
+=======
+          "required": ["kpq"],
+          "properties": {
+            "kpq": {"$ref": "#/$defs/kpq_question"}
+          },
+          "additionalProperties": false
+        },
+        {
+>>>>>>> f186a1296... NO-TASK: Support KPQ questions
           "required": ["yn"],
           "properties": {
             "yn": {"$ref": "#/$defs/yn_question"}
@@ -153,6 +163,17 @@
       },
       "additionalProperties": false
     },
+<<<<<<< HEAD
+=======
+    "kpq_question": {
+      "type": "object",
+      "required": ["question"],
+      "properties": {
+        "question": {"$ref": "#/$defs/question"}
+      },
+      "additionalProperties": false
+    },
+>>>>>>> f186a1296... NO-TASK: Support KPQ questions
     "yn_question": {
       "type": "object",
       "oneOf": [

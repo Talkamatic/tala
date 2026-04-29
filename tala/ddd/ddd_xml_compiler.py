@@ -24,7 +24,7 @@ from tala.model import plan_item
 from tala.model.predicate import Predicate
 from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition, ImplicationProposition
 from tala.model import condition
-from tala.model.question import AltQuestion, YesNoQuestion
+from tala.model.question import AltQuestion, YesNoQuestion, KnowledgePreconditionQuestion
 from tala.model.action import Action
 
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort, BOOLEAN
@@ -400,6 +400,8 @@ class DomainCompiler(XmlCompiler):
         if question_type == "wh_question":
             predicate = self._get_mandatory_attribute(element, "predicate")
             return self._parse("?X.%s(X)" % predicate)
+        elif question_type == "kpq":
+            return self._compile_kpq_question(element)
         elif question_type == "alt_question":
             return self._compile_alt_question(element)
         elif question_type == "yn_question":
@@ -408,6 +410,11 @@ class DomainCompiler(XmlCompiler):
             return self._parse("?X.goal(X)")
         else:
             raise DDDXMLCompilerException('unsupported question type %r' % question_type)
+
+    def _compile_kpq_question(self, element):
+        embedded_element = self._get_single_child_element(element, ["embedded_question"])
+        embedded_question = self._compile_question(embedded_element, type_attribute="type")
+        return KnowledgePreconditionQuestion(embedded_question)
 
     def _compile_alt_question(self, element):
         proposition_set = self._compile_proposition_set(element, "alt")
@@ -1016,7 +1023,8 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_ask_feature_node(self, node):
         predicate_name = self._get_mandatory_attribute(node, "predicate")
-        kpq = bool(self._get_optional_attribute(node, "kpq"))
+        kpq_attribute = self._get_optional_attribute(node, "kpq")
+        kpq = self._parse_boolean(kpq_attribute) if kpq_attribute is not None else False
         return AskFeature(predicate_name, kpq)
 
     def _compile_hint_parameter(self, parent, element_name, parameter_name, result):

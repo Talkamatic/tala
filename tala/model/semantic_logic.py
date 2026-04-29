@@ -419,7 +419,16 @@ class KnowledgePreconditionQuestionLogic(PropositionLogic):
         SemanticObjectSpecificLogic.__init__(self, semantic_object)
         self._semantic_logic = semantic_logic
 
+    def _is_kpq_proposition(self, answer):
+        try:
+            return answer.is_knowledge_precondition_proposition()
+        except AttributeError:
+            return False
+
     def combine_with(self, answer):
+        if self._is_kpq_proposition(answer):
+            if answer.embedded_question == self._semantic_object.content:
+                return answer
         if answer.is_yes():
             return KnowledgePreconditionProposition(self._semantic_object.content, Polarity.POS)
         if answer.is_no():

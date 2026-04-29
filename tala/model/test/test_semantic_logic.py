@@ -101,6 +101,14 @@ class SemanticLogicTests(SemanticsTester):
             # knowledge precondition question
             ("?know_answer(?X.dest_city_type(X))", "yes", "know_answer(?X.dest_city_type(X))"),
             ("?know_answer(?X.dest_city_type(X))", "no", "~know_answer(?X.dest_city_type(X))"),
+            (
+                "?know_answer(?X.dest_city_type(X))", "know_answer(?X.dest_city_type(X))",
+                "know_answer(?X.dest_city_type(X))"
+            ),
+            (
+                "?know_answer(?X.dest_city_type(X))", "~know_answer(?X.dest_city_type(X))",
+                "~know_answer(?X.dest_city_type(X))"
+            ),
             ("?know_answer(?X.dest_city_type(X))", "dest_city_type(resort)", "dest_city_type(resort)"),
             ("?know_answer(?X.dest_city_type(X))", "resort", "dest_city_type(resort)"),
             ("?know_answer(?X.dest_city_type(X))", "~dest_city_type(resort)", "~dest_city_type(resort)"),
@@ -219,6 +227,8 @@ class SemanticLogicTests(SemanticsTester):
             ("?know_answer(?X.dest_city_type(X))", "resort"),
             ("?know_answer(?X.dest_city_type(X))", "yes"),
             ("?know_answer(?X.dest_city_type(X))", "no"),
+            ("?know_answer(?X.dest_city_type(X))", "know_answer(?X.dest_city_type(X))"),
+            ("?know_answer(?X.dest_city_type(X))", "~know_answer(?X.dest_city_type(X))"),
             ("?know_answer(?X.dest_city_type(X))", "~resort"),  # disputable
             ("?know_answer(?X.dest_city_type(X))", "~dest_city_type(resort)"),  # disputable
 

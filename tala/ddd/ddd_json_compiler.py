@@ -349,6 +349,13 @@ class DDDJSONCompiler(object):
             element.setAttribute(type_attribute, "wh_question")
             element.setAttribute("predicate", question["wh"]["predicate"])
             return
+        if "kpq" in question:
+            element.setAttribute(type_attribute, "kpq")
+            embedded_question = question["kpq"]["question"]
+            embedded_element = doc.createElement("embedded_question")
+            self._apply_question_attributes(doc, embedded_element, embedded_question)
+            element.appendChild(embedded_element)
+            return
         if "yn" in question:
             element.setAttribute(type_attribute, "yn_question")
             yn_payload = question["yn"]

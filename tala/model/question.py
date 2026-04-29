@@ -176,6 +176,12 @@ class YesNoQuestion(Question):
 
 
 class KnowledgePreconditionQuestion(Question):
+    @classmethod
+    def create_from_json_api_data(cls, question_data, included):
+        embedded_entry = included.get_object_from_relationship(question_data["relationships"]["content"]["data"])
+        embedded_question = Question.create_from_json_api_data(embedded_entry, included)
+        return cls(embedded_question)
+
     def __init__(self, question):
         Question.__init__(self, Question.TYPE_KPQ, question)
 
