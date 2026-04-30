@@ -42,15 +42,7 @@ def create_odb_as_json(
     odb_as_json["ddds"] = [extended_ddd.ddd.as_json_api_dict() for extended_ddd in extended_ddds]
 
     odb_id = odb_as_json["path"] or str(uuid.uuid4())
-    return {
-        "data": {
-            "type": "tdm.orchestrated_domain_bundle",
-            "id": f"odb:{odb_id}",
-            "attributes": odb_as_json,
-            "meta": {"version:id": json_api.CURRENT_FORMAT_VERSION}
-        },
-        "included": []
-    }
+    return json_api.make_document("tdm.orchestrated_domain_bundle", f"odb:{odb_id}", odb_as_json)
 
 
 def load_ddds(ddd_names, overridden_config_paths, rerank_amount):
@@ -104,15 +96,7 @@ class OrchestratedDomainBundle(AsJSONMixin):
     def _as_json_api_dict(self):
         payload = self._odb_dict()
         odb_id = payload["path"] or str(uuid.uuid4())
-        return {
-            "data": {
-                "type": "tdm.orchestrated_domain_bundle",
-                "id": f"odb:{odb_id}",
-                "attributes": payload,
-                "meta": {"version:id": json_api.CURRENT_FORMAT_VERSION}
-            },
-            "included": []
-        }
+        return json_api.make_document("tdm.orchestrated_domain_bundle", f"odb:{odb_id}", payload)
 
     def _odb_dict(self):
         dict_ = {}
@@ -139,12 +123,7 @@ class OrchestratedDomainBundle(AsJSONMixin):
         return dict_
 
     def _require_json_api_attributes(self, argument_dict):
-        try:
-            data = argument_dict["data"]
-            attributes = data["attributes"]
-        except (TypeError, KeyError):
-            raise ValueError("Expected JSON:API ODB payload with data.attributes.")
-        return attributes
+        return json_api.require_attributes(argument_dict, "ODB")
 
     def __repr__(self):
         return str(self.as_dict())

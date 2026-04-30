@@ -12,6 +12,25 @@ def get_attribute(attribute_name, data):
     return data["attributes"][attribute_name]
 
 
+def require_attributes(payload, label="payload"):
+    try:
+        data = payload["data"]
+        attributes = data["attributes"]
+    except (TypeError, KeyError):
+        raise ValueError(f"Expected JSON:API {label} payload with data.attributes.")
+    return attributes
+
+
+def make_document(type_, id_, attributes, included=None, version=CURRENT_FORMAT_VERSION):
+    data = {
+        "type": type_,
+        "id": id_,
+        "attributes": attributes,
+        "meta": {"version:id": version}
+    }
+    return {"data": data, "included": included or []}
+
+
 def get_object_from_relationship(included, key):
     for item in included:
         if item["type"] == key["type"] and item["id"] == key["id"]:
