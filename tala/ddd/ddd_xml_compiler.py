@@ -502,8 +502,13 @@ class DomainCompiler(XmlCompiler):
         question_type = self._get_optional_attribute(element, "type", "wh_question")
         question = self._compile_question(element)
         answer_from_pcom = self._get_answer_from_pcom(element)
+        alts_predicate = None
+        if item_type == "findout":
+            alts_predicate = self._get_optional_attribute(element, "alts_predicate")
 
-        return [plan_item.QuestionRaisingPlanItem(self._domain_name, item_type, question, answer_from_pcom)]
+        if item_type == "findout":
+            return [plan_item.Findout(self._domain_name, question, answer_from_pcom, alts_predicate)]
+        return [plan_item.Raise(self._domain_name, question)]
 
     def _get_answer_from_pcom(self, element):
         answer_from_pcom = self._get_optional_attribute(element, "allow_answer_from_pcom")

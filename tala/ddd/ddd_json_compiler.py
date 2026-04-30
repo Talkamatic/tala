@@ -248,10 +248,14 @@ class DDDJSONCompiler(object):
                 raise DDDJSONCompilerException("Each plan item must be a single-key object.")
             item_type, payload = next(iter(item.items()))
             element = doc.createElement(item_type)
-            if item_type in ["findout", "raise"]:
+            if item_type == "findout":
                 self._apply_question_attributes(doc, element, payload["question"])
                 if payload.get("allow_answer_from_pcom"):
                     element.setAttribute("allow_answer_from_pcom", "true")
+                if payload.get("alts_predicate"):
+                    element.setAttribute("alts_predicate", payload["alts_predicate"])
+            elif item_type == "raise":
+                self._apply_question_attributes(doc, element, payload["question"])
             elif item_type == "bind":
                 self._apply_question_attributes(doc, element, payload["question"])
                 if "allow_binding_yn_answers" in payload:

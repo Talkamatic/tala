@@ -1137,11 +1137,12 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
     SOURCE_DOMAIN = "domain"
     ALPHABETIC = "alphabetic"
 
-    def __init__(self, domain_name, type_, content, allow_pcom_answer=False):
+    def __init__(self, domain_name, type_, content, allow_pcom_answer=False, alts_predicate=None):
         if not content.is_question():
             raise DomainError("cannot create QuestionRaisingPlanItem " + "from non-question %s" % content)
         self._domain_name = domain_name
         self._allow_answer_from_pcom = allow_pcom_answer
+        self._alts_predicate = alts_predicate
         PlanItemWithSemanticContent.__init__(self, type_, content)
 
     @property
@@ -1151,6 +1152,10 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
     @property
     def allow_answer_from_pcom(self):
         return self._allow_answer_from_pcom
+
+    @property
+    def alts_predicate(self):
+        return self._alts_predicate
 
     def is_question_raising_item(self):
         return True
@@ -1172,11 +1177,14 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
         return "%s(%s)" % (str(self._type), content_string)
 
     def as_dict(self):
-        return {
+        result = {
             self.type_: self._content,
             "domain_name": self._domain_name,
-            "allow_answer_from_pcom": self._allow_answer_from_pcom
+            "allow_answer_from_pcom": self._allow_answer_from_pcom,
         }
+        if self._alts_predicate is not None:
+            result["alts_predicate"] = self._alts_predicate
+        return result
 
     @property
     def json_api_type(self):
@@ -1189,11 +1197,16 @@ class QuestionRaisingPlanItem(PlanItemWithSemanticContent):
 
     @property
     def json_api_id(self):
-        return f"{self.json_api_type}:{self.content.json_api_id}:{self.allow_answer_from_pcom}"
+        if self.alts_predicate is None:
+            return f"{self.json_api_type}:{self.content.json_api_id}:{self.allow_answer_from_pcom}"
+        return f"{self.json_api_type}:{self.content.json_api_id}:{self.allow_answer_from_pcom}:{self.alts_predicate}"
 
     @property
     def json_api_attributes(self):
-        return ["type_", "domain_name", "allow_answer_from_pcom"]
+        attributes = ["type_", "domain_name", "allow_answer_from_pcom"]
+        if self._alts_predicate is not None:
+            attributes.append("alts_predicate")
+        return attributes
 
     @property
     def json_api_relationships(self):
@@ -1207,10 +1220,13 @@ class Findout(QuestionRaisingPlanItem):
         question = Question.create_from_json_api_data(question_entry, included)
         domain_name = plan_item_data["attributes"]["domain_name"]
         allow_answer_from_pcom = plan_item_data["attributes"]["allow_answer_from_pcom"]
-        return cls(domain_name, question, allow_answer_from_pcom)
+        alts_predicate = plan_item_data["attributes"].get("alts_predicate")
+        return cls(domain_name, question, allow_answer_from_pcom, alts_predicate)
 
-    def __init__(self, domain_name, content, allow_answer_from_pcom=False):
-        QuestionRaisingPlanItem.__init__(self, domain_name, TYPE_FINDOUT, content, allow_answer_from_pcom)
+    def __init__(self, domain_name, content, allow_answer_from_pcom=False, alts_predicate=None):
+        QuestionRaisingPlanItem.__init__(
+            self, domain_name, TYPE_FINDOUT, content, allow_answer_from_pcom, alts_predicate
+        )
 
 
 class Raise(QuestionRaisingPlanItem):
@@ -1262,6 +1278,7 @@ class QuestionRaisingPlanItemOfDomain:
     @property
     def label_questions(self):
         return self._domain.get_label_questions(self._plan_item.question)
+
 
     def has_parameters(self):
         return self.alternatives \

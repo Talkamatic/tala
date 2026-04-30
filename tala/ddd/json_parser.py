@@ -631,9 +631,10 @@ class NonCheckingJSONParser():
 
     def parse_findout_plan_item(self, data):
         allow_answer_from_pcom = data.get("allow_answer_from_pcom", False)
+        alts_predicate = data.get("alts_predicate")
         domain_name = data.get("domain_name")
         question = self.parse_question(data[plan_item.TYPE_FINDOUT])
-        return plan_item.Findout(domain_name, question, allow_answer_from_pcom)
+        return plan_item.Findout(domain_name, question, allow_answer_from_pcom, alts_predicate)
 
     def parse_raise_plan_item(self, data):
         domain_name = data.get("domain_name")
@@ -1211,7 +1212,8 @@ class CheckingJSONParser(NonCheckingJSONParser):
     def parse_findout_plan_item(self, data):
         question = self.parse_question(data[plan_item.TYPE_FINDOUT])
         allow_answer_from_pcom = data.get("allow_answer_from_pcom", False)
-        return plan_item.Findout(self.domain_name, question, allow_answer_from_pcom)
+        alts_predicate = data.get("alts_predicate")
+        return plan_item.Findout(self.domain_name, question, allow_answer_from_pcom, alts_predicate)
 
     def parse_raise_plan_item(self, data):
         question = self.parse_question(data[plan_item.TYPE_RAISE])
