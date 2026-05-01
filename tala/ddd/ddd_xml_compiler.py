@@ -590,7 +590,17 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_invoke_service_query_element(self, element):
         question = self._compile_question(element)
-        return [plan_item.InvokeServiceQuery(question, min_results=1, max_results=1)]
+        min_results = self._get_optional_attribute(element, "min_results")
+        max_results = self._get_optional_attribute(element, "max_results")
+        if min_results in [None, ""]:
+            min_results = 1
+        else:
+            min_results = self._parse_integer(min_results)
+        if max_results in [None, ""]:
+            max_results = 1
+        else:
+            max_results = self._parse_integer(max_results)
+        return [plan_item.InvokeServiceQuery(question, min_results=min_results, max_results=max_results)]
 
     def _compile_invoke_domain_query_element(self, element):
         question = self._compile_question(element)

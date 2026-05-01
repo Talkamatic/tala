@@ -191,6 +191,9 @@
     <xs:complexType>
       <xs:complexContent>
         <xs:extension base="has_question">
+          <xs:attribute name="device" type="xs:string"/>
+          <xs:attribute name="min_results" type="xs:integer"/>
+          <xs:attribute name="max_results" type="xs:integer"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>

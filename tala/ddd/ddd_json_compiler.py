@@ -284,6 +284,11 @@ class DDDJSONCompiler(object):
                 pass
             elif item_type in ["invoke_service_query", "invoke_domain_query", "reset_domain_query"]:
                 self._apply_question_attributes(doc, element, payload["question"])
+                if item_type == "invoke_service_query":
+                    if "min_results" in payload and payload["min_results"] is not None:
+                        element.setAttribute("min_results", str(payload["min_results"]))
+                    if "max_results" in payload and payload["max_results"] is not None:
+                        element.setAttribute("max_results", str(payload["max_results"]))
             elif item_type == "iterate":
                 element.setAttribute("iterator", payload["iterator"])
             elif item_type == "change_ddd":
