@@ -475,7 +475,7 @@ class Parser:
         return self._parse_individual(answer_string)
 
     def _parse_decorated_icm_move(self, string):
-        m = re.search(r'^ICMMove\(([^,]+)((, *)(.+))?\)$', string)
+        m = re.search(r'^ICM\(([^,]+)((, *)(.+))?\)$', string)
         if m:
             icm_string = m.group(1)
             realization_data_string = m.group(4)

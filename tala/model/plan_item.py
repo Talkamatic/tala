@@ -2,7 +2,7 @@ import copy
 
 from tala import model
 from tala.model.error import DomainError
-from tala.model.move import ICMMove
+from tala.model.move import ICM
 from tala.model.proposition import Proposition, PredicateProposition
 from tala.model.action import Action
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
@@ -331,10 +331,10 @@ class EmitICM(PlanItemWithSemanticContent):
 
     def is_question_raising_item(self):
         icm = self.content
-        return (icm.type_ == ICMMove.UND and not (icm.polarity == ICMMove.POS and not icm.content.is_positive()))
+        return (icm.type_ == ICM.UND and not (icm.polarity == ICM.POS and not icm.content.is_positive()))
 
     def is_turn_yielding(self):
-        return self.content.type_ == ICMMove.ACC and self.content.polarity == ICMMove.NEG
+        return self.content.type_ == ICM.ACC and self.content.polarity == ICM.NEG
 
 
 class EmitIcmPlanItem(EmitICM):
@@ -1278,7 +1278,6 @@ class QuestionRaisingPlanItemOfDomain:
     @property
     def label_questions(self):
         return self._domain.get_label_questions(self._plan_item.question)
-
 
     def has_parameters(self):
         return self.alternatives \

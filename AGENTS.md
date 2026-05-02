@@ -28,6 +28,7 @@
 - Pylint (available, no explicit config):
   - `python -m pylint tala`
 - Run `flake8` clean before committing anything.
+- Do not change CI/Jenkins flake8 excludes to account for editor backup/lock files; ignore those locally.
 
 ## Format
 - YAPF (configured in `setup.cfg`):

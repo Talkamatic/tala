@@ -467,18 +467,18 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_reraise_to_string(self):
         move = self.move_factory.create_icm_move(ICM.RERAISE, content=self.ontology.create_action("top"))
-        self.assertEqual("ICMMove(icm:reraise:top)", str(move))
+        self.assertEqual("ICM(icm:reraise:top)", str(move))
 
     def test_loadplan_to_string(self):
         move = self.move_factory.create_icm_move(ICM.LOADPLAN)
-        self.assertEqual("ICMMove(icm:loadplan)", str(move))
+        self.assertEqual("ICM(icm:loadplan)", str(move))
 
     def test_string_representation_with_score_and_speaker(self):
         move = self.move_factory.create_icm_move(
             ICM.ACC, polarity=ICM.POS, understanding_confidence=1.0, speaker=speaker.SYS, perception_confidence=0.9
         )
         self.assertEqual(
-            "ICMMove(icm:acc*pos, speaker=SYS, understanding_confidence=1.0, perception_confidence=0.9)", str(move)
+            "ICM(icm:acc*pos, speaker=SYS, understanding_confidence=1.0, perception_confidence=0.9)", str(move)
         )
 
     def test_create_und_int(self):
@@ -575,14 +575,14 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_und_neg_to_string(self):
         icm = self.move_factory.create_icm_move(ICM.UND, polarity=ICM.NEG)
-        expected_string = "ICMMove(icm:und*neg)"
+        expected_string = "ICM(icm:und*neg)"
         self.assertEqual(expected_string, str(icm))
 
     def test_und_int_to_string(self):
         icm = self.move_factory.create_icm_move(
             ICM.UND, polarity=ICM.INT, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
         )
-        expected_string = "ICMMove(icm:und*int:USR*dest_city(paris))"
+        expected_string = "ICM(icm:und*int:USR*dest_city(paris))"
         self.assertEqual(expected_string, str(icm))
 
     def test_create_und_pos(self):
@@ -594,29 +594,29 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
         icm = self.move_factory.create_icm_move(
             ICM.UND, polarity=ICM.POS, content_speaker=speaker.USR, content=self.proposition_dest_city_paris
         )
-        expected_string = "ICMMove(icm:und*pos:USR*dest_city(paris))"
+        expected_string = "ICM(icm:und*pos:USR*dest_city(paris))"
         self.assertEqual(expected_string, str(icm))
 
     def test_per_neg_to_string(self):
         icm = self.move_factory.create_icm_move(ICM.PER, polarity=ICM.NEG)
-        self.assertEqual("ICMMove(icm:per*neg)", str(icm))
+        self.assertEqual("ICM(icm:per*neg)", str(icm))
 
     def test_per_pos_to_string_with_content_as_double_quoted_string(self):
         icm = self.move_factory.create_icm_move(ICM.PER, polarity=ICM.POS, content='a string')
-        self.assertEqual('ICMMove(icm:per*pos:"a string")', str(icm))
+        self.assertEqual('ICM(icm:per*pos:"a string")', str(icm))
 
     def test_acc_pos_to_string(self):
         icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.POS)
-        self.assertEqual("ICMMove(icm:acc*pos)", str(icm))
+        self.assertEqual("ICM(icm:acc*pos)", str(icm))
 
     def test_sem_neg_to_string(self):
         icm = self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG)
-        expected_string = "ICMMove(icm:sem*neg)"
+        expected_string = "ICM(icm:sem*neg)"
         self.assertEqual(expected_string, str(icm))
 
     def test_acc_neg_issue_to_string(self):
         icm = self.move_factory.create_icm_move(ICM.ACC, polarity=ICM.NEG, content="issue")
-        self.assertEqual("ICMMove(icm:acc*neg:issue)", str(icm))
+        self.assertEqual("ICM(icm:acc*neg:issue)", str(icm))
 
     def test_icm_move_getters(self):
         move = self.move_factory.create_icm_move(
@@ -631,7 +631,7 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
         self.given_move(self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG))
         self.given_set_realization_data_was_called(speaker=speaker.SYS, ddd_name="mock_ddd")
         self.when_get_semantic_expression_without_realization_data()
-        self.then_result_is("ICMMove(icm:sem*neg)")
+        self.then_result_is("ICM(icm:sem*neg)")
 
     def test_ddd_getter_and_setter(self):
         move = self.move_factory.create_move(Move.GREET)

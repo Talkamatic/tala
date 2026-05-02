@@ -374,7 +374,7 @@ class ICM(Move):
         perception_confidence=None
     ):
         if polarity is None:
-            polarity = ICMMove.POS
+            polarity = ICM.POS
         self._polarity = polarity
         Move.__init__(
             self,
@@ -414,14 +414,14 @@ class ICM(Move):
         return None
 
     def is_negative_perception_icm(self):
-        if self.type_ == ICMMove.PER:
-            return self.polarity == ICMMove.NEG
+        if self.type_ == ICM.PER:
+            return self.polarity == ICM.NEG
         else:
             return False
 
     def is_positive_acceptance_icm(self):
-        if self.type_ == ICMMove.ACC:
-            return self.polarity == ICMMove.POS
+        if self.type_ == ICM.ACC:
+            return self.polarity == ICM.POS
         else:
             return False
 
@@ -429,13 +429,13 @@ class ICM(Move):
         return False
 
     def is_negative_acceptance_icm(self):
-        if (self.type_ == ICMMove.ACC and self.polarity == ICMMove.NEG):
+        if (self.type_ == ICM.ACC and self.polarity == ICM.NEG):
             return True
         else:
             return False
 
     def is_negative_understanding_icm(self):
-        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.NEG)
+        return (self.type_ == ICM.UND and self.polarity == ICM.NEG)
 
     def is_positive_understanding_icm_with_non_neg_content(self):
         return False
@@ -450,7 +450,7 @@ class ICM(Move):
         return self.get_semantic_expression(include_attributes=True)
 
     def get_semantic_expression(self, include_attributes=True):
-        string = f"ICMMove({self._icm_to_string()}"
+        string = f"ICM({self._icm_to_string()}"
         if include_attributes:
             if self._speaker:
                 string += f", speaker={self._speaker}"
@@ -465,7 +465,7 @@ class ICM(Move):
         return self.get_semantic_expression(include_attributes=False)
 
     def _icm_to_string(self):
-        if self._type in [ICMMove.PER, ICMMove.ACC, ICMMove.UND, ICMMove.SEM]:
+        if self._type in [ICM.PER, ICM.ACC, ICM.UND, ICM.SEM]:
             return f"icm:{self._type}*{self._polarity}"
         return f"icm:{self._type}"
 
@@ -476,16 +476,6 @@ class ICM(Move):
         result = {"polarity": self.polarity}
 
         return super().as_dict() | result
-
-
-class ICMMove(ICM):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class ICMAccPos(ICM):
@@ -504,16 +494,6 @@ class IssueICM(ICM):
 
     def _icm_to_string(self):
         return f"{ICM._icm_to_string(self)}:issue"
-
-
-class IssueICMMove(IssueICM):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class ICMWithContent(ICM):
@@ -548,9 +528,9 @@ class ICMWithContent(ICM):
         if self._content_speaker is not None:
             return f"icm:{self._type}*{self._polarity}:{self._content_speaker}*{self._content}"
 
-        if self._type == ICMMove.PER:
+        if self._type == ICM.PER:
             return f'icm:{self._type}*{self._polarity}:"{self._content}"'
-        if self._type in [ICMMove.ACC, ICMMove.UND, ICMMove.SEM]:
+        if self._type in [ICM.ACC, ICM.UND, ICM.SEM]:
             return f"icm:{self._type}*{self._polarity}:{self._content}"
         return f"icm:{self._type}:{self._content}"
 
@@ -562,36 +542,26 @@ class ICMWithContent(ICM):
 
     def is_question_raising(self):
         return (
-            self.type_ == ICMMove.UND and self.content is not None
-            and not (self.polarity == ICMMove.POS and not self.content.is_positive())
+            self.type_ == ICM.UND and self.content is not None
+            and not (self.polarity == ICM.POS and not self.content.is_positive())
         )
 
     def is_positive_understanding_icm_with_non_neg_content(self):
-        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.POS and self.content.is_positive())
+        return (self.type_ == ICM.UND and self.polarity == ICM.POS and self.content.is_positive())
 
     def is_interrogative_understanding_icm_with_non_neg_content(self):
-        return (self.type_ == ICMMove.UND and self.polarity == ICMMove.INT and self.content.is_positive())
+        return (self.type_ == ICM.UND and self.polarity == ICM.INT and self.content.is_positive())
 
     def is_grounding_proposition(self):
-        return self.type_ == ICMMove.UND and self.polarity in [ICMMove.POS, ICMMove.INT]
+        return self.type_ == ICM.UND and self.polarity in [ICM.POS, ICM.INT]
 
     def as_dict(self):
         return super().as_dict() | {"content": self.content, "content_speaker": self.content_speaker}
 
 
-class ICMMoveWithContent(ICMWithContent):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class CardinalSequencingICM(ICMWithContent):
     def __init__(self, step):
-        super().__init__(ICMMove.CARDINAL_SEQUENCING, step)
+        super().__init__(ICM.CARDINAL_SEQUENCING, step)
 
     def __eq__(self, other):
         try:
@@ -604,17 +574,7 @@ class ICMWithStringContent(ICMWithContent):
     pass
 
 
-class ICMMoveWithStringContent(ICMWithStringContent):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
-class ICMWithSemanticContent(ICMWithContent, MoveWithSemanticContent):
+class ICMWithSemanticContent(ICMWithContent):
     def __init__(
         self,
         type,
@@ -626,15 +586,6 @@ class ICMWithSemanticContent(ICMWithContent, MoveWithSemanticContent):
         polarity=None,
         perception_confidence=None
     ):
-        MoveWithSemanticContent.__init__(
-            self,
-            type,
-            content,
-            understanding_confidence=understanding_confidence,
-            speaker=speaker,
-            ddd_name=ddd_name,
-            perception_confidence=perception_confidence
-        )
         ICMWithContent.__init__(
             self,
             type,
@@ -647,15 +598,15 @@ class ICMWithSemanticContent(ICMWithContent, MoveWithSemanticContent):
             perception_confidence=perception_confidence
         )
 
+    def has_semantic_content(self):
+        return True
 
-class ICMMoveWithSemanticContent(ICMWithSemanticContent):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
+    @property
+    def ontology_name(self):
+        return self._content.ontology_name
+
+    def is_ontology_specific(self):
+        return self._content.is_ontology_specific()
 
 
 class Report(MoveWithSemanticContent):
@@ -677,16 +628,6 @@ class Report(MoveWithSemanticContent):
 
     def class_internal_move_content_equals(self, other):
         return self.content == other.content
-
-
-class ReportMove(Report):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class Prereport(Move, OntologySpecificSemanticObject):
@@ -747,16 +688,6 @@ class Prereport(Move, OntologySpecificSemanticObject):
         }
 
 
-class PrereportMove(Prereport):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class NoMove(Move):
     def __init__(self, *args, **kwargs):
         super(NoMove, self).__init__(Move.NO_MOVE, *args, **kwargs)
@@ -770,29 +701,9 @@ class Greet(Move):
         return True
 
 
-class GreetMove(Greet):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class ThankYou(Move):
     def __init__(self, *args, **kwargs):
         super(ThankYou, self).__init__(Move.THANK_YOU, *args, **kwargs)
-
-
-class ThankYouMove(ThankYou):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class ThankYouResponse(Move):
@@ -800,29 +711,9 @@ class ThankYouResponse(Move):
         super(ThankYouResponse, self).__init__(Move.THANK_YOU_RESPONSE, *args, **kwargs)
 
 
-class ThankYouResponseMove(ThankYouResponse):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class InsultResponse(Move):
     def __init__(self, *args, **kwargs):
         super(InsultResponse, self).__init__(Move.INSULT_RESPONSE, *args, **kwargs)
-
-
-class InsultResponseMove(InsultResponse):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class Insult(Move):
@@ -830,29 +721,9 @@ class Insult(Move):
         super(Insult, self).__init__(Move.INSULT, *args, **kwargs)
 
 
-class InsultMove(Insult):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class Mute(Move):
     def __init__(self, *args, **kwargs):
         super(Mute, self).__init__(Move.MUTE, *args, **kwargs)
-
-
-class MuteMove(Mute):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class Unmute(Move):
@@ -860,29 +731,9 @@ class Unmute(Move):
         super(Unmute, self).__init__(Move.UNMUTE, *args, **kwargs)
 
 
-class UnmuteMove(Unmute):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class Quit(Move):
     def __init__(self, *args, **kwargs):
         super(Quit, self).__init__(Move.QUIT, *args, **kwargs)
-
-
-class QuitMove(Quit):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class Ask(MoveWithSemanticContent):
@@ -900,16 +751,6 @@ class Ask(MoveWithSemanticContent):
         return True
 
 
-class AskMove(Ask):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
-
-
 class Answer(MoveWithSemanticContent):
     def __init__(self, answer, *args, **kwargs):
         MoveWithSemanticContent.__init__(self, Move.ANSWER, answer, *args, **kwargs)
@@ -920,16 +761,6 @@ class Answer(MoveWithSemanticContent):
     @property
     def answer_content(self):
         return self.content
-
-
-class AnswerMove(Answer):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)
 
 
 class Request(MoveWithSemanticContent):
@@ -945,13 +776,3 @@ class Request(MoveWithSemanticContent):
 
     def is_turn_yielding(self):
         return True
-
-
-class RequestMove(Request):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            f'{self.__class__.__name__} is deprecated in tala 26.3. Use class name removing  "Move"',
-            DeprecationWarning,
-            stacklevel=2
-        )
-        super().__init__(*args, **kwargs)

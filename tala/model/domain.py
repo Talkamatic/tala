@@ -730,7 +730,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
     def get_alternatives(self, semantic_object):
         return self._get_parameter(semantic_object, "alts")
 
-
     def get_source(self, semantic_object):
         return self._get_parameter(semantic_object, "source")
 

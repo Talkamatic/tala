@@ -880,25 +880,25 @@ class NonCheckingJSONParser():
             return self.parse_request_move(data, non_icm_args)
         if data["move_type"] == move.ASK:
             return self.parse_ask_move(data, non_icm_args)
-        if data["move_type"] == move.ICMMove.ACC:
+        if data["move_type"] == move.ICM.ACC:
             return self.parse_acc_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.ACCOMMODATE:
+        if data["move_type"] == move.ICM.ACCOMMODATE:
             return self.parse_accommodate_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.RESUME:
+        if data["move_type"] == move.ICM.RESUME:
             return self.parse_resume_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.RERAISE:
+        if data["move_type"] == move.ICM.RERAISE:
             return self.parse_reraise_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.PER:
+        if data["move_type"] == move.ICM.PER:
             return self.parse_per_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.UND:
+        if data["move_type"] == move.ICM.UND:
             return self.parse_und_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.SEM:
+        if data["move_type"] == move.ICM.SEM:
             return self.parse_sem_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.LOADPLAN:
+        if data["move_type"] == move.ICM.LOADPLAN:
             return self.parse_loadplan_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.CARDINAL_SEQUENCING:
+        if data["move_type"] == move.ICM.CARDINAL_SEQUENCING:
             return self.parse_cardinal_sequencing_icm(data, icm_args)
-        if data["move_type"] == move.ICMMove.REPORT_INFERENCE:
+        if data["move_type"] == move.ICM.REPORT_INFERENCE:
             return self.parse_report_inference_icm(data, icm_args)
         if data["move_type"] == move.GREET:
             return self.parse_greet_move(non_icm_args)
