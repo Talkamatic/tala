@@ -560,7 +560,7 @@ class Parser:
             (icm_type, content_string) = (matcher.group(1), matcher.group(3))
             if content_string:
                 content = self.parse(content_string)
-                return move.ICMWithSemanticContent(icm_type, content)
+                return move.ICM.create(icm_type, content=content)
             return move.ICM(icm_type)
         else:
             raise ParseFailure()
@@ -599,7 +599,7 @@ class Parser:
         m = re.search(r'^icm:per\*(pos|neg|int):"([^"]*)"$', string)
         if m:
             (polarity, content_string) = m.groups()
-            return move.ICMWithStringContent(move.ICM.PER, content_string, polarity=polarity)
+            return move.ICM.create(move.ICM.PER, content=content_string, polarity=polarity)
         raise ParseFailure()
 
     def _parse_contentful_acceptance_icm(self, string):
@@ -607,10 +607,9 @@ class Parser:
         if m:
             (icm_type, polarity, junk, content_string) = m.groups()
             if content_string == "issue":
-                return move.IssueICM(icm_type, polarity=polarity)
-            else:
-                content = self.parse(content_string)
-            return move.ICMWithSemanticContent(type=icm_type, content=content, polarity=polarity)
+                return move.ICM.create(icm_type, content="issue", polarity=polarity)
+            content = self.parse(content_string)
+            return move.ICM.create(icm_type, content=content, polarity=polarity)
         raise ParseFailure()
 
     def _parse_understanding_icm(self, string):
@@ -619,7 +618,12 @@ class Parser:
             (type, polarity, foo, foo, content_speaker, content_string) = m.groups()
             if content_string:
                 content = self.parse(content_string)
-                return move.ICMWithSemanticContent(type, content, content_speaker=content_speaker, polarity=polarity)
+                return move.ICM.create(
+                    type,
+                    content=content,
+                    content_speaker=content_speaker,
+                    polarity=polarity
+                )
 
             content = None
             return move.ICM(type, polarity=polarity)

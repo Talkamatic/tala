@@ -1062,7 +1062,7 @@ class NonCheckingJSONParser():
         if data.get("content"):
             content = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMWithContent(move.ICM.ACC, content, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(move.ICM.ACC, content=content, content_speaker=content_speaker, **kwargs)
 
         return move.ICM(move.ICM.ACC, **kwargs)
 
@@ -1070,20 +1070,25 @@ class NonCheckingJSONParser():
         if data.get("content"):
             content = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMWithContent(move.ICM.ACCOMMODATE, content, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(
+                move.ICM.ACCOMMODATE,
+                content=content,
+                content_speaker=content_speaker,
+                **kwargs
+            )
         else:
             return move.ICM(move.ICM.ACCOMMODATE, **kwargs)
 
     def parse_resume_icm(self, data, kwargs):
         goal = self.parse_goal(data["content"])
         content_speaker = data.get("content_speaker")
-        return move.ICMWithContent(move.ICM.RESUME, goal, content_speaker=content_speaker, **kwargs)
+        return move.ICM.create(move.ICM.RESUME, content=goal, content_speaker=content_speaker, **kwargs)
 
     def parse_reraise_icm(self, data, kwargs):
         if data.get("content"):
             action = self.parse(data["content"])
             content_speaker = data.get("content_speaker")
-            return move.ICMWithContent(move.ICM.RERAISE, action, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(move.ICM.RERAISE, content=action, content_speaker=content_speaker, **kwargs)
         else:
             return move.ICM(move.ICM.RERAISE, **kwargs)
 
@@ -1091,7 +1096,7 @@ class NonCheckingJSONParser():
         string = data.get("content", None)
         if string:
             content_speaker = data.get("content_speaker")
-            return move.ICMWithContent(move.ICM.PER, string, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(move.ICM.PER, content=string, content_speaker=content_speaker, **kwargs)
         return move.ICM(move.ICM.PER, **kwargs)
 
     def parse_und_icm(self, data, kwargs):
@@ -1099,7 +1104,7 @@ class NonCheckingJSONParser():
         if content_data:
             content = self.parse(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMWithSemanticContent(move.ICM.UND, content, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(move.ICM.UND, content=content, content_speaker=content_speaker, **kwargs)
         else:
             return move.ICM(move.ICM.UND, **kwargs)
 
@@ -1108,7 +1113,7 @@ class NonCheckingJSONParser():
         if content_data:
             content = self.parse_proposition(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMWithSemanticContent(move.ICM.SEM, content, content_speaker=content_speaker, **kwargs)
+            return move.ICM.create(move.ICM.SEM, content=content, content_speaker=content_speaker, **kwargs)
         content_speaker = data.get("content_speaker")
         return move.ICM(move.ICM.SEM, **kwargs)
 
@@ -1126,8 +1131,11 @@ class NonCheckingJSONParser():
         if content_data:
             content = self.parse(content_data)
             content_speaker = data.get("content_speaker")
-            return move.ICMWithSemanticContent(
-                move.ICM.REPORT_INFERENCE, content, content_speaker=content_speaker, **kwargs
+            return move.ICM.create(
+                move.ICM.REPORT_INFERENCE,
+                content=content,
+                content_speaker=content_speaker,
+                **kwargs
             )
 
     def parse_greet_move(self, kwargs):
