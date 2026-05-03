@@ -627,6 +627,34 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
         self.assertEqual(self.price_question, move.content)
         self.assertEqual(speaker.USR, move.content_speaker)
 
+    def test_create_icm_without_content(self):
+        icm = ICM.create(ICM.ACC, polarity=ICM.POS)
+        self.assertEqual(ICM.ACC, icm.type_)
+        self.assertEqual(ICM.POS, icm.polarity)
+
+    def test_create_icm_with_string_content(self):
+        icm = ICM.create(ICM.PER, content="a string", polarity=ICM.POS)
+        self.assertEqual(ICM.PER, icm.type_)
+        self.assertEqual(ICM.POS, icm.polarity)
+        self.assertEqual("a string", icm.content)
+
+    def test_create_icm_with_issue_content(self):
+        icm = ICM.create(ICM.ACC, content="issue", polarity=ICM.NEG)
+        self.assertTrue(icm.is_issue_icm())
+        self.assertEqual(ICM.NEG, icm.polarity)
+
+    def test_create_icm_with_semantic_content(self):
+        icm = ICM.create(
+            ICM.UND,
+            content=self.proposition_dest_city_paris,
+            content_speaker=speaker.USR,
+            polarity=ICM.INT
+        )
+        self.assertEqual(ICM.UND, icm.type_)
+        self.assertEqual(ICM.INT, icm.polarity)
+        self.assertEqual(self.proposition_dest_city_paris, icm.content)
+        self.assertEqual(speaker.USR, icm.content_speaker)
+
     def test_semantic_expression_without_realization_data(self):
         self.given_move(self.move_factory.create_icm_move(ICM.SEM, polarity=ICM.NEG))
         self.given_set_realization_data_was_called(speaker=speaker.SYS, ddd_name="mock_ddd")

@@ -385,6 +385,58 @@ class ICM(Move):
             perception_confidence=perception_confidence
         )
 
+    @classmethod
+    def create(
+        cls,
+        type_,
+        content=None,
+        content_speaker=None,
+        polarity=None,
+        understanding_confidence=None,
+        speaker=None,
+        ddd_name=None,
+        perception_confidence=None
+    ):
+        if content is None:
+            return cls(
+                type_,
+                understanding_confidence=understanding_confidence,
+                speaker=speaker,
+                polarity=polarity,
+                ddd_name=ddd_name,
+                perception_confidence=perception_confidence
+            )
+        if content == "issue":
+            return IssueICM(
+                type_,
+                understanding_confidence=understanding_confidence,
+                speaker=speaker,
+                polarity=polarity,
+                ddd_name=ddd_name,
+                perception_confidence=perception_confidence
+            )
+        if isinstance(content, str):
+            return ICMWithStringContent(
+                type_,
+                content,
+                understanding_confidence=understanding_confidence,
+                speaker=speaker,
+                content_speaker=content_speaker,
+                polarity=polarity,
+                ddd_name=ddd_name,
+                perception_confidence=perception_confidence
+            )
+        return ICMWithSemanticContent(
+            type_,
+            content,
+            understanding_confidence=understanding_confidence,
+            speaker=speaker,
+            content_speaker=content_speaker,
+            polarity=polarity,
+            ddd_name=ddd_name,
+            perception_confidence=perception_confidence
+        )
+
     def __eq__(self, other):
         try:
             if super().__eq__(other):

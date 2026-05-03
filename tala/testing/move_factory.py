@@ -91,39 +91,10 @@ class MoveFactoryWithPredefinedBoilerplate(object):
         if speaker is None:
             speaker = self._speaker
 
-        if content is not None:
-            if content == "issue":
-                return IssueICM(
-                    icm_type,
-                    understanding_confidence=understanding_confidence,
-                    speaker=speaker,
-                    polarity=polarity,
-                    ddd_name=ddd_name,
-                    perception_confidence=perception_confidence
-                )
-            if isinstance(content, str):
-                return ICMWithStringContent(
-                    icm_type,
-                    content,
-                    understanding_confidence=understanding_confidence,
-                    speaker=speaker,
-                    content_speaker=content_speaker,
-                    polarity=polarity,
-                    ddd_name=ddd_name,
-                    perception_confidence=perception_confidence
-                )
-            return ICMWithSemanticContent(
-                icm_type,
-                content,
-                understanding_confidence=understanding_confidence,
-                speaker=speaker,
-                content_speaker=content_speaker,
-                polarity=polarity,
-                ddd_name=ddd_name,
-                perception_confidence=perception_confidence
-            )
-        return ICM(
+        return ICM.create(
             icm_type,
+            content=content,
+            content_speaker=content_speaker,
             understanding_confidence=understanding_confidence,
             speaker=speaker,
             polarity=polarity,
