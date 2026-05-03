@@ -415,18 +415,7 @@ class ICM(Move):
                 ddd_name=ddd_name,
                 perception_confidence=perception_confidence
             )
-        if isinstance(content, str):
-            return ICMWithStringContent(
-                type_,
-                content,
-                understanding_confidence=understanding_confidence,
-                speaker=speaker,
-                content_speaker=content_speaker,
-                polarity=polarity,
-                ddd_name=ddd_name,
-                perception_confidence=perception_confidence
-            )
-        return ICMWithSemanticContent(
+        return ICMWithContent(
             type_,
             content,
             understanding_confidence=understanding_confidence,
@@ -576,6 +565,22 @@ class ICMWithContent(ICM):
     def content_speaker(self):
         return self._content_speaker
 
+    def has_semantic_content(self):
+        try:
+            return self._content.is_ontology_specific() or self._content.has_semantic_content()
+        except AttributeError:
+            return False
+
+    @property
+    def ontology_name(self):
+        return self._content.ontology_name
+
+    def is_ontology_specific(self):
+        try:
+            return self._content.is_ontology_specific()
+        except AttributeError:
+            return False
+
     def _icm_to_string(self):
         if self._content_speaker is not None:
             return f"icm:{self._type}*{self._polarity}:{self._content_speaker}*{self._content}"
@@ -620,45 +625,6 @@ class CardinalSequencingICM(ICMWithContent):
             return self.type_ == other.type_ and self._content == other._content
         except AttributeError:
             return False
-
-
-class ICMWithStringContent(ICMWithContent):
-    pass
-
-
-class ICMWithSemanticContent(ICMWithContent):
-    def __init__(
-        self,
-        type,
-        content,
-        understanding_confidence=None,
-        speaker=None,
-        ddd_name=None,
-        content_speaker=None,
-        polarity=None,
-        perception_confidence=None
-    ):
-        ICMWithContent.__init__(
-            self,
-            type,
-            content,
-            content_speaker=content_speaker,
-            understanding_confidence=understanding_confidence,
-            speaker=speaker,
-            polarity=polarity,
-            ddd_name=ddd_name,
-            perception_confidence=perception_confidence
-        )
-
-    def has_semantic_content(self):
-        return True
-
-    @property
-    def ontology_name(self):
-        return self._content.ontology_name
-
-    def is_ontology_specific(self):
-        return self._content.is_ontology_specific()
 
 
 class Report(MoveWithSemanticContent):

@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model import speaker
-from tala.model.move import Move, ICM, Report, ICMWithSemanticContent, Ask, CardinalSequencingICM
+from tala.model.move import Move, ICM, Report, Ask, CardinalSequencingICM
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -250,7 +250,7 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_is_question_raising_true_for_contentful_icm_und_neg(self):
         propositional_content = self.proposition_dest_city_paris
-        contentful_icm_und_neg = ICMWithSemanticContent(ICM.UND, propositional_content, polarity=ICM.NEG)
+        contentful_icm_und_neg = ICM.create(ICM.UND, propositional_content, polarity=ICM.NEG)
         self.assertTrue(contentful_icm_und_neg.is_question_raising())
 
     def test_is_question_raising_false_for_contentless_icm_und_neg(self):
@@ -259,17 +259,17 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_is_question_raising_true_for_icm_und_int(self):
         propositional_content = self.proposition_dest_city_paris
-        icm_und_int = ICMWithSemanticContent(ICM.UND, propositional_content, polarity=ICM.INT)
+        icm_und_int = ICM.create(ICM.UND, propositional_content, polarity=ICM.INT)
         self.assertTrue(icm_und_int.is_question_raising())
 
     def test_is_question_raising_true_for_icm_und_pos_for_positive_content(self):
         positive_content = self.proposition_dest_city_paris
-        icm = ICMWithSemanticContent(ICM.UND, positive_content, polarity=ICM.POS)
+        icm = ICM.create(ICM.UND, positive_content, polarity=ICM.POS)
         self.assertTrue(icm.is_question_raising())
 
     def test_is_question_raising_false_for_icm_und_pos_for_negated_content(self):
         negation = self.proposition_not_dest_city_paris
-        icm = ICMWithSemanticContent(ICM.UND, negation, polarity=ICM.POS)
+        icm = ICM.create(ICM.UND, negation, polarity=ICM.POS)
         self.assertFalse(icm.is_question_raising())
 
     def test_is_question_raising_false_for_icm_acc_neg(self):
@@ -756,11 +756,11 @@ class TestICMs(object):
         self._actual_result = None
 
     @pytest.mark.parametrize("move,expected_result", [
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.INT), True),
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.POS), True),
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.NEG), False),
-        (ICMWithSemanticContent(ICM.SEM, content="content", polarity=ICM.POS), False),
-        (ICMWithSemanticContent(ICM.PER, content="content", polarity=ICM.POS), False),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.INT), True),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.POS), True),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.NEG), False),
+        (ICM.create(ICM.SEM, content="content", polarity=ICM.POS), False),
+        (ICM.create(ICM.PER, content="content", polarity=ICM.POS), False),
         (ICM(ICM.UND, polarity=ICM.INT), False),
         (ICM(ICM.UND, polarity=ICM.POS), False),
         (CardinalSequencingICM(1), False)
@@ -780,11 +780,11 @@ class TestICMs(object):
         assert self._actual_result == expected_result
 
     @pytest.mark.parametrize("move, expected_result", [
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.INT), False),
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.POS), False),
-        (ICMWithSemanticContent(ICM.UND, content="content", polarity=ICM.NEG), False),
-        (ICMWithSemanticContent(ICM.SEM, content="content", polarity=ICM.POS), False),
-        (ICMWithSemanticContent(ICM.PER, content="content", polarity=ICM.POS), False),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.INT), False),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.POS), False),
+        (ICM.create(ICM.UND, content="content", polarity=ICM.NEG), False),
+        (ICM.create(ICM.SEM, content="content", polarity=ICM.POS), False),
+        (ICM.create(ICM.PER, content="content", polarity=ICM.POS), False),
         (ICM(ICM.UND, polarity=ICM.INT), False),
         (ICM(ICM.UND, polarity=ICM.POS), False),
         (CardinalSequencingICM(1), False),

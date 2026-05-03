@@ -1,7 +1,6 @@
 from tala.model.speaker import USR
 from tala.model.move import (
-    MoveWithSemanticContent, Move, ICM, IssueICM, ICMWithStringContent, ICMWithSemanticContent, Report, Prereport,
-    Answer, Request, Ask
+    MoveWithSemanticContent, Move, ICM, Report, Prereport, Answer, Request, Ask
 )
 
 

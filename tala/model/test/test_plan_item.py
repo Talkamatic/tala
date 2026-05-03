@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from tala.model.move import ICM, ICMWithSemanticContent
+from tala.model.move import ICM
 from tala.model import plan_item
 from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase
@@ -95,13 +95,13 @@ class PlanItemTests(LibTestCase):
 
     def test_emit_item_for_icm_und_pos_for_positive_content_is_question_raising_item(self):
         positive_content = self.proposition_dest_city_paris
-        icm = ICMWithSemanticContent(ICM.UND, positive_content, polarity=ICM.POS)
+        icm = ICM.create(ICM.UND, positive_content, polarity=ICM.POS)
         emit_item = plan_item.EmitIcm(icm)
         self.assertTrue(emit_item.is_question_raising_item())
 
     def test_emit_item_for_icm_und_pos_for_negated_content_is_not_question_raising_item(self):
         negation = self.proposition_not_dest_city_paris
-        icm = ICMWithSemanticContent(ICM.UND, negation, polarity=ICM.POS)
+        icm = ICM.create(ICM.UND, negation, polarity=ICM.POS)
         emit_item = plan_item.EmitIcm(icm)
         self.assertFalse(emit_item.is_question_raising_item())
 

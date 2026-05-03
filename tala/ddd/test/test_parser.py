@@ -897,8 +897,11 @@ class ParserTests(unittest.TestCase):
         speaker = SYS
         score = 1.0
         move = self.parse("ICM(icm:reraise:top, speaker=%s, understanding_confidence=%s)" % (speaker, score))
-        expected_move = move_module.ICMWithSemanticContent(
-            move_module.ICM.RERAISE, self.top_action, understanding_confidence=score, speaker=speaker
+        expected_move = move_module.ICM.create(
+            move_module.ICM.RERAISE,
+            content=self.top_action,
+            understanding_confidence=score,
+            speaker=speaker
         )
         self.assertEqual(expected_move, move)
 
@@ -940,7 +943,7 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(expected_content, icm.content)
 
     def test_contentful_per_pos_from_stringfyed_move(self):
-        m = move_module.ICMWithStringContent(move_module.ICM.PER, content="a string", polarity=move_module.ICM.POS)
+        m = move_module.ICM.create(move_module.ICM.PER, content="a string", polarity=move_module.ICM.POS)
         icm = self.parse(str(m))
         self.assertEqual(move_module.ICM.PER, icm.type_)
         self.assertEqual(move_module.ICM.POS, icm.polarity)
@@ -967,9 +970,9 @@ class ParserTests(unittest.TestCase):
             "ICM(icm:und*int:USR*dest_city(paris), speaker=%s, understanding_confidence=%s)" % (speaker, score)
         )
         content = self.parse("dest_city(paris)")
-        expected_move = move_module.ICMWithSemanticContent(
+        expected_move = move_module.ICM.create(
             move_module.ICM.UND,
-            content,
+            content=content,
             understanding_confidence=score,
             speaker=speaker,
             content_speaker=USR,
@@ -1002,9 +1005,9 @@ class ParserTests(unittest.TestCase):
             "ICM(icm:und*int:dest_city(paris), speaker=%s, understanding_confidence=%s)" % (speaker, score)
         )
         content = self.parse("dest_city(paris)")
-        expected_move = move_module.ICMWithSemanticContent(
+        expected_move = move_module.ICM.create(
             move_module.ICM.UND,
-            content,
+            content=content,
             understanding_confidence=score,
             speaker=speaker,
             content_speaker=None,
@@ -1065,8 +1068,10 @@ class ParserTests(unittest.TestCase):
     def test_undecorated_icm_move_with_ICM_classname(self):
         string = 'ICM(icm:per*pos:"this is not understood")'
         actual_move = self.parse(string)
-        expected_move = move_module.ICMWithStringContent(
-            move_module.ICM.PER, "this is not understood", polarity=move_module.ICM.POS
+        expected_move = move_module.ICM.create(
+            move_module.ICM.PER,
+            content="this is not understood",
+            polarity=move_module.ICM.POS
         )
         self.assertEqual(expected_move, actual_move)
 
