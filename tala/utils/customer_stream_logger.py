@@ -10,7 +10,6 @@ from azure.monitor.ingestion import LogsIngestionClient
 from tala.utils import sse_client
 from tala.utils.func import getenv, setup_logger
 
-
 USR_TURN_METADATA = "USR_TURN_METADATA"
 SYS_TURN_METADATA = "SYS_TURN_METADATA"
 
@@ -26,19 +25,14 @@ class DcrLogSender:
     ):
         self._logger = logger
         self._dcr_endpoint = (
-            dcr_endpoint
-            if dcr_endpoint is not None
-            else getenv("AZURE_DCR_CUSTOMER_LOG_ENDPOINT", default="")
+            dcr_endpoint if dcr_endpoint is not None else getenv("AZURE_DCR_CUSTOMER_LOG_ENDPOINT", default="")
         )
         self._dcr_rule_id = (
-            dcr_rule_id
-            if dcr_rule_id is not None
-            else getenv("AZURE_DCR_CUSTOMER_LOG_RULE_ID", default="")
+            dcr_rule_id if dcr_rule_id is not None else getenv("AZURE_DCR_CUSTOMER_LOG_RULE_ID", default="")
         )
         self._dcr_stream_name = (
             dcr_stream_name
-            if dcr_stream_name is not None
-            else getenv("AZURE_DCR_CUSTOMER_LOG_STREAM_NAME", default="")
+            if dcr_stream_name is not None else getenv("AZURE_DCR_CUSTOMER_LOG_STREAM_NAME", default="")
         )
         self._dcr_endpoint = self._dcr_endpoint or ""
         self._dcr_rule_id = self._dcr_rule_id or ""
@@ -225,8 +219,7 @@ class CustomerStreamLogger(threading.Thread):
             ),
             "session_id": self._session_id,
             "TimeGenerated": datetime.now().isoformat(),
-            "turn": self._sys_metadata.get("turn_count")
-            or self._user_metadata.get("turn_count"),
+            "turn": self._sys_metadata.get("turn_count") or self._user_metadata.get("turn_count"),
             "username": self._user_name,
             "utterance": f"S> {utterance}",
         }

@@ -558,20 +558,24 @@ class TestResponses(TestRequestorBaseClass):
             default_gpt_response="{\"default\": \"response\"}",
         )
         self.given_mocked_requestor_responses([
-            (200, {
-                "status": "success",
-                "response_body": '{"body": ["incomplete"',
-                "deployment": "some-deployment",
-                "gpt_time_consumption": 1.25,
-                "request_id": "some-id",
-            }),
-            (200, {
-                "status": "success",
-                "response_body": '{"body": ["complete"]}',
-                "deployment": "some-deployment",
-                "gpt_time_consumption": 1.25,
-                "request_id": "some-id-2",
-            }),
+            (
+                200, {
+                    "status": "success",
+                    "response_body": '{"body": ["incomplete"',
+                    "deployment": "some-deployment",
+                    "gpt_time_consumption": 1.25,
+                    "request_id": "some-id",
+                }
+            ),
+            (
+                200, {
+                    "status": "success",
+                    "response_body": '{"body": ["complete"]}',
+                    "deployment": "some-deployment",
+                    "gpt_time_consumption": 1.25,
+                    "request_id": "some-id-2",
+                }
+            ),
         ])
         self.when_request_is_made()
         self.then_json_response_is({"body": ["complete"]})
@@ -598,7 +602,10 @@ class TestResponses(TestRequestorBaseClass):
                     "innererror": {
                         "code": "ResponsibleAIPolicyViolation",
                         "content_filter_result": {
-                            "jailbreak": {"detected": True, "filtered": True}
+                            "jailbreak": {
+                                "detected": True,
+                                "filtered": True
+                            }
                         },
                     },
                 },
@@ -622,12 +629,10 @@ class TestResponses(TestRequestorBaseClass):
             default_gpt_response="{\"default\": \"response\"}",
         )
         self.given_mocked_requestor_response(
-            body={
-                "error": {
-                    "message": "Bad request",
-                    "code": "invalid_request",
-                }
-            },
+            body={"error": {
+                "message": "Bad request",
+                "code": "invalid_request",
+            }},
             status_code=200,
         )
         self.when_request_is_made()

@@ -275,9 +275,7 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_semantic_input(interpretations, self._session_data, entities)
         except Exception as e:
-            raise InteractionTesterException(
-                "Exception when executing test", e, traceback.format_exc()
-            )
+            raise InteractionTesterException("Exception when executing test", e, traceback.format_exc())
         logger.info("semantic_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -298,9 +296,7 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_passivity(self._session_data)
         except Exception as e:
-            raise InteractionTesterException(
-                "Exception when executing test", e, traceback.format_exc()
-            )
+            raise InteractionTesterException("Exception when executing test", e, traceback.format_exc())
         logger.info("passivity response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -312,9 +308,7 @@ class InteractionTester:
         try:
             self._latest_response = self._client.request_speech_input(hypotheses, self._session_data)
         except Exception as e:
-            raise InteractionTesterException(
-                "Exception when executing test", e, traceback.format_exc()
-            )
+            raise InteractionTesterException("Exception when executing test", e, traceback.format_exc())
         logger.info("speech_input response", response=_redact_interaction_log_payload(self._latest_response))
         self._add_streamed_output()
         self._update_session_data()
@@ -591,9 +585,7 @@ class InteractionTester:
             return False
         self._record_system_moves_seen(actual_move_content)
         try:
-            is_alternatives = expected_move_content and all(
-                hasattr(entry, "append") for entry in expected_move_content
-            )
+            is_alternatives = expected_move_content and all(hasattr(entry, "append") for entry in expected_move_content)
         except TypeError:
             is_alternatives = False
         if is_alternatives:
@@ -726,7 +718,9 @@ class InteractionTester:
                 break
 
         if required_outcomes and not all(outcomes_seen):
-            return self._missing_required_outcomes_response(required_outcomes, outcomes_seen, transcripts, runs_executed)
+            return self._missing_required_outcomes_response(
+                required_outcomes, outcomes_seen, transcripts, runs_executed
+            )
 
         if last_response is None:
             return self._run_testcase_once(case, offer)
@@ -797,13 +791,10 @@ class InteractionTester:
 
     def _missing_required_outcomes_response(self, required_outcomes, outcomes_seen, transcripts, runs_executed):
         missing = [
-            outcome[REQUIRE_OUTCOME_MOVES]
-            for index, outcome in enumerate(required_outcomes)
+            outcome[REQUIRE_OUTCOME_MOVES] for index, outcome in enumerate(required_outcomes)
             if not outcomes_seen[index]
         ]
-        failure_description = (
-            f"Required outcomes not observed after {runs_executed} run(s): {json.dumps(missing)}"
-        )
+        failure_description = (f"Required outcomes not observed after {runs_executed} run(s): {json.dumps(missing)}")
         return {
             "success": False,
             "failure_description": failure_description,

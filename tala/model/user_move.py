@@ -2,13 +2,9 @@ from typing import Text  # noqa: F401
 import re
 
 from tala.utils.equality import EqualityMixin
-from tala.model import move
+from tala.model.move_base import ANSWER, ASK, REQUEST, REPORT, QUIT, THANK_YOU, GREET, INSULT, MUTE, UNMUTE
 
-ANSWER = move.ANSWER
-ASK = move.ASK
-REQUEST = move.REQUEST
-REPORT = move.REPORT
-BUILTINS = [move.QUIT, move.THANK_YOU, move.GREET, move.INSULT, move.MUTE, move.UNMUTE, "icm:per*neg", "icm:acc*pos"]
+BUILTINS = [QUIT, THANK_YOU, GREET, INSULT, MUTE, UNMUTE, "icm:per*neg", "icm:acc*pos"]
 
 
 class MalformedMoveStringException(BaseException):

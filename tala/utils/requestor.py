@@ -283,9 +283,7 @@ class GPTRequest:
                     max_tokens=current_max_tokens,
                     retry_action="json_repair",
                 )
-                self.update_with_last_assistant_and_next_user_message(
-                    "Return valid JSON only. No extra text."
-                )
+                self.update_with_last_assistant_and_next_user_message("Return valid JSON only. No extra text.")
                 self.logger.info(
                     "json repair retry prepared",
                     request_id=self._request_id,

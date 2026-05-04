@@ -2,7 +2,7 @@ import copy
 
 from tala import model
 from tala.model.error import DomainError
-from tala.model.move import ICM
+from tala.model.move_icm import ICM
 from tala.model.proposition import Proposition, PredicateProposition
 from tala.model.action import Action
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent

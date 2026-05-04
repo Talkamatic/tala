@@ -1612,9 +1612,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 </ontology>"""
         )
 
-        self._when_compile_domain_with_plan(
-            '<bind type="yn_question" predicate="yn_more_ingredients"/>'
-        )
+        self._when_compile_domain_with_plan('<bind type="yn_question" predicate="yn_more_ingredients"/>')
 
         plan = self._result["plans"][0]["plan"]
         item = plan.top

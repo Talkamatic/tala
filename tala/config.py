@@ -191,34 +191,24 @@ class BackendConfig(Config):
     @staticmethod
     def fields():
         return {
-            "use_recognition_profile":
-            OptionalConfigField(default_value=False),
-            "ddds":
-            MandatoryConfigField(),
-            "active_ddd":
-            OptionalConfigField(default_value="none"),
-            "supported_languages":
-            OptionalConfigField(default_value="none"),
-            "asr":
-            OptionalConfigField(default_value="none"),
-            "repeat_questions":
-            OptionalConfigField(default_value=True),
-            "rerank_amount":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_RERANK_AMOUNT),
-            "inactive_seconds_allowed":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED),
-            "response_timeout":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_RESPONSE_TIMEOUT),
-            "confidence_thresholds":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_CONFIDENCE_THRESHOLDS),
-            "confidence_prediction_thresholds":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_PREDICTION_CONFIDENCE_THRESHOLDS),
-            "short_timeout":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_SHORT_TIMEOUT),
-            "medium_timeout":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_MEDIUM_TIMEOUT),
-            "long_timeout":
-            OptionalConfigField(default_value=BackendConfig.DEFAULT_LONG_TIMEOUT),
+            "use_recognition_profile": OptionalConfigField(default_value=False),
+            "ddds": MandatoryConfigField(),
+            "active_ddd": OptionalConfigField(default_value="none"),
+            "supported_languages": OptionalConfigField(default_value="none"),
+            "asr": OptionalConfigField(default_value="none"),
+            "repeat_questions": OptionalConfigField(default_value=True),
+            "rerank_amount": OptionalConfigField(default_value=BackendConfig.DEFAULT_RERANK_AMOUNT),
+            "inactive_seconds_allowed": OptionalConfigField(
+                default_value=BackendConfig.DEFAULT_INACTIVE_SECONDS_ALLOWED
+            ),
+            "response_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_RESPONSE_TIMEOUT),
+            "confidence_thresholds": OptionalConfigField(default_value=BackendConfig.DEFAULT_CONFIDENCE_THRESHOLDS),
+            "confidence_prediction_thresholds": OptionalConfigField(
+                default_value=BackendConfig.DEFAULT_PREDICTION_CONFIDENCE_THRESHOLDS
+            ),
+            "short_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_SHORT_TIMEOUT),
+            "medium_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_MEDIUM_TIMEOUT),
+            "long_timeout": OptionalConfigField(default_value=BackendConfig.DEFAULT_LONG_TIMEOUT),
         }
 
     @classmethod

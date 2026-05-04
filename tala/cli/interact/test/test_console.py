@@ -147,7 +147,10 @@ class TestTDMConsole:
 
     def test_backend_generated_session_id_used_for_requests(self):
         self.given_client(
-            StubClient("http://example", session_response={"session_id": "backend-id", "device_id": "device"})
+            StubClient("http://example", session_response={
+                "session_id": "backend-id",
+                "device_id": "device"
+            })
         )
         self.given_console_input(["hello", "/quit"])
         self.given_console(device_id="device")

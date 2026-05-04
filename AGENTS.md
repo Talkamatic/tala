@@ -28,6 +28,7 @@
 - Pylint (available, no explicit config):
   - `python -m pylint tala`
 - Run `flake8` clean before committing anything.
+- Run `python -m flake8 tala` before each commit.
 - Do not change CI/Jenkins flake8 excludes to account for editor backup/lock files; ignore those locally.
 
 ## Format

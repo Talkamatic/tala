@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from tala.model.move import ICM
+from tala.model.move_icm import ICM
 from tala.model import plan_item
 from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase

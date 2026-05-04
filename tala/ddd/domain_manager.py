@@ -34,9 +34,7 @@ class DomainManager(object):
             if goal.is_resolve_goal():
                 question = goal.content
                 if question.is_consequent_question():
-                    return self.get_domain_of_goal(
-                        ResolveGoal(question.embedded_consequent_question, speaker.SYS)
-                    )
+                    return self.get_domain_of_goal(ResolveGoal(question.embedded_consequent_question, speaker.SYS))
             raise UnknownGoalException(
                 "Goal %s not found among known goals %s" % (repr(goal), list(self._domains_of_goals.keys()))
             )

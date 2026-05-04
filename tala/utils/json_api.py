@@ -22,12 +22,7 @@ def require_attributes(payload, label="payload"):
 
 
 def make_document(type_, id_, attributes, included=None, version=CURRENT_FORMAT_VERSION):
-    data = {
-        "type": type_,
-        "id": id_,
-        "attributes": attributes,
-        "meta": {"version:id": version}
-    }
+    data = {"type": type_, "id": id_, "attributes": attributes, "meta": {"version:id": version}}
     return {"data": data, "included": included or []}
 
 
@@ -171,13 +166,9 @@ class JSONAPIMixin:
             try:
                 target = self.__getattribute__(name)
             except AttributeError as exc:
-                raise ValueError(
-                    f"JSON:API relationship '{name}' not found on {self.__class__.__name__}"
-                ) from exc
+                raise ValueError(f"JSON:API relationship '{name}' not found on {self.__class__.__name__}") from exc
             if target is None:
-                raise ValueError(
-                    f"JSON:API relationship '{name}' on {self.__class__.__name__} is None"
-                )
+                raise ValueError(f"JSON:API relationship '{name}' on {self.__class__.__name__} is None")
             try:
                 return target.as_json_api_dict()
             except AttributeError as exc:
@@ -283,9 +274,7 @@ class JSONAPIObject:
         except (TypeError, KeyError, IndexError):
             self.relationships[name] = {"data": {"type": data["type"], "id": data["id"]}}
         else:
-            self.relationships[name] = {
-                "data": [{"type": item["type"], "id": item["id"]} for item in data]
-            }
+            self.relationships[name] = {"data": [{"type": item["type"], "id": item["id"]} for item in data]}
 
         included = entry.get("included", [])
         try:

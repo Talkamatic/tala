@@ -266,7 +266,10 @@ class PropositionSetTests(LibTestCase):
             "data": {
                 "type": "tala.model.proposition.PropositionSet",
                 "version:id": "2",
-                "attributes": {"polarity": "POS", "type_": "PROPOSITION_SET"},
+                "attributes": {
+                    "polarity": "POS",
+                    "type_": "PROPOSITION_SET"
+                },
                 "relationships": {
                     "propositions_data": {
                         "data": [{

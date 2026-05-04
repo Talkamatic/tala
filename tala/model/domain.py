@@ -495,10 +495,8 @@ class Domain(AsJSONMixin, JSONAPIMixin):
 
     def _has_top_plan(self):
         return any([
-            plan for plan in list(self.plans.values()) if (
-                plan["goal"].is_goal() and plan["goal"].type_ == PERFORM
-                and plan["goal"].action.value == "top"
-            )
+            plan for plan in list(self.plans.values())
+            if (plan["goal"].is_goal() and plan["goal"].type_ == PERFORM and plan["goal"].action.value == "top")
         ])  # noqa: E127
 
     def __str__(self):

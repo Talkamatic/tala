@@ -1,7 +1,6 @@
 from tala.model.speaker import USR
-from tala.model.move import (
-    MoveWithSemanticContent, Move, ICM, Report, Prereport, Answer, Request, Ask
-)
+from tala.model.move_base import (MoveWithSemanticContent, Move, Report, Prereport, Answer, Request, Ask)
+from tala.model.move_icm import ICM
 
 
 class MoveFactoryWithPredefinedBoilerplate(object):

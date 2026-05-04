@@ -3,7 +3,7 @@ import uuid
 
 import tala
 from tala.model.error import OntologyError
-from tala.model.move import Answer
+from tala.model.move_base import Answer
 from tala.model.polarity import Polarity
 from tala.model.predicate import Predicate
 from tala.model.individual import Individual
@@ -538,9 +538,8 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
         try:
             return (
                 other.is_proposition() and other.is_prereport_proposition()
-                and other.ontology_name == self.ontology_name
-                and other.service_action == self.service_action and other.polarity == self.polarity
-                and other.argument_set == self.argument_set
+                and other.ontology_name == self.ontology_name and other.service_action == self.service_action
+                and other.polarity == self.polarity and other.argument_set == self.argument_set
             )
         except AttributeError:
             return False
@@ -590,8 +589,8 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
         try:
             return (
                 other.is_proposition() and other.is_service_action_terminated_proposition()
-                and other.ontology_name == self.ontology_name
-                and other.service_action == self.service_action and other.polarity == self.polarity
+                and other.ontology_name == self.ontology_name and other.service_action == self.service_action
+                and other.polarity == self.polarity
             )
         except AttributeError:
             return False
@@ -711,8 +710,8 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
         try:
             return (
                 other.is_proposition() and other.is_service_result_proposition()
-                and other.service_action == self.service_action
-                and other.arguments == self.arguments and other.result == self.result
+                and other.service_action == self.service_action and other.arguments == self.arguments
+                and other.result == self.result
             )
         except AttributeError:
             return False
@@ -844,8 +843,8 @@ class RejectedPropositions(PropositionWithSemanticContent):
         try:
             return (
                 other.is_proposition() and other.is_rejected_proposition()
-                and other.rejected_combination == self.rejected_combination
-                and other.reason == self.reason and other.polarity == self.polarity
+                and other.rejected_combination == self.rejected_combination and other.reason == self.reason
+                and other.polarity == self.polarity
             )
         except AttributeError:
             return False
@@ -987,8 +986,8 @@ class UnderstandingProposition(PropositionWithSemanticContent):
     def __eq__(self, other):
         try:
             return (
-                other.is_proposition() and other.is_understanding_proposition()
-                and self.speaker == other.speaker and self.content == other.content
+                other.is_proposition() and other.is_understanding_proposition() and self.speaker == other.speaker
+                and self.content == other.content
             )
         except AttributeError:
             return False
@@ -1018,9 +1017,7 @@ class ResolvednessProposition(PropositionWithSemanticContent):
 
     def __eq__(self, other):
         try:
-            return (
-                other.is_proposition() and other.is_resolvedness_proposition() and other.issue == self.issue
-            )
+            return (other.is_proposition() and other.is_resolvedness_proposition() and other.issue == self.issue)
         except AttributeError:
             return False
 

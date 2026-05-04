@@ -9,7 +9,23 @@ from tala.model.individual import Yes, No
 from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, LambdaAbstractedImplicationPropositionForConsequent
 from tala.model import speaker
 from tala.model.set import Set
-from tala.model import move
+from tala.model.move_base import (
+    Answer,
+    Ask,
+    Greet,
+    Insult,
+    InsultResponse,
+    Move,
+    Mute,
+    Prereport,
+    Quit,
+    Report,
+    Request,
+    ThankYou,
+    ThankYouResponse,
+    Unmute,
+)
+from tala.model.move_icm import ICM
 from tala.model.ontology import OntologyError
 from tala.model import plan_item
 from tala.model.polarity import Polarity
@@ -188,27 +204,27 @@ class Parser:
 
     def _parse_basic_move(self, string):
         matcher = re.search(
-            fr'^({move.GREET}|{move.INSULT}|{move.INSULT_RESPONSE}|{move.MUTE}|{move.UNMUTE}|{move.QUIT}|{move.THANK_YOU}|{move.THANK_YOU_RESPONSE})$',
+            fr'^({Move.GREET}|{Move.INSULT}|{Move.INSULT_RESPONSE}|{Move.MUTE}|{Move.UNMUTE}|{Move.QUIT}|{Move.THANK_YOU}|{Move.THANK_YOU_RESPONSE})$',
             string
         )
         if matcher:
             move_type_string = matcher.group(1)
-            if move_type_string == move.GREET:
-                return move.Greet()
-            elif move_type_string == move.MUTE:
-                return move.Mute()
-            elif move_type_string == move.UNMUTE:
-                return move.Unmute()
-            elif move_type_string == move.QUIT:
-                return move.Quit()
-            elif move_type_string == move.THANK_YOU:
-                return move.ThankYou()
-            elif move_type_string == move.THANK_YOU_RESPONSE:
-                return move.ThankYouResponse()
-            elif move_type_string == move.INSULT_RESPONSE:
-                return move.InsultResponse()
-            elif move_type_string == move.INSULT:
-                return move.Insult()
+            if move_type_string == Move.GREET:
+                return Greet()
+            elif move_type_string == Move.MUTE:
+                return Mute()
+            elif move_type_string == Move.UNMUTE:
+                return Unmute()
+            elif move_type_string == Move.QUIT:
+                return Quit()
+            elif move_type_string == Move.THANK_YOU:
+                return ThankYou()
+            elif move_type_string == Move.THANK_YOU_RESPONSE:
+                return ThankYouResponse()
+            elif move_type_string == Move.INSULT_RESPONSE:
+                return InsultResponse()
+            elif move_type_string == Move.INSULT:
+                return Insult()
 
         raise ParseFailure()
 
@@ -322,7 +338,7 @@ class Parser:
         if m:
             content_string = m.group(1)
             content = self._parse(content_string)
-            return move.Report(content)
+            return Report(content)
         raise ParseFailure()
 
     def _parse_service_result_proposition(self, string):
@@ -365,7 +381,7 @@ class Parser:
         if m:
             (action_value, arguments_string) = m.groups()
             arguments_list = self._parse_proposition_list(arguments_string)
-            return move.Prereport(self.ontology_name, action_value, arguments_list)
+            return Prereport(self.ontology_name, action_value, arguments_list)
         raise ParseFailure()
 
     def _parse_ask_move(self, string):
@@ -373,7 +389,7 @@ class Parser:
         if m:
             question_string = m.group(1)
             question = self._parse_question(question_string)
-            return move.Ask(question)
+            return Ask(question)
         else:
             raise ParseFailure()
 
@@ -458,7 +474,7 @@ class Parser:
         if m:
             answer_string = m.group(1)
             answer = self._parse_yes_no_proposition_or_individual(answer_string)
-            answer_move = move.Answer(answer)
+            answer_move = Answer(answer)
             return answer_move
         else:
             raise ParseFailure()
@@ -553,22 +569,20 @@ class Parser:
         raise ParseFailure()
 
     def _parse_reraise_or_accommodate_or_resume_icm(self, string):
-        matcher = re.search(
-            '^icm:(%s|%s|%s)(:([^:]+))?$' % (move.ICM.RERAISE, move.ICM.ACCOMMODATE, move.ICM.RESUME), string
-        )
+        matcher = re.search('^icm:(%s|%s|%s)(:([^:]+))?$' % (ICM.RERAISE, ICM.ACCOMMODATE, ICM.RESUME), string)
         if matcher:
             (icm_type, content_string) = (matcher.group(1), matcher.group(3))
             if content_string:
                 content = self.parse(content_string)
-                return move.ICM.create(icm_type, content=content)
-            return move.ICM(icm_type)
+                return ICM.create(icm_type, content=content)
+            return ICM(icm_type)
         else:
             raise ParseFailure()
 
     def _parse_loadplan_icm(self, string):
         matcher = re.search(r'^icm:loadplan', string)
         if matcher:
-            return move.ICM(move.ICM.LOADPLAN)
+            return ICM(ICM.LOADPLAN)
         else:
             raise ParseFailure()
 
@@ -592,14 +606,14 @@ class Parser:
         if m:
             icm_type = m.group(1)
             polarity = m.group(2)
-            return move.ICM(icm_type, polarity=polarity)
+            return ICM(icm_type, polarity=polarity)
         raise ParseFailure()
 
     def _parse_contentful_perception_icm(self, string):
         m = re.search(r'^icm:per\*(pos|neg|int):"([^"]*)"$', string)
         if m:
             (polarity, content_string) = m.groups()
-            return move.ICM.create(move.ICM.PER, content=content_string, polarity=polarity)
+            return ICM.create(ICM.PER, content=content_string, polarity=polarity)
         raise ParseFailure()
 
     def _parse_contentful_acceptance_icm(self, string):
@@ -607,9 +621,9 @@ class Parser:
         if m:
             (icm_type, polarity, junk, content_string) = m.groups()
             if content_string == "issue":
-                return move.ICM.create(icm_type, content="issue", polarity=polarity)
+                return ICM.create(icm_type, content="issue", polarity=polarity)
             content = self.parse(content_string)
-            return move.ICM.create(icm_type, content=content, polarity=polarity)
+            return ICM.create(icm_type, content=content, polarity=polarity)
         raise ParseFailure()
 
     def _parse_understanding_icm(self, string):
@@ -618,15 +632,10 @@ class Parser:
             (type, polarity, foo, foo, content_speaker, content_string) = m.groups()
             if content_string:
                 content = self.parse(content_string)
-                return move.ICM.create(
-                    type,
-                    content=content,
-                    content_speaker=content_speaker,
-                    polarity=polarity
-                )
+                return ICM.create(type, content=content, content_speaker=content_speaker, polarity=polarity)
 
             content = None
-            return move.ICM(type, polarity=polarity)
+            return ICM(type, polarity=polarity)
         else:
             raise ParseFailure()
 
@@ -654,7 +663,7 @@ class Parser:
         if matcher:
             action_string = matcher.group(1)
             action = self._parse_action(action_string)
-            return move.Request(action)
+            return Request(action)
         else:
             raise ParseFailure()
 

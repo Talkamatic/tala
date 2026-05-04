@@ -117,9 +117,7 @@ class DDDManager(object):
         if self._is_legacy_format(ddd_as_json):
             self._warn_legacy_format(ddd_as_json)
             return ddd_as_json["ontology"]["_name"]
-        raise LegacyDddJsonFormatException(
-            "Unrecognized DDD JSON format; expected JSON:API or legacy shape."
-        )
+        raise LegacyDddJsonFormatException("Unrecognized DDD JSON format; expected JSON:API or legacy shape.")
 
     def _get_ddd_as_json(self, name):
         for ddd_as_json in self.ddds_as_json:
@@ -131,9 +129,7 @@ class DDDManager(object):
                 if name == ddd_as_json["ddd_name"]:
                     return ddd_as_json
                 continue
-        raise LegacyDddJsonFormatException(
-            f"Unable to locate DDD '{name}' with JSON:API or legacy shape."
-        )
+        raise LegacyDddJsonFormatException(f"Unable to locate DDD '{name}' with JSON:API or legacy shape.")
 
     def _parse_and_add(self, ddd_as_json):
         if self._is_json_api_format(ddd_as_json):
@@ -142,9 +138,7 @@ class DDDManager(object):
             self._warn_legacy_format(ddd_as_json)
             ddd = JSONDDDParser().parse(ddd_as_json)
         else:
-            raise LegacyDddJsonFormatException(
-                "Unrecognized DDD JSON format; expected JSON:API or legacy shape."
-            )
+            raise LegacyDddJsonFormatException("Unrecognized DDD JSON format; expected JSON:API or legacy shape.")
         parameter_retriever = ParameterRetriever(ddd.service_interface, ddd.ontology)
         parser = Parser(ddd.name, ddd.ontology, ddd.domain.name)
         extended_ddd = ExtendedDDD(ddd, parameter_retriever, parser)

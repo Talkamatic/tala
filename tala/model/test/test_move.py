@@ -3,7 +3,8 @@ from unittest.mock import Mock
 
 from tala.model.common import Modality
 from tala.model import speaker
-from tala.model.move import Move, ICM, Report, Ask, CardinalSequencingICM
+from tala.model.move_base import Move, Report, Ask
+from tala.model.move_icm import ICM, CardinalSequencingICM
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
@@ -645,10 +646,7 @@ class ICMTests(LibTestCase, SemanticExpressionTestMixin):
 
     def test_create_icm_with_semantic_content(self):
         icm = ICM.create(
-            ICM.UND,
-            content=self.proposition_dest_city_paris,
-            content_speaker=speaker.USR,
-            polarity=ICM.INT
+            ICM.UND, content=self.proposition_dest_city_paris, content_speaker=speaker.USR, polarity=ICM.INT
         )
         self.assertEqual(ICM.UND, icm.type_)
         self.assertEqual(ICM.INT, icm.polarity)

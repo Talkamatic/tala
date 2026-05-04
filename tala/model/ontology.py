@@ -216,8 +216,7 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
         for predicate in list(self._predicates.values()):
             if predicate.sort not in list(self._sorts.values()):
                 raise OntologyError(
-                    "predicate '%s' has unknown sort '%s' (sorts=%s)" %
-                    (predicate.name, predicate.sort, self._sorts)
+                    "predicate '%s' has unknown sort '%s' (sorts=%s)" % (predicate.name, predicate.sort, self._sorts)
                 )
 
         for name in self._predicates.keys():
