@@ -1,5 +1,4 @@
 import copy
-import warnings
 
 from tala.model.move_base import (
     Answer,
@@ -294,9 +293,6 @@ class JSONDomainParser():
         for entry in goal:
             if entry == "goal":
                 result[entry] = self.parser.parse_goal(goal[entry])
-            elif entry == "io_status":
-                warnings.warn("io_status is deprecated.", DeprecationWarning, stacklevel=2)
-                result[entry] = self.parse_io_status(goal[entry])
             elif entry == "plan":
                 result[entry] = self.parse_plan(goal[entry])
             elif entry == "postconds":
@@ -321,11 +317,6 @@ class JSONDomainParser():
     def parse_plan(self, plan):
         plan_items = [self.parser.parse_plan_item(item) for item in plan["stack"]]
         return Plan(reversed(plan_items))
-
-    def parse_io_status(self, status):
-        if status:
-            return status
-        return Domain.DEFAULT_IO_STATUS
 
     def parse_postconds(self, postconds):
         return [self.parse_postcond(postcond) for postcond in postconds]

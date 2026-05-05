@@ -76,9 +76,7 @@ class Parser:
             self._parse_log_item,
             self._parse_forget_issue_plan_item,
             self._parse_invoke_service_query_plan_item,
-            self._parse_deprecated_dev_query_plan_item,
             self._parse_invoke_service_action_plan_item,
-            self._parse_deprecated_dev_perform_plan_item,
             self._parse_change_ddd_plan_item,
             self._parse_question,
             self._parse_lambda_abstracted_goal_proposition,
@@ -251,11 +249,11 @@ class Parser:
 
     def _parse_proposition(self, string):
         try:
-            return self._parse_deprecated_service_action_terminated_proposition(string)
+            return self._parse_service_action_terminated_proposition(string)
         except ParseFailure:
             pass
         try:
-            return self._parse_deprecated_service_action_started_proposition(string)
+            return self._parse_service_action_started_proposition(string)
         except ParseFailure:
             pass
         try:
@@ -294,11 +292,11 @@ class Parser:
             return self._parse_knowledge_precondition_proposition(string)
         except ParseFailure:
             pass
-        self._check_if_deprecated_action_proposition(string)
-        self._check_if_deprecated_issue_proposition(string)
+        self._check_if_invalid_action_proposition(string)
+        self._check_if_invalid_issue_proposition(string)
         raise ParseFailure()
 
-    def _check_if_deprecated_action_proposition(self, string):
+    def _check_if_invalid_action_proposition(self, string):
         m = re.search(r'^action\((\w+)\)$', string)
         if m:
             action_name = m.group(1)
@@ -307,7 +305,7 @@ class Parser:
                 (action_name, action_name)
             )
 
-    def _check_if_deprecated_issue_proposition(self, string):
+    def _check_if_invalid_issue_proposition(self, string):
         m = re.search(r'^issue\((.+)\)$', string)
         if m:
             issue_name = m.group(1)
@@ -815,26 +813,8 @@ class Parser:
         else:
             raise ParseFailure()
 
-    def _parse_deprecated_dev_query_plan_item(self, string):
-        m = re.search(r'^dev_query\(([^,]+)\)$', string)
-        if m:
-            (issue_string, ) = m.groups()
-            issue = self.parse(issue_string)
-            return plan_item.InvokeServiceQuery(issue, min_results=1, max_results=1)
-        else:
-            raise ParseFailure()
-
     def _parse_invoke_service_action_plan_item(self, string):
         m = re.search(r'^invoke_service_action\(([^,]+), *(\{.*\})\)$', string)
-        if m:
-            (service_action, params_string) = m.groups()
-            params = self._parse_invoke_service_action_params(params_string)
-            return plan_item.InvokeServiceAction(self.ontology.name, service_action, **params)
-        else:
-            raise ParseFailure()
-
-    def _parse_deprecated_dev_perform_plan_item(self, string):
-        m = re.search(r'^dev_perform\(([^,]+), *(\{.*\})\)$', string)
         if m:
             (service_action, params_string) = m.groups()
             params = self._parse_invoke_service_action_params(params_string)
@@ -930,14 +910,14 @@ class Parser:
             return RejectedPropositions(rejected, reason=reason_string)
         raise ParseFailure()
 
-    def _parse_deprecated_service_action_terminated_proposition(self, string):
+    def _parse_service_action_terminated_proposition(self, string):
         m = re.search(r'^service_action_terminated\((.+)\)$', string)
         if m:
             service_action = m.group(1)
             return ServiceActionTerminatedProposition(self.ontology_name, service_action)
         raise ParseFailure()
 
-    def _parse_deprecated_service_action_started_proposition(self, string):
+    def _parse_service_action_started_proposition(self, string):
         m = re.search(r'^service_action_started\((.+)\)$', string)
         if m:
             service_action = m.group(1)

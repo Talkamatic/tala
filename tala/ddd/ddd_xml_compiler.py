@@ -302,9 +302,6 @@ class DomainCompiler(XmlCompiler):
             plan, element, "postconds", "downdate_condition", self._compile_condition
         )
         self._compile_plan_element_with_multiple_children(
-            plan, element, "postconds", "postcond", self._compile_deprecated_postconds
-        )
-        self._compile_plan_element_with_multiple_children(
             plan, element, "superactions", "superaction", self._compile_superaction
         )
         return plan
@@ -530,10 +527,6 @@ class DomainCompiler(XmlCompiler):
     def _compile_if_element(self, element):
         def compile_condition():
             try:
-                return self._compile_old_condition_element(element)
-            except DDDXMLCompilerException:
-                pass
-            try:
                 return self._compile_bare_proposition_element_as_condition(element)
             except DDDXMLCompilerException:
                 pass
@@ -543,15 +536,6 @@ class DomainCompiler(XmlCompiler):
         consequent = self._compile_if_then_child_plan(element, "then")
         alternative = self._compile_if_then_child_plan(element, "else")
         return [plan_item.IfThenElse(condition, consequent, alternative)]
-
-    def _compile_old_condition_element(self, element):
-        condition_element = self._get_single_child_element(element, ["condition"])
-        proposition_child = self._compile_proposition_child_of(condition_element)
-        warnings.warn(
-            '"<if><condition><proposition ..." is deprecated. '
-            'Use "<if><proposition ..." without <condition> instead.', DeprecationWarning
-        )
-        return proposition_child
 
     def _compile_bare_proposition_element_as_condition(self, element):
         return self._compile_proposition_child_of(element)
@@ -762,13 +746,8 @@ class DomainCompiler(XmlCompiler):
             individual = None
         return PredicateProposition(predicate, individual)
 
-    def _compile_deprecated_postconds(self, element):
-        warnings.warn("<postcond> is deprecated. Use <downdate_condition> instead.", DeprecationWarning)
-        return self._compile_proposition_child_of(element)
-
     def _compile_condition(self, element):
         HAS_VALUE = "has_value"
-        IS_SHARED_FACT = "is_shared_fact"
         HAS_SHARED_VALUE = "has_shared_value"
         HAS_PRIVATE_VALUE = "has_private_value"
         HAS_SHARED_OR_PRIVATE_VALUE = "has_shared_or_private_value"
@@ -780,15 +759,13 @@ class DomainCompiler(XmlCompiler):
 
         child = self._get_single_child_element(
             element, [
-                HAS_VALUE, IS_SHARED_FACT, IS_TRUE, HAS_SHARED_VALUE, HAS_PRIVATE_VALUE, HAS_SHARED_OR_PRIVATE_VALUE,
+                HAS_VALUE, IS_TRUE, HAS_SHARED_VALUE, HAS_PRIVATE_VALUE, HAS_SHARED_OR_PRIVATE_VALUE,
                 IS_SHARED_COMMITMENT, IS_PRIVATE_BELIEF, IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT, QUERY_HAS_MORE_ITEMS
             ]
         )
         if child.localName == HAS_VALUE:
-            warnings.warn("<has_value> is deprecated.", DeprecationWarning)
             return self._compile_has_value_condition(child)
         elif child.localName == IS_TRUE:
-            warnings.warn("<is_true> is deprecated.", DeprecationWarning)
             return self._compile_is_true_condition(child)
         elif child.localName == HAS_SHARED_VALUE:
             return self._compile_has_shared_value_condition(child)
@@ -804,9 +781,6 @@ class DomainCompiler(XmlCompiler):
             return self._compile_is_private_belief_or_shared_commitment_condition(child)
         elif child.localName == QUERY_HAS_MORE_ITEMS:
             return self._compile_query_has_more_items_condition(child)
-        elif child.localName == IS_SHARED_FACT:
-            warnings.warn("<is_shared_fact> is deprecated.", DeprecationWarning)
-            return self._compile_is_true_condition(child)
 
     def _compile_has_value_condition(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")

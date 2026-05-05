@@ -1,5 +1,3 @@
-import warnings
-
 from tala.model.move_base import Ask, Request
 from tala.model.question import Question
 from tala.model.action import Action
@@ -64,11 +62,6 @@ class Goal(SemanticObject, AsSemanticExpressionMixin):
 
     def __str__(self):
         return repr(self)
-
-    @staticmethod
-    def goal_filter(goal_type):
-        warnings.warn("Goal.goal_filter() is deprecated.", DeprecationWarning, stacklevel=2)
-        return lambda goal: goal.type_ == goal_type
 
     @staticmethod
     def goal_target_filter(target_speaker):
@@ -145,11 +138,6 @@ class Perform(GoalWithSemanticContent):
     def is_perform_goal(self):
         return True
 
-    @staticmethod
-    def filter():
-        warnings.warn("Perform.filter() is deprecated.", DeprecationWarning, stacklevel=2)
-        return Goal.goal_filter(PERFORM)
-
     @property
     def action(self):
         return self.content
@@ -183,11 +171,6 @@ class Resolve(GoalWithSemanticContent):
     @property
     def issue(self):
         return self.content
-
-    @staticmethod
-    def filter():
-        warnings.warn("Resolve.filter() is deprecated.", DeprecationWarning, stacklevel=2)
-        return Goal.goal_filter(RESOLVE)
 
     def __str__(self):
         result = ""

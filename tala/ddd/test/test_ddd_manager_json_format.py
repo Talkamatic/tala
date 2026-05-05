@@ -1,25 +1,16 @@
 import json
-import warnings
 from pathlib import Path
-from unittest.mock import Mock, patch
-
 import pytest
 
-from tala.ddd.ddd_manager import DDDManager
-from tala.ddd.services.service_interface import ServiceInterface
-from tala.model.ddd import DDD
-from tala.model.domain import Domain
-from tala.model.ontology import Ontology
+from tala.ddd.ddd_manager import DDDManager, DddJsonFormatException
 
 
 class TestDDDManagerJSONFormat:
-    def test_accepts_legacy_ddd_json_with_warning(self):
+    def test_rejects_legacy_ddd_json(self):
         self.given_ddd_manager()
         self.given_legacy_ddd_json()
 
-        self.when_loading_ddd_expecting_warning()
-
-        self.then_legacy_format_is_loaded()
+        self.when_loading_ddd_expecting_error()
 
     def test_accepts_json_api_ddd_json_without_warning(self):
         self.given_ddd_manager()
@@ -42,28 +33,13 @@ class TestDDDManagerJSONFormat:
             self._json_api_ddd = json.load(fixture_file)
         self._ddd_manager.add_ddds_as_json([self._json_api_ddd["data"]["attributes"]["name"]], [self._json_api_ddd])
 
-    def when_loading_ddd_expecting_warning(self):
-        with patch("tala.ddd.ddd_manager.JSONDDDParser.parse") as parse_mock:
-            parse_mock.return_value = self._create_legacy_ddd()
-            with pytest.warns(DeprecationWarning):
-                self._ddd_manager.get_ddd("legacy_ddd")
+    def when_loading_ddd_expecting_error(self):
+        with pytest.raises(DddJsonFormatException):
+            self._ddd_manager.get_ddd("legacy_ddd")
 
     def when_loading_json_api_ddd_without_warning(self):
-        with warnings.catch_warnings(record=True) as recorded:
-            warnings.simplefilter("always")
-            self._json_api_name = self._json_api_ddd["data"]["attributes"]["name"]
-            self._ddd_manager.get_ddd(self._json_api_name)
-            self._warnings = recorded
-
-    def then_legacy_format_is_loaded(self):
-        assert "legacy_ddd" in self._ddd_manager._ddds
+        self._json_api_name = self._json_api_ddd["data"]["attributes"]["name"]
+        self._ddd_manager.get_ddd(self._json_api_name)
 
     def then_json_api_format_is_loaded(self):
         assert self._json_api_name in self._ddd_manager._ddds
-        assert not any(issubclass(warning.category, DeprecationWarning) for warning in self._warnings)
-
-    def _create_legacy_ddd(self):
-        ontology = Ontology("legacy_ontology", set(), set(), {}, set())
-        domain = Domain("legacy_ddd", "legacy_domain", ontology)
-        service_interface = Mock(spec=ServiceInterface)
-        return DDD("legacy_ddd", ontology, domain, service_interface=service_interface)

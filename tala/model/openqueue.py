@@ -1,5 +1,4 @@
 import copy
-import warnings
 
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
@@ -144,14 +143,6 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
         else:
             return self.back_content[0]
 
-    def first(self):
-        warnings.warn(
-            "OpenQueue.first() is deprecated. Use property OpenQueue.first_element instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.first_element
-
     def is_first(self, element):
         if self.is_empty():
             return False
@@ -163,12 +154,6 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
             return self.back_content[-1]
         else:
             return self.front_content[-1]
-
-    def last(self):
-        warnings.warn(
-            "OpenQueue.last() is deprecated. Use property OpenQueue.last instead.", DeprecationWarning, stacklevel=2
-        )
-        return self.last_element
 
     def __len__(self):
         return len(self.front_content) + len(self.back_content)

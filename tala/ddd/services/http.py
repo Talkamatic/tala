@@ -10,8 +10,7 @@ from tala.model.service_action_outcome import SuccessfulServiceAction, FailedSer
 from tala import http_formatting
 
 CURRENT_VERSION = "1.1"
-DEPRECATED_PROTOCOL_VERSIONS = ["1.0"]
-SUPPORTED_PROTOCOL_VERSIONS = DEPRECATED_PROTOCOL_VERSIONS + [CURRENT_VERSION]
+SUPPORTED_PROTOCOL_VERSIONS = [CURRENT_VERSION]
 
 
 class HttpServiceInvocationException(Exception):

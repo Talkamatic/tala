@@ -405,7 +405,7 @@ class DDDJSONCompiler(object):
         if len(condition) != 1:
             raise DDDJSONCompilerException("Condition must be a single-key object.")
         condition_type, payload = next(iter(condition.items()))
-        if condition_type in ["is_true", "is_shared_fact"]:
+        if condition_type == "is_true":
             self._append_predicate_proposition(doc, parent, payload)
             return
         self._append_condition(doc, parent, condition)
@@ -426,7 +426,7 @@ class DDDJSONCompiler(object):
             raise DDDJSONCompilerException("Condition must be a single-key object.")
         condition_type, payload = next(iter(condition.items()))
         element = doc.createElement(condition_type)
-        if condition_type in ["is_true", "is_shared_fact"]:
+        if condition_type == "is_true":
             self._append_predicate_proposition(doc, element, payload)
         elif condition_type == "has_more_items":
             if "predicate" in payload:

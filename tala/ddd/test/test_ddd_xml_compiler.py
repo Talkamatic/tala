@@ -601,8 +601,7 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content('<postplan><forget_all/></postplan>')
         self._then_result_has_plan_with_attribute("postplan", Plan([plan_item.ForgetAll()]))
 
-    @pytest.mark.filterwarnings("ignore:<postcond>")
-    def test_postcond_with_whitespace(self):
+    def test_downdate_condition_with_whitespace(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -613,14 +612,17 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_goal_with_content(
             """
-<postcond>
-  <proposition predicate="dest_city" value="paris"/>
-</postcond>"""
+<downdate_condition>
+  <is_true>
+    <proposition predicate="dest_city" value="paris"/>
+  </is_true>
+</downdate_condition>"""
         )
-        self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.IsTrue(self._parse("dest_city(paris)"))]
+        )
 
-    @pytest.mark.filterwarnings("ignore:<postcond>")
-    def test_postcond_for_predicate_proposition(self):
+    def test_downdate_condition_for_predicate_proposition(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -629,11 +631,19 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
   <sort name="city"/>
 </ontology>"""
         )
-        self._when_compile_goal_with_content('<postcond><proposition predicate="dest_city" value="paris"/></postcond>')
-        self._then_result_has_plan_with_attribute("postconds", [self._parse("dest_city(paris)")])
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <is_true>
+    <proposition predicate="dest_city" value="paris"/>
+  </is_true>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.IsTrue(self._parse("dest_city(paris)"))]
+        )
 
-    @pytest.mark.filterwarnings("ignore:<postcond>")
-    def test_postcond_with_multiple_propositions(self):
+    def test_downdate_condition_with_multiple_propositions(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -646,54 +656,22 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
         self._when_compile_goal_with_content(
             """
-<postcond>
-  <proposition predicate="dept_city" value="gothenburg"/>
-</postcond>
-<postcond>
-  <proposition predicate="dest_city" value="paris"/>
-</postcond>"""
+<downdate_condition>
+  <is_true>
+    <proposition predicate="dept_city" value="gothenburg"/>
+  </is_true>
+</downdate_condition>
+<downdate_condition>
+  <is_true>
+    <proposition predicate="dest_city" value="paris"/>
+  </is_true>
+</downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
             "postconds", [
-                self._parse("dept_city(gothenburg)"),
-                self._parse("dest_city(paris)"),
+                condition.IsTrue(self._parse("dept_city(gothenburg)")),
+                condition.IsTrue(self._parse("dest_city(paris)")),
             ]
-        )
-
-    def test_postcond_deprecation_warning(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="dest_city" sort="city"/>
-  <individual name="paris" sort="city"/>
-  <sort name="city"/>
-</ontology>"""
-        )
-        self._when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
-            '<postcond><proposition predicate="dest_city" value="paris"/></postcond>',
-            "<postcond> is deprecated. Use <downdate_condition> instead."
-        )
-
-    def _when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
-        self, goal_xml, expected_warning_message
-    ):
-        with self._mock_warnings() as mocked_warnings:
-            self._when_compile_goal_with_content(goal_xml)
-            self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
-
-    def test_is_shared_fact_deprecation_warning(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="dest_city" sort="city"/>
-  <individual name="paris" sort="city"/>
-  <sort name="city"/>
-</ontology>"""
-        )
-        self._when_compile_domain_with_goal_content_then_deprecation_warning_is_issued(
-            '<downdate_condition><is_shared_fact>'
-            '<proposition predicate="dest_city" value="paris"/>'
-            '</is_shared_fact></downdate_condition>', "<is_shared_fact> is deprecated."
         )
 
 
@@ -903,7 +881,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
             }
         )  # yapf: disable
 
-    @pytest.mark.filterwarnings("ignore:<has_value>")
     def test_downdate_condition_for_has_value(self):
         self._given_compiled_ontology(
             """
@@ -920,7 +897,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("dest_city"))])
 
-    @pytest.mark.filterwarnings("ignore:<has_value>")
     def test_downdate_condition_for_boolean_has_value(self):
         self._given_compiled_ontology(
             """
@@ -936,7 +912,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("need_visa"))])
 
-    @pytest.mark.filterwarnings("ignore:<is_true>")
     def test_downdate_condition_with_is_true(self):
         self._given_compiled_ontology(
             """
@@ -1066,7 +1041,6 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
             "postconds", [condition.HasSharedOrPrivateValue(self._parse("dest_city"))]
         )
 
-    @pytest.mark.filterwarnings("ignore:<is_true>")
     def test_downdate_condition_with_multiple_conditions(self):
         self._given_compiled_ontology(
             """
@@ -1688,49 +1662,6 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_findout_allows_pcom(True)
 
-    def test_if_then_condition_is_deprecated(self):
-        self._given_compiled_ontology_for_if_then_tests()
-        self._given_plan(
-            """
-<if>
-  <condition><proposition predicate="means_of_transport" value="train"/></condition>
-  <then>
-    <findout type="wh_question" predicate="transport_train_type" />
-  </then>
-  <else />
-</if>"""
-        )
-
-        self._when_compile_domain_with_plan_then_deprecation_warning_is_issued(
-            self._plan,
-            '"<if><condition><proposition ..." is deprecated. Use "<if><proposition ..." without <condition> instead.'
-        )
-
-    def _given_plan(self, plan):
-        self._plan = plan
-
-    @pytest.mark.filterwarnings('ignore:"<if>')
-    def test_if_then_condition_still_works(self):
-        self._given_compiled_ontology_for_if_then_tests()
-        self._when_compile_domain_with_plan(
-            """
-<if>
-  <condition><proposition predicate="means_of_transport" value="train"/></condition>
-  <then>
-    <findout type="wh_question" predicate="transport_train_type" />
-  </then>
-  <else />
-</if>"""
-        )
-
-        self._then_result_has_plan(
-            Plan([
-                plan_item.IfThenElse(
-                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
-                )
-            ])
-        )
-
     def test_if_then_else(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
@@ -1764,7 +1695,6 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 </ontology>"""
         )
 
-    @pytest.mark.filterwarnings('ignore:<has_value>')
     def test_if_then_else_has_value(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
@@ -2124,10 +2054,6 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         with pytest.raises(expected_exception, match=expected_message):
             self._when_compile_domain_with_plan(plan_xml)
 
-    def _when_compile_domain_with_plan_and_ignoring_warnings_then_exception_is_raised_matching(self, *args, **kwargs):
-        with self._mock_warnings():
-            self._when_compile_domain_with_plan_then_exception_is_raised_matching(*args, **kwargs)
-
     def test_invoke_service_action_default_attributes(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" />')
@@ -2163,19 +2089,6 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", downdate_plan=False)])
         )
-
-    def _when_compile_domain_with_plan_ignoring_warnings(self, plan_xml):
-        with self._mock_warnings():
-            self._when_compile_domain_with_plan(plan_xml)
-
-        self._then_result_has_plan(
-            Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", postconfirm=True)])
-        )
-
-    def _when_compile_domain_with_plan_then_deprecation_warning_is_issued(self, plan_xml, expected_warning_message):
-        with self._mock_warnings() as mocked_warnings:
-            self._when_compile_domain_with_plan(plan_xml)
-            self._then_warning_is_issued(mocked_warnings, expected_warning_message, DeprecationWarning)
 
     def test_jumpto(self):
         self._given_compiled_ontology()

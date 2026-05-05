@@ -585,7 +585,7 @@ class HttpServiceClientTest(unittest.TestCase):
             session={'session_id': 'mock_session_id'},
             context=Context("mock_active_ddd", self._mock_facts(), "mock_invocation_id"),
             expected_exception=HttpServiceInvocationException,
-            expected_message=r"Expected one of the supported versions \['1.0', '1.1'\] but got '0.0'"
+            expected_message=r"Expected one of the supported versions \['1.1'\] but got '0.0'"
         )
 
     def test_request_containing_confidence_scores(self):

@@ -3,7 +3,6 @@ import codecs
 import json
 import zlib
 import binascii
-import warnings
 
 # Compression
 
@@ -24,15 +23,6 @@ def compress_json(element_to_compress):
 
     """
     return compress_string(json.dumps(element_to_compress))
-
-
-def compress(element):
-    warnings.warn(
-        "tala.utils.compression.compress() is deprecated. Use tala.utils.compression.compress_json() instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return compress_json(element)
 
 
 # String decompression
@@ -66,26 +56,8 @@ def decompress_json(data):
     return json.loads(decompress_string(data))
 
 
-def decompress(data):
-    warnings.warn(
-        "tala.utils.compression.decompress() is deprecated. Use tala.utils.compression.decompress_json() instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return decompress_json(data)
-
-
 def ensure_decompressed_json(data):
     try:
         return decompress_json(data)
     except (AttributeError, zlib.error, binascii.Error, TypeError):
         return data
-
-
-def ensure_decompressed(data):
-    warnings.warn(
-        "tala.utils.compression.ensure_decompressed() is deprecated. Use tala.utils.compression.ensure_decompressed_json() instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return ensure_decompressed_json(data)

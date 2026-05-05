@@ -1,5 +1,3 @@
-import warnings
-
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.unicodify import unicodify
 
@@ -70,10 +68,6 @@ class Stack(AsJSONMixin):
         except StackError:
             return False
 
-    def isTop(self, element):
-        warnings.warn("Stack.isTop() is deprecated. Use Stack.is_top() instead.", DeprecationWarning, stacklevel=2)
-        return self.is_top(element)
-
     def pop(self):
         if len(self) < 1:
             raise StackError("Cannot call 'pop()' when stacksize <= 0")
@@ -81,10 +75,6 @@ class Stack(AsJSONMixin):
 
     def __len__(self):
         return len(self._content)
-
-    def isEmpty(self):
-        warnings.warn("Stack.isEmpty() is deprecated. Use Stack.is_empty() instead.", DeprecationWarning, stacklevel=2)
-        return self.is_empty()
 
     def is_empty(self):
         return len(self) == 0
@@ -122,45 +112,3 @@ class StackSet(Stack):
     def remove_if_exists(self, element):
         if element in self._content:
             self.remove(element)
-
-    def create_view(self, philter):
-        warnings.warn("StackSet.create_view is deprecated.", DeprecationWarning, stacklevel=2)
-        return StackSetView(self, philter)
-
-
-class StackSetView:
-    def __init__(self, source_object, philter):
-        warnings.warn("StackSetView is deprecated.", DeprecationWarning, stacklevel=2)
-        self.source_object = source_object
-        self.philter = philter
-
-    def __str__(self):
-        string = "stacksetview(" + str(list(self)) + ")"
-        return string
-
-    @property
-    def top(self):
-        return self._filtered_top(self.philter)
-
-    def _filtered_top(self, philter):
-        for element in self.source_object:
-            if philter(element):
-                return element
-
-    def push(self, element):
-        if element != self.top:
-            self.source_object.push(element)
-
-    def pop(self):
-        self.source_object.remove(self.top)
-
-    def __iter__(self):
-        for elem in self.source_object:
-            if self.philter(elem):
-                yield elem
-
-    def __len__(self):
-        return len(list(self.__iter__()))
-
-    def is_empty(self):
-        return len(self) == 0

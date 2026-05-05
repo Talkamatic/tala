@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-PROTOCOL_VERSION = "1.0"
+PROTOCOL_VERSION = "1.1"
 
 
 class Session(namedtuple("Session", ["session_id"])):

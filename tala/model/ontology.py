@@ -1,7 +1,6 @@
 import copy
 import re
 from typing import Iterable, Dict
-import warnings
 
 from tala.model.action import Action
 from tala.model.error import OntologyError
@@ -288,14 +287,6 @@ class Ontology(AsJSONMixin, JSONAPIMixin):
 
     def is_predicate(self, object_):
         return object_ in list(self._predicates.values())
-
-    def isPredicate(self, object_):
-        warnings.warn(
-            "Ontology.isPredicate() is deprecated. Use Ontology.is_predicate() instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.is_predicate(object_)
 
     def individual_sort(self, value):
         def sort_of(value):

@@ -1,5 +1,3 @@
-import warnings
-
 from tala.model.common import Modality
 from tala.model.confidence_estimate import ConfidenceEstimates
 from tala.model.speaker import USR, SYS
@@ -98,11 +96,6 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
 
     def is_move(self):
         return True
-
-    @property
-    def type(self):
-        warnings.warn("Move.type is deprecated. Use Move.type_ instead.", DeprecationWarning, stacklevel=2)
-        return self._type
 
     @property
     def type_(self):
