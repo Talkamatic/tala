@@ -773,11 +773,32 @@ class NonCheckingJSONParser():
         return plan_item.InvokeDomainQuery(issue, min_results=min_results, max_results=max_results)
 
     def parse_invoke_service_action_plan_item(self, data):
-        service_action = data["service_action"]
-        preconfirm = data["preconfirm"]
-        postconfirm = data["postconfirm"]
-        downdate_plan = data["downdate_plan"]
-        ontology_name = data["ontology"]
+        def safe_get(mapping, key, default=None):
+            try:
+                return mapping.get(key, default)
+            except AttributeError:
+                return default
+
+        def resolve_name(value):
+            try:
+                return value.get("name") or value.get("_name") or value.get("action")
+            except AttributeError:
+                return value
+
+        service_action = resolve_name(safe_get(data, "service_action"))
+        if not service_action:
+            service_action = resolve_name(
+                safe_get(data, "action") or safe_get(data, "_service_action") or safe_get(data, "action_name")
+            )
+
+        preconfirm = safe_get(data, "preconfirm")
+        postconfirm = safe_get(data, "postconfirm", False)
+        downdate_plan = safe_get(data, "downdate_plan")
+        if downdate_plan is None:
+            downdate_plan = safe_get(data, "_downdate_plan", True)
+        ontology_name = safe_get(data, "ontology") or safe_get(data, "ontology_name") or safe_get(
+            data, "_ontology_name"
+        )
         return plan_item.InvokeServiceAction(ontology_name, service_action, preconfirm, postconfirm, downdate_plan)
 
     def parse_question_report_plan_item(self, data):
@@ -949,11 +970,11 @@ class NonCheckingJSONParser():
             ontology_name = data["_ontology_name"]
             return PreconfirmationProposition(ontology_name, service_action, arguments, polarity)
         if data["_type"] == Proposition.SERVICE_RESULT:
-            service_action = data.get("service_action")
+            service_action = data.get("service_action") or data.get("_service_action")
             action_outcome = self.parse(data.get("result"))
-            arguments_data = data.get("arguments") or []
+            arguments_data = data.get("arguments") or data.get("_arguments") or []
             arguments = [self.parse_proposition(proposition) for proposition in arguments_data]
-            ontology_name = data.get("ontology_name")
+            ontology_name = data.get("ontology_name") or data.get("_ontology_name")
             return ServiceResultProposition(ontology_name, service_action, arguments, action_outcome)
         if data["_type"] == Proposition.UNDERSTANDING:
             content = self.parse(data["_content"])
