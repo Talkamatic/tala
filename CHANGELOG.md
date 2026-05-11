@@ -7,6 +7,8 @@ record before 12.0.0, see CHANGELOG.legacy.md.
   the only supported CLI entry point.
 - Docs: update CLI documentation to cover `tala-interact` only.
 - Changelog: archive historical entries in `CHANGELOG.legacy.md`.
+- Service: remove unused legacy constants module.
+- Cleanup: drop unused empty packages under `tala/service` and `bin`.
 
 ## Highlights since 12.0.0 (major changes only)
 
