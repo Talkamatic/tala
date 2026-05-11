@@ -107,6 +107,7 @@
 ## Repository-specific notes
 - No Cursor rules were found in `.cursor/rules/` or `.cursorrules`.
 - No Copilot instructions were found in `.github/copilot-instructions.md`.
+- Update `CHANGELOG.md` for user-facing changes.
 
 ## Commit messages
 - Header: max 50 characters.
