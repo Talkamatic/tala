@@ -9,6 +9,9 @@ record before 12.0.0, see CHANGELOG.legacy.md.
 - Changelog: archive historical entries in `CHANGELOG.legacy.md`.
 - Service: remove unused legacy constants module.
 - Cleanup: drop unused empty packages under `tala/service` and `bin`.
+- Domain orchestration: fix TIS auto log format detection and reduce payload duplication.
+- Domain orchestration: validate active DDD name and harden numeric coercion.
+- Domain orchestration: require non-empty DDD name lists.
 
 ## Highlights since 12.0.0 (major changes only)
 
