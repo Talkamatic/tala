@@ -1,8 +1,6 @@
-import logging
 import uuid
 from tala.ddd.ddd_manager import DDDManager
 from tala.ddd.loading.extended_ddd_set_loader import ExtendedDDDSetLoader
-from tala.log.formats import TIS_LOGGING_COMPACT, TIS_LOGGING_FULL, TIS_LOGGING_AUTO
 from tala.config import BackendConfig
 from tala.utils.as_json import AsJSONMixin
 from tala.utils import json_api
@@ -10,17 +8,6 @@ from tala.utils import json_api
 
 class UnknownActiveDddException(Exception):
     pass
-
-
-_LOG_LEVELS = {
-    "CRITICAL": logging.CRITICAL,
-    "ERROR": logging.ERROR,
-    "WARNING": logging.WARNING,
-    "WARN": logging.WARNING,
-    "INFO": logging.INFO,
-    "DEBUG": logging.DEBUG,
-    "NOTSET": logging.NOTSET,
-}
 
 
 def _resolve_odb_id(path):
@@ -120,10 +107,6 @@ class OrchestratedDomainBundle(AsJSONMixin):
         self._active_ddd_name = argument_dict["active_ddd_name"]
         _validate_active_ddd_name(self._active_ddd_name, self._ddd_names)
 
-        if self._logged_tis_format == TIS_LOGGING_AUTO:
-            log_level = self._normalize_log_level(self._log_level)
-            self._logged_tis_format = self._generate_tis_format_from_log_level(log_level)
-
         self.logger = None
 
     def as_dict(self):
@@ -163,27 +146,6 @@ class OrchestratedDomainBundle(AsJSONMixin):
 
     def __repr__(self):
         return str(self.as_dict())
-
-    @staticmethod
-    def _generate_tis_format_from_log_level(log_level):
-        if log_level == logging.DEBUG:
-            return TIS_LOGGING_FULL
-        return TIS_LOGGING_COMPACT
-
-    @staticmethod
-    def _normalize_log_level(log_level):
-        try:
-            return int(log_level)
-        except (TypeError, ValueError):
-            pass
-        name = str(log_level).upper()
-        name_level = _LOG_LEVELS.get(name)
-        if name_level is not None:
-            return name_level
-        try:
-            return int(logging.getLevelName(name))
-        except (TypeError, ValueError):
-            return logging.INFO
 
     @staticmethod
     def _coerce_float_dict(values, label):
