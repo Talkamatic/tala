@@ -5,6 +5,7 @@ from tala.model.predicate import Predicate  # noqa
 from tala.model.proposition import Proposition, PropositionSet
 from tala.model.semantic_object import SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
+from tala.utils import json_api
 from tala.utils.unicodify import unicodify
 
 
@@ -190,6 +191,12 @@ class KnowledgePreconditionQuestion(Question):
 
 
 class ConsequentQuestion(Question):
+    @classmethod
+    def create_from_json_api_data(cls, question_data, included):
+        content_data = included.get_object_from_relationship(question_data["relationships"]["content"]["data"])
+        lambda_abstraction = json_api.create_from_json_api_data(content_data, included)
+        return cls(lambda_abstraction)
+
     def __init__(self, lambda_abstracted_implication_proposition):
         Question.__init__(self, Question.TYPE_CONSEQUENT, lambda_abstracted_implication_proposition)
 

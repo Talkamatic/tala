@@ -1,7 +1,7 @@
 # flake8: noqa
 
 from tala.model.move_icm import ICM
-from tala.model import plan_item
+from tala.model import condition, plan_item
 from tala.model.proposition import ServiceResultProposition, PropositionSet
 from tala.testing.lib_test_case import LibTestCase
 from tala.testing.json_api_assertions import normalize_expected_json_api
@@ -17,7 +17,7 @@ class PlanItemTests(LibTestCase):
         self.findout_plan_item = plan_item.Findout(self.domain_name, self.question)
         self.raise_plan_item = plan_item.Raise(self.domain_name, self.question)
         self.bind_plan_item = plan_item.Bind(self.question)
-        self.if_condition = self.proposition_dest_city_paris
+        self.if_condition = condition.InBeliefsOrCommitments(self.proposition_dest_city_paris)
         self.if_consequent = [self.findout_plan_item]
         self.if_alternative = [self.raise_plan_item]
         self.if_then_else_plan_item = plan_item.IfThenElse(self.if_condition, self.if_consequent, self.if_alternative)
@@ -239,10 +239,10 @@ class InvokeServiceActionPlanItemTests(LibTestCase):
         self.when_call(self._plan_item.has_postconfirmation)
         self.then_result_is(True)
 
-    def test_should_downdate_plan_true_by_default(self):
+    def test_should_downdate_plan_false_by_default(self):
         self.given_created_service_action_plan_item()
         self.when_call(self._plan_item.should_downdate_plan)
-        self.then_result_is(True)
+        self.then_result_is(False)
 
     def test_should_downdate_plan_false(self):
         self.given_created_service_action_plan_item(downdate_plan=False)

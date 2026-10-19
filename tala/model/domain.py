@@ -9,17 +9,11 @@ from tala.model.question import KnowledgePreconditionQuestion, Question
 from tala.model import speaker
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model import plan_item
-from tala.model.proposition import PredicateProposition, ServiceActionTerminatedProposition
+from tala.model.proposition import PredicateProposition
 from tala.utils.as_json import AsJSONMixin, convert_to_json
 from tala.utils.json_api import (JSONAPIMixin, JSONAPIObject, get_attribute)
 from tala.utils.unique import unique
-from tala.model.query import (
-    ImplicationQuery,
-    EnumerationQuery,
-    IteratorQuery,
-    create_query_from_json_api_data,
-    create_query_from_dict,
-)
+from tala.model.query import create_query_from_json_api_data, create_query_from_dict
 
 SEMANTIC_OBJECT_TYPE = "domain"
 
@@ -39,30 +33,18 @@ def create_json_dict(key, value):
 def queries_dict_as_list(dict_):
     queries_list = []
     for _question, query_content in dict_.items():
-        if isinstance(query_content, ImplicationQuery):
-            queries_list.append({
-                "query": query_content.query,
-                "implications": query_content.implications,
-            })
+        as_dict = getattr(query_content, "as_dict", None)
+        if callable(as_dict):
+            queries_list.append(as_dict())
             continue
-        if isinstance(query_content, IteratorQuery):
-            queries_list.append(
-                serialize_iterator({
-                    "query": query_content.query,
-                    "limit": query_content.limit,
-                    query_content.enumeration_type: query_content.propositions,
-                })
-            )
-            continue
-        if isinstance(query_content, EnumerationQuery):
-            queries_list.append({
-                "query": query_content.query,
-                query_content.enumeration_type: query_content.propositions,
-            })
+        try:
+            items = query_content.items()
+        except AttributeError:
+            queries_list.append(query_content)
             continue
         result_dict = {}
-        for entry in query_content:
-            result_dict[entry] = convert_to_json(query_content[entry])
+        for entry, value in items:
+            result_dict[entry] = convert_to_json(value)
         queries_list.append(result_dict)
     return queries_list
 
@@ -631,14 +613,6 @@ class Domain(AsJSONMixin, JSONAPIMixin):
         if self.has_goal(goal):
             for downdate_condition in self.get_goal_attribute(goal, 'postconds'):
                 yield downdate_condition
-            for downdate_condition in self._implicit_downdate_conditions_for_service_action_invocations(goal):
-                yield downdate_condition
-
-    def _implicit_downdate_conditions_for_service_action_invocations(self, goal):
-        plan = self.get_plan(goal)
-        for item in plan:
-            if item.type_ == plan_item.TYPE_INVOKE_SERVICE_ACTION and item.should_downdate_plan():
-                yield ServiceActionTerminatedProposition(self.ontology.name, item.service_action)
 
     def get_goal_attribute(self, goal, attribute):
         plan_info = self._get_plan_info(goal)

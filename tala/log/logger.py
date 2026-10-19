@@ -52,7 +52,12 @@ def configure_stdout_logging(level=None):
 
 
 def configure_test_logging(level=None):
-    level = level or logging.INFO
+    if level is None:
+        env_level = os.environ.get("LOG_LEVEL")
+        if env_level:
+            level = getattr(logging, str(env_level).upper(), logging.INFO)
+        else:
+            level = logging.INFO
     return _configure_logging(STDOUT_HANDLER, level, processors=TESTING_PROCESSORS)
 
 

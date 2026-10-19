@@ -1,4 +1,5 @@
 from tala.utils.as_json import AsJSONMixin
+from tala.utils import json_api
 from tala.utils.unicodify import unicodify
 
 
@@ -27,6 +28,30 @@ class Stack(AsJSONMixin):
         return {
             "stack": self._content,
         }
+
+    def as_json_api_dict(self, id_=None, type_="tdm.tis.stack"):
+        stack_obj = json_api.JSONAPIObject(type_, id_=id_)
+        for item in self._content:
+            stack_obj.append_relationship("content", json_api.as_json_api_entry(item))
+        return stack_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if data is None:
+            return cls()
+        try:
+            items = included.get_data_for_relationship("content", data)
+        except AttributeError:
+            included = json_api.IncludedObject(included or [])
+            items = included.get_data_for_relationship("content", data)
+        if items is None:
+            return cls()
+        try:
+            items[0]
+        except (TypeError, KeyError, IndexError):
+            items = [items]
+        content = [json_api.create_from_json_api_data(item, included) for item in items if item is not None]
+        return cls(list(reversed(content)))
 
     def __repr__(self):
         return "{name}(content={content})".format(name=self.__class__.__name__, content=self._content)
@@ -99,6 +124,13 @@ class StackSet(Stack):
         return {
             "stackset": self._content,
         }
+
+    def as_json_api_dict(self, id_=None, type_="tdm.tis.stackset"):
+        return super().as_json_api_dict(id_=id_, type_=type_)
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        return super(StackSet, cls).create_from_json_api_data(data, included)
 
     def __str__(self):
         string = "stackset(" + unicodify(self._content) + ")"

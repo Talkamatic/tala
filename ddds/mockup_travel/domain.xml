@@ -33,7 +33,7 @@
   <goal type="perform" action="buy">
     <plan/>
     <downdate_condition>
-      <is_private_belief_or_shared_commitment predicate="dest_city" value="gothenburg"/>
+      <in_beliefs_or_commitments predicate="dest_city" value="gothenburg"/>
     </downdate_condition>
     <superaction name="make_domestic_reservation"/>
     <superaction name="make_international_reservation"/>
@@ -91,7 +91,7 @@
       <bind type="wh_question" predicate="dest_city_type"/>
     </plan>
     <downdate_condition>
-      <is_shared_commitment predicate="dest_city" value="gothenburg"/>
+      <in_shared_commitments predicate="dest_city" value="gothenburg"/>
     </downdate_condition>
     <superaction name="make_reservation"/>
   </goal>
@@ -101,6 +101,11 @@
       <findout type="wh_question" predicate="class"/>
       <invoke_service_action name="MakeRandomReservation" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="MakeRandomReservation"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="leave_comment" reraise_on_resume="false">
@@ -110,6 +115,11 @@
       <findout type="wh_question" predicate="comment_name"/>
       <invoke_service_action name="RegisterComment" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="RegisterComment"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="resolve" question_type="wh_question" predicate="next_membership_level">
@@ -137,7 +147,7 @@
       <findout type="wh_question" predicate="member_type"/>
     </plan>
     <downdate_condition>
-      <is_shared_commitment predicate="member_type" value="gold"/>
+      <in_shared_commitments predicate="member_type" value="gold"/>
     </downdate_condition>
     <postplan>
       <findout type="goal"/>
@@ -150,6 +160,11 @@
       <findout type="wh_question" predicate="passenger_quantity_to_add"/>
       <invoke_service_action name="AddPassengers" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="AddPassengers"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="membership">
@@ -166,6 +181,11 @@
     <plan>
       <invoke_service_action name="CancelReservation" postconfirm="false"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="CancelReservation"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="book_housing">
@@ -173,6 +193,11 @@
       <findout type="wh_question" predicate="selected_housing"/>
       <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="BookHousing"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="book_housing_alts">
@@ -183,6 +208,11 @@
       </findout>
       <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="BookHousing"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="contact_housing_owner">
@@ -190,6 +220,11 @@
       <findout type="wh_question" predicate="selected_housing_for_contact"/>
       <invoke_service_action name="ContactHost" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="ContactHost"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="book_housing_for_pets">
@@ -197,6 +232,11 @@
       <findout type="wh_question" predicate="selected_housing_for_pets"/>
       <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="BookHousing"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="book_housing_for_moomins">
@@ -204,6 +244,11 @@
       <findout type="wh_question" predicate="selected_housing_for_moomins"/>
       <invoke_service_action name="BookHousing" preconfirm="interrogative" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="BookHousing"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="select_train_type">
@@ -217,6 +262,11 @@
       <findout type="wh_question" predicate="dest_city"/>
       <invoke_service_action name="ShowOnMap" postconfirm="true"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="ShowOnMap"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="resolve" question_type="wh_question" predicate="room_availability" accommodate_without_feedback="true">
@@ -253,7 +303,7 @@
     <plan>
       <findout predicate="class" type="wh_question"/>
       <if>
-        <proposition predicate="class" value="business"/>
+        <in_beliefs_or_commitments predicate="class" value="business"/>
         <then>
           <assume_issue type="wh_question" predicate="flight_departure"/>
         </then>
@@ -267,11 +317,11 @@
     <plan>
       <findout type="wh_question" predicate="dest_city"/>
       <if>
-        <proposition predicate="dest_city" value="paris"/>
+        <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
         <then>
           <findout type="wh_question" predicate="dept_city"/>
           <if>
-            <proposition predicate="dept_city" value="gothenburg"/>
+            <in_beliefs_or_commitments predicate="dept_city" value="gothenburg"/>
             <then>
               <invoke_service_action name="ShowOnMap" postconfirm="true"/>
             </then>
@@ -285,6 +335,16 @@
         </else>
       </if>
     </plan>
+    <downdate_condition>
+      <or>
+        <in_beliefs_or_commitments>
+          <service_action_terminated name="ShowOnMap"/>
+        </in_beliefs_or_commitments>
+        <in_beliefs_or_commitments>
+          <service_action_terminated name="MakeRandomReservation"/>
+        </in_beliefs_or_commitments>
+      </or>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="mitigate_search_for_pets">
@@ -294,6 +354,11 @@
       </inform>
       <invoke_service_action name="HandoverToHuman" preconfirm="interrogative"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="HandoverToHuman"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <goal type="perform" action="mitigate_search_for_moomins">
@@ -303,6 +368,11 @@
       </inform>
       <invoke_service_action name="HandoverToHuman" preconfirm="interrogative"/>
     </plan>
+    <downdate_condition>
+      <in_beliefs_or_commitments>
+        <service_action_terminated name="HandoverToHuman"/>
+      </in_beliefs_or_commitments>
+    </downdate_condition>
   </goal>
 
   <query predicate="dest_city" type="wh_question">
@@ -473,7 +543,7 @@
         <proposition predicate="other_boolean_predicate" value="true"/>
       </assume_shared>
       <if>
-        <proposition predicate="one_boolean_predicate"/>
+        <in_beliefs_or_commitments predicate="one_boolean_predicate"/>
         <then>
           <inform>
             <proposition predicate="test_info_one" value="one is true"/>
@@ -486,7 +556,7 @@
         </else>
       </if>
       <if>
-        <proposition predicate="other_boolean_predicate"/>
+        <in_beliefs_or_commitments predicate="other_boolean_predicate"/>
         <then>
           <inform>
             <proposition predicate="test_info_other" value="other is true"/>

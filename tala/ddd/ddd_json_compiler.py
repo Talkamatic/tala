@@ -402,12 +402,6 @@ class DDDJSONCompiler(object):
         parent.appendChild(element)
 
     def _append_if_condition(self, doc, parent, condition):
-        if len(condition) != 1:
-            raise DDDJSONCompilerException("Condition must be a single-key object.")
-        condition_type, payload = next(iter(condition.items()))
-        if condition_type == "is_true":
-            self._append_predicate_proposition(doc, parent, payload)
-            return
         self._append_condition(doc, parent, condition)
 
     def _append_goal_proposition(self, doc, parent, proposition):
@@ -426,20 +420,94 @@ class DDDJSONCompiler(object):
             raise DDDJSONCompilerException("Condition must be a single-key object.")
         condition_type, payload = next(iter(condition.items()))
         element = doc.createElement(condition_type)
-        if condition_type == "is_true":
-            self._append_predicate_proposition(doc, element, payload)
-        elif condition_type == "has_more_items":
+        if condition_type in ["and", "or"]:
+            for item in payload:
+                self._append_condition(doc, element, item)
+            parent.appendChild(element)
+            return
+        if condition_type == "not":
+            self._append_condition(doc, element, payload)
+            parent.appendChild(element)
+            return
+        if condition_type == "has_more_items":
             if "predicate" in payload:
                 element.setAttribute("predicate", payload["predicate"])
             if "iterator" in payload:
                 element.setAttribute("iterator", payload["iterator"])
-        elif "predicate" in payload:
+            parent.appendChild(element)
+            return
+        if "predicate" in payload:
             element.setAttribute("predicate", payload["predicate"])
             if "value" in payload:
                 element.setAttribute("value", payload["value"])
-        else:
-            self._append_predicate_proposition(doc, element, payload)
+            parent.appendChild(element)
+            return
+        if "proposition" in payload:
+            proposition_payload = payload["proposition"]
+            self._append_condition_proposition(doc, element, proposition_payload)
+            parent.appendChild(element)
+            return
+        self._append_condition_proposition(doc, element, payload)
         parent.appendChild(element)
+
+    def _append_condition_proposition(self, doc, parent, proposition):
+        if "predicate" in proposition:
+            self._append_predicate_proposition(doc, parent, proposition)
+            return
+        if "perform" in proposition or "resolve" in proposition:
+            self._append_goal_proposition(doc, parent, proposition)
+            return
+        if "service_action_terminated" in proposition:
+            action = proposition["service_action_terminated"].get("name") or proposition["service_action_terminated"].get(
+                "action"
+            )
+            element = doc.createElement("service_action_terminated")
+            element.setAttribute("name", action)
+            parent.appendChild(element)
+            return
+        if "service_action_started" in proposition:
+            action = proposition["service_action_started"].get("name") or proposition["service_action_started"].get(
+                "action"
+            )
+            element = doc.createElement("service_action_started")
+            element.setAttribute("name", action)
+            parent.appendChild(element)
+            return
+        if "action_status" in proposition:
+            status_payload = proposition["action_status"]
+            element = doc.createElement("action_status")
+            element.setAttribute("action", status_payload["action"])
+            element.setAttribute("status", status_payload["status"])
+            if "reason" in status_payload:
+                element.setAttribute("reason", status_payload["reason"])
+            parent.appendChild(element)
+            return
+        if "question_status" in proposition:
+            status_payload = proposition["question_status"]
+            element = doc.createElement("question_status")
+            element.setAttribute("status", status_payload["status"])
+            if "reason" in status_payload:
+                element.setAttribute("reason", status_payload["reason"])
+            question_element = doc.createElement("question")
+            self._apply_question_attributes(doc, question_element, status_payload["question"])
+            element.appendChild(question_element)
+            parent.appendChild(element)
+            return
+        if "resolved" in proposition:
+            element = doc.createElement("resolved")
+            question_element = doc.createElement("question")
+            self._apply_question_attributes(doc, question_element, proposition["resolved"]["question"])
+            element.appendChild(question_element)
+            parent.appendChild(element)
+            return
+        if "know_answer" in proposition:
+            element = doc.createElement("know_answer")
+            question_element = doc.createElement("question")
+            self._apply_question_attributes(doc, question_element, proposition["know_answer"]["question"])
+            element.appendChild(question_element)
+            parent.appendChild(element)
+            return
+        raise DDDJSONCompilerException("Unsupported condition proposition.")
 
     def _apply_parameters(self, doc, element, parameters):
         if "question" in parameters:
@@ -522,9 +590,14 @@ class DDDJSONCompiler(object):
             for implication in query["implications"]:
                 implication_element = doc.createElement("implication")
                 antecedent_element = doc.createElement("antecedent")
-                antecedent_element.setAttribute("predicate", implication["antecedent"]["predicate"])
-                if "value" in implication["antecedent"]:
-                    antecedent_element.setAttribute("value", implication["antecedent"]["value"])
+                antecedent_data = implication["antecedent"]
+                if isinstance(antecedent_data, list):
+                    for proposition in antecedent_data:
+                        self._append_predicate_proposition(doc, antecedent_element, proposition)
+                else:
+                    antecedent_element.setAttribute("predicate", antecedent_data["predicate"])
+                    if "value" in antecedent_data:
+                        antecedent_element.setAttribute("value", antecedent_data["value"])
                 consequent_element = doc.createElement("consequent")
                 consequent_element.setAttribute("predicate", implication["consequent"]["predicate"])
                 if "value" in implication["consequent"]:

@@ -95,6 +95,10 @@ class ICM(Move):
     def polarity(self):
         return self._polarity
 
+    @property
+    def json_api_attributes(self):
+        return super().json_api_attributes + ["polarity"]
+
     def is_icm(self):
         return True
 
@@ -218,6 +222,14 @@ class ICMWithContent(ICM):
     @property
     def content_speaker(self):
         return self._content_speaker
+
+    @property
+    def json_api_attributes(self):
+        return super().json_api_attributes + ["content_speaker"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content"]
 
     def has_semantic_content(self):
         try:

@@ -1,12 +1,33 @@
 from tala.model.semantic_object import SemanticObject
 
 
+class UnknownActionStatusException(Exception):
+    pass
+
+
 class ActionStatus(SemanticObject):
     DONE = "done"
     ABORTED = "aborted"
 
+    @property
+    def json_api_attributes(self):
+        return []
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if cls is Done:
+            return Done()
+        if cls is Aborted:
+            attributes = data.get("attributes", {})
+            return Aborted(attributes.get("reason"))
+        raise UnknownActionStatusException(f"Unsupported action status class {cls.__name__}")
+
 
 class Done(ActionStatus):
+    @property
+    def json_api_attributes(self):
+        return []
+
     def __eq__(self, other):
         return isinstance(other, Done)
 
@@ -33,6 +54,10 @@ class Aborted(ActionStatus):
     @property
     def reason(self):
         return self._reason
+
+    @property
+    def json_api_attributes(self):
+        return ["reason"]
 
     def __eq__(self, other):
         return isinstance(other, Aborted) and self.reason == other.reason

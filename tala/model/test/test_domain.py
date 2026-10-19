@@ -10,7 +10,7 @@ from tala.model.ontology import Ontology
 from tala.model.plan import Plan, InvalidPlansException
 from tala.model.plan_item import Bind, IfThenElse, InvokeServiceAction, GetDone, Findout, Raise
 from tala.model.polarity import Polarity
-from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet, ServiceActionTerminatedProposition
+from tala.model.proposition import PredicateProposition, GoalProposition, PropositionSet
 from tala.model.question import WhQuestion, AltQuestion, KnowledgePreconditionQuestion
 from tala.model.sort import CustomSort, RealSort
 from tala.testing.lib_test_case import LibTestCase
@@ -350,15 +350,8 @@ class DomainTests(LibTestCase):
         action_without_downdate_condition = self.always_preferred_action
         self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(action_without_downdate_condition))))
 
-    def test_get_downdate_conditions_returns_implicit_downdate_conditions_for_service_action_invocations_if_downdate_plan_is_true(
-        self
-    ):
-        self.assertEqual([ServiceActionTerminatedProposition("mockup_ontology", "mock_service_action")],
-                         list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_true_action))))
-
-    def test_get_downdate_conditions_doesnt_return_implicit_downdate_conditions_for_service_action_invocations_if_not_downdating_plan(
-        self
-    ):
+    def test_get_downdate_conditions_does_not_return_implicit_conditions_for_service_action_invocations(self):
+        self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_true_action))))
         self.assertEqual([], list(self.domain.get_downdate_conditions(PerformGoal(self.downdate_plan_false_action))))
 
     def test_get_downdate_conditions_for_resolve_goal(self):

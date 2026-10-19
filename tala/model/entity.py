@@ -1,3 +1,4 @@
+from tala.utils import json_api
 from tala.utils.equality import EqualityMixin
 from tala.utils.as_json import AsJSONMixin
 
@@ -59,3 +60,22 @@ class Entity(EqualityMixin, AsJSONMixin):
                 "sort": self.sort,
                 "natural_language_form": self.natural_language_form,
             }
+
+    def as_json_api_dict(self, id_=None, type_=None):
+        if type_ is None:
+            type_ = f"{self.__class__.__module__}.{self.__class__.__name__}"
+        if id_ is None:
+            id_ = f"entity:{self.name}:{self.sort}:{self.ddd_name}"
+        attributes = {
+            "name": self.name,
+            "sort": self.sort,
+            "natural_language_form": self.natural_language_form,
+            "ddd": self.ddd_name,
+        }
+        entity_obj = json_api.JSONAPIObject(type_, id_, attributes)
+        return entity_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, _included):
+        attributes = data.get("attributes", {})
+        return cls.create_from_json(attributes)

@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 from tala.model.common import Modality
 from tala.model.confidence_estimate import ConfidenceEstimates
 from tala.model.speaker import USR, SYS
@@ -102,6 +105,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
         return self._type
 
     @property
+    def move_type(self):
+        return self._type
+
+    @property
     def speaker(self):
         return self._speaker
 
@@ -158,6 +165,10 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
 
     @property
     def ddd_name(self):
+        return self._ddd_name
+
+    @property
+    def ddd(self):
         return self._ddd_name
 
     @ddd_name.setter
@@ -297,6 +308,27 @@ class Move(SemanticObject, AsSemanticExpressionMixin):
     def as_semantic_expression(self):
         return self._type
 
+    @property
+    def json_api_id(self):
+        return f"{self.json_api_type}:{_json_api_id_hash(self)}"
+
+    @property
+    def json_api_attributes(self):
+        return [
+            "move_type",
+            "speaker",
+            "modality",
+            "utterance",
+            "understanding_confidence",
+            "perception_confidence",
+            "ddd",
+            "weighted_understanding_confidence",
+        ]
+
+    @property
+    def json_api_relationships(self):
+        return []
+
 
 class MoveWithSemanticContent(Move, SemanticObjectWithContent):
     def __init__(self, type, content, *args, **kwargs):
@@ -336,6 +368,10 @@ class MoveWithSemanticContent(Move, SemanticObjectWithContent):
             "content": self.content.as_dict() if self.content else None,
         }
         return super().as_dict() | result
+
+    @property
+    def json_api_relationships(self):
+        return ["content"]
 
     def class_internal_move_content_equals(self, other):
         return self._content == other._content
@@ -412,6 +448,17 @@ class Prereport(Move, OntologySpecificSemanticObject):
     def class_internal_move_content_equals(self, other):
         return (self.service_action == other.service_action and self.arguments == other.arguments)
 
+    @property
+    def json_api_attributes(self):
+        return super().json_api_attributes + [
+            "ontology_name",
+            "service_action",
+        ]
+
+    @property
+    def json_api_relationships(self):
+        return ["arguments"]
+
     def as_dict(self):
         return super().as_dict() | {
             "arguments": self.arguments,
@@ -461,6 +508,67 @@ class Mute(Move):
 class Unmute(Move):
     def __init__(self, *args, **kwargs):
         super(Unmute, self).__init__(Move.UNMUTE, *args, **kwargs)
+
+
+def _json_api_id_hash(move):
+    payload = {
+        "move_type": move.type_,
+        "ddd": move.ddd_name,
+        "speaker": move.speaker,
+        "modality": move.modality,
+        "utterance": move.utterance,
+        "understanding_confidence": move.understanding_confidence,
+        "perception_confidence": move.perception_confidence,
+        "weighted_understanding_confidence": move.weighted_understanding_confidence,
+    }
+    polarity = getattr(move, "polarity", None)
+    if polarity is not None:
+        payload["polarity"] = polarity
+    content_speaker = getattr(move, "content_speaker", None)
+    if content_speaker is not None:
+        payload["content_speaker"] = content_speaker
+    ontology_name = _safe_attr(move, "ontology_name")
+    if ontology_name is not None:
+        payload["ontology_name"] = ontology_name
+    service_action = _safe_attr(move, "service_action")
+    if service_action is not None:
+        payload["service_action"] = service_action
+    content = _safe_attr(move, "content")
+    if content is not None:
+        payload["content"] = _json_api_id_for_value(content)
+    arguments = _safe_attr(move, "arguments")
+    if arguments is not None:
+        try:
+            arguments = list(arguments)
+        except TypeError:
+            arguments = None
+        if arguments is not None:
+            payload["arguments"] = [_json_api_id_for_value(arg) for arg in arguments]
+    payload_json = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha1(payload_json.encode("ascii")).hexdigest()
+
+
+def _json_api_id_for_value(value):
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple)):
+        return [_json_api_id_for_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _json_api_id_for_value(val) for key, val in sorted(value.items())}
+    try:
+        return value.json_api_id
+    except AttributeError:
+        try:
+            return value.as_semantic_expression()
+        except Exception:
+            return str(value)
+
+
+def _safe_attr(obj, name):
+    try:
+        return getattr(obj, name)
+    except Exception:
+        return None
 
 
 class Quit(Move):

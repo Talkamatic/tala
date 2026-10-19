@@ -1,5 +1,3 @@
-import pytest
-
 from tala.testing.json_api_assertions import normalize_expected_json_api
 from tala.utils import json_api
 
@@ -377,19 +375,19 @@ class TestJSONAPICompatibility:
 
         self.then_all_resources_are_present()
 
-    def test_missing_relationship_raises(self):
+    def test_missing_relationship_serializes_null(self):
         self.given_relationship_target(None)
 
         self.when_serializing_relationship()
 
-        self.then_relationship_error_raised("is None")
+        self.then_relationship_serializes_null()
 
-    def test_relationship_without_serializer_raises(self):
+    def test_relationship_without_serializer_serializes_scalar(self):
         self.given_relationship_target("not-json-api")
 
         self.when_serializing_relationship()
 
-        self.then_relationship_error_raised("does not implement as_json_api_dict")
+        self.then_relationship_serializes_scalar("not-json-api")
 
     def test_included_merge_and_type_resolution(self):
         self.given_included_with_same_id()
@@ -455,10 +453,20 @@ class TestJSONAPICompatibility:
     def then_all_resources_are_present(self):
         assert len(self._included.as_list) == 2
 
-    def then_relationship_error_raised(self, message):
-        with pytest.raises(ValueError) as excinfo:
-            self._relationship_object.as_json_api_dict()
-        assert message in str(excinfo.value)
+    def then_relationship_serializes_scalar(self, value):
+        payload = self._relationship_object.as_json_api_dict()
+        relationship = payload["data"]["relationships"]["child"]["data"]
+        assert relationship["type"] == "tdm.tis.scalar"
+        scalar = next(
+            item for item in payload["included"]
+            if item["type"] == "tdm.tis.scalar" and item["id"] == relationship["id"]
+        )
+        assert scalar["attributes"]["value"] == value
+
+    def then_relationship_serializes_null(self):
+        payload = self._relationship_object.as_json_api_dict()
+        assert payload["data"]["relationships"]["child"]["data"] is None
+        assert payload["included"] == []
 
     def given_payload_with_meta_and_legacy_version(self):
         self._payload = {

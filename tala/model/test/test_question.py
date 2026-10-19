@@ -2,10 +2,12 @@ import copy
 
 from tala.model.error import OntologyError
 from tala.model.goal import PerformGoal
-from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
+from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition, \
+    LambdaAbstractedImplicationPropositionForConsequent
 from tala.model.proposition import PropositionSet, GoalProposition
-from tala.model.question import AltQuestion, WhQuestion, KnowledgePreconditionQuestion
+from tala.model.question import AltQuestion, ConsequentQuestion, KnowledgePreconditionQuestion, Question, WhQuestion
 from tala.testing.lib_test_case import LibTestCase
+from tala.utils.json_api import IncludedObject
 
 
 class WhQuestionTests(LibTestCase):
@@ -120,3 +122,18 @@ class KnowledgePreconditionQuestionTestCase(LibTestCase):
 
     def test_string_format(self):
         self.assertEqual("?know_answer(?X.dest_city(X))", str(self.kpq))
+
+
+class ConsequentQuestionJsonApiTests(LibTestCase):
+    def setUp(self):
+        self.setUpLibTestCase()
+        lambda_abstraction = LambdaAbstractedImplicationPropositionForConsequent(
+            self.proposition_dest_city_paris, self.predicate_price, self.ontology_name
+        )
+        self.consequent_question = ConsequentQuestion(lambda_abstraction)
+
+    def test_json_api_roundtrip(self):
+        json_api_dict = self.consequent_question.as_json_api_dict()
+        included = IncludedObject(json_api_dict["included"])
+        recreated = Question.create_from_json_api_data(json_api_dict["data"], included)
+        self.assertEqual(self.consequent_question, recreated)

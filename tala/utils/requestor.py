@@ -11,7 +11,7 @@ REQUESTOR_BASE_URL = getenv(
 ) or ""
 CONNECTION_TIMEOUT = 3.05  # see requests documentation
 
-DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-05-13")
+DEFAULT_GPT_MODEL = getenv("DEFAULT_GPT_MODEL", "gpt-4o-2024-11-20")
 
 TOP_PRIORITY = 1
 HIGH_PRIORITY = 2

@@ -19,7 +19,8 @@ from tala.model.plan import Plan
 from tala.model import plan_item
 from tala.model import condition
 from tala.model.predicate import Predicate
-from tala.model.proposition import ImplicationProposition
+from tala.model.proposition import ImplicationProposition, PropositionSet
+from tala.model.query import ImplicationQuery, EnumerationQuery, IteratorQuery
 from tala.model.sort import CustomSort, RealSort
 
 
@@ -364,14 +365,17 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries", [{
-                "query": self._parse("?X.means_of_transport(X)"),
-                "implications": [
-                    ImplicationProposition(
-                        self._parse("means_of_travel(train)"), self._parse("means_of_travel(train)")
-                    )
-                ]
-            }]
+            "queries", [
+                ImplicationQuery(
+                    self._parse("?X.means_of_transport(X)"),
+                    [
+                        ImplicationProposition(
+                            self._parse("means_of_travel(train)"),
+                            self._parse("means_of_travel(train)")
+                        )
+                    ],
+                )
+            ]
         )
 
     def test_query_select_at_random(self):
@@ -401,13 +405,62 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries", [{
-                "query": self._parse("?X.means_of_transport(X)"),
-                "for_random_selection": [
-                    self._parse("means_of_transport(train)"),
-                    self._parse("means_of_transport(plane)")
-                ]
-            }]
+            "queries", [
+                EnumerationQuery(
+                    self._parse("?X.means_of_transport(X)"),
+                    "for_random_selection",
+                    [
+                        self._parse("means_of_transport(train)"),
+                        self._parse("means_of_transport(plane)")
+                    ],
+                )
+            ]
+        )
+
+    def test_query_implication_with_multiple_antecedents(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="direction"/>
+  <sort name="weather_condition"/>
+  <predicate name="money" sort="direction"/>
+  <predicate name="weather" sort="weather_condition"/>
+  <predicate name="way_to_look" sort="direction"/>
+  <individual name="left" sort="direction"/>
+  <individual name="sunny" sort="weather_condition"/>
+</ontology>"""
+        )
+
+        self._when_compile_domain(
+            """
+<domain name="Domain">
+  <query predicate="way_to_look" type="wh_question">
+    <implication>
+      <antecedent>
+        <proposition predicate="money" value="left"/>
+        <proposition predicate="weather" value="sunny"/>
+      </antecedent>
+      <consequent predicate="way_to_look" value="left"/>
+    </implication>
+  </query>
+</domain>"""
+        )
+
+        self._then_result_has_field(
+            "queries", [
+                ImplicationQuery(
+                    self._parse("?X.way_to_look(X)"),
+                    [
+                        ImplicationProposition(
+                            PropositionSet([
+                                self._parse("money(left)"),
+                                self._parse("weather(sunny)"),
+                            ]),
+                            self._parse("way_to_look(left)"),
+                        )
+                    ],
+                )
+            ]
         )
 
     def test_query_enumerate(self):
@@ -437,11 +490,16 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries", [{
-                "query": self._parse("?X.means_of_transport(X)"),
-                "for_enumeration": [self._parse("means_of_transport(train)"),
-                                    self._parse("means_of_transport(plane)")]
-            }]
+            "queries", [
+                EnumerationQuery(
+                    self._parse("?X.means_of_transport(X)"),
+                    "for_enumeration",
+                    [
+                        self._parse("means_of_transport(train)"),
+                        self._parse("means_of_transport(plane)")
+                    ],
+                )
+            ]
         )
 
     def test_query_enumerate_random(self):
@@ -471,13 +529,16 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries", [{
-                "query": self._parse("?X.means_of_transport(X)"),
-                "for_random_enumeration": [
-                    self._parse("means_of_transport(train)"),
-                    self._parse("means_of_transport(plane)")
-                ]
-            }]
+            "queries", [
+                EnumerationQuery(
+                    self._parse("?X.means_of_transport(X)"),
+                    "for_random_enumeration",
+                    [
+                        self._parse("means_of_transport(train)"),
+                        self._parse("means_of_transport(plane)")
+                    ],
+                )
+            ]
         )
 
     def test_iterator(self):
@@ -507,12 +568,17 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_field(
-            "queries", [{
-                "query": "some_name",
-                "for_enumeration": [self._parse("means_of_transport(train)"),
-                                    self._parse("means_of_travel(train)")],
-                "limit": "-1"
-            }]
+            "queries", [
+                IteratorQuery(
+                    "some_name",
+                    "-1",
+                    "for_enumeration",
+                    [
+                        self._parse("means_of_transport(train)"),
+                        self._parse("means_of_travel(train)")
+                    ],
+                )
+            ]
         )
 
     def test_domain_validator(self):
@@ -613,13 +679,11 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dest_city" value="paris"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsTrue(self._parse("dest_city(paris)"))]
+            "postconds", [condition.InBeliefsOrCommitments(self._parse("dest_city(paris)"))]
         )
 
     def test_downdate_condition_for_predicate_proposition(self):
@@ -634,13 +698,39 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dest_city" value="paris"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsTrue(self._parse("dest_city(paris)"))]
+            "postconds", [condition.InBeliefsOrCommitments(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_for_service_action_terminated(self):
+        self._given_compiled_ontology("<ontology name=\"Ontology\"/>")
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <in_shared_commitments>
+    <service_action_terminated name="MakeReservation"/>
+  </in_shared_commitments>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.InSharedCommitments(self._parse("service_action_terminated(MakeReservation)"))]
+        )
+
+    def test_downdate_condition_for_goal_proposition_child(self):
+        self._given_compiled_ontology("<ontology name=\"Ontology\"><action name=\"top\"/></ontology>")
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <in_beliefs_or_commitments>
+    <perform action="top"/>
+  </in_beliefs_or_commitments>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.InBeliefsOrCommitments(self._parse("goal(perform(top))"))]
         )
 
     def test_downdate_condition_with_multiple_propositions(self):
@@ -657,20 +747,16 @@ class TestGoalCompilation(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dept_city" value="gothenburg"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dept_city" value="gothenburg"/>
 </downdate_condition>
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dest_city" value="paris"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
             "postconds", [
-                condition.IsTrue(self._parse("dept_city(gothenburg)")),
-                condition.IsTrue(self._parse("dest_city(paris)")),
+                condition.InBeliefsOrCommitments(self._parse("dept_city(gothenburg)")),
+                condition.InBeliefsOrCommitments(self._parse("dest_city(paris)")),
             ]
         )
 
@@ -912,7 +998,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasValue(self._parse("need_visa"))])
 
-    def test_downdate_condition_with_is_true(self):
+    def test_downdate_condition_with_in_beliefs_or_commitments(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -924,33 +1010,14 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dest_city" value="paris"/>
-  </is_true>
-</downdate_condition>"""
-        )
-        self._then_result_has_plan_with_attribute("postconds", [condition.IsTrue(self._parse("dest_city(paris)"))])
-
-    def test_downdate_condition_with_is_shared_commitment(self):
-        self._given_compiled_ontology(
-            """
-<ontology name="Ontology">
-  <predicate name="dest_city" sort="city"/>
-  <individual name="paris" sort="city"/>
-  <sort name="city"/>
-</ontology>"""
-        )
-        self._when_compile_goal_with_content(
-            """
-<downdate_condition>
-  <is_shared_commitment predicate="dest_city" value="paris"/>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsSharedCommitment(self._parse("dest_city(paris)"))]
+            "postconds", [condition.InBeliefsOrCommitments(self._parse("dest_city(paris)"))]
         )
 
-    def test_downdate_condition_with_is_private_belief(self):
+    def test_downdate_condition_with_in_shared_commitments(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -962,14 +1029,14 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_private_belief predicate="dest_city" value="paris"/>
+  <in_shared_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsPrivateBelief(self._parse("dest_city(paris)"))]
+            "postconds", [condition.InSharedCommitments(self._parse("dest_city(paris)"))]
         )
 
-    def test_downdate_condition_with_is_private_belief_or_shared_commitment(self):
+    def test_downdate_condition_with_in_private_beliefs(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -981,11 +1048,30 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_private_belief_or_shared_commitment predicate="dest_city" value="paris"/>
+  <in_private_beliefs predicate="dest_city" value="paris"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.IsPrivateBeliefOrSharedCommitment(self._parse("dest_city(paris)"))]
+            "postconds", [condition.InPrivateBeliefs(self._parse("dest_city(paris)"))]
+        )
+
+    def test_downdate_condition_with_in_beliefs_or_commitments_via_private_or_shared(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <predicate name="dest_city" sort="city"/>
+  <individual name="paris" sort="city"/>
+  <sort name="city"/>
+</ontology>"""
+        )
+        self._when_compile_goal_with_content(
+            """
+<downdate_condition>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
+</downdate_condition>"""
+        )
+        self._then_result_has_plan_with_attribute(
+            "postconds", [condition.InBeliefsOrCommitments(self._parse("dest_city(paris)"))]
         )
 
     def test_downdate_condition_with_has_shared_value(self):
@@ -1022,7 +1108,7 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         )
         self._then_result_has_plan_with_attribute("postconds", [condition.HasPrivateValue(self._parse("dest_city"))])
 
-    def test_downdate_condition_with_has_shared_or_private_value(self):
+    def test_downdate_condition_with_has_value(self):
         self._given_compiled_ontology(
             """
 <ontology name="Ontology">
@@ -1034,11 +1120,11 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <has_shared_or_private_value predicate="dest_city"/>
+  <has_value predicate="dest_city"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
-            "postconds", [condition.HasSharedOrPrivateValue(self._parse("dest_city"))]
+            "postconds", [condition.HasValue(self._parse("dest_city"))]
         )
 
     def test_downdate_condition_with_multiple_conditions(self):
@@ -1055,20 +1141,16 @@ class TestDomainCompiler(DDDXMLCompilerTestCase):
         self._when_compile_goal_with_content(
             """
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dest_city" value="paris"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dest_city" value="paris"/>
 </downdate_condition>
 <downdate_condition>
-  <is_true>
-    <proposition predicate="dept_city" value="gothenburg"/>
-  </is_true>
+  <in_beliefs_or_commitments predicate="dept_city" value="gothenburg"/>
 </downdate_condition>"""
         )
         self._then_result_has_plan_with_attribute(
             "postconds",
-            [condition.IsTrue(self._parse("dest_city(paris)")),
-             condition.IsTrue(self._parse("dept_city(gothenburg)"))]
+            [condition.InBeliefsOrCommitments(self._parse("dest_city(paris)")),
+             condition.InBeliefsOrCommitments(self._parse("dept_city(gothenburg)"))]
         )
 
     def test_schema_violation_yields_exception(self):
@@ -1667,7 +1749,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._when_compile_domain_with_plan(
             """
 <if>
-  <proposition predicate="means_of_transport" value="train"/>
+  <in_beliefs_or_commitments predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type" />
   </then>
@@ -1678,7 +1760,9 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
+                    condition.InBeliefsOrCommitments(self._parse("means_of_transport(train)")),
+                    [self._parse("findout(?X.transport_train_type(X))")],
+                    [],
                 )
             ])
         )
@@ -1758,12 +1842,12 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
             ])
         )
 
-    def test_if_then_has_shared_or_private_value(self):
+    def test_if_then_in_beliefs_or_commitments(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
             """
 <if>
-  <has_shared_or_private_value predicate="means_of_transport"/>
+  <in_beliefs_or_commitments predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type"/>
   </then>
@@ -1773,18 +1857,18 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    condition.HasSharedOrPrivateValue(self._parse("means_of_transport")),
+                    condition.InBeliefsOrCommitments(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
         )
 
-    def test_if_then_is_shared_commitment(self):
+    def test_if_then_in_shared_commitments(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
             """
 <if>
-  <is_shared_commitment predicate="means_of_transport" value="train"/>
+  <in_shared_commitments predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type"/>
   </then>
@@ -1794,18 +1878,18 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    condition.IsSharedCommitment(self._parse("means_of_transport(train)")),
+                    condition.InSharedCommitments(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
         )
 
-    def test_if_then_is_private_belief(self):
+    def test_if_then_in_private_beliefs(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
             """
 <if>
-  <is_private_belief predicate="means_of_transport" value="train"/>
+  <in_private_beliefs predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type"/>
   </then>
@@ -1815,18 +1899,18 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    condition.IsPrivateBelief(self._parse("means_of_transport(train)")),
+                    condition.InPrivateBeliefs(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
                 )
             ])
         )
 
-    def test_if_then_is_private_belief_or_shared_commitment(self):
+    def test_if_then_in_beliefs_or_commitments_condition(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan(
             """
 <if>
-  <is_private_belief_or_shared_commitment predicate="means_of_transport" value="train"/>
+  <in_beliefs_or_commitments predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type"/>
   </then>
@@ -1836,8 +1920,41 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    condition.IsPrivateBeliefOrSharedCommitment(self._parse("means_of_transport(train)")),
+                    condition.InBeliefsOrCommitments(self._parse("means_of_transport(train)")),
                     [self._parse("findout(?X.transport_train_type(X))")], []
+                )
+            ])
+        )
+
+    def test_if_then_else_with_boolean_conditions(self):
+        self._given_compiled_ontology_for_if_then_tests()
+        self._when_compile_domain_with_plan(
+            """
+<if>
+  <and>
+    <has_value predicate="means_of_transport"/>
+    <not>
+      <in_private_beliefs predicate="means_of_transport" value="train"/>
+    </not>
+  </and>
+  <then>
+    <findout type="wh_question" predicate="transport_train_type"/>
+  </then>
+  <else />
+</if>"""
+        )
+
+        self._then_result_has_plan(
+            Plan([
+                plan_item.IfThenElse(
+                    condition.AndCondition([
+                        condition.HasValue(self._parse("means_of_transport")),
+                        condition.NotCondition(
+                            condition.InPrivateBeliefs(self._parse("means_of_transport(train)"))
+                        ),
+                    ]),
+                    [self._parse("findout(?X.transport_train_type(X))")],
+                    [],
                 )
             ])
         )
@@ -1868,7 +1985,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._when_compile_domain_with_plan(
             """
 <if>
-  <proposition predicate="means_of_transport" value="train"/>
+  <in_beliefs_or_commitments predicate="means_of_transport" value="train"/>
   <then>
     <findout type="wh_question" predicate="transport_train_type" />
   </then>
@@ -1878,7 +1995,9 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    self._parse("means_of_transport(train)"), [self._parse("findout(?X.transport_train_type(X))")], []
+                    condition.InBeliefsOrCommitments(self._parse("means_of_transport(train)")),
+                    [self._parse("findout(?X.transport_train_type(X))")],
+                    [],
                 )
             ])
         )
@@ -1888,7 +2007,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._when_compile_domain_with_plan(
             """
 <if>
-  <proposition predicate="means_of_transport" value="train"/>
+  <in_beliefs_or_commitments predicate="means_of_transport" value="train"/>
   <else>
     <findout type="wh_question" predicate="transport_train_type" />
   </else>
@@ -1898,7 +2017,9 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    self._parse("means_of_transport(train)"), [], [self._parse("findout(?X.transport_train_type(X))")]
+                    condition.InBeliefsOrCommitments(self._parse("means_of_transport(train)")),
+                    [],
+                    [self._parse("findout(?X.transport_train_type(X))")],
                 )
             ])
         )
@@ -1906,14 +2027,14 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def test_if_then_two_then(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<if><proposition predicate="means_of_transport" value="train"/><then/><then/></if>',
+            '<if><in_beliefs_or_commitments predicate="means_of_transport" value="train"/><then/><then/></if>',
             ViolatesSchemaException, r"This element is not expected. Expected is \( else \)"
         )
 
     def test_if_then_two_elses(self):
         self._given_compiled_ontology_for_if_then_tests()
         self._when_compile_domain_with_plan_then_exception_is_raised_matching(
-            '<if><proposition predicate="means_of_transport" value="train"/><else/><else/></if>',
+            '<if><in_beliefs_or_commitments predicate="means_of_transport" value="train"/><else/><else/></if>',
             ViolatesSchemaException, "Element 'else': This element is not expected."
         )
 
@@ -2057,7 +2178,9 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
     def test_invoke_service_action_default_attributes(self):
         self._given_compiled_ontology()
         self._when_compile_domain_with_plan('<invoke_service_action name="MockupAction" />')
-        self._then_result_has_plan(Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction")]))
+        self._then_result_has_plan(
+            Plan([plan_item.InvokeServiceAction("MockupOntology", "MockupAction", downdate_plan=False)])
+        )
 
     def test_invoke_service_action_override_preconfirm(self):
         self._given_compiled_ontology()
@@ -2336,7 +2459,7 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         self._then_result_has_plan(
             Plan([
                 plan_item.IfThenElse(
-                    condition.IsPrivateBelief(self._parse("plan_id()")), [],
+                    condition.InPrivateBeliefs(self._parse("plan_id()")), [],
                     [self._parse("assume(plan_id())"),
                      self._parse("raise(?X.price(X))")]
                 )

@@ -1,6 +1,16 @@
 # AGENTS.md
 # Guide for agentic coding tools in this repo.
 
+## Mandatory Platform Release Policy
+
+- Follow `../AGENTS.md` for platform-wide release rules.
+- The assistant must never run `git push` to any ref. The user submits Gerrit
+  changes; Jenkins is the only permitted application-code deployment path.
+- With explicit user authorization, runtime model-selector app settings may be
+  changed directly in Azure where Jenkins has no job for that operation.
+- Never publish application code directly with Azure CLI, Function Core Tools,
+  ZipDeploy, Kudu/SCM Git, scripts, or direct APIs.
+
 ## Environment
 - Always use the Python 3.11 virtual environment at `~/python_3_11_environment`.
 - Activate it before any command:
@@ -121,8 +131,8 @@
 
 ## Gerrit workflow
 - This repo uses Gerrit for code review.
-- NEVER push to `origin/master`.
-- Only push to `refs/for/master`.
+- The assistant must never run `git push`, including to `refs/for/master`.
+- The user submits changes through Gerrit; Jenkins performs deployments.
 - If you need to update the most recent commit, it is safe to use
   `git commit --amend`.
 - To preserve an existing Change-Id when amending, use
@@ -130,7 +140,6 @@
 - Detached HEAD is normal for Gerrit workflows; avoid creating
   temporary branches unless explicitly requested.
 - Never push to `master` (any remote) or `azure-production/master`.
-- Agentic tools must not run `git push` commands. Ask a human to push.
 
 ## When in doubt
 - Follow existing patterns in nearby files.

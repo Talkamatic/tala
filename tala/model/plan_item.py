@@ -3,11 +3,12 @@ import copy
 from tala import model
 from tala.model.error import DomainError
 from tala.model.move_icm import ICM
-from tala.model.proposition import Proposition, PredicateProposition
+from tala.model.proposition import Proposition
 from tala.model.action import Action
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
+from tala.utils import json_api
 from tala.utils.json_api import JSONAPIObject, get_attribute
 #  These are imported so that they are available in "globals()" for retrieval in PlanItem.create_from_json_api_data()
 from tala.model.question import Question, WhQuestion  # noqa
@@ -182,7 +183,7 @@ class PlanItemWithSemanticContent(PlanItem, SemanticObjectWithContent):
     @classmethod
     def create_from_json_api_data(cls, data, included):
         semantic_content_entry = included.get_object_from_relationship(data["relationships"]["content"]["data"])
-        semantic_content = PlanItem.create_from_json_api_data(semantic_content_entry, included)
+        semantic_content = json_api.create_from_json_api_data(semantic_content_entry, included)
         return cls(semantic_content)
 
     def __init__(self, type_, content):
@@ -396,8 +397,9 @@ class IfThenElse(PlanItem):
     @classmethod
     def create_from_json_api_data(cls, data, included):
         condition_data = included.get_object_from_relationship(data["relationships"]["condition"]["data"])
-        if condition_data["type"].endswith("PredicateProposition"):
-            condition = PredicateProposition.create_from_json_api_data(condition_data, included)
+        if condition_data["type"].endswith("Proposition"):
+            proposition = json_api.create_from_json_api_data(condition_data, included)
+            condition = model.condition.InBeliefsOrCommitments(proposition)
         else:
             condition = model.condition.create_from_json_api_data(condition_data, included)
         consequent = []
@@ -656,7 +658,7 @@ class InvokeServiceAction(PlanItem, OntologySpecificSemanticObject):
         should_downdate_plan = plan_item_data["attributes"]["_downdate_plan"]
         return cls(ontology_name, service_action, preconfirm, postconfirm, should_downdate_plan)
 
-    def __init__(self, ontology_name, service_action, preconfirm=None, postconfirm=False, downdate_plan=True):
+    def __init__(self, ontology_name, service_action, preconfirm=None, postconfirm=False, downdate_plan=False):
         self.service_action = service_action
         self.preconfirm = preconfirm
         self.postconfirm = postconfirm

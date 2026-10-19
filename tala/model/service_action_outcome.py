@@ -1,7 +1,28 @@
+from tala.utils import json_api
+
+
 class ServiceActionOutcome():
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        attributes = data.get("attributes", {})
+        if issubclass(cls, Failure):
+            return cls(attributes.get("failure_reason"))
+        return cls()
+
     @property
     def is_successful(self):
         raise NotImplementedError("This property needs to be implemented in a subclass")
+
+    @property
+    def json_api_type(self):
+        return f"{self.__class__.__module__}.{self.__class__.__name__}"
+
+    def as_json_api_dict(self):
+        attributes = {"status": "success" if self.is_successful else "fail"}
+        if not self.is_successful:
+            attributes["failure_reason"] = self.failure_reason
+        outcome_obj = json_api.JSONAPIObject(self.json_api_type, attributes=attributes)
+        return outcome_obj.as_dict
 
     def __eq__(self, other):
         try:

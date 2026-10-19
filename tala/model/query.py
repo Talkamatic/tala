@@ -12,6 +12,9 @@ class QueryBase(AsJSONMixin, JSONAPIMixin):
     def query(self):
         return self._query
 
+    def as_dict(self):
+        return {"query": self.query}
+
     def __eq__(self, other):
         try:
             return self.__dict__ == other.__dict__
@@ -30,6 +33,12 @@ class ImplicationQuery(QueryBase):
     @property
     def implications(self):
         return self._implications
+
+    def as_dict(self):
+        return {
+            "query": self.query,
+            "implications": self.implications,
+        }
 
     def as_json_api_dict(self):
         implication_object = JSONAPIObject("implication")
@@ -64,6 +73,12 @@ class EnumerationQuery(QueryBase):
     @property
     def propositions(self):
         return self._propositions
+
+    def as_dict(self):
+        return {
+            "query": self.query,
+            self.enumeration_type: self.propositions,
+        }
 
     def as_json_api_dict(self):
         enumerator_object = JSONAPIObject("enumeration_query")
@@ -106,6 +121,13 @@ class IteratorQuery(QueryBase):
     def propositions(self):
         return self._propositions
 
+    def as_dict(self):
+        return {
+            "query": self.query,
+            "limit": self.limit,
+            self.enumeration_type: self.propositions,
+        }
+
     def as_json_api_dict(self):
         iterator_object = JSONAPIObject("iterator")
         try:
@@ -132,6 +154,77 @@ class IteratorQuery(QueryBase):
             prop_object = included.get_object_from_relationship(item)
             propositions.append(PredicateProposition.create_from_json_api_data(prop_object, included))
         return cls(query, limit, enumeration_type, propositions)
+
+
+class IteratorState(AsJSONMixin, JSONAPIMixin):
+    def __init__(self, query, iterator_type, propositions, limit=None):
+        self._query = query
+        self._iterator_type = iterator_type
+        self._propositions = propositions
+        self._limit = limit
+
+    @property
+    def query(self):
+        return self._query
+
+    @property
+    def iterator_type(self):
+        return self._iterator_type
+
+    @property
+    def propositions(self):
+        return self._propositions
+
+    @property
+    def limit(self):
+        return self._limit
+
+    def __eq__(self, other):
+        try:
+            return self.__dict__ == other.__dict__
+        except AttributeError:
+            return False
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
+
+    def as_dict(self):
+        result = {
+            "query": self.query,
+            "iterator_type": self.iterator_type,
+            "propositions": self.propositions,
+        }
+        if self.limit is not None:
+            result["limit"] = self.limit
+        return result
+
+    def as_json_api_dict(self):
+        iterator_object = JSONAPIObject("iterator_state")
+        try:
+            iterator_object.add_relationship("query", self.query.as_json_api_dict())
+        except AttributeError:
+            iterator_object.add_attribute("query", self.query)
+        iterator_object.add_attribute("iterator_type", self.iterator_type)
+        if self.limit is not None:
+            iterator_object.add_attribute("limit", self.limit)
+        for proposition in self.propositions:
+            iterator_object.append_relationship("content", proposition.as_json_api_dict())
+        return iterator_object.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        try:
+            query_data = included.get_data_for_relationship("query", data)
+            query = Question.create_from_json_api_data(query_data, included)
+        except (AttributeError, TypeError, KeyError):
+            query = get_attribute("query", data)
+        iterator_type = get_attribute("iterator_type", data)
+        limit = data.get("attributes", {}).get("limit")
+        propositions = []
+        for item in data.get("relationships", {}).get("content", {}).get("data", []):
+            prop_object = included.get_object_from_relationship(item)
+            propositions.append(PredicateProposition.create_from_json_api_data(prop_object, included))
+        return cls(query, iterator_type, propositions, limit=limit)
 
 
 def create_query_from_json_api_data(query_data, included):

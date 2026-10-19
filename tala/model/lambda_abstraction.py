@@ -1,6 +1,7 @@
 from tala.model.semantic_object import OntologySpecificSemanticObject, SemanticObject
 from tala.model.predicate import Predicate
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
+from tala.utils import json_api
 
 
 class LambdaAbstractedProposition:
@@ -70,6 +71,16 @@ class LambdaAbstractedPredicateProposition(
 
 
 class LambdaAbstractedImplicationPropositionForConsequent(LambdaAbstractedProposition, OntologySpecificSemanticObject):
+    @classmethod
+    def create_from_json_api_data(cls, lambda_abstraction_data, included):
+        relationships = lambda_abstraction_data.get("relationships", {})
+        antecedent_data = included.get_object_from_relationship(relationships["antecedent"]["data"])
+        consequent_data = included.get_object_from_relationship(relationships["consequent_predicate"]["data"])
+        antecedent = json_api.create_from_json_api_data(antecedent_data, included)
+        consequent_predicate = Predicate.create_from_json_api_data(consequent_data, included)
+        ontology_name = lambda_abstraction_data["attributes"]["ontology_name"]
+        return cls(antecedent, consequent_predicate, ontology_name)
+
     def __init__(self, antecedent, consequent_predicate, ontology_name):
         OntologySpecificSemanticObject.__init__(self, ontology_name)
         LambdaAbstractedProposition.__init__(self, self.LAMBDA_ABSTRACTED_IMPLICATION_PROPOSITION_FOR_CONSEQUENT)
@@ -98,6 +109,18 @@ class LambdaAbstractedImplicationPropositionForConsequent(LambdaAbstractedPropos
 
     def __hash__(self):
         return hash((self.__class__.__name__, self.antecedent, self.consequent_predicate))
+
+    @property
+    def json_api_id(self):
+        return f"{self}"
+
+    @property
+    def json_api_attributes(self):
+        return ["ontology_name"]
+
+    @property
+    def json_api_relationships(self):
+        return ["antecedent", "consequent_predicate"]
 
 
 class LambdaAbstractedGoalProposition(LambdaAbstractedProposition, SemanticObject, AsSemanticExpressionMixin):

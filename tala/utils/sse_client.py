@@ -114,7 +114,7 @@ class AbstractSSEClient:
                     self.logger.exception("Exception raised in streamer thread")
 
         chunk_joiner = ChunkJoiner(self.logger)
-        streamer_thread = threading.Thread(target=stream_chunks)
+        streamer_thread = threading.Thread(target=stream_chunks, daemon=True)
         return streamer_thread, chunk_joiner
 
     def stream_utterance(self, session_id, persona=None, voice=None, utterance=""):
@@ -317,7 +317,7 @@ class SSEClient(AbstractSSEClient):
         self.logger.info("create websocket")
         session_websocket = websocket.WebSocket()
         self.logger.info("connecting websocket to URL", url=url)
-        session_websocket.connect(url)
+        session_websocket.connect(url, timeout=TIMEOUT)
         self.logger.info("websocket connected", url=url)
         streamer_session["websocket"] = session_websocket
 
@@ -358,11 +358,14 @@ END_STREAM_CHUNK = "[END STREAM]"
 
 class StreamerQueue(threading.Thread):
     def __init__(self, sse_client, session_id, default_utterance, logger):
-        super().__init__()
+        super().__init__(daemon=True)
         self._actual_q = queue.Queue()
         self._sse_client = sse_client
         self._session_id = session_id
         self._setup_done = threading.Event()
+        self._setup_failed = False
+        self._setup_exception = None
+        self._setup_thread = None
         self._end_stream = False
         self._default_utterance = default_utterance
         self._logger = logger
@@ -379,16 +382,23 @@ class StreamerQueue(threading.Thread):
 
     def setup_client(self, pronunciation_model, persona, voice):
         def setup():
-            self.start()
-            self._sse_client.open_session(self.session_id, pronunciation_model)
-            self._sse_client.set_persona(self.session_id, persona)
-            self._sse_client.set_voice(self.session_id, voice)
-            self._setup_done.set()
-            self._logger.info("setup_client done")
+            try:
+                self.start()
+                self._sse_client.open_session(self.session_id, pronunciation_model)
+                self._sse_client.set_persona(self.session_id, persona)
+                self._sse_client.set_voice(self.session_id, voice)
+            except Exception as exc:
+                self._setup_failed = True
+                self._setup_exception = exc
+                self._logger.exception("setup_client failed")
+            finally:
+                self._setup_done.set()
+                self._logger.info("setup_client done", setup_failed=self._setup_failed)
 
         self._logger.info("setup_client")
 
-        threading.Thread(target=setup).start()
+        self._setup_thread = threading.Thread(target=setup, daemon=True)
+        self._setup_thread.start()
 
     def enqueue(self, chunk):
         self._actual_q.put(chunk)
@@ -399,6 +409,9 @@ class StreamerQueue(threading.Thread):
 
     def run(self):
         self._setup_done.wait()
+        if self._setup_failed:
+            self._streamed_in_session = []
+            return
         streamed_messages = False
         while True:
             try:

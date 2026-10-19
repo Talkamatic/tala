@@ -2,6 +2,7 @@ import re
 
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
+from tala.utils import json_api
 from tala.model.polarity import Polarity
 from tala.model.sort import Sort
 
@@ -13,6 +14,10 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
         sort = Sort.create_from_json_api_data(sort_entry, included)
         ontology_name = individual_data["attributes"]["ontology_name"]
         value = individual_data["attributes"]["value"]
+        try:
+            value = sort.value_from_basic_type(value)
+        except Exception:
+            pass
         return cls(ontology_name, value, sort)
 
     def __init__(self, ontology_name, value, sort):
@@ -68,6 +73,19 @@ class Individual(OntologySpecificSemanticObject, AsSemanticExpressionMixin):
     def value_as_json_object(self):
         return self.sort.value_as_json_object(self.value)
 
+    def as_json_api_dict(self):
+        try:
+            value = self.sort.value_as_basic_type(self.value)
+        except Exception:
+            value = self.value
+        obj = json_api.JSONAPIObject(
+            self.json_api_type,
+            id_=self.json_api_id,
+            attributes={"ontology_name": self.ontology_name, "value": value},
+        )
+        obj.add_relationship("sort", json_api.as_json_api_entry(self.sort))
+        return obj.as_dict
+
     @property
     def json_api_id(self):
         try:
@@ -121,6 +139,10 @@ class NegativeIndividual(Individual):
 class Yes(SemanticObject, AsSemanticExpressionMixin):
     YES = "yes"
 
+    @classmethod
+    def create_from_json_api_data(cls, _json_string):
+        return cls()
+
     def is_positive(self):
         return True
 
@@ -152,6 +174,10 @@ class Yes(SemanticObject, AsSemanticExpressionMixin):
 
 class No(SemanticObject, AsSemanticExpressionMixin):
     NO = "no"
+
+    @classmethod
+    def create_from_json_api_data(cls, _json_string):
+        return cls()
 
     def is_positive(self):
         return False

@@ -1,5 +1,6 @@
-import uuid
+import importlib
 import json
+import uuid
 
 CURRENT_FORMAT_VERSION = "2"
 
@@ -167,15 +168,7 @@ class JSONAPIMixin:
                 target = self.__getattribute__(name)
             except AttributeError as exc:
                 raise ValueError(f"JSON:API relationship '{name}' not found on {self.__class__.__name__}") from exc
-            if target is None:
-                raise ValueError(f"JSON:API relationship '{name}' on {self.__class__.__name__} is None")
-            try:
-                return target.as_json_api_dict()
-            except AttributeError as exc:
-                raise ValueError(
-                    f"JSON:API relationship '{name}' on {self.__class__.__name__} "
-                    "does not implement as_json_api_dict"
-                ) from exc
+            return as_json_api_entry(target)
 
         obj = JSONAPIObject(self.json_api_type, id_=self.json_api_id)
         for attribute in self.json_api_attributes:
@@ -347,3 +340,422 @@ class JSONAPIObject:
     @property
     def as_json(self):
         return json.dumps(self.as_dict, indent=4)
+
+
+def _is_string_like(value):
+    try:
+        value.encode
+        value.split
+    except AttributeError:
+        return False
+    return True
+
+
+def _is_move_like(value):
+    is_move = getattr(value, "is_move", None)
+    if callable(is_move):
+        try:
+            return is_move()
+        except Exception:
+            return False
+    return False
+
+
+def move_as_json_api_entry(move):
+    return move.as_json_api_dict()
+
+
+def as_json_api_entry(value):
+    if value is None:
+        return {"data": None, "included": []}
+    if _is_string_like(value) or type(value) in (int, float, bool):
+        scalar_obj = JSONAPIObject("tdm.tis.scalar", attributes={"value": value})
+        return scalar_obj.as_dict
+    obj_id = id(value)
+    if obj_id in _JSON_API_ENTRY_STACK:
+        raise ValueError(
+            f"JSON:API serialization cycle detected for {value.__class__.__name__}"
+        )
+    _JSON_API_ENTRY_STACK.append(obj_id)
+    try:
+        if _is_move_like(value):
+            return move_as_json_api_entry(value)
+        as_json_api_dict = getattr(value, "as_json_api_dict", None)
+        if callable(as_json_api_dict):
+            try:
+                return as_json_api_dict()
+            except TypeError as exc:
+                if not _is_argument_mismatch(exc):
+                    raise
+        items = getattr(value, "items", None)
+        if callable(items):
+            return map_as_json_api_entry(value)
+        iterator = getattr(value, "__iter__", None)
+        if callable(iterator) and not _is_string_like(value):
+            try:
+                value[0]
+            except (TypeError, KeyError, IndexError):
+                length = getattr(value, "__len__", None)
+                if callable(length):
+                    try:
+                        if len(value) == 0:
+                            return list_as_json_api_entry([])
+                    except Exception:
+                        pass
+            else:
+                return list_as_json_api_entry(value)
+        raise ValueError(
+            f"JSON:API serialization not implemented for {value.__class__.__module__}."
+            f"{value.__class__.__name__}"
+        )
+    finally:
+        _JSON_API_ENTRY_STACK.pop()
+
+
+def list_as_json_api_entry(items, id_=None, type_="tdm.tis.list"):
+    list_obj = JSONAPIObject(type_, id_=id_)
+    if items is None:
+        return list_obj.as_dict
+    for item in items:
+        list_obj.append_relationship("items", as_json_api_entry(item))
+    return list_obj.as_dict
+
+
+def map_as_json_api_entry(map_value, id_=None, type_="tdm.tis.map"):
+    map_obj = JSONAPIObject(type_, id_=id_)
+    if not map_value:
+        return map_obj.as_dict
+    for index, (key, value) in enumerate(map_value.items()):
+        entry_id = f"map_entry:{id(map_value)}:{index}"
+        if id_ is not None:
+            entry_id = f"{id_}:entry:{index}"
+        entry = JSONAPIObject("tdm.tis.map_entry", id_=entry_id)
+        entry.add_relationship("key", as_json_api_entry(key))
+        entry.add_relationship("value", as_json_api_entry(value))
+        map_obj.append_relationship("entries", entry.as_dict)
+    return map_obj.as_dict
+
+
+def _coerce_float(value):
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return value
+
+
+def _move_kwargs_from_attributes(attributes):
+    kwargs = {
+        "understanding_confidence": _coerce_float(attributes.get("understanding_confidence")),
+        "speaker": attributes.get("speaker"),
+        "modality": attributes.get("modality"),
+        "utterance": attributes.get("utterance"),
+        "ddd_name": attributes.get("ddd"),
+        "perception_confidence": _coerce_float(attributes.get("perception_confidence")),
+    }
+    if "weighted_understanding_confidence" in attributes:
+        kwargs["weighted_understanding_confidence"] = _coerce_float(
+            attributes.get("weighted_understanding_confidence")
+        )
+    return kwargs
+
+
+def _content_from_relationship(entry, included):
+    content_data = included.get_data_for_relationship("content", entry)
+    if content_data is None:
+        return None
+    return create_from_json_api_data(content_data, included)
+
+
+def _arguments_from_relationship(entry, included):
+    args_data = included.get_data_for_relationship("arguments", entry)
+    if args_data is None:
+        return None
+    parsed = create_from_json_api_data(args_data, included)
+    if parsed is None:
+        return []
+    if isinstance(parsed, list):
+        return parsed
+    return [parsed]
+
+
+def _create_icm_move(move_type, content, content_speaker, polarity, kwargs):
+    from tala.model.move_icm import ICM
+
+    icm_kwargs = {
+        key: value
+        for key, value in kwargs.items()
+        if key in ("understanding_confidence", "speaker", "ddd_name", "perception_confidence")
+    }
+
+    if content is not None:
+        if move_type == ICM.CARDINAL_SEQUENCING:
+            try:
+                content = int(content)
+            except (TypeError, ValueError):
+                pass
+        move = ICM.create(
+            move_type,
+            content=content,
+            content_speaker=content_speaker,
+            polarity=polarity,
+            **icm_kwargs,
+        )
+    else:
+        move = ICM(move_type, polarity=polarity, **icm_kwargs)
+
+    weighted = kwargs.get("weighted_understanding_confidence")
+    if weighted is not None:
+        move.weighted_understanding_confidence = weighted
+    return move
+
+
+def _create_move_from_json_api_data(entry, included):
+    from tala.model.move_base import (
+        Answer,
+        Ask,
+        Greet,
+        Insult,
+        InsultResponse,
+        Mute,
+        NoMove,
+        Prereport,
+        Quit,
+        Report,
+        Request,
+        ThankYou,
+        ThankYouResponse,
+        Unmute,
+        Move,
+    )
+    from tala.model.move_icm import ICM
+
+    attributes = entry.get("attributes", {})
+    move_type = attributes.get("move_type")
+    if not move_type:
+        return None
+
+    kwargs = _move_kwargs_from_attributes(attributes)
+    content = _content_from_relationship(entry, included)
+    content_speaker = attributes.get("content_speaker")
+    polarity = attributes.get("polarity")
+
+    icm_types = {
+        ICM.PER,
+        ICM.ACC,
+        ICM.UND,
+        ICM.SEM,
+        ICM.RERAISE,
+        ICM.ACCOMMODATE,
+        ICM.LOADPLAN,
+        ICM.RESUME,
+        ICM.CARDINAL_SEQUENCING,
+        ICM.REPORT_INFERENCE,
+    }
+    if move_type in icm_types:
+        return _create_icm_move(move_type, content, content_speaker, polarity, kwargs)
+
+    if move_type == Move.ANSWER:
+        return Answer(content, **kwargs)
+    if move_type == Move.ASK:
+        return Ask(content, **kwargs)
+    if move_type == Move.REQUEST:
+        return Request(content, **kwargs)
+    if move_type == Move.REPORT:
+        return Report(content, **kwargs)
+    if move_type == Move.PREREPORT:
+        arguments = _arguments_from_relationship(entry, included)
+        if arguments is None:
+            arguments = attributes.get("arguments") or []
+        service_action = attributes.get("service_action")
+        ontology_name = attributes.get("ontology_name")
+        return Prereport(ontology_name, service_action, arguments)
+    if move_type == Move.GREET:
+        return Greet(**kwargs)
+    if move_type == Move.THANK_YOU:
+        return ThankYou(**kwargs)
+    if move_type == Move.THANK_YOU_RESPONSE:
+        return ThankYouResponse(**kwargs)
+    if move_type == Move.INSULT:
+        return Insult(**kwargs)
+    if move_type == Move.INSULT_RESPONSE:
+        return InsultResponse(**kwargs)
+    if move_type == Move.MUTE:
+        return Mute(**kwargs)
+    if move_type == Move.UNMUTE:
+        return Unmute(**kwargs)
+    if move_type == Move.QUIT:
+        return Quit(**kwargs)
+    if move_type == Move.NO_MOVE:
+        return NoMove(**kwargs)
+
+    raise ValueError(f"Unsupported move_type '{move_type}' in JSON:API payload")
+
+
+def _is_argument_mismatch(exc):
+    message = str(exc)
+    if "positional" in message and "given" in message:
+        return True
+    return "missing" in message and "required positional" in message
+
+
+def _call_create_from_json_api_data(create_from_json_api_data, entry, included):
+    try:
+        return create_from_json_api_data(entry, included)
+    except TypeError as exc:
+        if not _is_argument_mismatch(exc):
+            raise
+    try:
+        return create_from_json_api_data(entry)
+    except TypeError as exc:
+        if _is_argument_mismatch(exc):
+            raise ValueError(
+                f"JSON:API deserialization not implemented for {entry.get('type')}"
+            )
+        raise
+
+
+def create_from_json_api_data(entry, included):
+    if entry is None:
+        return None
+    try:
+        entry[0]
+    except (TypeError, KeyError, IndexError):
+        pass
+    else:
+        return [create_from_json_api_data(item, included) for item in entry]
+    try:
+        type_ = entry["type"]
+    except (TypeError, KeyError):
+        return entry
+    if type_ == "tdm.tis.scalar":
+        return entry.get("attributes", {}).get("value")
+    if type_ == "tdm.tis.openqueue":
+        from tala.model.openqueue import OpenQueue
+        return OpenQueue.create_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.set":
+        from tala.model.set import Set
+        return Set.create_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.stack":
+        from tala.model.stack import Stack
+        return Stack.create_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.stackset":
+        from tala.model.stack import StackSet
+        return StackSet.create_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.commitments":
+        from tala.model.commitments import Commitments
+        return Commitments.create_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.next_utterance":
+        attributes = entry.get("attributes", {})
+        moves_data = included.get_data_for_relationship("moves", entry)
+        plan_item_data = included.get_data_for_relationship("plan_item", entry)
+        alternatives = attributes.get("alternatives", [])
+        parsed_alternatives = []
+        for alternative in alternatives:
+            try:
+                alt_value = alternative.get("alt")
+            except AttributeError:
+                parsed_alternatives.append(alternative)
+                continue
+            alt_ref = alt_value
+            try:
+                alt_data = alt_ref.get("data")
+            except AttributeError:
+                alt_data = None
+            if alt_data:
+                alt_included = IncludedObject(alt_ref.get("included", []))
+                alt_value = create_from_json_api_data(alt_data, alt_included)
+            else:
+                try:
+                    alt_ref["type"]
+                    alt_ref["id"]
+                except (TypeError, KeyError):
+                    alt_value = alt_ref
+                else:
+                    alt_entry = included.get_object_from_relationship(alt_ref)
+                    if alt_entry is None:
+                        raise ValueError(f"Missing included resource for alternative {alt_ref}")
+                    alt_value = create_from_json_api_data(alt_entry, included)
+            parsed_alternatives.append({"alt": alt_value, "predicted": alternative.get("predicted")})
+        return {
+            "moves": create_from_json_api_data(moves_data, included),
+            "alternatives": parsed_alternatives,
+            "plan_item": create_from_json_api_data(plan_item_data, included),
+        }
+    if type_ == "tdm.tis.latest_utterance":
+        attributes = entry.get("attributes", {})
+        moves_data = included.get_data_for_relationship("moves", entry)
+        turn_content_data = included.get_data_for_relationship("turn_content", entry)
+        return {
+            "speaker": attributes.get("speaker"),
+            "moves": create_from_json_api_data(moves_data, included),
+            "turn_content": create_from_json_api_data(turn_content_data, included),
+        }
+    if type_ == "tala.model.plan":
+        from tala.model.plan import Plan
+        return Plan.create_from_json_api_data(entry, included)
+    if type_ == "iterator_state":
+        from tala.model.query import IteratorState
+        return IteratorState.create_from_json_api_data(entry, included)
+    if type_.startswith("tala.model.move"):
+        return _create_move_from_json_api_data(entry, included)
+    if type_ == "tdm.tis.map":
+        entries = included.get_data_for_relationship("entries", entry)
+        if not entries:
+            return {}
+        try:
+            entries[0]
+        except (TypeError, KeyError, IndexError):
+            entries = [entries]
+        result = {}
+        for entry_item in entries:
+            entry_value = create_from_json_api_data(entry_item, included)
+            if isinstance(entry_value, dict) and "key" in entry_value:
+                result[entry_value["key"]] = entry_value.get("value")
+        return result
+    if type_ == "tdm.tis.map_entry":
+        key_data = included.get_data_for_relationship("key", entry)
+        value_data = included.get_data_for_relationship("value", entry)
+        return {
+            "key": create_from_json_api_data(key_data, included),
+            "value": create_from_json_api_data(value_data, included),
+        }
+    if type_ == "tdm.tis.list":
+        items = included.get_data_for_relationship("items", entry)
+        if items is None:
+            return []
+        try:
+            items[0]
+        except (TypeError, KeyError, IndexError):
+            items = [items]
+        return [create_from_json_api_data(item, included) for item in items if item is not None]
+    if type_ in ("tala.model.action", "tala.model.action.Action"):
+        from tala.model.action import Action
+        return Action.create_from_json_api_data(entry, included)
+    if type_ == "tala.event.Event":
+        from tala.event import Event
+        return Event.create_from_json_api_data(entry, included)
+    if type_.startswith("tala.model.entity"):
+        from tala.model.entity import Entity
+        create_from_json_api_data_fn = getattr(Entity, "create_from_json_api_data", None)
+        if callable(create_from_json_api_data_fn):
+            return _call_create_from_json_api_data(create_from_json_api_data_fn, entry, included)
+        attributes = entry.get("attributes", {})
+        return Entity.create_from_json(attributes)
+    try:
+        module_name, class_name = type_.rsplit(".", 1)
+    except ValueError:
+        raise ValueError(f"JSON:API deserialization not implemented for {type_}")
+    try:
+        module = importlib.import_module(module_name)
+    except Exception:
+        raise ValueError(f"JSON:API deserialization not implemented for {type_}")
+    target_cls = getattr(module, class_name, None)
+    create_from_json_api_data_fn = getattr(target_cls, "create_from_json_api_data", None)
+    if callable(create_from_json_api_data_fn):
+        return _call_create_from_json_api_data(create_from_json_api_data_fn, entry, included)
+    raise ValueError(f"JSON:API deserialization not implemented for {type_}")
+
+
+_JSON_API_ENTRY_STACK = []

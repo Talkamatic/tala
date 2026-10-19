@@ -6,7 +6,7 @@ import uuid
 
 import pytest
 
-from tala.utils.sse_client import SSEClient, ChunkJoiner
+from tala.utils.sse_client import SSEClient, ChunkJoiner, StreamerQueue
 from tala.utils.func import configure_stdout_logging, getenv
 
 logger = structlog.get_logger(__name__)
@@ -132,6 +132,96 @@ class TestSSEClient:
             for item in streamed:
                 if item["event"] == "STREAMING_CHUNK":
                     assert session_id + " " == item["data"]
+
+
+class FailingSSEClient:
+    sessions = {"test-session": {"streamed": []}}
+
+    def open_session(self, _session_id, _s_and_r_dict=None, _logger=None):
+        raise RuntimeError("boom")
+
+    def set_persona(self, _session_id, _persona):
+        pass
+
+    def set_voice(self, _session_id, _voice):
+        pass
+
+    def stream_chunk(self, _session_id, _chunk):
+        pass
+
+    def flush_stream(self, _session_id):
+        pass
+
+    def end_stream(self, _session_id):
+        pass
+
+    def close_session(self, _session_id):
+        pass
+
+
+class TestStreamerQueueSetupFailure:
+    def test_setup_done_signaled_on_open_session_failure(self):
+        self.given_streamer_queue_with_failing_client()
+        self.when_setup_client_called()
+        self.then_setup_done_is_signaled()
+
+    def given_streamer_queue_with_failing_client(self):
+        self._queue = StreamerQueue(FailingSSEClient(), "test-session", "default", logger)
+
+    def when_setup_client_called(self):
+        try:
+            self._queue.setup_client({}, "persona", "voice")
+            self._setup_done = self._queue._setup_done.wait(timeout=0.2)
+        finally:
+            self._queue._setup_done.set()
+            self._queue.please_stop(end_stream=False)
+            self._queue.join(timeout=0.2)
+
+    def then_setup_done_is_signaled(self):
+        assert self._setup_done, "setup_client should signal setup completion even on failure"
+
+
+class TestStreamerThreadsDaemon:
+    def test_streamer_queue_is_daemon(self):
+        self.given_streamer_queue()
+        self.then_streamer_queue_is_daemon()
+
+    def test_setup_client_uses_daemon_thread(self):
+        self.given_streamer_queue()
+        self.when_setup_client_called()
+        self.then_setup_thread_is_daemon()
+
+    def test_streamer_thread_is_daemon(self):
+        self.given_sse_client()
+        self.when_streamer_thread_prepared()
+        self.then_streamer_thread_is_daemon()
+
+    def given_streamer_queue(self):
+        self._queue = StreamerQueue(FailingSSEClient(), "test-session", "default", logger)
+
+    def given_sse_client(self):
+        self._client = SSEClient("test-client", logger, "wss://example.org", 443)
+
+    def when_setup_client_called(self):
+        try:
+            self._queue.setup_client({}, "persona", "voice")
+            self._setup_done = self._queue._setup_done.wait(timeout=0.2)
+        finally:
+            self._queue._setup_done.set()
+            self._queue.please_stop(end_stream=False)
+            self._queue.join(timeout=0.2)
+
+    def when_streamer_thread_prepared(self):
+        self._streamer_thread, self._chunk_joiner = self._client._prepare_streamer_thread("session-id")
+
+    def then_streamer_queue_is_daemon(self):
+        assert self._queue.daemon is True
+
+    def then_setup_thread_is_daemon(self):
+        assert self._queue._setup_thread.daemon is True
+
+    def then_streamer_thread_is_daemon(self):
+        assert self._streamer_thread.daemon is True
 
 
 class TestChunkJoiner:

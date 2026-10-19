@@ -1,8 +1,9 @@
-import structlog
-from urllib.parse import urlparse
+import json
+from unittest.mock import Mock
 import uuid
 
 import pytest
+import structlog
 
 from tala.utils.mqtt_client import MQTTClient
 from tala.utils.func import configure_stdout_logging, getenv
@@ -12,22 +13,16 @@ log_level = getenv("LOG_LEVEL", default="DEBUG")
 configure_stdout_logging(log_level)
 
 
-def resolve_mqtt_endpoint():
-    endpoint = str(getenv("SSE_BROKER_ENDPOINT_MQTT", default="") or "")
-    if endpoint:
-        return endpoint
-    https_endpoint = str(getenv("SSE_BROKER_ENDPOINT_HTTPS", default="") or "")
-    if not https_endpoint:
-        return ""
-    parsed = urlparse(https_endpoint)
-    if parsed.netloc:
-        return parsed.netloc
-    return https_endpoint.replace("https://", "").replace("http://", "").split("/")[0]
-
-
 class TestMQTTClient:
-    def setup_method(self):
-        pass
+    @pytest.fixture(autouse=True)
+    def mocked_transport(self, monkeypatch):
+        self._transport = Mock()
+        monkeypatch.setattr("tala.utils.mqtt_client.mqtt.Client", Mock(return_value=self._transport))
+
+        def connected():
+            self._transport.on_connect(self._transport, None, {}, 0, None)
+
+        self._transport.loop_start.side_effect = connected
 
     def test_creation(self):
         self.given_args_for_client_creation(["", logger, "some_endpoint", 443])
@@ -59,14 +54,14 @@ class TestMQTTClient:
         self.given_mqtt_client_started("test_client", logger, self._endpoint, 443)
         self.given_session_id("test-session-id")
         self.when_chunk_streamed(chunk)
-        self.then_everything_is_ok()
+        self.then_messages_published(chunk)
 
     def given_mqtt_client_started(self, name, logger, endpoint, port):
         self._client = MQTTClient(name, logger, endpoint, port)
         self._client.start()
 
     def given_session_id(self, id_):
-        self._session_id = id_ + str(uuid.uuid4)
+        self._session_id = id_ + str(uuid.uuid4())
 
     def when_chunk_streamed(self, chunk):
         self._client.open_session(self._session_id, None)
@@ -76,9 +71,20 @@ class TestMQTTClient:
         self._client.flush_stream(self._session_id)
         self._client.close_session(self._session_id)
 
-    def then_everything_is_ok(self):
-        assert True
+    def then_messages_published(self, chunk):
+        self._transport.tls_set.assert_called_once_with()
+        self._transport.connect.assert_called_once_with(self._endpoint, 443)
+        self._transport.loop_start.assert_called_once_with()
+        messages = [
+            (call.args[0], json.loads(call.args[1])) for call in self._transport.publish.call_args_list
+        ]
+        topic = f"tm/id/{self._session_id}"
+        assert messages == [
+            (topic, {"event": "STREAMING_SET_PERSONA", "data": "some-persona"}),
+            (topic, {"event": "STREAMING_SET_VOICE", "data": "some-voice"}),
+            (topic, {"event": "STREAMING_CHUNK", "data": chunk}),
+        ]
+        assert self._session_id not in self._client.sessions
 
     def given_streamer_endpoint(self):
-        self._endpoint = resolve_mqtt_endpoint()
-        assert self._endpoint, "SSE_BROKER_ENDPOINT_MQTT or SSE_BROKER_ENDPOINT_HTTPS not set"
+        self._endpoint = "broker.example.test"

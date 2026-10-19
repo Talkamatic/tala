@@ -74,7 +74,7 @@ class TestMakeRequest(TestRequestorBaseClass):
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': True,
-                    'model': 'gpt-4o-2024-05-13',
+                    'model': 'gpt-4o-2024-11-20',
                     'reasoning_effort': None,
                 },
                 'priority': 10,
@@ -118,7 +118,7 @@ class TestMakeRequest(TestRequestorBaseClass):
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': True,
-                    'model': 'gpt-4o-2024-05-13',
+                    'model': 'gpt-4o-2024-11-20',
                     'reasoning_effort': None,
                 },
                 'priority': 10,
@@ -157,7 +157,7 @@ class TestMakeRequest(TestRequestorBaseClass):
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': False,
-                    'model': 'gpt-4o-2024-05-13',
+                    'model': 'gpt-4o-2024-11-20',
                     'reasoning_effort': None,
                 },
                 'priority': 10,
@@ -192,7 +192,7 @@ class TestMakeRequest(TestRequestorBaseClass):
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': False,
-                    'model': 'gpt-4o-2024-05-13',
+                    'model': 'gpt-4o-2024-11-20',
                     'reasoning_effort': None,
                 },
                 'priority': 10,
@@ -213,6 +213,7 @@ class TestMakeRequest(TestRequestorBaseClass):
         self._gpt_request.make()
 
     def when_response_is(self, response):
+        self._then_request_is_done()
         self._gpt_request._response = response
 
     def then_json_response_is(self, expected_response):
@@ -348,7 +349,7 @@ class TestMakeRequest(TestRequestorBaseClass):
                     'stop': [],
                     'default_gpt_response': '[]',
                     'use_json': True,
-                    'model': 'gpt-4o-2024-05-13',
+                    'model': 'gpt-4o-2024-11-20',
                     'reasoning_effort': None,
                 },
                 'priority': 10,

@@ -98,9 +98,19 @@
 
   <xs:complexType name="implication">
     <xs:sequence>
-      <xs:element name="antecedent" type="predicate_proposition" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="antecedent" type="implication_antecedent" minOccurs="1" maxOccurs="1"/>
       <xs:element name="consequent" type="predicate_proposition" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="implication_antecedent">
+    <xs:choice minOccurs="0" maxOccurs="1">
+      <xs:sequence>
+        <xs:element name="proposition" type="predicate_proposition" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:choice>
+    <xs:attribute name="predicate" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
   </xs:complexType>
 
   <xs:complexType name="selection">
@@ -224,18 +234,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:choice minOccurs="1" maxOccurs="1">
-          <xs:element name="condition" type="proposition"/>
-          <xs:element name="proposition" type="predicate_proposition"/>
-          <xs:element ref="has_value"/>
-          <xs:element name="is_true"/>
-          <xs:element name="is_shared_fact"/>
-          <xs:element name="has_shared_value"/>
-          <xs:element name="has_private_value"/>
-          <xs:element name="has_shared_or_private_value"/>
-          <xs:element name="is_shared_commitment"/>
-          <xs:element name="is_private_belief"/>
-          <xs:element name="is_private_belief_or_shared_commitment"/>
-          <xs:element ref="has_more_items"/>
+          <xs:group ref="condition_expression"/>
         </xs:choice>
         <xs:element name="then" type="plan" minOccurs="0" maxOccurs="1"/>
         <xs:element name="else" type="plan" minOccurs="0" maxOccurs="1"/>
@@ -323,22 +322,127 @@
 
   <xs:complexType name="new_condition">
     <xs:choice minOccurs="1" maxOccurs="1">
-      <xs:element ref="has_value"/>
-      <xs:element name="is_true"/>
-      <xs:element name="is_shared_fact"/>
-      <xs:element name="has_shared_value"/>
-      <xs:element name="has_private_value"/>
-      <xs:element name="has_shared_or_private_value"/>
-      <xs:element name="is_shared_commitment"/>
-      <xs:element name="is_private_belief"/>
-      <xs:element name="is_private_belief_or_shared_commitment"/>
-      <xs:element ref="has_more_items"/>
+      <xs:group ref="condition_expression"/>
     </xs:choice>
   </xs:complexType>
 
-  <xs:element name="has_value">
+  <xs:complexType name="has_value">
+    <xs:attribute name="predicate" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:element name="has_value" type="has_value"/>
+  <xs:element name="has_shared_value" type="has_value"/>
+  <xs:element name="has_private_value" type="has_value"/>
+
+  <xs:simpleType name="action_status_value">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="done"/>
+      <xs:enumeration value="aborted"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="service_action_terminated">
     <xs:complexType>
-      <xs:attribute name="predicate" type="xs:string" use="required"/>
+      <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="service_action_started">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="action_status">
+    <xs:complexType>
+      <xs:attribute name="action" type="xs:string" use="required"/>
+      <xs:attribute name="status" type="action_status_value" use="required"/>
+      <xs:attribute name="reason" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="question_status">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="question" type="question" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="status" type="action_status_value" use="required"/>
+      <xs:attribute name="reason" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="resolved">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="question" type="question" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="know_answer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="question" type="question" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="proposition_condition">
+    <xs:choice minOccurs="0" maxOccurs="1">
+      <xs:element ref="perform"/>
+      <xs:element name="resolve" type="has_question"/>
+      <xs:element name="proposition" type="predicate_proposition"/>
+      <xs:element ref="service_action_terminated"/>
+      <xs:element ref="service_action_started"/>
+      <xs:element ref="action_status"/>
+      <xs:element ref="question_status"/>
+      <xs:element ref="resolved"/>
+      <xs:element ref="know_answer"/>
+    </xs:choice>
+    <xs:attribute name="predicate" type="xs:string"/>
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:element name="in_shared_commitments" type="proposition_condition"/>
+  <xs:element name="in_private_beliefs" type="proposition_condition"/>
+  <xs:element name="in_beliefs_or_commitments" type="proposition_condition"/>
+
+  <xs:group name="condition_expression">
+    <xs:choice>
+      <xs:element ref="and"/>
+      <xs:element ref="or"/>
+      <xs:element ref="not"/>
+      <xs:element ref="has_value"/>
+      <xs:element ref="has_shared_value"/>
+      <xs:element ref="has_private_value"/>
+      <xs:element ref="in_shared_commitments"/>
+      <xs:element ref="in_private_beliefs"/>
+      <xs:element ref="in_beliefs_or_commitments"/>
+      <xs:element ref="has_more_items"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="and">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="condition_expression" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="or">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="condition_expression" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="not">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="condition_expression" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
 
@@ -376,19 +480,6 @@
       </xs:complexContent>
     </xs:complexType>
   </xs:element>
-
-  <xs:complexType name="is_shared_fact">
-    <xs:choice minOccurs="1" maxOccurs="1">
-      <xs:element name="proposition" type="predicate_proposition"/>
-    </xs:choice>
-  </xs:complexType>
-
-  <xs:complexType name="has_shared_value">
-    <xs:choice minOccurs="1" maxOccurs="1">
-      <xs:element name="proposition" type="predicate_proposition"/>
-    </xs:choice>
-  </xs:complexType>
-
 
   <xs:complexType name="proposition">
     <xs:choice minOccurs="0" maxOccurs="1">

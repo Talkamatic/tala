@@ -189,6 +189,7 @@ Each condition is a single-key object:
 {"has_shared_or_private_value": {"predicate": "dest_city"}}
 {"has_more_items": {"predicate": "available_rooms"}}
 {"has_more_items": {"iterator": "room_iterator"}}
+{"is_shared_commitment": {"service_action_terminated": {"name": "BookHousing"}}}
 ```
 
 ### Plan items (allowed in `content` / `postplan`)
@@ -222,6 +223,9 @@ Each plan item is a single-key object. Supported items (as used in TDM DDDs):
 {"reset_domain_query": {"question": {"wh": {"predicate": "price"}}}}
 {"greet": {}}
 ```
+
+Note: `downdate_plan` on `invoke_service_action` is deprecated and does not
+trigger implicit downdating. Use explicit `downdate_conditions` instead.
 
 ### Question parameters
 

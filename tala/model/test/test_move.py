@@ -7,6 +7,7 @@ from tala.model.move_base import Move, Report, Ask
 from tala.model.move_icm import ICM, CardinalSequencingICM
 from tala.model.proposition import ServiceResultProposition, PredicateProposition
 from tala.testing.lib_test_case import LibTestCase
+from tala.utils import json_api
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.testing.move_factory import MoveFactoryWithPredefinedBoilerplate
 
@@ -220,6 +221,37 @@ class MoveTests(LibTestCase, SemanticExpressionTestMixin):
         self.given_move(self.icm_acc_pos)
         self.when_generating_semantic_expression()
         self.then_result_is("icm:acc*pos")
+
+    def test_json_api_roundtrip_for_answer(self):
+        json_api_dict = self.answer_move.as_json_api_dict()
+        included = json_api.IncludedObject(json_api_dict["included"])
+        recreated = json_api.create_from_json_api_data(json_api_dict["data"], included)
+
+        assert recreated == self.answer_move
+
+    def test_json_api_roundtrip_for_icm_with_content(self):
+        icm = self.move_factory.create_icm_move(
+            ICM.UND,
+            self.proposition_dest_city_paris,
+            content_speaker=speaker.USR,
+            speaker=speaker.SYS,
+        )
+        json_api_dict = icm.as_json_api_dict()
+        included = json_api.IncludedObject(json_api_dict["included"])
+        recreated = json_api.create_from_json_api_data(json_api_dict["data"], included)
+
+        assert recreated == icm
+
+    def test_json_api_roundtrip_for_prereport(self):
+        prereport = self.move_factory.create_prereport_move(
+            "BuyTrip",
+            [self.proposition_dest_city_paris, self.proposition_dept_city_london],
+        )
+        json_api_dict = prereport.as_json_api_dict()
+        included = json_api.IncludedObject(json_api_dict["included"])
+        recreated = json_api.create_from_json_api_data(json_api_dict["data"], included)
+
+        assert recreated == prereport
 
     def test_short_answer_unicode(self):
         move_factory = MoveFactoryWithPredefinedBoilerplate(self.ontology_name)

@@ -1,4 +1,5 @@
 from tala.model.set import Set
+from tala.utils import json_api
 from tala.utils.as_json import AsJSONMixin
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.ddd.json_parser import NonCheckingJSONParser
@@ -59,6 +60,90 @@ class Commitments(AsSemanticExpressionMixin, AsJSONMixin):
             } for k, v in self._meta_pcom.items()],
             "commitment_lifespan": self._previous_commitment_lifespan
         }
+
+    def as_json_api_dict(self, id_=None, type_="tdm.tis.commitments"):
+        commitment_obj = json_api.JSONAPIObject(
+            type_,
+            id_ if id_ else str(id(self)),
+            {"commitment_lifespan": int(self._previous_commitment_lifespan)},
+        )
+        commitment_obj.add_relationship(
+            "commitments",
+            self._backing_set.as_json_api_dict(type_="tdm.tis.set"),
+        )
+        commitment_obj.add_relationship(
+            "previous_commitments",
+            self._pcom.as_json_api_dict(type_="tdm.tis.set"),
+        )
+        commitment_obj.add_relationship(
+            "meta_commitments",
+            self._meta_list_as_json_api(self._meta_com, "meta_com"),
+        )
+        commitment_obj.add_relationship(
+            "meta_previous_commitments",
+            self._meta_list_as_json_api(self._meta_pcom, "meta_pcom"),
+        )
+        return commitment_obj.as_dict
+
+    def _meta_list_as_json_api(self, meta_map, label):
+        meta_container = json_api.JSONAPIObject(
+            "tdm.tis.commitment_meta_list",
+            f"commitments:{label}:{id(self)}",
+        )
+        for index, (proposition, meta) in enumerate(meta_map.items()):
+            try:
+                topmost_goal, turn_number = meta
+            except (TypeError, ValueError):
+                topmost_goal = None
+                turn_number = None
+            meta_entry = json_api.JSONAPIObject(
+                "tdm.tis.commitment_meta",
+                f"commitments:{label}:{id(self)}:{index}",
+                {"turn_number": None if turn_number is None else int(turn_number)},
+            )
+            meta_entry.add_relationship("proposition", json_api.as_json_api_entry(proposition))
+            meta_entry.add_relationship("topmost_goal", json_api.as_json_api_entry(topmost_goal))
+            meta_container.append_relationship("entries", meta_entry.as_dict)
+        return meta_container.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if data is None:
+            return cls()
+        commitments_data = included.get_data_for_relationship("commitments", data)
+        previous_data = included.get_data_for_relationship("previous_commitments", data)
+        meta_data = included.get_data_for_relationship("meta_commitments", data)
+        meta_previous_data = included.get_data_for_relationship("meta_previous_commitments", data)
+        commitments_set = Set.create_from_json_api_data(commitments_data, included)
+        previous_set = Set.create_from_json_api_data(previous_data, included)
+        meta_com = cls._meta_map_from_json_api(meta_data, included)
+        meta_pcom = cls._meta_map_from_json_api(meta_previous_data, included)
+        lifespan = data.get("attributes", {}).get("commitment_lifespan", 30)
+        result = cls(list(commitments_set), meta_com, list(previous_set), meta_pcom, lifespan)
+        return result
+
+    @classmethod
+    def _meta_map_from_json_api(cls, meta_list_data, included):
+        if meta_list_data is None:
+            return {}
+        entries = included.get_data_for_relationship("entries", meta_list_data)
+        if not entries:
+            return {}
+        try:
+            entries[0]
+        except (TypeError, KeyError, IndexError):
+            entries = [entries]
+        result = {}
+        for entry in entries:
+            if entry is None:
+                continue
+            proposition_data = included.get_data_for_relationship("proposition", entry)
+            topmost_data = included.get_data_for_relationship("topmost_goal", entry)
+            proposition = json_api.create_from_json_api_data(proposition_data, included)
+            topmost_goal = json_api.create_from_json_api_data(topmost_data, included)
+            turn_number = entry.get("attributes", {}).get("turn_number")
+            result[proposition] = (topmost_goal, turn_number)
+        return result
 
     def union(self, other):
         return self._backing_set.union(other)

@@ -1,6 +1,7 @@
 import copy
 
 from tala.utils.as_json import AsJSONMixin
+from tala.utils import json_api
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
 from tala.utils.equality import EqualityMixin
@@ -18,6 +19,32 @@ class Interpretation(AsJSONMixin, EqualityMixin):
 
     def as_dict(self):
         return self._moves.as_dict()
+
+    def as_json_api_dict(self, id_=None, type_="tala.model.openqueue.Interpretation"):
+        attributes = {
+            "utterance": self._utterance,
+            "default_perception_confidence": self._default_perception_confidence,
+        }
+        interpretation_obj = json_api.JSONAPIObject(type_, id_=id_, attributes=attributes)
+        interpretation_obj.add_relationship(
+            "moves",
+            self._moves.as_json_api_dict(type_="tdm.tis.openqueue"),
+        )
+        return interpretation_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if data is None:
+            return None
+        moves = included.get_data_for_relationship("moves", data)
+        if moves is None:
+            moves = OpenQueue()
+        else:
+            moves = OpenQueue.create_from_json_api_data(moves, included)
+        attributes = data.get("attributes", {})
+        utterance = attributes.get("utterance")
+        default_perception_confidence = attributes.get("default_perception_confidence")
+        return cls(moves, utterance, default_perception_confidence)
 
     def enqueue(self, element):
         self._moves.enqueue(element)
@@ -125,6 +152,34 @@ class OpenQueue(AsJSONMixin, AsSemanticExpressionMixin):
                 "unshifted_content": self._unshifted_content if self._unshifted_content else []
             }
         }
+
+    def as_json_api_dict(self, id_=None, type_="tdm.tis.openqueue"):
+        queue_obj = json_api.JSONAPIObject(type_, id_=id_)
+        queue_obj.add_relationship(
+            "front_content",
+            json_api.list_as_json_api_entry(self.front_content, id_=None, type_="tdm.tis.list"),
+        )
+        queue_obj.add_relationship(
+            "back_content",
+            json_api.list_as_json_api_entry(self.back_content, id_=None, type_="tdm.tis.list"),
+        )
+        queue_obj.add_relationship(
+            "unshifted_content",
+            json_api.list_as_json_api_entry(self._unshifted_content or [], id_=None, type_="tdm.tis.list"),
+        )
+        return queue_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if data is None:
+            return cls()
+        front = included.get_data_for_relationship("front_content", data)
+        back = included.get_data_for_relationship("back_content", data)
+        unshifted = included.get_data_for_relationship("unshifted_content", data)
+        front_content = json_api.create_from_json_api_data(front, included) or []
+        back_content = json_api.create_from_json_api_data(back, included) or []
+        unshifted_content = json_api.create_from_json_api_data(unshifted, included) or []
+        return cls(front_content, back_content, unshifted_content)
 
     def enqueue(self, element):
         if element not in self:

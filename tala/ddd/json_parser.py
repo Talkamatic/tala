@@ -52,6 +52,7 @@ from tala.model.person_name import PersonName
 from tala.model.service_action_outcome import SuccessfulServiceAction, FailedServiceAction
 from tala.model.action_status import ActionStatus, Aborted, Done
 from tala.model.ddd import DDD
+from tala.model.query import create_query_from_dict
 from tala.ddd.services import service_interface
 from tala.ddd.services.service_interface import ServiceInterface, ServiceActionInterface
 
@@ -367,6 +368,15 @@ class JSONDomainParser():
         def is_iterator(query_content):
             return "limit" in query_content
 
+        def parse_implication(implication):
+            antecedent_data = implication.get("antecedent")
+            if isinstance(antecedent_data, list):
+                antecedent = PropositionSet([self.parser.parse(item) for item in antecedent_data])
+            else:
+                antecedent = self.parser.parse(antecedent_data)
+            consequent = self.parser.parse(implication.get("consequent"))
+            return ImplicationProposition(antecedent, consequent)
+
         def parse_iterator(iterator):
             result_dict = {}
             for key, value in iterator.items():
@@ -383,11 +393,14 @@ class JSONDomainParser():
             else:
                 query_dict = {}
                 for entry, semantic_objects in query.items():
+                    if entry == "implications":
+                        query_dict[entry] = [parse_implication(item) for item in semantic_objects]
+                        continue
                     try:
                         query_dict[entry] = self.parser.parse(semantic_objects)
                     except AttributeError:
                         query_dict[entry] = [self.parser.parse(item) for item in semantic_objects]
-            result_list.append(query_dict)
+            result_list.append(create_query_from_dict(query_dict))
         return result_list
 
 
@@ -548,6 +561,12 @@ class NonCheckingJSONParser():
             if condition_json.get(key):
                 argument = self.parse(condition_json[key])
                 return condition.create_condition(condition_json["type"], argument)
+        if condition_json.get("_conditions"):
+            arguments = [self.parse(item) for item in condition_json["_conditions"]]
+            return condition.create_condition(condition_json["type"], arguments)
+        if condition_json.get("_condition"):
+            argument = self.parse(condition_json["_condition"])
+            return condition.create_condition(condition_json["type"], argument)
         if condition_json.get("_query"):
             try:
                 argument = self.parse(condition_json["_query"])
@@ -795,7 +814,7 @@ class NonCheckingJSONParser():
         postconfirm = safe_get(data, "postconfirm", False)
         downdate_plan = safe_get(data, "downdate_plan")
         if downdate_plan is None:
-            downdate_plan = safe_get(data, "_downdate_plan", True)
+            downdate_plan = safe_get(data, "_downdate_plan", False)
         ontology_name = safe_get(data, "ontology") or safe_get(data, "ontology_name") or safe_get(
             data, "_ontology_name"
         )

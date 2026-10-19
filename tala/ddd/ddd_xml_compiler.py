@@ -22,10 +22,23 @@ from tala.model.plan import Plan
 from tala.model.polarity import Polarity
 from tala.model import plan_item
 from tala.model.predicate import Predicate
-from tala.model.proposition import GoalProposition, PropositionSet, PredicateProposition, ImplicationProposition
+from tala.model.proposition import (
+    GoalProposition,
+    PropositionSet,
+    PredicateProposition,
+    ImplicationProposition,
+    ServiceActionTerminatedProposition,
+    ServiceActionStartedProposition,
+    ActionStatusProposition,
+    QuestionStatusProposition,
+    ResolvednessProposition,
+    KnowledgePreconditionProposition,
+)
 from tala.model import condition
 from tala.model.question import AltQuestion, YesNoQuestion, KnowledgePreconditionQuestion
 from tala.model.action import Action
+from tala.model.action_status import Done, Aborted
+from tala.model.query import ImplicationQuery, EnumerationQuery, IteratorQuery
 
 from tala.model.sort import CustomSort, BuiltinSortRepository, UndefinedSort, BOOLEAN
 import tala.ddd.schemas
@@ -316,7 +329,7 @@ class DomainCompiler(XmlCompiler):
         elif default is not None:
             plan[attribute_name] = default
 
-    def _compile_query_content(self, query, element, question):
+    def _compile_query_content(self, question, element):
         def is_implication_query():
             return self._has_child_node(element, "implication")
 
@@ -327,17 +340,21 @@ class DomainCompiler(XmlCompiler):
             return self._has_child_node(element, "enumerate")
 
         if is_implication_query():
-            self._compile_implication_query(query, element)
-        elif is_randomized_query():
-            self._compile_randomized_query(query, element)
-        elif is_enumeration_query():
-            self._compile_enumeration_query(query, element)
+            implications = self._compile_implication_query(element)
+            return ImplicationQuery(question, implications)
+        if is_randomized_query():
+            propositions = self._compile_randomized_query(element)
+            return EnumerationQuery(question, "for_random_selection", propositions)
+        if is_enumeration_query():
+            enumeration_type, propositions = self._compile_enumeration_query(element)
+            return EnumerationQuery(question, enumeration_type, propositions)
         else:
             raise DDDXMLCompilerException(f"could not compile query for question {question}")
 
-    def _compile_implication_query(self, query, element):
+
+    def _compile_implication_query(self, element):
         implication_elements = self._find_child_nodes(element, "implication")
-        query["implications"] = self._compile_implications(implication_elements)
+        return self._compile_implications(implication_elements)
 
     def _compile_implications(self, elements):
         implication_items = [self._compile_implication(node) for node in elements]
@@ -354,24 +371,30 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_antecedent_child(self, element):
         children = self._find_child_nodes(element, "antecedent")
-        return self._compile_predicate_proposition(children[0])
+        antecedent = children[0]
+        proposition_nodes = self._find_child_nodes(antecedent, "proposition")
+        if proposition_nodes:
+            propositions = [self._compile_predicate_proposition(node) for node in proposition_nodes]
+            return PropositionSet(propositions)
+        return self._compile_predicate_proposition(antecedent)
 
-    def _compile_randomized_query(self, query, element):
+    def _compile_randomized_query(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
         element_containing_individuals = self._get_single_child_element(element, ["select_at_random"])
         individual_elements = self._find_child_nodes(element_containing_individuals, "individual")
-        query["for_random_selection"] = list(self._create_propositions(predicate_name, individual_elements))
+        return list(self._create_propositions(predicate_name, individual_elements))
 
-    def _compile_enumeration_query(self, query, element):
+    def _compile_enumeration_query(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
         enumerate_element = self._get_single_child_element(element, ["enumerate"])
         randomize = self._get_optional_attribute(enumerate_element, "randomize", "false")
         individual_elements = self._get_child_elements(enumerate_element, ["individual"])
 
         if randomize == "true":
-            query["for_random_enumeration"] = list(self._create_propositions(predicate_name, individual_elements))
+            enumeration_type = "for_random_enumeration"
         else:
-            query["for_enumeration"] = list(self._create_propositions(predicate_name, individual_elements))
+            enumeration_type = "for_enumeration"
+        return enumeration_type, list(self._create_propositions(predicate_name, individual_elements))
 
     def _create_propositions(self, predicate_name, individual_elements):
         predicate = self._ontology.get_predicate(predicate_name)
@@ -525,20 +548,10 @@ class DomainCompiler(XmlCompiler):
         return [plan_item.Bind(question, allow_binding_yn_answers=allow_binding_yn_answers)]
 
     def _compile_if_element(self, element):
-        def compile_condition():
-            try:
-                return self._compile_bare_proposition_element_as_condition(element)
-            except DDDXMLCompilerException:
-                pass
-            return self._compile_condition(element)
-
-        condition = compile_condition()
+        condition = self._compile_condition(element)
         consequent = self._compile_if_then_child_plan(element, "then")
         alternative = self._compile_if_then_child_plan(element, "else")
         return [plan_item.IfThenElse(condition, consequent, alternative)]
-
-    def _compile_bare_proposition_element_as_condition(self, element):
-        return self._compile_proposition_child_of(element)
 
     def _get_single_child_element(self, node, allowed_names):
         child_elements = [child for child in node.childNodes if child.localName in allowed_names]
@@ -603,7 +616,7 @@ class DomainCompiler(XmlCompiler):
             if element.hasAttribute("downdate_plan"):
                 return self._parse_boolean(element.getAttribute("downdate_plan"))
             else:
-                return True
+                return False
 
         action = self._get_mandatory_attribute(element, "name")
         preconfirm = self._parse_preconfirm_value(element.getAttribute("preconfirm"))
@@ -673,7 +686,7 @@ class DomainCompiler(XmlCompiler):
 
         predicate = self._ontology.get_predicate(predicate_name)
         proposition = PredicateProposition(predicate)
-        cond = condition.IsPrivateBelief(proposition)
+        cond = condition.InPrivateBeliefs(proposition)
 
         plan = [plan_item.Assume(proposition)] + self._compile_plan_item_nodes(element.childNodes)
 
@@ -724,13 +737,38 @@ class DomainCompiler(XmlCompiler):
             return self._parser.parse_preconfirm_value(string)
 
     def _compile_proposition_child_of(self, element):
-        child = self._get_single_child_element(element, ["proposition", "resolve", "perform"])
+        child = self._get_single_child_element(
+            element,
+            [
+                "proposition",
+                "resolve",
+                "perform",
+                "service_action_terminated",
+                "service_action_started",
+                "action_status",
+                "question_status",
+                "resolved",
+                "know_answer",
+            ],
+        )
         if child.localName == "proposition":
             return self._compile_predicate_proposition(child)
-        elif child.localName == "perform":
+        if child.localName == "perform":
             return self._compile_perform_proposition(child)
-        elif child.localName == "resolve":
+        if child.localName == "resolve":
             return self._compile_resolve_proposition(child)
+        if child.localName == "service_action_terminated":
+            return self._compile_service_action_terminated_proposition(child)
+        if child.localName == "service_action_started":
+            return self._compile_service_action_started_proposition(child)
+        if child.localName == "action_status":
+            return self._compile_action_status_proposition(child)
+        if child.localName == "question_status":
+            return self._compile_question_status_proposition(child)
+        if child.localName == "resolved":
+            return self._compile_resolvedness_proposition(child)
+        if child.localName == "know_answer":
+            return self._compile_knowledge_precondition_proposition(child)
 
     def _compile_predicate_proposition(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
@@ -746,41 +784,100 @@ class DomainCompiler(XmlCompiler):
             individual = None
         return PredicateProposition(predicate, individual)
 
+    def _compile_service_action_terminated_proposition(self, element):
+        action_name = self._get_mandatory_attribute(element, "name")
+        return ServiceActionTerminatedProposition(self._ontology.name, action_name)
+
+    def _compile_service_action_started_proposition(self, element):
+        action_name = self._get_mandatory_attribute(element, "name")
+        return ServiceActionStartedProposition(self._ontology.name, action_name)
+
+    def _compile_action_status_proposition(self, element):
+        action_name = self._get_mandatory_attribute(element, "action")
+        status_name = self._get_mandatory_attribute(element, "status")
+        action = self._ontology.create_action(action_name)
+        if status_name == "done":
+            status = Done()
+        elif status_name == "aborted":
+            reason = self._get_optional_attribute(element, "reason", default="")
+            status = Aborted(reason)
+        else:
+            raise DDDXMLCompilerException(f"Unknown action_status '{status_name}'")
+        return ActionStatusProposition(action, status)
+
+    def _compile_question_status_proposition(self, element):
+        status_name = self._get_mandatory_attribute(element, "status")
+        question_element = self._get_single_child_element(element, ["question"])
+        question = self._compile_question(question_element)
+        if status_name == "done":
+            status = Done()
+        elif status_name == "aborted":
+            reason = self._get_optional_attribute(element, "reason", default="")
+            status = Aborted(reason)
+        else:
+            raise DDDXMLCompilerException(f"Unknown question_status '{status_name}'")
+        return QuestionStatusProposition(question, status)
+
+    def _compile_resolvedness_proposition(self, element):
+        question_element = self._get_single_child_element(element, ["question"])
+        question = self._compile_question(question_element)
+        return ResolvednessProposition(question)
+
+    def _compile_knowledge_precondition_proposition(self, element):
+        question_element = self._get_single_child_element(element, ["question"])
+        question = self._compile_question(question_element)
+        return KnowledgePreconditionProposition(question, Polarity.POS)
+
     def _compile_condition(self, element):
         HAS_VALUE = "has_value"
         HAS_SHARED_VALUE = "has_shared_value"
         HAS_PRIVATE_VALUE = "has_private_value"
-        HAS_SHARED_OR_PRIVATE_VALUE = "has_shared_or_private_value"
-        IS_SHARED_COMMITMENT = "is_shared_commitment"
-        IS_PRIVATE_BELIEF = "is_private_belief"
-        IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT = "is_private_belief_or_shared_commitment"
-        IS_TRUE = "is_true"
+        IN_SHARED_COMMITMENTS = "in_shared_commitments"
+        IN_PRIVATE_BELIEFS = "in_private_beliefs"
+        IN_BELIEFS_OR_COMMITMENTS = "in_beliefs_or_commitments"
+        AND = "and"
+        OR = "or"
+        NOT = "not"
         QUERY_HAS_MORE_ITEMS = "has_more_items"
 
-        child = self._get_single_child_element(
-            element, [
-                HAS_VALUE, IS_TRUE, HAS_SHARED_VALUE, HAS_PRIVATE_VALUE, HAS_SHARED_OR_PRIVATE_VALUE,
-                IS_SHARED_COMMITMENT, IS_PRIVATE_BELIEF, IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT, QUERY_HAS_MORE_ITEMS
-            ]
-        )
-        if child.localName == HAS_VALUE:
-            return self._compile_has_value_condition(child)
-        elif child.localName == IS_TRUE:
-            return self._compile_is_true_condition(child)
-        elif child.localName == HAS_SHARED_VALUE:
-            return self._compile_has_shared_value_condition(child)
-        elif child.localName == HAS_PRIVATE_VALUE:
-            return self._compile_has_private_value_condition(child)
-        elif child.localName == HAS_SHARED_OR_PRIVATE_VALUE:
-            return self._compile_has_shared_or_private_value_condition(child)
-        elif child.localName == IS_SHARED_COMMITMENT:
-            return self._compile_is_shared_commitment_condition(child)
-        elif child.localName == IS_PRIVATE_BELIEF:
-            return self._compile_is_private_belief_condition(child)
-        elif child.localName == IS_PRIVATE_BELIEF_OR_SHARED_COMMITMENT:
-            return self._compile_is_private_belief_or_shared_commitment_condition(child)
-        elif child.localName == QUERY_HAS_MORE_ITEMS:
-            return self._compile_query_has_more_items_condition(child)
+        condition_elements = [
+            AND,
+            OR,
+            NOT,
+            HAS_VALUE,
+            HAS_SHARED_VALUE,
+            HAS_PRIVATE_VALUE,
+            IN_SHARED_COMMITMENTS,
+            IN_PRIVATE_BELIEFS,
+            IN_BELIEFS_OR_COMMITMENTS,
+            QUERY_HAS_MORE_ITEMS,
+        ]
+
+        child = self._get_single_child_element(element, condition_elements)
+        return self._compile_condition_expression(child)
+
+    def _compile_condition_expression(self, element):
+        if element.localName == "and":
+            return self._compile_and_condition(element)
+        if element.localName == "or":
+            return self._compile_or_condition(element)
+        if element.localName == "not":
+            return self._compile_not_condition(element)
+        if element.localName == "has_value":
+            return self._compile_has_value_condition(element)
+        if element.localName == "has_shared_value":
+            return self._compile_has_shared_value_condition(element)
+        if element.localName == "has_private_value":
+            return self._compile_has_private_value_condition(element)
+        if element.localName == "in_shared_commitments":
+            return self._compile_in_shared_commitments_condition(element)
+        if element.localName == "in_private_beliefs":
+            return self._compile_in_private_beliefs_condition(element)
+        if element.localName == "in_beliefs_or_commitments":
+            return self._compile_in_beliefs_or_commitments_condition(element)
+        if element.localName == "has_more_items":
+            return self._compile_query_has_more_items_condition(element)
+        raise DDDXMLCompilerException("Unknown condition type")
 
     def _compile_has_value_condition(self, element):
         predicate_name = self._get_mandatory_attribute(element, "predicate")
@@ -797,22 +894,14 @@ class DomainCompiler(XmlCompiler):
         predicate = self._ontology.get_predicate(predicate_name)
         return condition.HasPrivateValue(predicate)
 
-    def _compile_has_shared_or_private_value_condition(self, element):
-        predicate_name = self._get_mandatory_attribute(element, "predicate")
-        predicate = self._ontology.get_predicate(predicate_name)
-        return condition.HasSharedOrPrivateValue(predicate)
+    def _compile_in_shared_commitments_condition(self, element):
+        return self._compile_in_proposition_condition(element, condition.InSharedCommitments)
 
-    def _compile_is_shared_commitment_condition(self, element):
-        proposition = self._compile_predicate_proposition(element)
-        return condition.IsSharedCommitment(proposition)
+    def _compile_in_private_beliefs_condition(self, element):
+        return self._compile_in_proposition_condition(element, condition.InPrivateBeliefs)
 
-    def _compile_is_private_belief_condition(self, element):
-        proposition = self._compile_predicate_proposition(element)
-        return condition.IsPrivateBelief(proposition)
-
-    def _compile_is_private_belief_or_shared_commitment_condition(self, element):
-        proposition = self._compile_predicate_proposition(element)
-        return condition.IsPrivateBeliefOrSharedCommitment(proposition)
+    def _compile_in_beliefs_or_commitments_condition(self, element):
+        return self._compile_in_proposition_condition(element, condition.InBeliefsOrCommitments)
 
     def _compile_query_has_more_items_condition(self, element):
         if element.hasAttribute("predicate"):
@@ -821,10 +910,40 @@ class DomainCompiler(XmlCompiler):
             iterator = self._get_optional_attribute(element, "iterator")
         return condition.QueryHasMoreItems(iterator)
 
-    def _compile_is_true_condition(self, element):
-        child = self._get_single_child_element(element, ["proposition"])
-        proposition = self._compile_predicate_proposition(child)
-        return condition.IsTrue(proposition)
+    def _compile_in_proposition_condition(self, element, condition_cls):
+        if element.hasAttribute("predicate"):
+            proposition = self._compile_predicate_proposition(element)
+            return condition_cls(proposition)
+        proposition = self._compile_proposition_child_of(element)
+        return condition_cls(proposition)
+
+    def _compile_and_condition(self, element):
+        return condition.AndCondition(self._compile_condition_children(element))
+
+    def _compile_or_condition(self, element):
+        return condition.OrCondition(self._compile_condition_children(element))
+
+    def _compile_not_condition(self, element):
+        condition_elements = self._compile_condition_children(element)
+        if len(condition_elements) != 1:
+            raise DDDXMLCompilerException("<not> expects exactly one condition child")
+        return condition.NotCondition(condition_elements[0])
+
+    def _compile_condition_children(self, element):
+        condition_elements = [
+            "and",
+            "or",
+            "not",
+            "has_value",
+            "has_shared_value",
+            "has_private_value",
+            "in_shared_commitments",
+            "in_private_beliefs",
+            "in_beliefs_or_commitments",
+            "has_more_items",
+        ]
+        children = self._get_child_elements(element, condition_elements)
+        return [self._compile_condition_expression(child) for child in children]
 
     def _compile_perform_proposition(self, element):
         action_name = self._get_mandatory_attribute(element, "action")
@@ -919,25 +1038,23 @@ class DomainCompiler(XmlCompiler):
 
     def _compile_query_element(self, element):
         question = self._compile_question(element, "question_type")
-        query = {"query": question}
-        self._compile_query_content(query, element, question)
-        return query
+        return self._compile_query_content(question, element)
 
     def _compile_iterator_element(self, element):
         name = self._get_mandatory_attribute(element, "name")
-        iterator = {"query": name}
-        self._compile_enumeration_iterator(iterator, element)
-        return iterator
+        limit, enumeration_type, propositions = self._compile_enumeration_iterator(element)
+        return IteratorQuery(name, limit, enumeration_type, propositions)
 
-    def _compile_enumeration_iterator(self, query, element):
+    def _compile_enumeration_iterator(self, element):
         selection = self._get_single_child_element(element, ["enumerate"])
         randomize = self._get_optional_attribute(selection, "randomize", "false")
         limit = self._get_optional_attribute(selection, "limit", "-1")
-        query["limit"] = limit
         if randomize == "true":
-            query["for_random_enumeration"] = self._create_proposition_children_of(selection)
+            enumeration_type = "for_random_enumeration"
         else:
-            query["for_enumeration"] = self._create_proposition_children_of(selection)
+            enumeration_type = "for_enumeration"
+        propositions = self._create_proposition_children_of(selection)
+        return limit, enumeration_type, propositions
 
     def _create_proposition_children_of(self, parent):
         proposition_nodes = self._find_child_nodes(parent, "proposition")

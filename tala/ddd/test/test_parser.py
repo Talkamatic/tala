@@ -13,7 +13,7 @@ from tala.model.lambda_abstraction import LambdaAbstractedGoalProposition, \
 from tala.model.lambda_abstraction import LambdaAbstractedPredicateProposition
 from tala.model.speaker import USR, SYS, MODEL
 from tala.model.set import Set
-from tala.model import plan_item
+from tala.model import condition, plan_item
 from tala.model.move_base import (
     Ask,
     Greet,
@@ -698,7 +698,8 @@ class ParserTests(unittest.TestCase):
         string = "if dest_city(paris) then jumpto(perform(top)) else jumpto(perform(buy))"
         item = self.parse(string)
         expected_item = IfThenElse(
-            self.proposition_dest_city_paris, [JumpTo(PerformGoal(self.top_action))],
+            condition.InBeliefsOrCommitments(self.proposition_dest_city_paris),
+            [JumpTo(PerformGoal(self.top_action))],
             [JumpTo(PerformGoal(self.buy_action))]
         )
         self.assertEqual(expected_item, item)
@@ -708,7 +709,8 @@ class ParserTests(unittest.TestCase):
         item = self.parse(string)
 
         expected_item = IfThenElse(
-            ResolvednessProposition(self.dest_city_question), [JumpTo(PerformGoal(self.top_action))],
+            condition.InBeliefsOrCommitments(ResolvednessProposition(self.dest_city_question)),
+            [JumpTo(PerformGoal(self.top_action))],
             [JumpTo(PerformGoal(self.buy_action))]
         )
         self.assertEqual(expected_item, item)
@@ -718,7 +720,9 @@ class ParserTests(unittest.TestCase):
         item = self.parse(string)
 
         expected_item = IfThenElse(
-            ResolvednessProposition(self.dest_city_question), [JumpTo(PerformGoal(self.top_action))], []
+            condition.InBeliefsOrCommitments(ResolvednessProposition(self.dest_city_question)),
+            [JumpTo(PerformGoal(self.top_action))],
+            []
         )
         self.assertEqual(expected_item, item)
 
@@ -727,7 +731,9 @@ class ParserTests(unittest.TestCase):
         item = self.parse(string)
 
         expected_item = IfThenElse(
-            ResolvednessProposition(self.dest_city_question), [], [JumpTo(PerformGoal(self.top_action))]
+            condition.InBeliefsOrCommitments(ResolvednessProposition(self.dest_city_question)),
+            [],
+            [JumpTo(PerformGoal(self.top_action))]
         )
         self.assertEqual(expected_item, item)
 
@@ -786,11 +792,11 @@ class ParserTests(unittest.TestCase):
         item = self.parse("invoke_service_action(%s, %s)" % (service_action, params_string))
         self.assertTrue(item.has_interrogative_preconfirmation())
 
-    def test_invoke_service_action_downdate_plan_true_by_default(self):
+    def test_invoke_service_action_downdate_plan_false_by_default(self):
         params_string = "{}"
         service_action = "MakeReservation"
         item = self.parse("invoke_service_action(%s, %s)" % (service_action, params_string))
-        self.assertTrue(item.should_downdate_plan())
+        self.assertFalse(item.should_downdate_plan())
 
     def test_invoke_service_action_downdate_plan_overridable(self):
         params_string = "{downdate_plan=False}"

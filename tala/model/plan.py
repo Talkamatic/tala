@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 from tala.model.stack import Stack
 from tala import model
 from tala.model import plan_item
@@ -15,6 +18,17 @@ class UnableToDetermineOntologyException(Exception):
 class Plan(Stack, SemanticObject):
     @classmethod
     def create_from_json_api_data(cls, plan_data, included):
+        if plan_data.get("type") == "tala.model.plan" and "goal" not in plan_data.get("relationships", {}):
+            items = included.get_data_for_relationship("content", plan_data)
+            if items is None:
+                return Plan()
+            try:
+                items[0]
+            except (TypeError, KeyError, IndexError):
+                items = [items]
+            content = [plan_item.PlanItem.create_from_json_api_data(item, included) for item in items if item is not None]
+            return Plan(list(reversed(content)))
+
         def generate_plan_items():
             if "plan_content" in plan_data["relationships"]:
                 for plan_item_key in plan_data["relationships"]["plan_content"]["data"]:
@@ -87,9 +101,25 @@ class Plan(Stack, SemanticObject):
         return len(self._ontology_names) < 2
 
     def as_json_api_dict(
-        self, goal, preferred, accommodate_without_feedback, restart_on_completion, reraise_on_resume, max_answers,
-        alternatives_predicate, postplan, downdate_conditions, superactions, unrestricted_accommodation
+        self,
+        goal=None,
+        preferred=None,
+        accommodate_without_feedback=None,
+        restart_on_completion=None,
+        reraise_on_resume=None,
+        max_answers=None,
+        alternatives_predicate=None,
+        postplan=None,
+        downdate_conditions=None,
+        superactions=None,
+        unrestricted_accommodation=None,
     ):
+        if goal is None:
+            plan_obj = JSONAPIObject("tala.model.plan", self.json_api_id)
+            for item in reversed([plan_item_ for plan_item_ in self.iter_stack()]):
+                plan_obj.append_relationship("content", item.as_json_api_dict())
+            return plan_obj.as_dict
+
         def get_id():
             return f"{goal.ontology_name}:{goal.type_}:{goal.content}"
 
@@ -134,6 +164,12 @@ class Plan(Stack, SemanticObject):
             obj.append_relationship("superactions", superaction.as_json_api_dict())
 
         return obj.as_dict
+
+    @property
+    def json_api_id(self):
+        items = [item.json_api_id for item in self.iter_stack()]
+        payload_json = json.dumps(items, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        return f"tala.model.plan:{hashlib.sha1(payload_json.encode('ascii')).hexdigest()}"
 
     @property
     def ontology_name(self):

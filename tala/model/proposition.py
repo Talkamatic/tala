@@ -10,6 +10,7 @@ from tala.model.individual import Individual
 from tala.model.semantic_object import SemanticObject, OntologySpecificSemanticObject, SemanticObjectWithContent
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 from tala.utils.unicodify import unicodify
+from tala.utils import json_api
 from tala.utils.json_api import JSONAPIObject
 
 
@@ -76,6 +77,27 @@ class Proposition(SemanticObject, AsSemanticExpressionMixin):
         target_cls = globals().get(class_name)
 
         if target_cls is not None:
+            if target_cls.create_from_json_api_data == cls.create_from_json_api_data:
+                attributes = proposition_data.get("attributes", {})
+                if issubclass(target_cls, ControlProposition):
+                    return target_cls()
+                if issubclass(target_cls, PropositionWithSemanticContent):
+                    content_data = included.get_data_for_relationship("content", proposition_data)
+                    if content_data is None:
+                        content_data = included.get_data_for_relationship("prediction", proposition_data)
+                    content = json_api.create_from_json_api_data(content_data, included)
+                    polarity = attributes.get("polarity")
+                    if issubclass(target_cls, UnderstandingProposition):
+                        return target_cls(attributes.get("speaker"), content, polarity)
+                    if issubclass(target_cls, ActionStatusProposition):
+                        return target_cls(content, attributes.get("status"))
+                    if issubclass(target_cls, QuestionStatusProposition):
+                        return target_cls(content, attributes.get("status"))
+                    try:
+                        return target_cls(content, polarity)
+                    except TypeError:
+                        return target_cls(content)
+                return target_cls(attributes.get("type_"), attributes.get("polarity"))
             return target_cls.create_from_json_api_data(proposition_data, included)
         raise Exception(f"cannot instantiate object of class {class_name}")
 
@@ -226,7 +248,7 @@ class PropositionWithSemanticContent(Proposition, SemanticObjectWithContent):
 
     @property
     def json_api_relationships(self):
-        return []
+        return ["content"]
 
     @property
     def content(self):
@@ -455,7 +477,7 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
 
     @property
     def json_api_id(self):
-        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self._argument_set}"
+        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self._arguments}"
 
     @property
     def json_api_attributes(self):
@@ -463,7 +485,19 @@ class PreconfirmationProposition(Proposition, OntologySpecificSemanticObject):
 
     @property
     def json_api_relationships(self):
-        return ["argument_set"]
+        return ["arguments"]
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        arguments_data = included.get_data_for_relationship("arguments", data)
+        arguments = json_api.create_from_json_api_data(arguments_data, included) or []
+        attributes = data.get("attributes", {})
+        return cls(
+            attributes.get("ontology_name"),
+            attributes.get("service_action"),
+            arguments,
+            attributes.get("polarity"),
+        )
 
     def __eq__(self, other):
         try:
@@ -524,7 +558,7 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
 
     @property
     def json_api_id(self):
-        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self._arguments}"
+        return f"{self.ontology_name}:{self.type_}:{self.service_action}:{self.polarity}:{self.argument_set}"
 
     @property
     def json_api_attributes(self):
@@ -532,7 +566,14 @@ class PrereportProposition(Proposition, OntologySpecificSemanticObject):
 
     @property
     def json_api_relationships(self):
-        return ["_arguments"]
+        return ["arguments"]
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        arguments_data = included.get_data_for_relationship("arguments", data)
+        arguments = json_api.create_from_json_api_data(arguments_data, included) or []
+        attributes = data.get("attributes", {})
+        return cls(attributes.get("ontology_name"), attributes.get("service_action"), arguments)
 
     def __eq__(self, other):
         try:
@@ -603,6 +644,16 @@ class ServiceActionTerminatedProposition(Proposition, OntologySpecificSemanticOb
 
     def __repr__(self):
         return "%s(%r, %r, %r)" % (self.__class__.__name__, self.ontology_name, self.service_action, self.polarity)
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        _ = included
+        attributes = data.get("attributes", {})
+        return cls(
+            attributes.get("ontology_name"),
+            attributes.get("service_action"),
+            attributes.get("polarity"),
+        )
 
 
 class PredictedProposition(PropositionWithSemanticContent):
@@ -700,6 +751,26 @@ class ServiceResultProposition(Proposition, OntologySpecificSemanticObject):
     def json_api_relationships(self):
         return ["arguments", "result"]
 
+    def as_json_api_dict(self):
+        result_obj = JSONAPIObject(
+            self.json_api_type,
+            self.json_api_id,
+            {"service_action": self.service_action, "ontology_name": self.ontology_name},
+        )
+        result_obj.add_relationship("arguments", json_api.list_as_json_api_entry(self.arguments))
+        result_obj.add_relationship("result", json_api.as_json_api_entry(self.result))
+        return result_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        arguments_data = included.get_data_for_relationship("arguments", data)
+        result_data = included.get_data_for_relationship("result", data)
+        arguments = json_api.create_from_json_api_data(arguments_data, included) or []
+        result = json_api.create_from_json_api_data(result_data, included)
+        attributes = data.get("attributes", {})
+        service_action = attributes.get("service_action")
+        return cls(attributes.get("ontology_name"), service_action, arguments, result)
+
     def _manage_status(self, status):
         if not status:
             self.status = ServiceResultProposition.ENDED
@@ -793,6 +864,13 @@ class ServiceActionStartedProposition(Proposition, OntologySpecificSemanticObjec
             "ontology_name": self.ontology_name
         }
         return super().as_dict() | result
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        parameters_data = included.get_data_for_relationship("parameters", data)
+        parameters = json_api.create_from_json_api_data(parameters_data, included) or []
+        attributes = data.get("attributes", {})
+        return cls(attributes.get("ontology_name"), attributes.get("service_action"), parameters)
 
 
 class RejectedPropositions(PropositionWithSemanticContent):
@@ -906,6 +984,12 @@ class PropositionSet(Proposition):
                 return True
         return False
 
+    def is_true_given_proposition_set(self, proposition_set):
+        is_match = all(proposition in proposition_set for proposition in self.propositions)
+        if self.polarity == Polarity.NEG:
+            return not is_match
+        return is_match
+
     def __eq__(self, other):
         try:
             return (
@@ -980,6 +1064,10 @@ class UnderstandingProposition(PropositionWithSemanticContent):
     def speaker(self):
         return self._speaker
 
+    @property
+    def json_api_attributes(self):
+        return ["type_", "polarity", "speaker"]
+
     def __str__(self):
         return "und(%s, %s)" % (str(self._speaker), str(self._content))
 
@@ -991,6 +1079,14 @@ class UnderstandingProposition(PropositionWithSemanticContent):
             )
         except AttributeError:
             return False
+
+    @property
+    def json_api_id(self):
+        try:
+            content_id = self.content.json_api_id
+        except AttributeError:
+            content_id = str(self.content)
+        return f"{self.type_}:{self.polarity}:{self.speaker}:{content_id}"
 
     def __ne__(self, other):
         return not (self == other)
@@ -1014,6 +1110,14 @@ class ResolvednessProposition(PropositionWithSemanticContent):
 
     def __str__(self):
         return "resolved(%s)" % self.issue
+
+    @property
+    def json_api_id(self):
+        try:
+            issue_id = self.issue.json_api_id
+        except AttributeError:
+            issue_id = str(self.issue)
+        return f"{self.type_}:{self.polarity}:{issue_id}"
 
     def __eq__(self, other):
         try:
@@ -1052,7 +1156,40 @@ class KnowledgePreconditionProposition(PropositionWithSemanticContent):
         return hash(self.embedded_question)
 
 
+def _json_api_id_for_content(content):
+    try:
+        return f"{content.ontology_name}:{content.name}"
+    except AttributeError:
+        try:
+            return content.json_api_id
+        except AttributeError:
+            return str(content)
+
+
+def _json_api_id_for_status(status):
+    try:
+        return status.as_semantic_expression()
+    except AttributeError:
+        try:
+            return f"{status.__class__.__name__}:{status.reason}"
+        except AttributeError:
+            return str(status)
+
+
 class ActionStatusProposition(PropositionWithSemanticContent):
+    @classmethod
+    def create_from_json_api_data(cls, proposition_data, included):
+        content_data = included.get_data_for_relationship("content", proposition_data)
+        status_data = included.get_data_for_relationship("status", proposition_data)
+        content = json_api.create_from_json_api_data(content_data, included)
+        status = json_api.create_from_json_api_data(status_data, included)
+        attributes = proposition_data.get("attributes", {})
+        polarity = attributes.get("polarity")
+        instance = cls(content, status)
+        if polarity is not None:
+            instance._polarity = polarity
+        return instance
+
     def __init__(self, action, status):
         PropositionWithSemanticContent.__init__(self, Proposition.ACTION_STATUS, action)
         self._status = status
@@ -1064,6 +1201,20 @@ class ActionStatusProposition(PropositionWithSemanticContent):
     @property
     def action(self):
         return self.content
+
+    @property
+    def json_api_id(self):
+        action_id = _json_api_id_for_content(self.content)
+        status_id = _json_api_id_for_status(self.status)
+        return f"{self.type_}:{self.polarity}:{action_id}:{status_id}"
+
+    @property
+    def json_api_attributes(self):
+        return ["type_", "polarity"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content", "status"]
 
     def __eq__(self, other):
         try:
@@ -1079,6 +1230,19 @@ class ActionStatusProposition(PropositionWithSemanticContent):
 
 
 class QuestionStatusProposition(PropositionWithSemanticContent):
+    @classmethod
+    def create_from_json_api_data(cls, proposition_data, included):
+        content_data = included.get_data_for_relationship("content", proposition_data)
+        status_data = included.get_data_for_relationship("status", proposition_data)
+        content = json_api.create_from_json_api_data(content_data, included)
+        status = json_api.create_from_json_api_data(status_data, included)
+        attributes = proposition_data.get("attributes", {})
+        polarity = attributes.get("polarity")
+        instance = cls(content, status)
+        if polarity is not None:
+            instance._polarity = polarity
+        return instance
+
     def __init__(self, question, status):
         PropositionWithSemanticContent.__init__(self, Proposition.QUESTION_STATUS, question)
         self._status = status
@@ -1086,6 +1250,20 @@ class QuestionStatusProposition(PropositionWithSemanticContent):
     @property
     def status(self):
         return self._status
+
+    @property
+    def json_api_id(self):
+        question_id = _json_api_id_for_content(self.content)
+        status_id = _json_api_id_for_status(self.status)
+        return f"{self.type_}:{self.polarity}:{question_id}:{status_id}"
+
+    @property
+    def json_api_attributes(self):
+        return ["type_", "polarity"]
+
+    @property
+    def json_api_relationships(self):
+        return ["content", "status"]
 
     def __eq__(self, other):
         try:
@@ -1105,7 +1283,7 @@ class ImplicationProposition(PropositionWithSemanticContent):
     def create_from_json_api_data(cls, data, included):
         antecedent_entry = included.get_data_for_relationship("antecedent", data)
         consequent_entry = included.get_data_for_relationship("consequent", data)
-        antecedent = PredicateProposition.create_from_json_api_data(antecedent_entry, included)
+        antecedent = json_api.create_from_json_api_data(antecedent_entry, included)
         consequent = PredicateProposition.create_from_json_api_data(consequent_entry, included)
 
         return cls(antecedent, consequent)

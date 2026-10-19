@@ -1,4 +1,5 @@
 from tala.utils.as_json import AsJSONMixin
+from tala.utils import json_api
 from tala.utils.as_semantic_expression import AsSemanticExpressionMixin
 
 
@@ -21,6 +22,30 @@ class Set(AsSemanticExpressionMixin, AsJSONMixin):
         return {
             "set": self.content,
         }
+
+    def as_json_api_dict(self, id_=None, type_="tdm.tis.set"):
+        set_obj = json_api.JSONAPIObject(type_, id_=id_)
+        for item in self.content:
+            set_obj.append_relationship("content", json_api.as_json_api_entry(item))
+        return set_obj.as_dict
+
+    @classmethod
+    def create_from_json_api_data(cls, data, included):
+        if data is None:
+            return cls()
+        try:
+            items = included.get_data_for_relationship("content", data)
+        except AttributeError:
+            included = json_api.IncludedObject(included or [])
+            items = included.get_data_for_relationship("content", data)
+        if items is None:
+            return cls()
+        try:
+            items[0]
+        except (TypeError, KeyError, IndexError):
+            items = [items]
+        content = [json_api.create_from_json_api_data(item, included) for item in items if item is not None]
+        return cls(content)
 
     def __eq__(self, other):
         try:

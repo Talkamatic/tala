@@ -159,7 +159,7 @@
         ],
         "downdate_conditions": [
           {
-            "is_private_belief_or_shared_commitment": {
+            "in_beliefs_or_commitments": {
               "predicate": "dest_city",
               "value": "gothenburg"
             }
@@ -364,7 +364,7 @@
         ],
         "downdate_conditions": [
           {
-            "is_shared_commitment": {
+            "in_shared_commitments": {
               "predicate": "dest_city",
               "value": "gothenburg"
             }
@@ -391,6 +391,15 @@
             "invoke_service_action": {
               "name": "MakeRandomReservation",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "MakeRandomReservation"
+              }
             }
           }
         ],
@@ -434,6 +443,15 @@
             "invoke_service_action": {
               "name": "RegisterComment",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "RegisterComment"
+              }
             }
           }
         ],
@@ -531,7 +549,7 @@
         "reraise_on_resume": false,
         "downdate_conditions": [
           {
-            "is_shared_commitment": {
+            "in_shared_commitments": {
               "predicate": "member_type",
               "value": "gold"
             }
@@ -576,6 +594,15 @@
             "invoke_service_action": {
               "name": "AddPassengers",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "AddPassengers"
+              }
             }
           }
         ],
@@ -634,6 +661,15 @@
               "postconfirm": false
             }
           }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "CancelReservation"
+              }
+            }
+          }
         ]
       },
       {
@@ -657,6 +693,15 @@
               "name": "BookHousing",
               "preconfirm": "interrogative",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "BookHousing"
+              }
             }
           }
         ]
@@ -695,6 +740,15 @@
               "postconfirm": true
             }
           }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "BookHousing"
+              }
+            }
+          }
         ]
       },
       {
@@ -717,6 +771,15 @@
             "invoke_service_action": {
               "name": "ContactHost",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "ContactHost"
+              }
             }
           }
         ]
@@ -744,6 +807,15 @@
               "postconfirm": true
             }
           }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "BookHousing"
+              }
+            }
+          }
         ]
       },
       {
@@ -767,6 +839,15 @@
               "name": "BookHousing",
               "preconfirm": "interrogative",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "BookHousing"
+              }
             }
           }
         ]
@@ -809,6 +890,15 @@
             "invoke_service_action": {
               "name": "ShowOnMap",
               "postconfirm": true
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "ShowOnMap"
+              }
             }
           }
         ]
@@ -959,7 +1049,7 @@
           {
             "if": {
               "condition": {
-                "is_true": {
+                "in_beliefs_or_commitments": {
                   "predicate": "class",
                   "value": "business"
                 }
@@ -1008,7 +1098,7 @@
           {
             "if": {
               "condition": {
-                "is_true": {
+                "in_beliefs_or_commitments": {
                   "predicate": "dest_city",
                   "value": "paris"
                 }
@@ -1026,7 +1116,7 @@
                 {
                   "if": {
                     "condition": {
-                      "is_true": {
+                      "in_beliefs_or_commitments": {
                         "predicate": "dept_city",
                         "value": "gothenburg"
                       }
@@ -1060,6 +1150,26 @@
               ]
             }
           }
+        ],
+        "downdate_conditions": [
+          {
+            "or": [
+              {
+                "in_beliefs_or_commitments": {
+                  "service_action_terminated": {
+                    "name": "ShowOnMap"
+                  }
+                }
+              },
+              {
+                "in_beliefs_or_commitments": {
+                  "service_action_terminated": {
+                    "name": "MakeRandomReservation"
+                  }
+                }
+              }
+            ]
+          }
         ]
       },
       {
@@ -1083,6 +1193,15 @@
               "preconfirm": "interrogative"
             }
           }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "HandoverToHuman"
+              }
+            }
+          }
         ]
       },
       {
@@ -1104,6 +1223,15 @@
             "invoke_service_action": {
               "name": "HandoverToHuman",
               "preconfirm": "interrogative"
+            }
+          }
+        ],
+        "downdate_conditions": [
+          {
+            "in_beliefs_or_commitments": {
+              "service_action_terminated": {
+                "name": "HandoverToHuman"
+              }
             }
           }
         ]
@@ -1228,7 +1356,7 @@
           {
             "if": {
               "condition": {
-                "is_true": {
+                "in_beliefs_or_commitments": {
                   "predicate": "one_boolean_predicate"
                 }
               },
@@ -1257,7 +1385,7 @@
           {
             "if": {
               "condition": {
-                "is_true": {
+                "in_beliefs_or_commitments": {
                   "predicate": "other_boolean_predicate"
                 }
               },
