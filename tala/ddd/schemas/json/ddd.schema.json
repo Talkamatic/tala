@@ -17,9 +17,9 @@
       "type": "object",
       "properties": {
         "schema_version": {"type": "string"},
-        "ontology": {"$ref": "ontology.schema.json"},
-        "domain": {"$ref": "domain.schema.json"},
-        "service_interface": {"$ref": "service_interface.schema.json"}
+        "ontology": {"$ref": "ontology.schema.json#/$defs/ontology"},
+        "domain": {"$ref": "domain.schema.json#/$defs/domain"},
+        "service_interface": {"$ref": "service_interface.schema.json#/$defs/service_interface"}
       },
       "required": ["ontology", "domain", "service_interface"],
       "additionalProperties": false

@@ -120,8 +120,6 @@
           "additionalProperties": false
         },
         {
-<<<<<<< HEAD
-=======
           "required": ["kpq"],
           "properties": {
             "kpq": {"$ref": "#/$defs/kpq_question"}
@@ -129,7 +127,6 @@
           "additionalProperties": false
         },
         {
->>>>>>> f186a1296... NO-TASK: Support KPQ questions
           "required": ["yn"],
           "properties": {
             "yn": {"$ref": "#/$defs/yn_question"}
@@ -163,8 +160,6 @@
       },
       "additionalProperties": false
     },
-<<<<<<< HEAD
-=======
     "kpq_question": {
       "type": "object",
       "required": ["question"],
@@ -173,7 +168,6 @@
       },
       "additionalProperties": false
     },
->>>>>>> f186a1296... NO-TASK: Support KPQ questions
     "yn_question": {
       "type": "object",
       "oneOf": [
@@ -248,6 +242,9 @@
     "condition": {
       "type": "object",
       "oneOf": [
+        {"$ref": "#/$defs/and_condition"},
+        {"$ref": "#/$defs/or_condition"},
+        {"$ref": "#/$defs/not_condition"},
         {"$ref": "#/$defs/is_true"},
         {"$ref": "#/$defs/is_shared_fact"},
         {"$ref": "#/$defs/is_private_belief"},
@@ -257,8 +254,181 @@
         {"$ref": "#/$defs/has_shared_value"},
         {"$ref": "#/$defs/has_private_value"},
         {"$ref": "#/$defs/has_shared_or_private_value"},
+        {"$ref": "#/$defs/in_shared_commitments"},
+        {"$ref": "#/$defs/in_private_beliefs"},
+        {"$ref": "#/$defs/in_beliefs_or_commitments"},
         {"$ref": "#/$defs/has_more_items"}
       ]
+    },
+    "and_condition": {
+      "type": "object",
+      "required": ["and"],
+      "properties": {
+        "and": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/condition"},
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "or_condition": {
+      "type": "object",
+      "required": ["or"],
+      "properties": {
+        "or": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/condition"},
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "not_condition": {
+      "type": "object",
+      "required": ["not"],
+      "properties": {
+        "not": {"$ref": "#/$defs/condition"}
+      },
+      "additionalProperties": false
+    },
+    "in_shared_commitments": {
+      "type": "object",
+      "required": ["in_shared_commitments"],
+      "properties": {
+        "in_shared_commitments": {"$ref": "#/$defs/in_condition_payload"}
+      },
+      "additionalProperties": false
+    },
+    "in_private_beliefs": {
+      "type": "object",
+      "required": ["in_private_beliefs"],
+      "properties": {
+        "in_private_beliefs": {"$ref": "#/$defs/in_condition_payload"}
+      },
+      "additionalProperties": false
+    },
+    "in_beliefs_or_commitments": {
+      "type": "object",
+      "required": ["in_beliefs_or_commitments"],
+      "properties": {
+        "in_beliefs_or_commitments": {"$ref": "#/$defs/in_condition_payload"}
+      },
+      "additionalProperties": false
+    },
+    "in_condition_payload": {
+      "oneOf": [
+        {"$ref": "#/$defs/condition_proposition"},
+        {
+          "type": "object",
+          "required": ["proposition"],
+          "properties": {
+            "proposition": {"$ref": "#/$defs/condition_proposition"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "condition_proposition": {
+      "type": "object",
+      "oneOf": [
+        {"$ref": "#/$defs/predicate_proposition"},
+        {"$ref": "#/$defs/goal_proposition"},
+        {"$ref": "#/$defs/service_action_terminated"},
+        {"$ref": "#/$defs/service_action_started"},
+        {"$ref": "#/$defs/action_status"},
+        {"$ref": "#/$defs/question_status"},
+        {"$ref": "#/$defs/resolved"},
+        {"$ref": "#/$defs/know_answer"}
+      ]
+    },
+    "service_action_terminated": {
+      "type": "object",
+      "required": ["service_action_terminated"],
+      "properties": {
+        "service_action_terminated": {"$ref": "#/$defs/service_action_name"}
+      },
+      "additionalProperties": false
+    },
+    "service_action_started": {
+      "type": "object",
+      "required": ["service_action_started"],
+      "properties": {
+        "service_action_started": {"$ref": "#/$defs/service_action_name"}
+      },
+      "additionalProperties": false
+    },
+    "service_action_name": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "action_status": {
+      "type": "object",
+      "required": ["action_status"],
+      "properties": {
+        "action_status": {
+          "type": "object",
+          "required": ["action", "status"],
+          "properties": {
+            "action": {"type": "string"},
+            "status": {"enum": ["done", "aborted"]},
+            "reason": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "question_status": {
+      "type": "object",
+      "required": ["question_status"],
+      "properties": {
+        "question_status": {
+          "type": "object",
+          "required": ["question", "status"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"},
+            "status": {"enum": ["done", "aborted"]},
+            "reason": {"type": "string"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolved": {
+      "type": "object",
+      "required": ["resolved"],
+      "properties": {
+        "resolved": {
+          "type": "object",
+          "required": ["question"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "know_answer": {
+      "type": "object",
+      "required": ["know_answer"],
+      "properties": {
+        "know_answer": {
+          "type": "object",
+          "required": ["question"],
+          "properties": {
+            "question": {"$ref": "#/$defs/question"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     },
     "is_true": {
       "type": "object",
@@ -491,13 +661,7 @@
       "type": "object",
       "oneOf": [
         {"$ref": "#/$defs/predicate_proposition"},
-        {
-          "required": ["predicate"],
-          "properties": {
-            "predicate": {"type": "string"}
-          },
-          "additionalProperties": false
-        }
+        {"$ref": "#/$defs/goal_proposition"}
       ]
     },
     "invoke_service_query": {

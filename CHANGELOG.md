@@ -14,6 +14,7 @@ record before 12.0.0, see CHANGELOG.legacy.md.
 - Domain orchestration: require non-empty DDD name lists.
 - JSON:API: tighten serialization/deserialization and move move/plan support into model classes.
 - DDD conditions: add in_* condition names, boolean operators, and XML/JSON schema support.
+- DDD JSON: validate schemas and fixtures; align KPQ, condition, forget, and bundle definitions.
 - Downdate: remove implicit service-action downdating and allow non-predicate propositions in in_* conditions.
 
 ## Highlights since 12.0.0 (major changes only)
