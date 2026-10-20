@@ -127,7 +127,8 @@
   change, and 3) what the change did to address it. Use complete
   sentences and keep lines under 72 characters.
 - Avoid blank lines in commit message bodies.
-- Prefix bug fix headers with `FIX:` and include the task number.
+- Prefix bug fix headers with `FIX:`. Include a task number when one exists;
+  it is preferred but not required.
 
 ## Gerrit workflow
 - This repo uses Gerrit for code review.
