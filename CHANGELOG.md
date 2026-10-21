@@ -4,24 +4,38 @@ record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
 - DDD XML: ignore formatting whitespace in `forget` and `forget_shared`
-  proposition children.
-- CLI: remove the deprecated multi-command `tala` interface; `tala-interact` is
-  the only supported CLI entry point.
-- Docs: update CLI documentation to cover `tala-interact` only.
-- Changelog: archive historical entries in `CHANGELOG.legacy.md`.
-- Service: remove unused legacy constants module.
-- Cleanup: drop unused empty packages under `tala/service` and `bin`.
-- Domain orchestration: fix TIS auto log format detection and reduce payload duplication.
-- Domain orchestration: validate active DDD name and harden numeric coercion.
-- Domain orchestration: require non-empty DDD name lists.
-- JSON:API: tighten serialization/deserialization and move move/plan support into model classes.
-- DDD conditions: add in_* condition names, boolean operators, and XML/JSON schema support.
-- DDD JSON: validate schemas and fixtures; align KPQ, condition, forget, and bundle definitions.
-- Downdate: remove implicit service-action downdating and allow non-predicate propositions in in_* conditions.
+  proposition children. This fixes a compilation failure with normally
+  indented XML.
+
+## [31.0.1] - 2026-10-20
+- DDD JSON: validate definition schemas and fixtures; correct KPQ, condition,
+  forget, and bundle schema definitions.
+
+## [31.0.0] - 2026-10-19
+- CLI: remove the deprecated multi-command `tala` interface; use
+  `tala-interact` as the supported interaction command.
+- DDD JSON: add loading for bundled and separate component definitions, with
+  named component formats.
+- DDD language: add boolean and belief/commitment membership conditions, and
+  remove implicit service-action downdating in favor of explicit conditions.
+- DDD loading: add active-DDD validation, require non-empty DDD name lists, and
+  harden numeric coercion.
+- Serialization: expand JSON:API support for dialogue events, moves, plans, and
+  iterator state; tighten serialization and deserialization.
+- Orchestration: preserve the configured `AUTO` TIS log format and reduce
+  duplicated payload data.
+- Streaming: add connection timeouts and handle client setup failures without
+  leaving streamer workers blocked; run worker threads as daemons.
+- Configuration: update the default GPT model to `gpt-4o-2024-11-20` and let
+  test logging use `LOG_LEVEL` when no explicit level is provided.
+
+## [30.0.1] - 2026-05-08
+- JSON parsing: restore support for legacy `service_action` plan items and
+  service-result propositions.
 
 ## Highlights since 12.0.0 (major changes only)
 
-### 29.x-30.x (2026)
+### 29.x-31.x (2026)
 - Requestor improvements: caching, timeouts, reasoning effort, content-filter
   handling, JSON repair retry, and improved logging.
 - JSON:API hardening, DDD JSON/XML parity, and JSON bundle loading.
