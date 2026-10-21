@@ -3,6 +3,8 @@ This changelog is curated and focuses on major changes. For the full historical
 record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
+- DDD XML: ignore formatting whitespace in `forget` and `forget_shared`
+  proposition children.
 - CLI: remove the deprecated multi-command `tala` interface; `tala-interact` is
   the only supported CLI entry point.
 - Docs: update CLI documentation to cover `tala-interact` only.

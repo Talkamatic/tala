@@ -572,7 +572,7 @@ class DomainCompiler(XmlCompiler):
             predicate_name = self._get_mandatory_attribute(element, "predicate")
             predicate = self._ontology.get_predicate(predicate_name)
             return [plan_item.Forget(predicate)]
-        elif len(element.childNodes) == 1:
+        else:
             proposition = self._compile_proposition_child_of(element)
             return [plan_item.Forget(proposition)]
 
@@ -581,7 +581,7 @@ class DomainCompiler(XmlCompiler):
             predicate_name = self._get_mandatory_attribute(element, "predicate")
             predicate = self._ontology.get_predicate(predicate_name)
             return [plan_item.ForgetShared(predicate)]
-        elif len(element.childNodes) == 1:
+        else:
             proposition = self._compile_proposition_child_of(element)
             return [plan_item.ForgetShared(proposition)]
 

@@ -2054,6 +2054,27 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
 
         self._then_result_has_plan(Plan([self._parse("forget(means_of_transport(train))")]))
 
+    def test_forget_proposition_ignores_formatting_whitespace_and_comments(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        for plan_xml in (
+            """<forget>
+  <proposition predicate="means_of_transport" value="train"/>
+</forget>""",
+            """<!-- before --><forget> <!-- inside -->
+  <proposition predicate="means_of_transport" value="train"/>
+<!-- after child --></forget><!-- after -->""",
+        ):
+            self._when_compile_domain_with_plan(plan_xml)
+            self._then_result_has_plan(Plan([self._parse("forget(means_of_transport(train))")]))
+
     def test_forget_predicate(self):
         self._given_compiled_ontology(
             """
@@ -2082,6 +2103,27 @@ class TestPlanItemCompilation(DDDXMLCompilerTestCase):
         )
 
         self._then_result_has_plan(Plan([self._parse("forget_shared(means_of_transport(train))")]))
+
+    def test_forget_shared_proposition_ignores_formatting_whitespace_and_comments(self):
+        self._given_compiled_ontology(
+            """
+<ontology name="Ontology">
+  <sort name="how"/>
+  <predicate name="means_of_transport" sort="how"/>
+  <individual name="train" sort="how"/>
+</ontology>"""
+        )
+
+        for plan_xml in (
+            """<forget_shared>
+  <proposition predicate="means_of_transport" value="train"/>
+</forget_shared>""",
+            """<!-- before --><forget_shared> <!-- inside -->
+  <proposition predicate="means_of_transport" value="train"/>
+<!-- after child --></forget_shared><!-- after -->""",
+        ):
+            self._when_compile_domain_with_plan(plan_xml)
+            self._then_result_has_plan(Plan([self._parse("forget_shared(means_of_transport(train))")]))
 
     def test_forget_predicate_from_com(self):
         self._given_compiled_ontology(
