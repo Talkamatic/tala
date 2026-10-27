@@ -3,6 +3,8 @@ This changelog is curated and focuses on major changes. For the full historical
 record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
+- Requestor: forward strict JSON Schema response formats, expose completion
+  outcomes, and include output schemas in cache identity.
 - DDD XML: ignore formatting whitespace in `forget` and `forget_shared`
   proposition children. This fixes a compilation failure with normally
   indented XML.

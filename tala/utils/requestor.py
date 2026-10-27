@@ -180,6 +180,8 @@ def make_request(endpoint, json_request, read_timeout, logger):
 
 
 class GPTRequest:
+    supports_response_format = True
+
     def __init__(
         self,
         allow_caching=False,
@@ -196,10 +198,12 @@ class GPTRequest:
         request_id=None,
         reasoning_effort=None,
         read_timeout=None,
-        allow_json_repair=True
+        allow_json_repair=True,
+        response_format=None
     ):
         self.logger = logger if logger else setup_logger(__name__)
         self._request_id = request_id if request_id else str(uuid.uuid4())
+        self.response_format = response_format
         self._requestor_arguments = {
             "gpt_request": {
                 "messages": messages if messages else [],
@@ -216,6 +220,8 @@ class GPTRequest:
             "priority": priority,
             "request_id": self._request_id,
         }
+        if response_format is not None:
+            self._requestor_arguments["gpt_request"]["response_format"] = response_format
         self._read_timeout_base = READ_TIMEOUT_BASE
         self._read_timeout_per_token = READ_TIMEOUT_PER_TOKEN
         self._read_timeout_max = READ_TIMEOUT_MAX
@@ -266,6 +272,22 @@ class GPTRequest:
 
         self.logger.info("Returning default response", default_response=self.default_gpt_response)
         return self.default_gpt_response
+
+    @property
+    def completion_status(self):
+        self._done.wait()
+        try:
+            response_payload = self._response
+            status = response_payload.get("completion_status")
+            if status:
+                return status
+            if response_payload.get("status") == "filtered":
+                return "refused"
+            if response_payload.get("response_body") is not None:
+                return "completed"
+        except Exception:
+            pass
+        return "error"
 
     @property
     def json_response(self):

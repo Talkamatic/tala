@@ -12,6 +12,8 @@ class TestRequestorBaseClass:
         reasoning_effort=None,
         allow_caching=True,
         default_gpt_response="[]",
+        response_format=None,
+        allow_json_repair=True,
     ):
         msgs = messages if messages else []
         request_id = "some-request-id"
@@ -23,6 +25,8 @@ class TestRequestorBaseClass:
             reasoning_effort=reasoning_effort,
             allow_caching=allow_caching,
             default_gpt_response=default_gpt_response,
+            response_format=response_format,
+            allow_json_repair=allow_json_repair,
         )
 
     def when_request_is_made(self):
@@ -81,6 +85,37 @@ class TestMakeRequest(TestRequestorBaseClass):
                 'request_id': 'some-request-id'
             }
         ))
+
+    def test_structured_response_format_is_forwarded(self):
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "test_schema",
+                "strict": True,
+                "schema": {
+                    "type": "object"
+                }
+            },
+        }
+        self.given_gpt_request(response_format=response_format)
+
+        self.when_request_is_made()
+
+        self._then_request_is_done()
+        request_payload = self._gpt_request._response[1]["gpt_request"]
+        assert request_payload["response_format"] == response_format
+
+    def test_structured_request_can_disable_json_repair(self):
+        self.given_gpt_request(
+            use_json=True,
+            response_format={"type": "json_schema", "json_schema": {"name": "test"}},
+            allow_json_repair=False,
+        )
+        self._gpt_request._response = {"response_body": "not JSON"}
+        self._gpt_request._done.set()
+
+        assert self._gpt_request.json_response == []
+        assert not self._gpt_request._json_repair_attempted
 
     def then_request_call_is_done_with_response(self, expected_response):
         self._then_request_is_done()
@@ -458,6 +493,42 @@ class TestResponses(TestRequestorBaseClass):
         )
         self.when_request_is_made()
         self.then_json_response_is({"1": "a", "2": "b", "3": "c"})
+
+    @pytest.mark.parametrize("completion_status", ["completed", "truncated", "refused", "error"])
+    def test_completion_status_is_exposed(self, completion_status):
+        self.given_gpt_request(response_format={"type": "json_schema", "json_schema": {"name": "test"}})
+        self.given_mocked_requestor_response(
+            body={
+                "status": "success",
+                "response_body": "{}" if completion_status == "completed" else None,
+                "completion_status": completion_status,
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id",
+            },
+            status_code=200,
+        )
+
+        self.when_request_is_made()
+
+        assert self._gpt_request.completion_status == completion_status
+
+    def test_legacy_success_response_is_completed(self):
+        self.given_gpt_request()
+        self.given_mocked_requestor_response(
+            body={
+                "status": "success",
+                "response_body": "{}",
+                "deployment": "some-deployment",
+                "gpt_time_consumption": 1.25,
+                "request_id": "some-id",
+            },
+            status_code=200,
+        )
+
+        self.when_request_is_made()
+
+        assert self._gpt_request.completion_status == "completed"
 
     def given_mocked_requestor_response(self, status_code, body):
         self._requests_session_response = RequestorResponse(status_code, body)
