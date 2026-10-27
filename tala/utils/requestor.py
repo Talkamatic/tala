@@ -62,6 +62,12 @@ class GPTContentFilterError(Exception):
         self.error_payload = error_payload
 
 
+class GPTStructuredOutputError(Exception):
+    def __init__(self, request_id):
+        super().__init__("Structured GPT response was not valid JSON.")
+        self.request_id = request_id
+
+
 def _is_content_filter_error(error_payload):
     try:
         if error_payload.get("code") == "content_filter":
@@ -295,7 +301,13 @@ class GPTRequest:
             return json.loads(self.response)
         except GPTContentFilterError:
             raise
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as error:
+            if self.response_format is not None:
+                self.logger.error(
+                    "Structured GPT response was not valid JSON",
+                    request_id=self._request_id,
+                )
+                raise GPTStructuredOutputError(self._request_id) from error
             if self._allow_json_repair and not self._json_repair_attempted:
                 self._json_repair_attempted = True
                 current_max_tokens = self.max_tokens
