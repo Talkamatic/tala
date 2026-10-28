@@ -3,11 +3,17 @@ This changelog is curated and focuses on major changes. For the full historical
 record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
+
+## [31.1.0] - 2026-10-28
 - Requestor: forward strict JSON Schema response formats, expose completion
   outcomes, and include output schemas in cache identity.
+- Requestor: raise `GPTStructuredOutputError` for malformed structured JSON
+  instead of silently returning a default response.
+
+## [31.0.2] - 2026-10-21
 - DDD XML: ignore formatting whitespace in `forget` and `forget_shared`
   proposition children. This fixes a compilation failure with normally
-  indented XML.
+  indented XML; comments around the proposition child are also supported.
 
 ## [31.0.1] - 2026-10-20
 - DDD JSON: validate definition schemas and fixtures; correct KPQ, condition,
