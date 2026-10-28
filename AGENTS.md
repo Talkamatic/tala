@@ -4,8 +4,8 @@
 ## Mandatory Platform Release Policy
 
 - Follow `../AGENTS.md` for platform-wide release rules.
-- The assistant must never run `git push` to any ref. The user submits Gerrit
-  changes; Jenkins is the only permitted application-code deployment path.
+- Follow `../AGENTS.md` for the shared commit/amend and guarded Gerrit
+  review-push workflow. Jenkins remains the application-code release path.
 - With explicit user authorization, runtime model-selector app settings may be
   changed directly in Azure where Jenkins has no job for that operation.
 - Never publish application code directly with Azure CLI, Function Core Tools,
@@ -119,28 +119,9 @@
 - No Copilot instructions were found in `.github/copilot-instructions.md`.
 - Update `CHANGELOG.md` for user-facing changes.
 
-## Commit messages
-- Header: max 50 characters.
-- Body: 4-8 lines, each max 72 characters.
-- Body should be 4-8 lines of continuous prose (no bullets). It must
-  explain: 1) what was missing or risky before, 2) why this needed to
-  change, and 3) what the change did to address it. Use complete
-  sentences and keep lines under 72 characters.
-- Avoid blank lines in commit message bodies.
-- Prefix bug fix headers with `FIX:`. Include a task number when one exists;
-  it is preferred but not required.
-
-## Gerrit workflow
-- This repo uses Gerrit for code review.
-- The assistant must never run `git push`, including to `refs/for/master`.
-- The user submits changes through Gerrit; Jenkins performs deployments.
-- If you need to update the most recent commit, it is safe to use
-  `git commit --amend`.
-- To preserve an existing Change-Id when amending, use
-  `git commit --amend --no-edit`.
-- Detached HEAD is normal for Gerrit workflows; avoid creating
-  temporary branches unless explicitly requested.
-- Never push to `master` (any remote) or `azure-production/master`.
+## Commit and Gerrit workflow
+- Follow `../AGENTS.md` for the shared commit, amendment, and guarded Gerrit
+  review-push rules. Detached HEAD is normal for Gerrit workflows.
 
 ## When in doubt
 - Follow existing patterns in nearby files.
