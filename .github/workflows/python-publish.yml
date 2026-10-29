@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Upload Python Package
+name: Publish Tala to PyPI
 
 on:
   release:
@@ -14,26 +14,103 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: pypi-publish-tala
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-
+  publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tala/
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
-    - name: Build package
-      run: python -m build
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+      - name: Verify tagged revision passed required main tests
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git describe --tags --exact-match HEAD)" = "$RELEASE_TAG"
+          SOURCE_SHA=$(git rev-parse HEAD)
+          export SOURCE_SHA
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          commit = os.environ["SOURCE_SHA"]
+          url = f"https://api.github.com/repos/{repository}/actions/runs?head_sha={commit}&per_page=100"
+          request = Request(url, headers={
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "X-GitHub-Api-Version": "2022-11-28",
+          })
+          with urlopen(request, timeout=20) as response:
+              runs = json.load(response)["workflow_runs"]
+          tests_runs = [
+              run for run in runs
+              if run.get("name") == "tests"
+              and run.get("path") == ".github/workflows/tests.yml"
+              and run.get("head_sha") == commit
+              and run.get("head_branch") == "main"
+              and run.get("event") == "push"
+          ]
+          if not tests_runs:
+              raise SystemExit(f"No main-branch tests run exists for {commit}.")
+          latest_test = max(tests_runs, key=lambda run: run.get("created_at") or "")
+          if latest_test.get("status") != "completed" or latest_test.get("conclusion") != "success":
+              raise SystemExit(f"The latest main tests run has not succeeded for {commit}.")
+          print(f"Required main tests passed for {commit}.")
+          PY
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Install build tool
+        run: python -m pip install build==1.6.1
+      - name: Build release artifacts
+        run: python -m build --outdir dist
+      - name: Verify artifacts match release tag
+        run: |
+          python - <<'PY'
+          from email.parser import BytesParser
+          import glob
+          import os
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          expected = os.environ["RELEASE_TAG"].removeprefix("v")
+          files = glob.glob("dist/*.whl") + glob.glob("dist/*.tar.gz")
+          if len(files) != 2:
+              raise SystemExit(f"Expected exactly a wheel and source distribution, found {len(files)} files.")
+          for filename in files:
+              path = Path(filename)
+              if path.suffix == ".whl":
+                  with zipfile.ZipFile(path) as archive:
+                      metadata_file = next(name for name in archive.namelist() if name.endswith(".dist-info/METADATA"))
+                      metadata = BytesParser().parsebytes(archive.read(metadata_file))
+              else:
+                  with tarfile.open(path, "r:gz") as archive:
+                      metadata_file = next(member for member in archive.getmembers() if member.name.endswith("/PKG-INFO"))
+                      metadata = BytesParser().parsebytes(archive.extractfile(metadata_file).read())
+              if metadata.get("Name", "").lower() != "tala" or metadata.get("Version") != expected:
+                  raise SystemExit(f"{path.name} metadata does not match Tala release {expected}.")
+          print(f"Both Tala artifacts match release {expected}.")
+          PY
+      - name: Publish to PyPI with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          packages-dir: dist/
