@@ -29,9 +29,77 @@ jobs:
           python -m pip install --editable .
       - name: Build wheel and source distribution
         run: python -m build --outdir "$RUNNER_TEMP/tala-dist"
-      - name: Run Jenkins test profile
+      - name: Check wheel contents and source-test availability
+        env:
+          DIST_DIR: ${{ runner.temp }}/tala-dist
+        run: |
+          python - <<'PY'
+          from pathlib import PurePosixPath
+          import os
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          dist = Path(os.environ["DIST_DIR"])
+          wheel_path = next(dist.glob("*.whl"))
+          source_path = next(dist.glob("*.tar.gz"))
+          required = {
+              "tala/ddd/maker/templates/domain_template.xml",
+              "tala/ddd/schemas/domain.xsd",
+              "tala/ddd/schemas/ontology.xsd",
+              "tala/ddd/schemas/service_interface.xsd",
+              "tala/ddd/schemas/json/ddd.schema.json",
+              "tala/ddd/schemas/xs3p/xs3p.xsl",
+              "tala/ddd/schemas/xs3p/LICENSE.html",
+          }
+          with zipfile.ZipFile(wheel_path) as wheel:
+              members = set(wheel.namelist())
+              top_level_path = next(name for name in members if name.endswith(".dist-info/top_level.txt"))
+              top_level = wheel.read(top_level_path).decode("utf-8").split()
+              if top_level != ["tala"]:
+                  raise SystemExit(f"Unexpected wheel top-level packages: {top_level}")
+              forbidden = [
+                  name for name in members
+                  if name.startswith(("ddds/", "script/")) or "test" in PurePosixPath(name).parts
+              ]
+              if forbidden:
+                  raise SystemExit(f"Wheel contains non-runtime files: {forbidden[:10]}")
+              missing = required - members
+              if missing:
+                  raise SystemExit(f"Wheel is missing required runtime assets: {sorted(missing)}")
+
+          with tarfile.open(source_path, "r:gz") as source:
+              members = source.getnames()
+          if not any(name.endswith("/tala/model/test/test_action.py") for name in members):
+              raise SystemExit("Source distribution is missing package tests.")
+          print("Wheel contents and source-distribution tests are correct.")
+          PY
+      - name: Install wheel and smoke-test packaged assets
+        run: |
+          python -m pip install --no-deps --target "$RUNNER_TEMP/tala-wheel" "$RUNNER_TEMP"/tala-dist/*.whl
+          cd "$RUNNER_TEMP"
+          PYTHONPATH="$RUNNER_TEMP/tala-wheel" python - <<'PY'
+          from importlib.resources import files
+          from pathlib import Path
+          import os
+          import tala
+
+          installed_package = Path(tala.__file__).resolve()
+          wheel_package = (Path(os.environ["RUNNER_TEMP"]) / "tala-wheel" / "tala").resolve()
+          if not installed_package.is_relative_to(wheel_package):
+              raise SystemExit(f"Imported Tala from outside the built wheel: {installed_package}")
+          for asset in (
+              "ddd/maker/templates/domain_template.xml",
+              "ddd/schemas/json/ddd.schema.json",
+              "ddd/schemas/xs3p/xs3p.xsl",
+          ):
+              if not files("tala").joinpath(asset).is_file():
+                  raise SystemExit(f"Installed wheel is missing runtime asset {asset}")
+          print("Installed wheel imports and runtime assets are valid.")
+          PY
+      - name: Run package test suite
         run: python -m pytest tala
-      - name: Run Jenkins lint profile
+      - name: Run lint checks
         run: |
           python -m pylint tala
           python -m flake8 . --exclude ddds/,.eggs/

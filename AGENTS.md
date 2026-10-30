@@ -14,8 +14,10 @@
   tag's exact commit passed the required `main` tests.
 - Do not commit or expose PyPI tokens. Do not change the package's existing
   PyPI-facing metadata as part of the GitHub hosting migration.
-- Preserve Gerrit history and access during cutover validation; do not delete
-  or archive the old Gerrit project as part of this workflow.
+- GitHub `main` is the canonical Tala source. Treat Gerrit as a read-only
+  historical reference; do not submit further Gerrit changes.
+- Jenkins is not a Tala CI or release path. Use GitHub Actions for CI and the
+  authorized PyPI Trusted Publishing workflow for package releases.
 
 ## Environment
 - Always use the Python 3.11 virtual environment at `~/python_3_11_environment`.
@@ -45,7 +47,8 @@
   - `python -m pylint tala`
 - Run `flake8` clean before committing anything.
 - Run `python -m flake8 tala` before each commit.
-- Do not change CI/Jenkins flake8 excludes to account for editor backup/lock files; ignore those locally.
+- Do not change CI Flake8 excludes to account for editor backup/lock files;
+  ignore those locally.
 
 ## Format
 - YAPF (configured in `setup.cfg`):
