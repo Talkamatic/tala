@@ -3,6 +3,7 @@ This changelog is curated and focuses on major changes. For the full historical
 record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
+- Packaging: advertise and test Python 3.12 as the supported platform version.
 - Documentation: clarify Tala’s role, capabilities, installation, and service
   prerequisites; add a Requestor client guide and update repository metadata.
 

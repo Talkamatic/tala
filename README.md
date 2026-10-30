@@ -35,7 +35,7 @@ between platform components.
 
 ## Installation
 
-Tala currently targets Python 3.11. Install it from PyPI:
+Tala currently targets Python 3.12. Install it from PyPI:
 
 ```bash
 python -m pip install tala

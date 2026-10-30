@@ -20,12 +20,12 @@
   authorized PyPI Trusted Publishing workflow for package releases.
 
 ## Environment
-- Always use the Python 3.11 virtual environment at `~/python_3_11_environment`.
+- Use the shared Python 3.12 environment at `~/python_312_environment`.
 - Activate it before any command:
-  - `source ~/python_3_11_environment/bin/activate`
+  - `source ~/python_312_environment/bin/activate`
 
 ## Project snapshot
-- Package name: `tala` (Python 3.11).
+- Package name: `tala` (Python 3.12).
 - Tests use `pytest` with class-style tests in `tala/**/test`.
 - Lint/format: `flake8` and `yapf` configured in `setup.cfg`.
 - Dev tools listed in `requirements-dev.txt`.
