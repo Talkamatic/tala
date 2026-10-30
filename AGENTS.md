@@ -1,15 +1,21 @@
 # AGENTS.md
 # Guide for agentic coding tools in this repo.
 
-## Mandatory Platform Release Policy
+## GitHub review and package-release policy
 
-- Follow `../AGENTS.md` for platform-wide release rules.
-- Follow `../AGENTS.md` for the shared commit/amend and guarded Gerrit
-  review-push workflow. Jenkins remains the application-code release path.
-- With explicit user authorization, runtime model-selector app settings may be
-  changed directly in Azure where Jenkins has no job for that operation.
-- Never publish application code directly with Azure CLI, Function Core Tools,
-  ZipDeploy, Kudu/SCM Git, scripts, or direct APIs.
+- The canonical repository is `ordstrom-ai/tala`; use pull requests against
+  `main` and descriptive feature branches.
+- Use guarded GitHub commit, push, and pull-request workflows. GitHub commits
+  are ordinary commits; do not add Gerrit Change-Id footers.
+- Require the `tests` Actions check before merging changes to `main`.
+- Publish the existing PyPI package `tala` only from an explicitly authorized
+  GitHub Release. `.github/workflows/python-publish.yml` uses PyPI Trusted
+  Publishing from the `pypi` GitHub Environment and verifies that the release
+  tag's exact commit passed the required `main` tests.
+- Do not commit or expose PyPI tokens. Do not change the package's existing
+  PyPI-facing metadata as part of the GitHub hosting migration.
+- Preserve Gerrit history and access during cutover validation; do not delete
+  or archive the old Gerrit project as part of this workflow.
 
 ## Environment
 - Always use the Python 3.11 virtual environment at `~/python_3_11_environment`.
@@ -119,9 +125,8 @@
 - No Copilot instructions were found in `.github/copilot-instructions.md`.
 - Update `CHANGELOG.md` for user-facing changes.
 
-## Commit and Gerrit workflow
-- Follow `../AGENTS.md` for the shared commit, amendment, and guarded Gerrit
-  review-push rules. Detached HEAD is normal for Gerrit workflows.
+## Commit and GitHub workflow
+- Follow `../AGENTS.md` for platform-wide rules and guarded GitHub workflows.
 
 ## When in doubt
 - Follow existing patterns in nearby files.
