@@ -3,6 +3,8 @@ This changelog is curated and focuses on major changes. For the full historical
 record before 12.0.0, see CHANGELOG.legacy.md.
 
 ## Unreleased
+- Documentation: clarify Tala’s role, capabilities, installation, and service
+  prerequisites; add a Requestor client guide and update repository metadata.
 
 ## [31.1.0] - 2026-10-28
 - Requestor: forward strict JSON Schema response formats, expose completion
