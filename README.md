@@ -1,67 +1,85 @@
-This is a command line SDK for managing TDM-based dialogue domain descriptions (DDDs). For further information, see [talkamatic.se](http://talkamatic.se).
+# Tala
 
-# Installation
+**Tala is the Python library and developer toolkit used by the TDM dialogue
+platform.** It provides shared dialogue models, tools for working with dialogue
+domain descriptions, natural-language generation components, and clients for
+platform services.
 
-Install the latest version of Tala with pip:
+Tala is intended for developers building dialogue applications with TDM or
+extending components of the platform.
+
+## Tala and TDM
+
+TDM (Talkamatic Dialogue Manager) maintains the conversation state and decides
+how a dialogue proceeds.
+
+A **dialogue domain description (DDD)** defines the application-specific
+knowledge and behaviour used by TDM, including questions, actions, dialogue
+plans, and service interfaces. Tala provides Python representations and
+supporting tools for these descriptions and for the information exchanged
+between platform components.
+
+## What’s included
+
+- **Dialogue models** — Python representations of questions, propositions,
+  actions, plans, and other dialogue concepts.
+- **Domain-description tools** — Loading, compilation, and validation of DDDs in
+  supported formats.
+- **Natural-language generation** — Components for producing dialogue
+  utterances.
+- **Platform clients and utilities** — Integration with dialogue services and
+  the Requestor service for language-model requests.
+- **Interaction testing** — Utilities for testing dialogue interactions.
+- **Interactive command-line client** — `tala-interact`, for communicating with
+  a running dialogue service.
+
+## Installation
+
+Tala currently targets Python 3.11. Install it from PyPI:
 
 ```bash
-pip3 install tala
+python -m pip install tala
 ```
 
-# CLI
+Tala provides libraries and a client; installing it does not start a TDM
+dialogue service. Features that communicate with platform services require
+access to those services and the corresponding configuration.
 
-Tala ships a single CLI entry point: `tala-interact`.
+## Interact with a dialogue service
+
+Use `tala-interact` to connect to an existing dialogue interaction endpoint:
 
 ```bash
-tala-interact https://host/interact/<id>
-tala-interact https://host/interact/<id> --ddd my_ddd
+tala-interact "https://your-host/interact/your-id"
 ```
 
-# Requestor GPT API
+To specify a dialogue domain description:
 
-`GPTRequest` in `tala.utils.requestor` can pass an OpenAI-compatible
-`response_format` to Requestor. For example, strict JSON Schema output can be
-requested like this:
-
-```python
-from tala.utils.requestor import GPTRequest, GPTStructuredOutputError
-
-request = GPTRequest(
-    messages=[{"role": "user", "content": "Return the status."}],
-    model="gpt-6-luna-2026-09-22",
-    response_format={
-        "type": "json_schema",
-        "json_schema": {
-            "name": "status",
-            "strict": True,
-            "schema": {
-                "type": "object",
-                "properties": {"status": {"type": "string"}},
-                "required": ["status"],
-                "additionalProperties": False,
-            },
-        },
-    },
-)
-request.make()
-
-try:
-    result = request.json_response
-except GPTStructuredOutputError as error:
-    print(f"Invalid structured response for request {error.request_id}")
-else:
-    print(result)
-
-print(request.completion_status)
+```bash
+tala-interact "https://your-host/interact/your-id" --ddd my_ddd
 ```
 
-Accessing `json_response` waits for the request to finish and parses its JSON.
-Malformed JSON returned for a structured response raises
-`GPTStructuredOutputError`, which includes the request ID, rather than being
-replaced with the default response. `completion_status` exposes the Requestor
-status, such as `completed`, `truncated`, `refused`, `incomplete`, or `error`.
+Replace the example URL with the endpoint provided by your dialogue-service
+deployment. The service must be running and accessible from your machine.
 
-For generic JSON-mode requests, `allow_json_repair` controls the legacy retry
-that asks the model to repair invalid JSON. It defaults to `True`; set it to
-`False` to disable that retry. Structured responses raise
-`GPTStructuredOutputError` for malformed JSON instead of using generic repair.
+## Language-model requests
+
+Tala includes `GPTRequest`, a Python client for the platform’s **Requestor
+service**, which handles language-model requests. The client supports
+OpenAI-compatible response formats, including structured JSON Schema output,
+and reports completion status and errors for invalid structured responses.
+
+Using this client requires a configured Requestor endpoint and a model
+deployment available through that service. See the
+[Requestor client guide](https://github.com/ordstrom-ai/tala/blob/main/docs/requestor.md)
+for configuration and a complete example.
+
+## Documentation and support
+
+- [Platform documentation](https://docs.talkamatic.se)
+- [Source code](https://github.com/ordstrom-ai/tala)
+- [Issue tracker](https://github.com/ordstrom-ai/tala/issues)
+- [Release history](https://github.com/ordstrom-ai/tala/releases)
+
+For bug reports, include the Tala version, relevant platform component
+versions, and a minimal example where possible.

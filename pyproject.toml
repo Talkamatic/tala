@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 dynamic = ["version"]
 name = "tala"
-description = "Design dialogue domain descriptions (DDDs) for TDM"
+description = "Python library and developer toolkit for the TDM dialogue platform"
 readme = "README.md"
 authors = [
     { name = "Talkamatic", email = "dev@talkamatic.se" }
@@ -32,9 +32,9 @@ dependencies = [
 
 
 [project.urls]
-Homepage = "http://www.talkamatic.se"
+Homepage = "https://www.talkamatic.se"
 Documentation = "https://docs.talkamatic.se"
-Repository = "https://github.com/talkamatic/tala"
+Repository = "https://github.com/ordstrom-ai/tala"
 
 [project.scripts]
 tala-interact = "tala.cli.interact.console:main"
