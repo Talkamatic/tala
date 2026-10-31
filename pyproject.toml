@@ -14,7 +14,7 @@ authors = [
 keywords = ["tala", "tdm", "ddd", "ddds", "dialogue", "conversation", "AI"]
 classifiers = [
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
     "azure-data-tables==12.5.0",
